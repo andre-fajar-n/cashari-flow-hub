@@ -1,14 +1,37 @@
 
 import { useState } from "react";
+import { Navigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, Plus, TrendingUp, TrendingDown, Eye, EyeOff } from "lucide-react";
+import { Wallet, Plus, TrendingUp, TrendingDown, Eye, EyeOff, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const Dashboard = () => {
+  const { user, loading, signOut } = useAuth();
   const [showBalance, setShowBalance] = useState(true);
 
-  // Mock data - will be replaced with Supabase data
+  // Redirect to auth if not authenticated
+  if (!user && !loading) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Show loading while checking auth state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-blue-600">Loading...</div>
+      </div>
+    );
+  }
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success("Berhasil keluar!");
+  };
+
+  // Mock data - will be replaced with real Supabase data
   const totalBalance = 12500000;
   const monthlyIncome = 8500000;
   const monthlyExpense = 3200000;
@@ -35,12 +58,22 @@ const Dashboard = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Cashari</h1>
-            <p className="text-gray-600">Kelola keuangan Anda dengan mudah</p>
+            <p className="text-gray-600">Selamat datang, {user?.user_metadata?.name || user?.email}!</p>
           </div>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-            <Plus className="h-4 w-4 mr-2" />
-            Tambah Transaksi
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Plus className="h-4 w-4 mr-2" />
+              Tambah Transaksi
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleSignOut}
+              className="text-gray-600 hover:text-gray-900"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Keluar
+            </Button>
+          </div>
         </div>
 
         {/* Balance Cards */}
