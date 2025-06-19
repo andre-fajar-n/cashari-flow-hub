@@ -183,7 +183,7 @@ const WalletManagement = () => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Kelola Dompet</CardTitle>
-        <Button onClick={() => setIsAdding(true)} disabled={isAdding || editingWallet}>
+        <Button onClick={() => setIsAdding(true)} disabled={isAdding || editingWallet === null}>
           <Plus className="w-4 h-4 mr-2" />
           Tambah Dompet
         </Button>

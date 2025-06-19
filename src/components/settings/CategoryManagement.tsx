@@ -170,7 +170,7 @@ const CategoryManagement = () => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Kelola Kategori</CardTitle>
-        <Button onClick={() => setIsAdding(true)} disabled={isAdding || editingCategory}>
+        <Button onClick={() => setIsAdding(true)} disabled={isAdding || editingCategory === null}>
           <Plus className="w-4 h-4 mr-2" />
           Tambah Kategori
         </Button>
