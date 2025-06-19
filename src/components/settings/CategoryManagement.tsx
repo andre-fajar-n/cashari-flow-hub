@@ -170,13 +170,17 @@ const CategoryManagement = () => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Kelola Kategori</CardTitle>
-        <Button onClick={() => setIsAdding(true)} disabled={isAdding || editingCategory !== null}>
-          <Plus className="w-4 h-4 mr-2" />
-          Tambah Kategori
-        </Button>
+        {
+          (!isAdding && !editingCategory) && 
+          <Button onClick={() => setIsAdding(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Tambah Kategori
+          </Button>
+        }
       </CardHeader>
       <CardContent>
-        {(isAdding || editingCategory) ? (
+        {
+          (isAdding || editingCategory) ? (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mb-6 p-4 border rounded-lg">
               <div className="grid grid-cols-2 gap-4">

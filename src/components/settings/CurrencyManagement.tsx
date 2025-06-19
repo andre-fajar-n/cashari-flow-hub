@@ -122,10 +122,12 @@ const CurrencyManagement = () => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Kelola Mata Uang</CardTitle>
-        <Button onClick={() => setIsAdding(true)} disabled={isAdding}>
-          <Plus className="w-4 h-4 mr-2" />
-          Tambah Mata Uang
-        </Button>
+        {!isAdding && (
+          <Button onClick={() => setIsAdding(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Tambah Mata Uang
+          </Button>
+        )}
       </CardHeader>
       <CardContent>
         {isAdding ? 
