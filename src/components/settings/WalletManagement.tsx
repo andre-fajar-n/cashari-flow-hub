@@ -183,14 +183,14 @@ const WalletManagement = () => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Kelola Dompet</CardTitle>
-        <Button onClick={() => setIsAdding(true)} disabled={isAdding || editingWallet === null}>
+        <Button onClick={() => setIsAdding(true)} disabled={isAdding || editingWallet !== null}>
           <Plus className="w-4 h-4 mr-2" />
           Tambah Dompet
         </Button>
       </CardHeader>
       <CardContent>
-        {(isAdding || editingWallet) && (
-          <Form {...form}>
+        {(isAdding || editingWallet) ? 
+        <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mb-6 p-4 border rounded-lg">
               <div className="grid grid-cols-3 gap-4">
                 <FormField
@@ -263,8 +263,7 @@ const WalletManagement = () => {
               </div>
             </form>
           </Form>
-        )}
-
+        :
         <Table>
           <TableHeader>
             <TableRow>
@@ -302,6 +301,7 @@ const WalletManagement = () => {
             ))}
           </TableBody>
         </Table>
+        }
       </CardContent>
     </Card>
   );

@@ -128,7 +128,7 @@ const CurrencyManagement = () => {
         </Button>
       </CardHeader>
       <CardContent>
-        {isAdding && (
+        {isAdding ? 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mb-6 p-4 border rounded-lg">
               <div className="grid grid-cols-3 gap-4">
@@ -189,8 +189,7 @@ const CurrencyManagement = () => {
               </div>
             </form>
           </Form>
-        )}
-
+        :
         <Table>
           <TableHeader>
             <TableRow>
@@ -224,6 +223,7 @@ const CurrencyManagement = () => {
             ))}
           </TableBody>
         </Table>
+        }
       </CardContent>
     </Card>
   );
