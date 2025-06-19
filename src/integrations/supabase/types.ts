@@ -882,7 +882,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      initialize_missing_user_data: {
+        Args: { user_uuid?: string }
+        Returns: undefined
+      }
     }
     Enums: {
       category_application: "transaction" | "investment"
