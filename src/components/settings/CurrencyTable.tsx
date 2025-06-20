@@ -36,7 +36,7 @@ const CurrencyTable = ({
             <TableHead className="min-w-[80px]">Kode</TableHead>
             <TableHead className="min-w-[120px]">Nama</TableHead>
             <TableHead className="min-w-[80px]">Symbol</TableHead>
-            <TableHead className="min-w-[80px]">Default</TableHead>
+            <TableHead className="min-w-[100px]">Default</TableHead>
             <TableHead className="min-w-[120px]">Aksi</TableHead>
           </TableRow>
         </TableHeader>
@@ -48,16 +48,21 @@ const CurrencyTable = ({
               <TableCell>{currency.symbol}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  {currency.is_default ? "Ya" : "Tidak"}
-                  {!currency.is_default && (
+                  {currency.is_default ? (
+                    <div className="flex items-center gap-1 text-yellow-600">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <span className="text-sm font-medium">Default</span>
+                    </div>
+                  ) : (
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       onClick={() => onSetDefault(currency.code)}
                       disabled={setDefaultLoading}
-                      className="h-6 w-6 p-0"
+                      className="h-8 px-3 text-xs"
                     >
-                      <Star className="w-3 h-3" />
+                      <Star className="w-3 h-3 mr-1" />
+                      Set Default
                     </Button>
                   )}
                 </div>
