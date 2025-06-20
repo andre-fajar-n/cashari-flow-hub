@@ -88,7 +88,7 @@ const CurrencyTable = ({
                           <AlertDialogTitle>Hapus Mata Uang</AlertDialogTitle>
                           <AlertDialogDescription>
                             Apakah Anda yakin ingin menghapus mata uang {currency.name}? 
-                            Pastikan mata uang ini tidak digunakan di transaksi atau dompet manapun.
+                            Pastikan mata uang ini tidak digunakan di manapun.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>

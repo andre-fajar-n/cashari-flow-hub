@@ -106,41 +106,22 @@ export const useCurrencyOperations = () => {
     },
   });
 
-  const checkCurrencyUsage = async (currencyCode: string) => {
-    // Check if currency is used in transactions
-    const { data: transactions } = await supabase
-      .from("transactions")
-      .select("id")
-      .eq("currency_code", currencyCode)
-      .eq("user_id", user?.id)
-      .limit(1);
-
-    // Check if currency is used in wallets
-    const { data: wallets } = await supabase
-      .from("wallets")
-      .select("id")
-      .eq("currency_code", currencyCode)
-      .eq("user_id", user?.id)
-      .limit(1);
-
-    return (transactions && transactions.length > 0) || (wallets && wallets.length > 0);
-  };
-
   const deleteMutation = useMutation({
     mutationFn: async (code: string) => {
-      // Check if currency is being used
-      const isUsed = await checkCurrencyUsage(code);
-      if (isUsed) {
-        throw new Error("Mata uang ini sedang digunakan di transaksi atau dompet. Hapus terlebih dahulu transaksi dan dompet yang menggunakan mata uang ini.");
-      }
-
       const { error } = await supabase
         .from("currencies")
         .delete()
         .eq("code", code)
         .eq("user_id", user?.id);
 
-      if (error) throw error;
+      if (error) {
+        switch (error.code) {
+          case "23503":
+            throw new Error("Mata uang ini sedang digunakan. Hapus terlebih dahulu semua data yang menggunakan mata uang ini.");
+          default:
+            throw error;
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["currencies"] });
