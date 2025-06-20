@@ -53,7 +53,7 @@ const WalletManagement = () => {
         .from("wallets")
         .select("*")
         .eq("user_id", user?.id)
-        .order("created_at");
+        .order("name");
 
       if (error) throw error;
       return data as Wallet[];
