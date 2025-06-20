@@ -10,11 +10,12 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Navbar from "@/components/Navbar";
 import DebtDialog from "@/components/debt/DebtDialog";
 import { useToast } from "@/hooks/use-toast";
+import type { Database } from '@/integrations/supabase/types';
 
 interface Debt {
   id: number;
   name: string;
-  type: string;
+  type: Database["public"]["Enums"]["debt_type"];
   currency_code: string;
   due_date: string;
   created_at: string;
@@ -109,11 +110,11 @@ const Debt = () => {
                           <h3 className="font-semibold">{debt.name}</h3>
                           <div className="flex items-center gap-4 mt-1">
                             <span className={`text-xs px-2 py-1 rounded ${
-                              debt.type === 'debt' 
+                              debt.type === 'loan' 
                                 ? 'bg-red-100 text-red-800' 
                                 : 'bg-green-100 text-green-800'
                             }`}>
-                              {debt.type === 'debt' ? 'Hutang' : 'Piutang'}
+                              {debt.type === 'loan' ? 'Hutang' : 'Piutang'}
                             </span>
                             <span className="text-sm text-gray-600">{debt.currency_code}</span>
                           </div>

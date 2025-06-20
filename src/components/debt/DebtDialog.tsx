@@ -9,10 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import type { Database } from '@/integrations/supabase/types';
 
 interface DebtFormData {
   name: string;
-  type: "debt" | "receivable";
+  type: Database["public"]["Enums"]["debt_type"];
   currency_code: string;
   due_date: string;
 }
@@ -33,7 +34,7 @@ const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) =>
   const form = useForm<DebtFormData>({
     defaultValues: {
       name: debt?.name || "",
-      type: debt?.type || "debt",
+      type: debt?.type || "loan",
       currency_code: debt?.currency_code || "IDR",
       due_date: debt?.due_date || "",
     },
@@ -138,8 +139,8 @@ const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) =>
                   <FormLabel>Tipe</FormLabel>
                   <FormControl>
                     <select {...field} className="w-full p-2 border rounded-md">
-                      <option value="debt">Hutang</option>
-                      <option value="receivable">Piutang</option>
+                      <option value="loan">Hutang</option>
+                      <option value="borrowed">Piutang</option>
                     </select>
                   </FormControl>
                   <FormMessage />
