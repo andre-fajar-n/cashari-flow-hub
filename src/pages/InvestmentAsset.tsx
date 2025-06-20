@@ -60,10 +60,12 @@ const InvestmentAsset = () => {
                 <CardTitle>Aset Investasi</CardTitle>
                 <p className="text-gray-600">Kelola aset investasi dalam instrumen Anda</p>
               </div>
-              <Button onClick={() => setIsAdding(true)} className="w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                Tambah Aset
-              </Button>
+              {assets.length > 0 && (
+                <Button onClick={() => setIsAdding(true)} className="w-full sm:w-auto">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Tambah Aset
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
               {assets && assets.length > 0 ? (

@@ -53,10 +53,12 @@ const Debt = () => {
                 <CardTitle>Manajemen Hutang</CardTitle>
                 <p className="text-gray-600">Kelola hutang dan piutang Anda</p>
               </div>
-              <Button onClick={() => setIsAdding(true)} className="w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                Tambah Hutang
-              </Button>
+              {debts.length > 0 && (
+                <Button onClick={() => setIsAdding(true)} className="w-full sm:w-auto">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Tambah Hutang
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
               {debts && debts.length > 0 ? (

@@ -54,10 +54,12 @@ const Budget = () => {
                 <CardTitle>Manajemen Budget</CardTitle>
                 <p className="text-gray-600">Kelola anggaran keuangan Anda</p>
               </div>
-              <Button onClick={() => setIsAdding(true)} className="w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                Tambah Budget
-              </Button>
+              {budgets.length > 0 && (
+                <Button onClick={() => setIsAdding(true)} className="w-full sm:w-auto">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Tambah Budget
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
               {budgets && budgets.length > 0 ? (

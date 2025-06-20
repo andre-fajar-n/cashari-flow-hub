@@ -53,10 +53,12 @@ const BusinessProject = () => {
                 <CardTitle>Proyek Bisnis</CardTitle>
                 <p className="text-gray-600">Kelola proyek bisnis dan investasi Anda</p>
               </div>
-              <Button onClick={() => setIsAdding(true)} className="w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                Tambah Proyek
-              </Button>
+              {projects.length > 0 && (
+                <Button onClick={() => setIsAdding(true)} className="w-full sm:w-auto">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Tambah Proyek
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
               {projects && projects.length > 0 ? (

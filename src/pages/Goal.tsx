@@ -56,10 +56,12 @@ const Goal = () => {
                 <CardTitle>Target Keuangan</CardTitle>
                 <p className="text-gray-600">Kelola target dan tujuan keuangan Anda</p>
               </div>
-              <Button onClick={() => setIsAdding(true)} className="w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                Tambah Target
-              </Button>
+              {goals.length > 0 && (
+                <Button onClick={() => setIsAdding(true)} className="w-full sm:w-auto">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Tambah Target
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
               {goals && goals.length > 0 ? (
