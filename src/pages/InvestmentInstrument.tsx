@@ -1,13 +1,15 @@
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp } from "lucide-react";
+import { Plus, TrendingUp, Edit, Trash2 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Navbar from "@/components/Navbar";
+import InvestmentInstrumentDialog from "@/components/investment/InvestmentInstrumentDialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface InvestmentInstrument {
   id: number;
@@ -19,7 +21,10 @@ interface InvestmentInstrument {
 
 const InvestmentInstrument = () => {
   const { user } = useAuth();
-  const [isAdding, setIsAdding] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedInstrument, setSelectedInstrument] = useState<InvestmentInstrument | undefined>(undefined);
 
   const { data: instruments, isLoading } = useQuery({
     queryKey: ["investment_instruments"],
@@ -35,6 +40,40 @@ const InvestmentInstrument = () => {
     },
     enabled: !!user,
   });
+
+  const handleEdit = (instrument: InvestmentInstrument) => {
+    setSelectedInstrument(instrument);
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (instrument: InvestmentInstrument) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus instrumen "${instrument.name}"?`)) return;
+
+    try {
+      const { error } = await supabase
+        .from("investment_instruments")
+        .delete()
+        .eq("id", instrument.id)
+        .eq("user_id", user?.id);
+
+      if (error) throw error;
+      
+      toast({ title: "Instrumen berhasil dihapus" });
+      queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
+    } catch (error) {
+      console.error("Error deleting instrument:", error);
+      toast({ 
+        title: "Error", 
+        description: "Gagal menghapus instrumen",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleAddNew = () => {
+    setSelectedInstrument(undefined);
+    setIsDialogOpen(true);
+  };
 
   if (isLoading) {
     return <div className="text-center py-4">Loading...</div>;
@@ -52,8 +91,8 @@ const InvestmentInstrument = () => {
                 <CardTitle>Instrumen Investasi</CardTitle>
                 <p className="text-gray-600">Kelola jenis instrumen investasi Anda</p>
               </div>
-              {instruments.length > 0 && (
-                <Button onClick={() => setIsAdding(true)} className="w-full sm:w-auto">
+              {instruments && instruments.length > 0 && (
+                <Button onClick={handleAddNew} className="w-full sm:w-auto">
                   <Plus className="w-4 h-4 mr-2" />
                   Tambah Instrumen
                 </Button>
@@ -87,8 +126,22 @@ const InvestmentInstrument = () => {
                         </div>
                         <div className="flex gap-2">
                           <Button variant="outline" size="sm">Assets</Button>
-                          <Button variant="outline" size="sm">Edit</Button>
-                          <Button variant="outline" size="sm">Hapus</Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleEdit(instrument)}
+                          >
+                            <Edit className="w-3 h-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDelete(instrument)}
+                          >
+                            <Trash2 className="w-3 h-3 mr-1" />
+                            Hapus
+                          </Button>
                         </div>
                       </div>
                     </Card>
@@ -97,7 +150,7 @@ const InvestmentInstrument = () => {
               ) : (
                 <div className="text-center py-8">
                   <p className="text-gray-500">Belum ada instrumen investasi yang dibuat</p>
-                  <Button onClick={() => setIsAdding(true)} className="mt-4">
+                  <Button onClick={handleAddNew} className="mt-4">
                     <Plus className="w-4 h-4 mr-2" />
                     Tambah Instrumen Pertama
                   </Button>
@@ -107,6 +160,15 @@ const InvestmentInstrument = () => {
           </Card>
         </div>
       </div>
+
+      <InvestmentInstrumentDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        instrument={selectedInstrument}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
+        }}
+      />
     </ProtectedRoute>
   );
 };

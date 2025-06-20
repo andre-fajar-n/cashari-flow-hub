@@ -1,13 +1,15 @@
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar } from "lucide-react";
+import { Plus, Calendar, Edit, Trash2 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Navbar from "@/components/Navbar";
+import BusinessProjectDialog from "@/components/business-project/BusinessProjectDialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface BusinessProject {
   id: number;
@@ -20,7 +22,10 @@ interface BusinessProject {
 
 const BusinessProject = () => {
   const { user } = useAuth();
-  const [isAdding, setIsAdding] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<BusinessProject | undefined>(undefined);
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ["business_projects"],
@@ -36,6 +41,40 @@ const BusinessProject = () => {
     },
     enabled: !!user,
   });
+
+  const handleEdit = (project: BusinessProject) => {
+    setSelectedProject(project);
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (project: BusinessProject) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus proyek "${project.name}"?`)) return;
+
+    try {
+      const { error } = await supabase
+        .from("business_projects")
+        .delete()
+        .eq("id", project.id)
+        .eq("user_id", user?.id);
+
+      if (error) throw error;
+      
+      toast({ title: "Proyek berhasil dihapus" });
+      queryClient.invalidateQueries({ queryKey: ["business_projects"] });
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      toast({ 
+        title: "Error", 
+        description: "Gagal menghapus proyek",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleAddNew = () => {
+    setSelectedProject(undefined);
+    setIsDialogOpen(true);
+  };
 
   if (isLoading) {
     return <div className="text-center py-4">Loading...</div>;
@@ -53,8 +92,8 @@ const BusinessProject = () => {
                 <CardTitle>Proyek Bisnis</CardTitle>
                 <p className="text-gray-600">Kelola proyek bisnis dan investasi Anda</p>
               </div>
-              {projects.length > 0 && (
-                <Button onClick={() => setIsAdding(true)} className="w-full sm:w-auto">
+              {projects && projects.length > 0 && (
+                <Button onClick={handleAddNew} className="w-full sm:w-auto">
                   <Plus className="w-4 h-4 mr-2" />
                   Tambah Proyek
                 </Button>
@@ -85,9 +124,22 @@ const BusinessProject = () => {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm">Detail</Button>
-                          <Button variant="outline" size="sm">Edit</Button>
-                          <Button variant="outline" size="sm">Hapus</Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleEdit(project)}
+                          >
+                            <Edit className="w-3 h-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDelete(project)}
+                          >
+                            <Trash2 className="w-3 h-3 mr-1" />
+                            Hapus
+                          </Button>
                         </div>
                       </div>
                     </Card>
@@ -96,7 +148,7 @@ const BusinessProject = () => {
               ) : (
                 <div className="text-center py-8">
                   <p className="text-gray-500">Belum ada proyek bisnis yang dibuat</p>
-                  <Button onClick={() => setIsAdding(true)} className="mt-4">
+                  <Button onClick={handleAddNew} className="mt-4">
                     <Plus className="w-4 h-4 mr-2" />
                     Buat Proyek Pertama
                   </Button>
@@ -106,6 +158,15 @@ const BusinessProject = () => {
           </Card>
         </div>
       </div>
+
+      <BusinessProjectDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        project={selectedProject}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["business_projects"] });
+        }}
+      />
     </ProtectedRoute>
   );
 };

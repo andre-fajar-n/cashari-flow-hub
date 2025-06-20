@@ -1,13 +1,15 @@
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Edit, Trash2 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Navbar from "@/components/Navbar";
+import BudgetDialog from "@/components/budget/BudgetDialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface Budget {
   id: number;
@@ -21,7 +23,10 @@ interface Budget {
 
 const Budget = () => {
   const { user } = useAuth();
-  const [isAdding, setIsAdding] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedBudget, setSelectedBudget] = useState<Budget | undefined>(undefined);
 
   const { data: budgets, isLoading } = useQuery({
     queryKey: ["budgets"],
@@ -37,6 +42,40 @@ const Budget = () => {
     },
     enabled: !!user,
   });
+
+  const handleEdit = (budget: Budget) => {
+    setSelectedBudget(budget);
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (budget: Budget) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus budget "${budget.name}"?`)) return;
+
+    try {
+      const { error } = await supabase
+        .from("budgets")
+        .delete()
+        .eq("id", budget.id)
+        .eq("user_id", user?.id);
+
+      if (error) throw error;
+      
+      toast({ title: "Budget berhasil dihapus" });
+      queryClient.invalidateQueries({ queryKey: ["budgets"] });
+    } catch (error) {
+      console.error("Error deleting budget:", error);
+      toast({ 
+        title: "Error", 
+        description: "Gagal menghapus budget",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleAddNew = () => {
+    setSelectedBudget(undefined);
+    setIsDialogOpen(true);
+  };
 
   if (isLoading) {
     return <div className="text-center py-4">Loading...</div>;
@@ -54,8 +93,8 @@ const Budget = () => {
                 <CardTitle>Manajemen Budget</CardTitle>
                 <p className="text-gray-600">Kelola anggaran keuangan Anda</p>
               </div>
-              {budgets.length > 0 && (
-                <Button onClick={() => setIsAdding(true)} className="w-full sm:w-auto">
+              {budgets && budgets.length > 0 && (
+                <Button onClick={handleAddNew} className="w-full sm:w-auto">
                   <Plus className="w-4 h-4 mr-2" />
                   Tambah Budget
                 </Button>
@@ -77,8 +116,22 @@ const Budget = () => {
                           </p>
                         </div>
                         <div className="flex gap-2">
-                          <Button variant="outline" size="sm">Edit</Button>
-                          <Button variant="outline" size="sm">Hapus</Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleEdit(budget)}
+                          >
+                            <Edit className="w-3 h-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDelete(budget)}
+                          >
+                            <Trash2 className="w-3 h-3 mr-1" />
+                            Hapus
+                          </Button>
                         </div>
                       </div>
                     </Card>
@@ -87,7 +140,7 @@ const Budget = () => {
               ) : (
                 <div className="text-center py-8">
                   <p className="text-gray-500">Belum ada budget yang dibuat</p>
-                  <Button onClick={() => setIsAdding(true)} className="mt-4">
+                  <Button onClick={handleAddNew} className="mt-4">
                     <Plus className="w-4 h-4 mr-2" />
                     Buat Budget Pertama
                   </Button>
@@ -97,6 +150,15 @@ const Budget = () => {
           </Card>
         </div>
       </div>
+
+      <BudgetDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        budget={selectedBudget}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["budgets"] });
+        }}
+      />
     </ProtectedRoute>
   );
 };

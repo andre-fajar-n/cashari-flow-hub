@@ -1,0 +1,172 @@
+
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useQueryClient } from "@tanstack/react-query";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
+
+interface InstrumentFormData {
+  name: string;
+  unit_label: string;
+  is_trackable: boolean;
+}
+
+interface InvestmentInstrumentDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  instrument?: any;
+  onSuccess?: () => void;
+}
+
+const InvestmentInstrumentDialog = ({ open, onOpenChange, instrument, onSuccess }: InvestmentInstrumentDialogProps) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm<InstrumentFormData>({
+    defaultValues: {
+      name: instrument?.name || "",
+      unit_label: instrument?.unit_label || "",
+      is_trackable: instrument?.is_trackable ?? true,
+    },
+  });
+
+  const onSubmit = async (data: InstrumentFormData) => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      if (instrument) {
+        // Update existing instrument
+        const { error } = await supabase
+          .from("investment_instruments")
+          .update({
+            name: data.name,
+            unit_label: data.unit_label,
+            is_trackable: data.is_trackable,
+          })
+          .eq("id", instrument.id)
+          .eq("user_id", user.id);
+
+        if (error) throw error;
+        toast({ title: "Instrumen berhasil diperbarui" });
+      } else {
+        // Create new instrument
+        const { error } = await supabase
+          .from("investment_instruments")
+          .insert({
+            user_id: user.id,
+            name: data.name,
+            unit_label: data.unit_label,
+            is_trackable: data.is_trackable,
+          });
+
+        if (error) throw error;
+        toast({ title: "Instrumen berhasil ditambahkan" });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
+      onOpenChange(false);
+      form.reset();
+      onSuccess?.();
+    } catch (error) {
+      console.error("Error saving instrument:", error);
+      toast({ 
+        title: "Error", 
+        description: "Gagal menyimpan instrumen",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>
+            {instrument ? "Edit Instrumen Investasi" : "Tambah Instrumen Investasi Baru"}
+          </DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              rules={{ required: "Nama instrumen harus diisi" }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nama Instrumen</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Masukkan nama instrumen" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="unit_label"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Label Unit</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Contoh: lembar, lot, unit" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="is_trackable"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      Dapat Dilacak
+                    </FormLabel>
+                    <p className="text-sm text-gray-600">
+                      Apakah nilai instrumen ini dapat dilacak atau dimonitor?
+                    </p>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => onOpenChange(false)}
+              >
+                Batal
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Menyimpan..." : instrument ? "Update" : "Simpan"}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default InvestmentInstrumentDialog;

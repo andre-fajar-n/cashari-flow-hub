@@ -1,13 +1,15 @@
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar } from "lucide-react";
+import { Plus, Calendar, Edit, Trash2 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Navbar from "@/components/Navbar";
+import DebtDialog from "@/components/debt/DebtDialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface Debt {
   id: number;
@@ -20,7 +22,10 @@ interface Debt {
 
 const Debt = () => {
   const { user } = useAuth();
-  const [isAdding, setIsAdding] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedDebt, setSelectedDebt] = useState<Debt | undefined>(undefined);
 
   const { data: debts, isLoading } = useQuery({
     queryKey: ["debts"],
@@ -36,6 +41,40 @@ const Debt = () => {
     },
     enabled: !!user,
   });
+
+  const handleEdit = (debt: Debt) => {
+    setSelectedDebt(debt);
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (debt: Debt) => {
+    if (!confirm(`Apakah Anda yakin ingin menghapus "${debt.name}"?`)) return;
+
+    try {
+      const { error } = await supabase
+        .from("debts")
+        .delete()
+        .eq("id", debt.id)
+        .eq("user_id", user?.id);
+
+      if (error) throw error;
+      
+      toast({ title: "Data berhasil dihapus" });
+      queryClient.invalidateQueries({ queryKey: ["debts"] });
+    } catch (error) {
+      console.error("Error deleting debt:", error);
+      toast({ 
+        title: "Error", 
+        description: "Gagal menghapus data",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleAddNew = () => {
+    setSelectedDebt(undefined);
+    setIsDialogOpen(true);
+  };
 
   if (isLoading) {
     return <div className="text-center py-4">Loading...</div>;
@@ -53,8 +92,8 @@ const Debt = () => {
                 <CardTitle>Manajemen Hutang</CardTitle>
                 <p className="text-gray-600">Kelola hutang dan piutang Anda</p>
               </div>
-              {debts.length > 0 && (
-                <Button onClick={() => setIsAdding(true)} className="w-full sm:w-auto">
+              {debts && debts.length > 0 && (
+                <Button onClick={handleAddNew} className="w-full sm:w-auto">
                   <Plus className="w-4 h-4 mr-2" />
                   Tambah Hutang
                 </Button>
@@ -87,8 +126,22 @@ const Debt = () => {
                         </div>
                         <div className="flex gap-2">
                           <Button variant="outline" size="sm">History</Button>
-                          <Button variant="outline" size="sm">Edit</Button>
-                          <Button variant="outline" size="sm">Hapus</Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleEdit(debt)}
+                          >
+                            <Edit className="w-3 h-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleDelete(debt)}
+                          >
+                            <Trash2 className="w-3 h-3 mr-1" />
+                            Hapus
+                          </Button>
                         </div>
                       </div>
                     </Card>
@@ -97,7 +150,7 @@ const Debt = () => {
               ) : (
                 <div className="text-center py-8">
                   <p className="text-gray-500">Belum ada data hutang/piutang</p>
-                  <Button onClick={() => setIsAdding(true)} className="mt-4">
+                  <Button onClick={handleAddNew} className="mt-4">
                     <Plus className="w-4 h-4 mr-2" />
                     Tambah Data Pertama
                   </Button>
@@ -107,6 +160,15 @@ const Debt = () => {
           </Card>
         </div>
       </div>
+
+      <DebtDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        debt={selectedDebt}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["debts"] });
+        }}
+      />
     </ProtectedRoute>
   );
 };
