@@ -81,10 +81,12 @@ const CurrencyManagement = () => {
     <Card>
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <CardTitle>Kelola Mata Uang</CardTitle>
-        <Button onClick={() => setIsAdding(true)} disabled={isAdding} className="w-full sm:w-auto">
-          <Plus className="w-4 h-4 mr-2" />
-          Tambah Mata Uang
-        </Button>
+        {!isAdding && (
+          <Button onClick={() => setIsAdding(true)} disabled={isAdding} className="w-full sm:w-auto">
+            <Plus className="w-4 h-4 mr-2" />
+            Tambah Mata Uang
+          </Button>
+        )}
       </CardHeader>
       <CardContent>
         {isAdding ? (
