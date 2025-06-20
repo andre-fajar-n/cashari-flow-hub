@@ -3,13 +3,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { data: wallets } = useQuery({
     queryKey: ["wallets"],
@@ -55,26 +53,18 @@ const Dashboard = () => {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
         <div className="max-w-7xl mx-auto">
+          <Navbar />
+          
           {/* Header */}
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-gray-600">Selamat datang, {user?.email}</p>
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={() => navigate("/settings")} variant="outline">
-                Pengaturan
-              </Button>
-              <Button onClick={signOut} variant="destructive">
-                Keluar
-              </Button>
-            </div>
+          <div className="mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
+            <p className="text-gray-600">Selamat datang, {user?.email}</p>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Dompet</CardTitle>
@@ -111,7 +101,7 @@ const Dashboard = () => {
           </div>
 
           {/* Quick Overview */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <Card>
               <CardHeader>
                 <CardTitle>Dompet Saya</CardTitle>
@@ -123,7 +113,7 @@ const Dashboard = () => {
                 {wallets && wallets.length > 0 ? (
                   <div className="space-y-2">
                     {wallets.map((wallet) => (
-                      <div key={wallet.id} className="flex justify-between items-center p-2 border rounded">
+                      <div key={wallet.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-2 border rounded gap-2">
                         <span className="font-medium">{wallet.name}</span>
                         <span className="text-sm text-gray-600">
                           {wallet.currency_code} {wallet.initial_amount?.toLocaleString()}
@@ -148,7 +138,7 @@ const Dashboard = () => {
                 {categories && categories.length > 0 ? (
                   <div className="space-y-2">
                     {categories.slice(0, 5).map((category) => (
-                      <div key={category.id} className="flex justify-between items-center p-2 border rounded">
+                      <div key={category.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-2 border rounded gap-2">
                         <span className="font-medium">{category.name}</span>
                         <span className={`text-sm px-2 py-1 rounded ${
                           category.is_income 
