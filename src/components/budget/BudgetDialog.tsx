@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,7 +7,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 
@@ -47,7 +46,7 @@ const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogPro
     queryFn: async () => {
       const { data, error } = await supabase
         .from("currencies")
-        .select("code, name")
+        .select("code, name, is_default")
         .eq("user_id", user?.id);
       if (error) throw error;
       return data;
@@ -108,6 +107,31 @@ const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogPro
       setIsLoading(false);
     }
   };
+
+  const default_currency = currencies?.filter((currency) => currency.is_default === true)[0]?.code || "IDR";
+
+  // Reset form when budget prop changes or dialog opens/closes
+  useEffect(() => {
+    if (open) {
+      if (budget) {
+        form.reset({
+          name: budget.name || "",
+          amount: budget.amount || 0,
+          currency_code: budget.currency_code || default_currency,
+          start_date: budget.start_date || "",
+          end_date: budget.end_date || "",
+        });
+      } else {
+        form.reset({
+          name: "",
+          amount: 0,
+          currency_code: default_currency,
+          start_date: "",
+          end_date: "",
+        });
+      }
+    }
+  }, [budget, open, form]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

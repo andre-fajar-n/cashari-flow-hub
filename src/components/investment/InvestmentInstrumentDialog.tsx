@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -87,6 +87,25 @@ const InvestmentInstrumentDialog = ({ open, onOpenChange, instrument, onSuccess 
       setIsLoading(false);
     }
   };
+
+  // Reset form when instrument prop changes or dialog opens/closes
+  useEffect(() => {
+    if (open) {
+      if (instrument) {
+        form.reset({
+          name: instrument.name || "",
+          unit_label: instrument.unit_label || "",
+          is_trackable: instrument.is_trackable ?? false,
+        });
+      } else {
+        form.reset({
+          name: "",
+          unit_label: "",
+          is_trackable: false,
+        });
+      }
+    }
+  }, [instrument, open, form]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

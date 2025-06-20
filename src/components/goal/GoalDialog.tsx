@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -63,7 +63,7 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
     queryFn: async () => {
       const { data, error } = await supabase
         .from("currencies")
-        .select("code, name")
+        .select("code, name, is_default")
         .eq("user_id", user?.id);
       if (error) throw error;
       return data;
@@ -122,6 +122,29 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
       setIsLoading(false);
     }
   };
+
+  const default_currency = currencies?.filter((currency) => currency.is_default === true)[0]?.code || "IDR";
+
+  // Reset form when goal prop changes or dialog opens/closes
+  useEffect(() => {
+    if (open) {
+      if (goal) {
+        form.reset({
+          name: goal.name || "",
+          target_amount: goal.target_amount || 0,
+          currency_code: goal.currency_code || default_currency,
+          target_date: goal.target_date || "",
+        });
+      } else {
+        form.reset({
+          name: "",
+          target_amount: 0,
+          currency_code: default_currency,
+          target_date: "",
+        });
+      }
+    }
+  }, [goal, open, form]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

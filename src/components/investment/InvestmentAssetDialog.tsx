@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -99,6 +99,25 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
       setIsLoading(false);
     }
   };
+
+  // Reset form when asset prop changes or dialog opens/closes
+  useEffect(() => {
+    if (open) {
+      if (asset) {
+        form.reset({
+          name: asset.name || "",
+          symbol: asset.symbol || "",
+          instrument_id: asset.instrument_id || 0,
+        });
+      } else {
+        form.reset({
+          name: "",
+          symbol: "",
+          instrument_id: 0,
+        });
+      }
+    }
+  }, [asset, open, form]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
