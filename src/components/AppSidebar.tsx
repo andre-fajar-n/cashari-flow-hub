@@ -48,7 +48,7 @@ const AppSidebar = () => {
   return (
     <Sidebar>
       <SidebarHeader className="border-b px-6 py-4">
-        <h2 className="text-lg font-semibold">Financial App</h2>
+        <h2 className="text-lg font-semibold">Cashari</h2>
       </SidebarHeader>
       
       <SidebarContent>
