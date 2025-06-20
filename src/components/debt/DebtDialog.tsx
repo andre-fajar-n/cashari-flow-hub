@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { DEBT_TYPES } from "@/constants/enums";
 import type { Database } from '@/integrations/supabase/types';
 
 interface DebtFormData {
@@ -33,12 +34,33 @@ const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) =>
 
   const form = useForm<DebtFormData>({
     defaultValues: {
-      name: debt?.name || "",
-      type: debt?.type || "loan",
-      currency_code: debt?.currency_code || "IDR",
-      due_date: debt?.due_date || "",
+      name: "",
+      type: DEBT_TYPES.LOAN,
+      currency_code: "IDR",
+      due_date: "",
     },
   });
+
+  // Reset form when debt prop changes or dialog opens/closes
+  useEffect(() => {
+    if (open) {
+      if (debt) {
+        form.reset({
+          name: debt.name || "",
+          type: debt.type || DEBT_TYPES.LOAN,
+          currency_code: debt.currency_code || "IDR",
+          due_date: debt.due_date || "",
+        });
+      } else {
+        form.reset({
+          name: "",
+          type: DEBT_TYPES.LOAN,
+          currency_code: "IDR",
+          due_date: "",
+        });
+      }
+    }
+  }, [debt, open, form]);
 
   const { data: currencies } = useQuery({
     queryKey: ["currencies"],
@@ -139,8 +161,8 @@ const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) =>
                   <FormLabel>Tipe</FormLabel>
                   <FormControl>
                     <select {...field} className="w-full p-2 border rounded-md">
-                      <option value="loan">Hutang</option>
-                      <option value="borrowed">Piutang</option>
+                      <option value={DEBT_TYPES.LOAN}>Hutang</option>
+                      <option value={DEBT_TYPES.BORROWED}>Piutang</option>
                     </select>
                   </FormControl>
                   <FormMessage />

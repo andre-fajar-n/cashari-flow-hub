@@ -1,111 +1,121 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 
-interface ProjectFormData {
+interface GoalFormData {
   name: string;
-  description: string;
-  start_date: string;
-  end_date: string;
+  target_amount: number;
+  currency_code: string;
+  target_date: string;
 }
 
-interface BusinessProjectDialogProps {
+interface GoalDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  project?: any;
+  goal?: any;
   onSuccess?: () => void;
 }
 
-const BusinessProjectDialog = ({ open, onOpenChange, project, onSuccess }: BusinessProjectDialogProps) => {
+const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<ProjectFormData>({
+  const form = useForm<GoalFormData>({
     defaultValues: {
-      name: "",
-      description: "",
-      start_date: "",
-      end_date: "",
+      name: goal?.name || "",
+      target_amount: goal?.target_amount || "",
+      currency_code: goal?.currency_code || "IDR",
+      target_date: goal?.target_date || "",
     },
   });
 
-  // Reset form when project prop changes or dialog opens/closes
-  useEffect(() => {
-    if (open) {
-      if (project) {
-        form.reset({
-          name: project.name || "",
-          description: project.description || "",
-          start_date: project.start_date || "",
-          end_date: project.end_date || "",
-        });
-      } else {
-        form.reset({
-          name: "",
-          description: "",
-          start_date: "",
-          end_date: "",
-        });
-      }
+  // Reset form when goal prop changes
+  useState(() => {
+    if (goal) {
+      form.reset({
+        name: goal.name || "",
+        target_amount: goal.target_amount || "",
+        currency_code: goal.currency_code || "IDR",
+        target_date: goal.target_date || "",
+      });
+    } else {
+      form.reset({
+        name: "",
+        target_amount: "",
+        currency_code: "IDR",
+        target_date: "",
+      });
     }
-  }, [project, open, form]);
+  }, [goal, form]);
 
-  const onSubmit = async (data: ProjectFormData) => {
+  const { data: currencies } = useQuery({
+    queryKey: ["currencies"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("currencies")
+        .select("code, name")
+        .eq("user_id", user?.id);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const onSubmit = async (data: GoalFormData) => {
     if (!user) return;
     
     setIsLoading(true);
     try {
-      if (project) {
-        // Update existing project
+      if (goal) {
+        // Update existing goal
         const { error } = await supabase
-          .from("business_projects")
+          .from("goals")
           .update({
             name: data.name,
-            description: data.description,
-            start_date: data.start_date || null,
-            end_date: data.end_date || null,
+            target_amount: data.target_amount,
+            currency_code: data.currency_code,
+            target_date: data.target_date || null,
           })
-          .eq("id", project.id)
+          .eq("id", goal.id)
           .eq("user_id", user.id);
 
         if (error) throw error;
-        toast({ title: "Proyek berhasil diperbarui" });
+        toast({ title: "Target berhasil diperbarui" });
       } else {
-        // Create new project
+        // Create new goal
         const { error } = await supabase
-          .from("business_projects")
+          .from("goals")
           .insert({
             user_id: user.id,
             name: data.name,
-            description: data.description,
-            start_date: data.start_date || null,
-            end_date: data.end_date || null,
+            target_amount: data.target_amount,
+            currency_code: data.currency_code,
+            target_date: data.target_date || null,
           });
 
         if (error) throw error;
-        toast({ title: "Proyek berhasil ditambahkan" });
+        toast({ title: "Target berhasil ditambahkan" });
       }
 
-      queryClient.invalidateQueries({ queryKey: ["business_projects"] });
+      queryClient.invalidateQueries({ queryKey: ["goals"] });
       onOpenChange(false);
       form.reset();
       onSuccess?.();
     } catch (error) {
-      console.error("Error saving project:", error);
+      console.error("Error saving goal:", error);
       toast({ 
         title: "Error", 
-        description: "Gagal menyimpan proyek",
+        description: "Gagal menyimpan target",
         variant: "destructive"
       });
     } finally {
@@ -118,7 +128,7 @@ const BusinessProjectDialog = ({ open, onOpenChange, project, onSuccess }: Busin
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {project ? "Edit Proyek Bisnis" : "Tambah Proyek Bisnis Baru"}
+            {goal ? "Edit Target" : "Tambah Target Baru"}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -126,12 +136,12 @@ const BusinessProjectDialog = ({ open, onOpenChange, project, onSuccess }: Busin
             <FormField
               control={form.control}
               name="name"
-              rules={{ required: "Nama proyek harus diisi" }}
+              rules={{ required: "Nama target harus diisi" }}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nama Proyek</FormLabel>
+                  <FormLabel>Nama Target</FormLabel>
                   <FormControl>
-                    <Input placeholder="Masukkan nama proyek" {...field} />
+                    <Input placeholder="Masukkan nama target" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -140,15 +150,20 @@ const BusinessProjectDialog = ({ open, onOpenChange, project, onSuccess }: Busin
 
             <FormField
               control={form.control}
-              name="description"
+              name="target_amount"
+              rules={{ 
+                required: "Jumlah target harus diisi",
+                min: { value: 1, message: "Jumlah harus lebih dari 0" }
+              }}
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Deskripsi</FormLabel>
+                  <FormLabel>Jumlah Target</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Masukkan deskripsi proyek" 
+                    <Input 
+                      type="number" 
+                      placeholder="Masukkan jumlah target"
                       {...field}
-                      rows={3}
+                      onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
                     />
                   </FormControl>
                   <FormMessage />
@@ -158,12 +173,18 @@ const BusinessProjectDialog = ({ open, onOpenChange, project, onSuccess }: Busin
 
             <FormField
               control={form.control}
-              name="start_date"
+              name="currency_code"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tanggal Mulai</FormLabel>
+                  <FormLabel>Mata Uang</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <select {...field} className="w-full p-2 border rounded-md">
+                      {currencies?.map((currency) => (
+                        <option key={currency.code} value={currency.code}>
+                          {currency.code} - {currency.name}
+                        </option>
+                      ))}
+                    </select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -172,10 +193,10 @@ const BusinessProjectDialog = ({ open, onOpenChange, project, onSuccess }: Busin
 
             <FormField
               control={form.control}
-              name="end_date"
+              name="target_date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tanggal Selesai</FormLabel>
+                  <FormLabel>Tanggal Target</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -193,7 +214,7 @@ const BusinessProjectDialog = ({ open, onOpenChange, project, onSuccess }: Busin
                 Batal
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Menyimpan..." : project ? "Update" : "Simpan"}
+                {isLoading ? "Menyimpan..." : goal ? "Update" : "Simpan"}
               </Button>
             </div>
           </form>
@@ -203,4 +224,4 @@ const BusinessProjectDialog = ({ open, onOpenChange, project, onSuccess }: Busin
   );
 };
 
-export default BusinessProjectDialog;
+export default GoalDialog;
