@@ -44,19 +44,19 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
     if (goal) {
       form.reset({
         name: goal.name || "",
-        target_amount: goal.target_amount || "",
+        target_amount: goal.target_amount || 0,
         currency_code: goal.currency_code || "IDR",
         target_date: goal.target_date || "",
       });
     } else {
       form.reset({
         name: "",
-        target_amount: "",
+        target_amount: 0,
         currency_code: "IDR",
         target_date: "",
       });
     }
-  }, [goal, form]);
+  });
 
   const { data: currencies } = useQuery({
     queryKey: ["currencies"],
