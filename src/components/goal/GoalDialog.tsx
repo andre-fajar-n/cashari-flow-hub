@@ -1,15 +1,15 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrencies, useDefaultCurrency } from "@/hooks/queries";
 
 interface GoalFormData {
   name: string;
@@ -31,11 +31,14 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
 
+  const { data: currencies } = useCurrencies();
+  const defaultCurrency = useDefaultCurrency();
+
   const form = useForm<GoalFormData>({
     defaultValues: {
       name: goal?.name || "",
       target_amount: goal?.target_amount || "",
-      currency_code: goal?.currency_code || "IDR",
+      currency_code: goal?.currency_code || defaultCurrency?.code || "IDR",
       target_date: goal?.target_date || "",
     },
   });
@@ -46,30 +49,17 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
       form.reset({
         name: goal.name || "",
         target_amount: goal.target_amount || 0,
-        currency_code: goal.currency_code || "IDR",
+        currency_code: goal.currency_code || defaultCurrency?.code || "IDR",
         target_date: goal.target_date || "",
       });
     } else {
       form.reset({
         name: "",
         target_amount: 0,
-        currency_code: "IDR",
+        currency_code: defaultCurrency?.code || "IDR",
         target_date: "",
       });
     }
-  });
-
-  const { data: currencies } = useQuery({
-    queryKey: ["currencies"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("currencies")
-        .select("code, name, is_default")
-        .eq("user_id", user?.id);
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
   });
 
   const onSubmit = async (data: GoalFormData) => {
@@ -124,8 +114,6 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
     }
   };
 
-  const default_currency = currencies?.filter((currency) => currency.is_default === true)[0]?.code || "IDR";
-
   // Reset form when goal prop changes or dialog opens/closes
   useEffect(() => {
     if (open) {
@@ -133,19 +121,19 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
         form.reset({
           name: goal.name || "",
           target_amount: goal.target_amount || 0,
-          currency_code: goal.currency_code || default_currency,
+          currency_code: goal.currency_code || defaultCurrency?.code || "IDR",
           target_date: goal.target_date || "",
         });
       } else {
         form.reset({
           name: "",
           target_amount: 0,
-          currency_code: default_currency,
+          currency_code: defaultCurrency?.code || "IDR",
           target_date: "",
         });
       }
     }
-  }, [goal, open, form]);
+  }, [goal, open, form, defaultCurrency]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

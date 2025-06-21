@@ -1,24 +1,42 @@
+
 import * as React from "react"
-import { useState } from "react";
+import { forwardRef } from "react";
 
 import { cn } from "@/lib/utils"
 
-const InputNumber = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
-  ({ className, type, ...props }, ref) => {
-    const [value, setValue] = useState<string>('');
+export interface InputNumberProps extends Omit<React.ComponentProps<"input">, "onChange" | "value"> {
+  value?: number | string;
+  onChange?: (value: number) => void;
+}
+
+const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
+  ({ className, onChange, value, ...props }, ref) => {
+    const [displayValue, setDisplayValue] = React.useState<string>(
+      value ? String(value) : ""
+    );
+
+    React.useEffect(() => {
+      setDisplayValue(value ? String(value) : "");
+    }, [value]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
 
-      if (/^\d*$/.test(newValue)) {
-        setValue(newValue);
+      // Allow empty string or valid numbers
+      if (newValue === "" || /^\d+$/.test(newValue)) {
+        setDisplayValue(newValue);
+        
+        if (onChange) {
+          const numericValue = newValue === "" ? 0 : parseInt(newValue, 10);
+          onChange(numericValue);
+        }
       }
     };
 
     return (
       <input
-        type="number"
-        value={value}
+        type="text"
+        value={displayValue}
         className={cn(
           "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
           className

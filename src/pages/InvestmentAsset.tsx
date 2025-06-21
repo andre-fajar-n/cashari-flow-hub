@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import InvestmentAssetDialog from "@/components/investment/InvestmentAssetDialog";
 import { useToast } from "@/hooks/use-toast";
+import { useInvestmentAssets } from "@/hooks/queries";
 
 interface InvestmentAsset {
   id: number;
@@ -29,25 +30,7 @@ const InvestmentAsset = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<InvestmentAsset | undefined>(undefined);
 
-  const { data: assets, isLoading } = useQuery({
-    queryKey: ["investment_assets"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("investment_assets")
-        .select(`
-          *,
-          investment_instruments (
-            name
-          )
-        `)
-        .eq("user_id", user?.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data as InvestmentAsset[];
-    },
-    enabled: !!user,
-  });
+  const { data: assets, isLoading } = useInvestmentAssets();
 
   const handleEdit = (asset: InvestmentAsset) => {
     setSelectedAsset(asset);

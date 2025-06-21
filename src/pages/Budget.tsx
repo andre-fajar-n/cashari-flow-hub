@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import BudgetDialog from "@/components/budget/BudgetDialog";
 import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/Layout";
+import { useBudgets } from "@/hooks/queries";
 
 interface Budget {
   id: number;
@@ -28,20 +28,7 @@ const Budget = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<Budget | undefined>(undefined);
 
-  const { data: budgets, isLoading } = useQuery({
-    queryKey: ["budgets"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("budgets")
-        .select("*")
-        .eq("user_id", user?.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data as Budget[];
-    },
-    enabled: !!user,
-  });
+  const { data: budgets, isLoading } = useBudgets();
 
   const handleEdit = (budget: Budget) => {
     setSelectedBudget(budget);

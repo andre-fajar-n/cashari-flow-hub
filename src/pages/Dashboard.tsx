@@ -1,55 +1,16 @@
 
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useWallets, useCategories, useCurrencies } from "@/hooks/queries";
 
 const Dashboard = () => {
   const { user } = useAuth();
 
-  const { data: wallets } = useQuery({
-    queryKey: ["wallets"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("wallets")
-        .select("*")
-        .eq("user_id", user?.id);
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
-
-  const { data: categories } = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("user_id", user?.id);
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
-
-  const { data: currencies } = useQuery({
-    queryKey: ["currencies"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("currencies")
-        .select("*")
-        .eq("user_id", user?.id);
-
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
+  const { data: wallets } = useWallets();
+  const { data: categories } = useCategories();
+  const { data: currencies } = useCurrencies();
 
   return (
     <ProtectedRoute>
