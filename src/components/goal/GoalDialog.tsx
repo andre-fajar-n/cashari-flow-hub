@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 
@@ -182,12 +183,7 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
                 <FormItem>
                   <FormLabel>Jumlah Target</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
-                      placeholder="Masukkan jumlah target"
-                      {...field}
-                      onChange={(e) => field.onChange(e.target.value === '' ? '' : Number(e.target.value))}
-                    />
+                    <InputNumber {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
