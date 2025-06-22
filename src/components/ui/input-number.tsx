@@ -11,14 +11,6 @@ export interface InputNumberProps extends Omit<React.ComponentProps<"input">, "o
 
 const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
   ({ className, onChange, value, autoComplete = "off", ...props }, ref) => {
-    const [displayValue, setDisplayValue] = React.useState<string>(
-      value ? formatNumber(String(value)) : ""
-    );
-
-    React.useEffect(() => {
-      setDisplayValue(value ? formatNumber(String(value)) : "");
-    }, [value]);
-
     const formatNumber = (num: string) => {
       // Remove any non-digit characters
       const cleanNum = num.replace(/\D/g, '');
@@ -27,6 +19,14 @@ const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
       // Format with thousands separators
       return parseInt(cleanNum, 10).toLocaleString('id-ID');
     };
+    
+    const [displayValue, setDisplayValue] = React.useState<string>(
+      value ? formatNumber(String(value)) : ""
+    );
+
+    React.useEffect(() => {
+      setDisplayValue(value ? formatNumber(String(value)) : "");
+    }, [value]);
 
     const parseNumber = (formattedNum: string) => {
       // Remove thousands separators and convert to number
