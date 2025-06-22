@@ -26,6 +26,7 @@ interface TransactionFormData {
 }
 
 const Transaction = () => {
+  const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionFormData | undefined>(undefined);
@@ -44,14 +45,10 @@ const Transaction = () => {
     });
   };
 
-  const handleEdit = (transaction: any) => {
+  const openDialog = (transaction: any) => {
     setSelectedTransaction(transaction);
-    setIsDialogOpen(true);
-  };
-
-  const handleAddNew = () => {
-    setSelectedTransaction(undefined);
-    setIsDialogOpen(true);
+    setActiveDropdownId(null);
+    setTimeout(() => setIsDialogOpen(true), 50)
   };
 
   const handleDelete = (transactionId: number) => {
@@ -83,7 +80,7 @@ const Transaction = () => {
               <h1 className="text-3xl font-bold">Transaksi</h1>
               <p className="text-muted-foreground">Kelola pemasukan dan pengeluaran Anda</p>
             </div>
-            <Button onClick={handleAddNew}>
+            <Button onClick={openDialog}>
               <Plus className="w-4 h-4 mr-2" />
               Tambah Transaksi
             </Button>
@@ -152,14 +149,19 @@ const Transaction = () => {
                             {transaction.currency_code}
                           </Badge>
                         </div>
-                        <DropdownMenu>
+                        <DropdownMenu
+                          open={activeDropdownId === transaction.id}
+                          onOpenChange={(open) =>
+                            setActiveDropdownId(open ? transaction.id : null)
+                          }
+                        >
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm">
                               •••
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => handleEdit(transaction)}>
+                            <DropdownMenuItem onClick={() => openDialog(transaction)}>
                               <Edit className="w-4 h-4 mr-2" />
                               Edit
                             </DropdownMenuItem>

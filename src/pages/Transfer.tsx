@@ -27,6 +27,7 @@ interface Transfer {
 }
 
 const Transfer = () => {
+  const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedTransfer, setSelectedTransfer] = useState<Transfer | undefined>(undefined);
   const { data: transfers, isLoading } = useTransfers();
@@ -45,14 +46,10 @@ const Transfer = () => {
     });
   };
 
-  const handleEdit = (transfer: any) => {
+  const openDialog = (transfer: any) => {
     setSelectedTransfer(transfer);
-    setIsDialogOpen(true);
-  };
-
-  const handleAddNew = () => {
-    setSelectedTransfer(undefined);
-    setIsDialogOpen(true);
+    setActiveDropdownId(null);
+    setTimeout(() => setIsDialogOpen(true), 50)
   };
 
   const handleDelete = (transferId: number) => {
@@ -84,7 +81,7 @@ const Transfer = () => {
               <h1 className="text-3xl font-bold">Transfer</h1>
               <p className="text-muted-foreground">Kelola transfer antar dompet</p>
             </div>
-            <Button onClick={handleAddNew}>
+            <Button onClick={openDialog}>
               <Plus className="w-4 h-4 mr-2" />
               Transfer Baru
             </Button>
@@ -152,14 +149,19 @@ const Transfer = () => {
                             </div>
                           </div>
                         </div>
-                        <DropdownMenu>
+                        <DropdownMenu
+                          open={activeDropdownId === transfer.id}
+                          onOpenChange={(open) =>
+                            setActiveDropdownId(open ? transfer.id : null)
+                          }
+                        >
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm">
                               •••
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => handleEdit(transfer)}>
+                            <DropdownMenuItem onClick={() => openDialog(transfer)}>
                               <Edit className="w-4 h-4 mr-2" />
                               Edit
                             </DropdownMenuItem>
