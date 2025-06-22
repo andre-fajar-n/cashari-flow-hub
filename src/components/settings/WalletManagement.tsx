@@ -12,18 +12,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { Plus, Trash, Pen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrencies } from "@/hooks/queries";
 
 interface Wallet {
   id: number;
   name: string;
   currency_code: string;
   initial_amount: number;
-}
-
-interface Currency {
-  code: string;
-  name: string;
-  symbol: string;
 }
 
 interface WalletFormData {
@@ -62,19 +57,7 @@ const WalletManagement = () => {
     enabled: !!user,
   });
 
-  const { data: currencies } = useQuery({
-    queryKey: ["currencies"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("currencies")
-        .select("code, name, symbol")
-        .eq("user_id", user?.id);
-
-      if (error) throw error;
-      return data as Currency[];
-    },
-    enabled: !!user,
-  });
+  const { data: currencies } = useCurrencies();
 
   const createMutation = useMutation({
     mutationFn: async (newWallet: WalletFormData) => {

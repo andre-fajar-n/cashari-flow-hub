@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { DEBT_TYPES } from "@/constants/enums";
 import type { Database } from '@/integrations/supabase/types';
+import { useCurrencies, useDefaultCurrency } from "@/hooks/queries";
 
 interface DebtFormData {
   name: string;
@@ -48,32 +49,22 @@ const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) =>
         form.reset({
           name: debt.name || "",
           type: debt.type || DEBT_TYPES.LOAN,
-          currency_code: debt.currency_code || "IDR",
+          currency_code: debt.currency_code || defaultCurrency?.code || "IDR",
           due_date: debt.due_date || "",
         });
       } else {
         form.reset({
           name: "",
           type: DEBT_TYPES.LOAN,
-          currency_code: "IDR",
+          currency_code: defaultCurrency?.code || "IDR",
           due_date: "",
         });
       }
     }
   }, [debt, open, form]);
 
-  const { data: currencies } = useQuery({
-    queryKey: ["currencies"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("currencies")
-        .select("code, name")
-        .eq("user_id", user?.id);
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
+  const { data: currencies } = useCurrencies();
+  const defaultCurrency = useDefaultCurrency();
 
   const onSubmit = async (data: DebtFormData) => {
     if (!user) return;

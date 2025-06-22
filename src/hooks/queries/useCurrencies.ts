@@ -13,7 +13,8 @@ export const useCurrencies = () => {
         .from("currencies")
         .select("code, name, symbol, is_default")
         .eq("user_id", user?.id)
-        .order("is_default", { ascending: false });
+        .order("is_default", { ascending: false })
+        .order("code");
       
       if (error) throw error;
       return data;

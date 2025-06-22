@@ -3,13 +3,14 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { useCurrencies, useDefaultCurrency } from "@/hooks/queries";
 
 interface BudgetFormData {
   name: string;
@@ -32,27 +33,17 @@ const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogPro
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
 
+  const { data: currencies } = useCurrencies();
+  const defaultCurrency = useDefaultCurrency();
+  
   const form = useForm<BudgetFormData>({
     defaultValues: {
       name: budget?.name || "",
       amount: budget?.amount || 0,
-      currency_code: budget?.currency_code || "IDR",
+      currency_code: budget?.currency_code || defaultCurrency?.code || "IDR",
       start_date: budget?.start_date || "",
       end_date: budget?.end_date || "",
     },
-  });
-
-  const { data: currencies } = useQuery({
-    queryKey: ["currencies"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("currencies")
-        .select("code, name, is_default")
-        .eq("user_id", user?.id);
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
   });
 
   const onSubmit = async (data: BudgetFormData) => {
@@ -109,8 +100,6 @@ const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogPro
     }
   };
 
-  const default_currency = currencies?.filter((currency) => currency.is_default === true)[0]?.code || "IDR";
-
   // Reset form when budget prop changes or dialog opens/closes
   useEffect(() => {
     if (open) {
@@ -118,7 +107,7 @@ const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogPro
         form.reset({
           name: budget.name || "",
           amount: budget.amount || 0,
-          currency_code: budget.currency_code || default_currency,
+          currency_code: budget.currency_code || defaultCurrency?.code || "IDR",
           start_date: budget.start_date || "",
           end_date: budget.end_date || "",
         });
@@ -126,13 +115,13 @@ const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogPro
         form.reset({
           name: "",
           amount: 0,
-          currency_code: default_currency,
+          currency_code: defaultCurrency?.code || "IDR",
           start_date: "",
           end_date: "",
         });
       }
     }
-  }, [budget, open, form]);
+  }, [budget, open, form, defaultCurrency]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
