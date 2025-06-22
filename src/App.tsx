@@ -15,6 +15,8 @@ import Debt from "./pages/Debt";
 import Goal from "./pages/Goal";
 import InvestmentInstrument from "./pages/InvestmentInstrument";
 import InvestmentAsset from "./pages/InvestmentAsset";
+import Transaction from "./pages/Transaction";
+import Transfer from "./pages/Transfer";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,6 +39,8 @@ const App = () => (
             <Route path="/goal" element={<Goal />} />
             <Route path="/investment-instrument" element={<InvestmentInstrument />} />
             <Route path="/investment-asset" element={<InvestmentAsset />} />
+            <Route path="/transaction" element={<Transaction />} />
+            <Route path="/transfer" element={<Transfer />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

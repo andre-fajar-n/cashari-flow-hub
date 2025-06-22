@@ -23,7 +23,9 @@ import {
   TrendingUp, 
   Calendar, 
   Users, 
-  CreditCard 
+  CreditCard,
+  Receipt,
+  ArrowLeftRight
 } from "lucide-react";
 
 const AppSidebar = () => {
@@ -34,6 +36,11 @@ const AppSidebar = () => {
   const mainMenuItems = [
     { path: "/dashboard", label: "Dashboard", icon: Home },
     { path: "/settings", label: "Pengaturan", icon: Settings },
+  ];
+
+  const transactionMenuItems = [
+    { path: "/transaction", label: "Transaksi", icon: Receipt },
+    { path: "/transfer", label: "Transfer", icon: ArrowLeftRight },
   ];
 
   const featureMenuItems = [
@@ -57,6 +64,32 @@ const AppSidebar = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainMenuItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path;
+                return (
+                  <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton 
+                      asChild 
+                      isActive={isActive}
+                      onClick={() => navigate(item.path)}
+                    >
+                      <button className="flex items-center gap-2 w-full">
+                        <Icon className="w-4 h-4" />
+                        <span>{item.label}</span>
+                      </button>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Transaksi</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {transactionMenuItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
                 return (
