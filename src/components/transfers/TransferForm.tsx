@@ -1,41 +1,58 @@
 
 import { useForm } from "react-hook-form";
-import { useCreateTransfer } from "@/hooks/queries/useTransfers";
+import { useCreateTransfer, useUpdateTransfer } from "@/hooks/queries/useTransfers";
 import { useWallets } from "@/hooks/queries/useWallets";
-import { useCurrencies } from "@/hooks/queries/useCurrencies";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 interface TransferFormData {
   from_wallet_id: string;
   to_wallet_id: string;
   amount_from: number;
   amount_to: number;
-  currency_from: string;
-  currency_to: string;
   date: string;
 }
 
 interface TransferFormProps {
   onSuccess?: () => void;
+  editData?: any;
 }
 
-const TransferForm = ({ onSuccess }: TransferFormProps) => {
+const TransferForm = ({ onSuccess, editData }: TransferFormProps) => {
   const form = useForm<TransferFormData>({
     defaultValues: {
-      amount_from: 0,
-      amount_to: 0,
-      date: new Date().toISOString().split('T')[0],
+      from_wallet_id: editData?.from_wallet_id?.toString() || "",
+      to_wallet_id: editData?.to_wallet_id?.toString() || "",
+      amount_from: editData?.amount_from || 0,
+      amount_to: editData?.amount_to || 0,
+      date: editData?.date || new Date().toISOString().split('T')[0],
     },
   });
 
-  const { mutate: createTransfer, isPending } = useCreateTransfer();
+  const { mutate: createTransfer, isPending: isCreating } = useCreateTransfer();
+  const { mutate: updateTransfer, isPending: isUpdating } = useUpdateTransfer();
   const { data: wallets } = useWallets();
-  const { data: currencies } = useCurrencies();
+
+  const isPending = isCreating || isUpdating;
+  const fromWalletId = form.watch("from_wallet_id");
+  const toWalletId = form.watch("to_wallet_id");
+  const amountFrom = form.watch("amount_from");
+
+  const fromWallet = wallets?.find(w => w.id.toString() === fromWalletId);
+  const toWallet = wallets?.find(w => w.id.toString() === toWalletId);
+  const isSameCurrency = fromWallet?.currency_code === toWallet?.currency_code;
+
+  // Auto-populate amount_to when same currency
+  useEffect(() => {
+    if (isSameCurrency && amountFrom > 0) {
+      form.setValue("amount_to", amountFrom);
+    }
+  }, [isSameCurrency, amountFrom, form]);
 
   const onSubmit = (data: TransferFormData) => {
     if (data.from_wallet_id === data.to_wallet_id) {
@@ -47,31 +64,65 @@ const TransferForm = ({ onSuccess }: TransferFormProps) => {
       return;
     }
 
-    createTransfer({
+    if (!fromWallet || !toWallet) {
+      toast({
+        title: "Error",
+        description: "Pilih kedua dompet terlebih dahulu",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const transferData = {
       from_wallet_id: parseInt(data.from_wallet_id),
       to_wallet_id: parseInt(data.to_wallet_id),
       amount_from: data.amount_from,
-      amount_to: data.amount_to,
-      currency_from: data.currency_from,
-      currency_to: data.currency_to,
+      amount_to: isSameCurrency ? data.amount_from : data.amount_to,
+      currency_from: fromWallet.currency_code,
+      currency_to: toWallet.currency_code,
       date: data.date,
-    }, {
-      onSuccess: () => {
-        toast({
-          title: "Berhasil",
-          description: "Transfer berhasil dilakukan",
-        });
-        form.reset();
-        onSuccess?.();
-      },
-      onError: (error) => {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      },
-    });
+    };
+
+    if (editData) {
+      updateTransfer({
+        id: editData.id,
+        ...transferData,
+      }, {
+        onSuccess: () => {
+          toast({
+            title: "Berhasil",
+            description: "Transfer berhasil diperbarui",
+          });
+          form.reset();
+          onSuccess?.();
+        },
+        onError: (error) => {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      });
+    } else {
+      createTransfer(transferData, {
+        onSuccess: () => {
+          toast({
+            title: "Berhasil",
+            description: "Transfer berhasil dilakukan",
+          });
+          form.reset();
+          onSuccess?.();
+        },
+        onError: (error) => {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      });
+    }
   };
 
   return (
@@ -93,7 +144,7 @@ const TransferForm = ({ onSuccess }: TransferFormProps) => {
                   <SelectContent>
                     {wallets?.map((wallet) => (
                       <SelectItem key={wallet.id} value={wallet.id.toString()}>
-                        {wallet.name}
+                        {wallet.name} ({wallet.currency_code})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -118,7 +169,7 @@ const TransferForm = ({ onSuccess }: TransferFormProps) => {
                   <SelectContent>
                     {wallets?.map((wallet) => (
                       <SelectItem key={wallet.id} value={wallet.id.toString()}>
-                        {wallet.name}
+                        {wallet.name} ({wallet.currency_code})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -159,65 +210,25 @@ const TransferForm = ({ onSuccess }: TransferFormProps) => {
                     {...field} 
                     onChange={(value) => field.onChange(value)}
                     value={field.value}
+                    disabled={isSameCurrency}
                   />
                 </FormControl>
+                {isSameCurrency && (
+                  <p className="text-xs text-muted-foreground">
+                    Otomatis sama dengan jumlah keluar (mata uang sama)
+                  </p>
+                )}
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="currency_from"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Mata Uang Asal</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih mata uang" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {currencies?.map((currency) => (
-                      <SelectItem key={currency.code} value={currency.code}>
-                        {currency.code} - {currency.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="currency_to"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Mata Uang Tujuan</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih mata uang" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {currencies?.map((currency) => (
-                      <SelectItem key={currency.code} value={currency.code}>
-                        {currency.code} - {currency.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        {fromWallet && toWallet && (
+          <div className="text-sm text-muted-foreground bg-muted p-3 rounded">
+            Transfer dari {fromWallet.name} ({fromWallet.currency_code}) ke {toWallet.name} ({toWallet.currency_code})
+          </div>
+        )}
 
         <FormField
           control={form.control}
@@ -234,7 +245,7 @@ const TransferForm = ({ onSuccess }: TransferFormProps) => {
         />
 
         <Button type="submit" disabled={isPending} className="w-full">
-          {isPending ? "Memproses..." : "Transfer"}
+          {isPending ? (editData ? "Memperbarui..." : "Memproses...") : (editData ? "Perbarui Transfer" : "Transfer")}
         </Button>
       </form>
     </Form>

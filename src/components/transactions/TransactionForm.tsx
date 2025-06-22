@@ -1,68 +1,108 @@
 
 import { useForm } from "react-hook-form";
-import { useCreateTransaction } from "@/hooks/queries/useTransactions";
+import { useCreateTransaction, useUpdateTransaction } from "@/hooks/queries/useTransactions";
 import { useWallets } from "@/hooks/queries/useWallets";
 import { useCategories } from "@/hooks/queries/useCategories";
-import { useCurrencies } from "@/hooks/queries/useCurrencies";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 interface TransactionFormData {
   amount: number;
   category_id: string;
   wallet_id: string;
-  currency_code: string;
   date: string;
   description?: string;
 }
 
 interface TransactionFormProps {
   onSuccess?: () => void;
+  editData?: any;
 }
 
-const TransactionForm = ({ onSuccess }: TransactionFormProps) => {
+const TransactionForm = ({ onSuccess, editData }: TransactionFormProps) => {
   const form = useForm<TransactionFormData>({
     defaultValues: {
-      amount: 0,
-      date: new Date().toISOString().split('T')[0],
-      description: "",
+      amount: editData?.amount || 0,
+      category_id: editData?.category_id?.toString() || "",
+      wallet_id: editData?.wallet_id?.toString() || "",
+      date: editData?.date || new Date().toISOString().split('T')[0],
+      description: editData?.description || "",
     },
   });
 
-  const { mutate: createTransaction, isPending } = useCreateTransaction();
+  const { mutate: createTransaction, isPending: isCreating } = useCreateTransaction();
+  const { mutate: updateTransaction, isPending: isUpdating } = useUpdateTransaction();
   const { data: wallets } = useWallets();
   const { data: categories } = useCategories();
-  const { data: currencies } = useCurrencies();
+
+  const isPending = isCreating || isUpdating;
+  const selectedWalletId = form.watch("wallet_id");
+  const selectedWallet = wallets?.find(w => w.id.toString() === selectedWalletId);
 
   const onSubmit = (data: TransactionFormData) => {
-    createTransaction({
+    if (!selectedWallet) {
+      toast({
+        title: "Error",
+        description: "Pilih dompet terlebih dahulu",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const transactionData = {
       amount: data.amount,
       category_id: parseInt(data.category_id),
       wallet_id: parseInt(data.wallet_id),
-      currency_code: data.currency_code,
+      currency_code: selectedWallet.currency_code,
       date: data.date,
       description: data.description || null,
-    }, {
-      onSuccess: () => {
-        toast({
-          title: "Berhasil",
-          description: "Transaksi berhasil ditambahkan",
-        });
-        form.reset();
-        onSuccess?.();
-      },
-      onError: (error) => {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      },
-    });
+    };
+
+    if (editData) {
+      updateTransaction({
+        id: editData.id,
+        ...transactionData,
+      }, {
+        onSuccess: () => {
+          toast({
+            title: "Berhasil",
+            description: "Transaksi berhasil diperbarui",
+          });
+          form.reset();
+          onSuccess?.();
+        },
+        onError: (error) => {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      });
+    } else {
+      createTransaction(transactionData, {
+        onSuccess: () => {
+          toast({
+            title: "Berhasil",
+            description: "Transaksi berhasil ditambahkan",
+          });
+          form.reset();
+          onSuccess?.();
+        },
+        onError: (error) => {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      });
+    }
   };
 
   return (
@@ -88,6 +128,31 @@ const TransactionForm = ({ onSuccess }: TransactionFormProps) => {
 
         <FormField
           control={form.control}
+          name="wallet_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Dompet</FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih dompet" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {wallets?.map((wallet) => (
+                    <SelectItem key={wallet.id} value={wallet.id.toString()}>
+                      {wallet.name} ({wallet.currency_code})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="category_id"
           render={({ field }) => (
             <FormItem>
@@ -102,56 +167,6 @@ const TransactionForm = ({ onSuccess }: TransactionFormProps) => {
                   {categories?.map((category) => (
                     <SelectItem key={category.id} value={category.id.toString()}>
                       {category.name} {category.is_income ? "(Pemasukan)" : "(Pengeluaran)"}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="wallet_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Dompet</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih dompet" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {wallets?.map((wallet) => (
-                    <SelectItem key={wallet.id} value={wallet.id.toString()}>
-                      {wallet.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="currency_code"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Mata Uang</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Pilih mata uang" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {currencies?.map((currency) => (
-                    <SelectItem key={currency.code} value={currency.code}>
-                      {currency.code} - {currency.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -190,7 +205,7 @@ const TransactionForm = ({ onSuccess }: TransactionFormProps) => {
         />
 
         <Button type="submit" disabled={isPending} className="w-full">
-          {isPending ? "Menyimpan..." : "Simpan Transaksi"}
+          {isPending ? (editData ? "Memperbarui..." : "Menyimpan...") : (editData ? "Perbarui Transaksi" : "Simpan Transaksi")}
         </Button>
       </form>
     </Form>

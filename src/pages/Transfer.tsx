@@ -5,14 +5,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, ArrowRightLeft } from "lucide-react";
-import { useTransfers } from "@/hooks/queries/useTransfers";
+import { Plus, ArrowRightLeft, Edit, Trash2 } from "lucide-react";
+import { useTransfers, useDeleteTransfer } from "@/hooks/queries/useTransfers";
 import TransferForm from "@/components/transfers/TransferForm";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { toast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Transfer = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingTransfer, setEditingTransfer] = useState(null);
   const { data: transfers, isLoading } = useTransfers();
+  const { mutate: deleteTransfer } = useDeleteTransfer();
 
   const formatAmount = (amount: number, symbol: string) => {
     return `${symbol} ${amount.toLocaleString('id-ID')}`;
@@ -26,6 +35,36 @@ const Transfer = () => {
     });
   };
 
+  const handleEdit = (transfer: any) => {
+    setEditingTransfer(transfer);
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = (transferId: number) => {
+    if (confirm('Apakah Anda yakin ingin menghapus transfer ini?')) {
+      deleteTransfer(transferId, {
+        onSuccess: () => {
+          toast({
+            title: "Berhasil",
+            description: "Transfer berhasil dihapus",
+          });
+        },
+        onError: (error: any) => {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      });
+    }
+  };
+
+  const handleDialogClose = () => {
+    setIsDialogOpen(false);
+    setEditingTransfer(null);
+  };
+
   return (
     <ProtectedRoute>
       <Layout>
@@ -35,7 +74,7 @@ const Transfer = () => {
               <h1 className="text-3xl font-bold">Transfer</h1>
               <p className="text-muted-foreground">Kelola transfer antar dompet</p>
             </div>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="w-4 h-4 mr-2" />
@@ -44,9 +83,14 @@ const Transfer = () => {
               </DialogTrigger>
               <DialogContent className="max-w-lg">
                 <DialogHeader>
-                  <DialogTitle>Transfer Baru</DialogTitle>
+                  <DialogTitle>
+                    {editingTransfer ? 'Edit Transfer' : 'Transfer Baru'}
+                  </DialogTitle>
                 </DialogHeader>
-                <TransferForm onSuccess={() => setIsDialogOpen(false)} />
+                <TransferForm 
+                  onSuccess={handleDialogClose}
+                  editData={editingTransfer}
+                />
               </DialogContent>
             </Dialog>
           </div>
@@ -87,21 +131,43 @@ const Transfer = () => {
                           </p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-red-600">
-                              -{formatAmount(transfer.amount_from, (transfer.from_currency as any)?.symbol)}
-                            </Badge>
-                            <span className="text-muted-foreground">→</span>
-                            <Badge variant="outline" className="text-green-600">
-                              +{formatAmount(transfer.amount_to, (transfer.to_currency as any)?.symbol)}
-                            </Badge>
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {transfer.currency_from} → {transfer.currency_to}
+                      <div className="flex items-center gap-2">
+                        <div className="text-right">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-red-600">
+                                -{formatAmount(transfer.amount_from, (transfer.from_currency as any)?.symbol)}
+                              </Badge>
+                              <span className="text-muted-foreground">→</span>
+                              <Badge variant="outline" className="text-green-600">
+                                +{formatAmount(transfer.amount_to, (transfer.to_currency as any)?.symbol)}
+                              </Badge>
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {transfer.currency_from} → {transfer.currency_to}
+                            </div>
                           </div>
                         </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              •••
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => handleEdit(transfer)}>
+                              <Edit className="w-4 h-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleDelete(transfer.id)}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Hapus
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
                   ))}

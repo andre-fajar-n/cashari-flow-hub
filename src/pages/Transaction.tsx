@@ -5,14 +5,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
-import { useTransactions } from "@/hooks/queries/useTransactions";
+import { Plus, ArrowUpCircle, ArrowDownCircle, Edit, Trash2 } from "lucide-react";
+import { useTransactions, useDeleteTransaction } from "@/hooks/queries/useTransactions";
 import TransactionForm from "@/components/transactions/TransactionForm";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { toast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Transaction = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState(null);
   const { data: transactions, isLoading } = useTransactions();
+  const { mutate: deleteTransaction } = useDeleteTransaction();
 
   const formatAmount = (amount: number, symbol: string) => {
     return `${symbol} ${amount.toLocaleString('id-ID')}`;
@@ -26,6 +35,36 @@ const Transaction = () => {
     });
   };
 
+  const handleEdit = (transaction: any) => {
+    setEditingTransaction(transaction);
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = (transactionId: number) => {
+    if (confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) {
+      deleteTransaction(transactionId, {
+        onSuccess: () => {
+          toast({
+            title: "Berhasil",
+            description: "Transaksi berhasil dihapus",
+          });
+        },
+        onError: (error: any) => {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
+      });
+    }
+  };
+
+  const handleDialogClose = () => {
+    setIsDialogOpen(false);
+    setEditingTransaction(null);
+  };
+
   return (
     <ProtectedRoute>
       <Layout>
@@ -35,7 +74,7 @@ const Transaction = () => {
               <h1 className="text-3xl font-bold">Transaksi</h1>
               <p className="text-muted-foreground">Kelola pemasukan dan pengeluaran Anda</p>
             </div>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="w-4 h-4 mr-2" />
@@ -44,9 +83,14 @@ const Transaction = () => {
               </DialogTrigger>
               <DialogContent className="max-w-md">
                 <DialogHeader>
-                  <DialogTitle>Tambah Transaksi Baru</DialogTitle>
+                  <DialogTitle>
+                    {editingTransaction ? 'Edit Transaksi' : 'Tambah Transaksi Baru'}
+                  </DialogTitle>
                 </DialogHeader>
-                <TransactionForm onSuccess={() => setIsDialogOpen(false)} />
+                <TransactionForm 
+                  onSuccess={handleDialogClose}
+                  editData={editingTransaction}
+                />
               </DialogContent>
             </Dialog>
           </div>
@@ -96,14 +140,36 @@ const Transaction = () => {
                           )}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className={`font-semibold ${(transaction.categories as any)?.is_income ? 'text-green-600' : 'text-red-600'}`}>
-                          {(transaction.categories as any)?.is_income ? '+' : '-'}
-                          {formatAmount(transaction.amount, (transaction.currencies as any)?.symbol)}
-                        </p>
-                        <Badge variant="outline" className="mt-1">
-                          {transaction.currency_code}
-                        </Badge>
+                      <div className="flex items-center gap-2">
+                        <div className="text-right">
+                          <p className={`font-semibold ${(transaction.categories as any)?.is_income ? 'text-green-600' : 'text-red-600'}`}>
+                            {(transaction.categories as any)?.is_income ? '+' : '-'}
+                            {formatAmount(transaction.amount, (transaction.currencies as any)?.symbol)}
+                          </p>
+                          <Badge variant="outline" className="mt-1">
+                            {transaction.currency_code}
+                          </Badge>
+                        </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              •••
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => handleEdit(transaction)}>
+                              <Edit className="w-4 h-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleDelete(transaction.id)}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Hapus
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
                   ))}

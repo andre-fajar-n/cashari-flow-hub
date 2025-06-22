@@ -12,22 +12,48 @@ export interface InputNumberProps extends Omit<React.ComponentProps<"input">, "o
 const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
   ({ className, onChange, value, autoComplete = "off", ...props }, ref) => {
     const [displayValue, setDisplayValue] = React.useState<string>(
-      value ? String(value) : ""
+      value ? formatNumber(String(value)) : ""
     );
 
     React.useEffect(() => {
-      setDisplayValue(value ? String(value) : "");
+      setDisplayValue(value ? formatNumber(String(value)) : "");
     }, [value]);
+
+    const formatNumber = (num: string) => {
+      // Remove any non-digit characters
+      const cleanNum = num.replace(/\D/g, '');
+      if (cleanNum === '') return '';
+      
+      // Format with thousands separators
+      return parseInt(cleanNum, 10).toLocaleString('id-ID');
+    };
+
+    const parseNumber = (formattedNum: string) => {
+      // Remove thousands separators and convert to number
+      return parseInt(formattedNum.replace(/\./g, ''), 10) || 0;
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
 
-      // Allow empty string or valid numbers
-      if (newValue === "" || /^\d+$/.test(newValue)) {
-        setDisplayValue(newValue);
+      // Allow empty string
+      if (newValue === "") {
+        setDisplayValue("");
+        if (onChange) {
+          onChange(0);
+        }
+        return;
+      }
+
+      // Remove all non-digit characters for validation
+      const digitsOnly = newValue.replace(/\D/g, '');
+      
+      if (digitsOnly !== '') {
+        const formatted = formatNumber(digitsOnly);
+        setDisplayValue(formatted);
         
         if (onChange) {
-          const numericValue = newValue === "" ? 0 : parseInt(newValue, 10);
+          const numericValue = parseNumber(formatted);
           onChange(numericValue);
         }
       }
@@ -45,7 +71,6 @@ const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
         onChange={handleChange}
         placeholder="0"
         inputMode="numeric"
-        pattern="[0-9]*"
         ref={ref}
         {...props}
       />
