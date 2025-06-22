@@ -3,11 +3,11 @@ import { useState } from "react";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowUpCircle, ArrowDownCircle, Edit, Trash2 } from "lucide-react";
 import { useTransactions, useDeleteTransaction } from "@/hooks/queries/useTransactions";
-import TransactionForm from "@/components/transactions/TransactionForm";
+import TransactionDialog from "@/components/transactions/TransactionDialog";
+import { useQueryClient } from "@tanstack/react-query";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -27,6 +27,7 @@ interface TransactionFormData {
 
 const Transaction = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionFormData | undefined>(undefined);
   const { data: transactions, isLoading } = useTransactions();
   const { mutate: deleteTransaction } = useDeleteTransaction();
@@ -51,11 +52,6 @@ const Transaction = () => {
   const handleAddNew = () => {
     setSelectedTransaction(undefined);
     setIsDialogOpen(true);
-  };
-
-  const handleDialogClose = () => {
-    setIsDialogOpen(false);
-    setSelectedTransaction(null);
   };
 
   const handleDelete = (transactionId: number) => {
@@ -91,21 +87,14 @@ const Transaction = () => {
               <Plus className="w-4 h-4 mr-2" />
               Tambah Transaksi
             </Button>
-            <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
-              <DialogTrigger asChild>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>
-                    {selectedTransaction ? 'Edit Transaksi' : 'Tambah Transaksi Baru'}
-                  </DialogTitle>
-                </DialogHeader>
-                <TransactionForm 
-                  onSuccess={handleDialogClose}
-                  editData={selectedTransaction}
-                />
-              </DialogContent>
-            </Dialog>
+            <TransactionDialog
+              open={isDialogOpen}
+              onOpenChange={setIsDialogOpen}
+              transaction={selectedTransaction}
+              onSuccess={() => {
+                queryClient.invalidateQueries({ queryKey: ["transactions"] });
+              }}
+            />
           </div>
 
           <Card>
