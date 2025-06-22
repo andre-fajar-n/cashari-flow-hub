@@ -17,9 +17,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+interface TransactionFormData {
+  amount: number;
+  category_id: string;
+  wallet_id: string;
+  date: string;
+  description?: string;
+}
+
 const Transaction = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<TransactionFormData | undefined>(undefined);
   const { data: transactions, isLoading } = useTransactions();
   const { mutate: deleteTransaction } = useDeleteTransaction();
 
@@ -36,8 +44,18 @@ const Transaction = () => {
   };
 
   const handleEdit = (transaction: any) => {
-    setEditingTransaction(transaction);
+    setSelectedTransaction(transaction);
     setIsDialogOpen(true);
+  };
+
+  const handleAddNew = () => {
+    setSelectedTransaction(undefined);
+    setIsDialogOpen(true);
+  };
+
+  const handleDialogClose = () => {
+    setIsDialogOpen(false);
+    setSelectedTransaction(null);
   };
 
   const handleDelete = (transactionId: number) => {
@@ -60,11 +78,6 @@ const Transaction = () => {
     }
   };
 
-  const handleDialogClose = () => {
-    setIsDialogOpen(false);
-    setEditingTransaction(null);
-  };
-
   return (
     <ProtectedRoute>
       <Layout>
@@ -74,22 +87,22 @@ const Transaction = () => {
               <h1 className="text-3xl font-bold">Transaksi</h1>
               <p className="text-muted-foreground">Kelola pemasukan dan pengeluaran Anda</p>
             </div>
+            <Button onClick={handleAddNew}>
+              <Plus className="w-4 h-4 mr-2" />
+              Tambah Transaksi
+            </Button>
             <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
               <DialogTrigger asChild>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Tambah Transaksi
-                </Button>
               </DialogTrigger>
               <DialogContent className="max-w-md">
                 <DialogHeader>
                   <DialogTitle>
-                    {editingTransaction ? 'Edit Transaksi' : 'Tambah Transaksi Baru'}
+                    {selectedTransaction ? 'Edit Transaksi' : 'Tambah Transaksi Baru'}
                   </DialogTitle>
                 </DialogHeader>
                 <TransactionForm 
                   onSuccess={handleDialogClose}
-                  editData={editingTransaction}
+                  editData={selectedTransaction}
                 />
               </DialogContent>
             </Dialog>
