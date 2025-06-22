@@ -19,6 +19,11 @@ const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
       // Format with thousands separators
       return parseInt(cleanNum, 10).toLocaleString('id-ID');
     };
+
+    const parseNumber = (formattedNum: string) => {
+      // Remove thousands separators and convert to number
+      return parseInt(formattedNum.replace(/\./g, ''), 10) || 0;
+    };
     
     const [displayValue, setDisplayValue] = React.useState<string>(
       value ? formatNumber(String(value)) : ""
@@ -27,11 +32,6 @@ const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
     React.useEffect(() => {
       setDisplayValue(value ? formatNumber(String(value)) : "");
     }, [value]);
-
-    const parseNumber = (formattedNum: string) => {
-      // Remove thousands separators and convert to number
-      return parseInt(formattedNum.replace(/\./g, ''), 10) || 0;
-    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;

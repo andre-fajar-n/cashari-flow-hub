@@ -55,6 +55,8 @@ const TransferForm = ({ onSuccess, editData }: TransferFormProps) => {
   }, [isSameCurrency, amountFrom, form]);
 
   const onSubmit = (data: TransferFormData) => {
+    console.log("Transfer form submitted with data:", data);
+    
     if (data.from_wallet_id === data.to_wallet_id) {
       toast({
         title: "Error",
@@ -73,6 +75,24 @@ const TransferForm = ({ onSuccess, editData }: TransferFormProps) => {
       return;
     }
 
+    if (!data.amount_from || data.amount_from <= 0) {
+      toast({
+        title: "Error",
+        description: "Masukkan jumlah keluar yang valid",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!data.amount_to || data.amount_to <= 0) {
+      toast({
+        title: "Error",
+        description: "Masukkan jumlah masuk yang valid",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const transferData = {
       from_wallet_id: parseInt(data.from_wallet_id),
       to_wallet_id: parseInt(data.to_wallet_id),
@@ -83,12 +103,15 @@ const TransferForm = ({ onSuccess, editData }: TransferFormProps) => {
       date: data.date,
     };
 
+    console.log("Submitting transfer:", transferData);
+
     if (editData) {
       updateTransfer({
         id: editData.id,
         ...transferData,
       }, {
         onSuccess: () => {
+          console.log("Transfer updated successfully");
           toast({
             title: "Berhasil",
             description: "Transfer berhasil diperbarui",
@@ -97,6 +120,7 @@ const TransferForm = ({ onSuccess, editData }: TransferFormProps) => {
           onSuccess?.();
         },
         onError: (error) => {
+          console.error("Error updating transfer:", error);
           toast({
             title: "Error",
             description: error.message,
@@ -107,6 +131,7 @@ const TransferForm = ({ onSuccess, editData }: TransferFormProps) => {
     } else {
       createTransfer(transferData, {
         onSuccess: () => {
+          console.log("Transfer created successfully");
           toast({
             title: "Berhasil",
             description: "Transfer berhasil dilakukan",
@@ -115,6 +140,7 @@ const TransferForm = ({ onSuccess, editData }: TransferFormProps) => {
           onSuccess?.();
         },
         onError: (error) => {
+          console.error("Error creating transfer:", error);
           toast({
             title: "Error",
             description: error.message,
@@ -132,6 +158,7 @@ const TransferForm = ({ onSuccess, editData }: TransferFormProps) => {
           <FormField
             control={form.control}
             name="from_wallet_id"
+            rules={{ required: "Dompet asal harus dipilih" }}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Dari Dompet</FormLabel>
@@ -157,6 +184,7 @@ const TransferForm = ({ onSuccess, editData }: TransferFormProps) => {
           <FormField
             control={form.control}
             name="to_wallet_id"
+            rules={{ required: "Dompet tujuan harus dipilih" }}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Ke Dompet</FormLabel>
@@ -184,6 +212,7 @@ const TransferForm = ({ onSuccess, editData }: TransferFormProps) => {
           <FormField
             control={form.control}
             name="amount_from"
+            rules={{ required: "Jumlah keluar harus diisi", min: { value: 1, message: "Jumlah harus lebih dari 0" } }}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Jumlah Keluar</FormLabel>
@@ -202,6 +231,7 @@ const TransferForm = ({ onSuccess, editData }: TransferFormProps) => {
           <FormField
             control={form.control}
             name="amount_to"
+            rules={{ required: "Jumlah masuk harus diisi", min: { value: 1, message: "Jumlah harus lebih dari 0" } }}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Jumlah Masuk</FormLabel>
@@ -233,6 +263,7 @@ const TransferForm = ({ onSuccess, editData }: TransferFormProps) => {
         <FormField
           control={form.control}
           name="date"
+          rules={{ required: "Tanggal harus diisi" }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Tanggal</FormLabel>

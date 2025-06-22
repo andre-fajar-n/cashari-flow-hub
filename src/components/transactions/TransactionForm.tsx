@@ -45,10 +45,30 @@ const TransactionForm = ({ onSuccess, editData }: TransactionFormProps) => {
   const selectedWallet = wallets?.find(w => w.id.toString() === selectedWalletId);
 
   const onSubmit = (data: TransactionFormData) => {
+    console.log("Form submitted with data:", data);
+    
     if (!selectedWallet) {
       toast({
         title: "Error",
         description: "Pilih dompet terlebih dahulu",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!data.amount || data.amount <= 0) {
+      toast({
+        title: "Error",
+        description: "Masukkan jumlah yang valid",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!data.category_id) {
+      toast({
+        title: "Error",
+        description: "Pilih kategori terlebih dahulu",
         variant: "destructive",
       });
       return;
@@ -63,12 +83,15 @@ const TransactionForm = ({ onSuccess, editData }: TransactionFormProps) => {
       description: data.description || null,
     };
 
+    console.log("Submitting transaction:", transactionData);
+
     if (editData) {
       updateTransaction({
         id: editData.id,
         ...transactionData,
       }, {
         onSuccess: () => {
+          console.log("Transaction updated successfully");
           toast({
             title: "Berhasil",
             description: "Transaksi berhasil diperbarui",
@@ -77,6 +100,7 @@ const TransactionForm = ({ onSuccess, editData }: TransactionFormProps) => {
           onSuccess?.();
         },
         onError: (error) => {
+          console.error("Error updating transaction:", error);
           toast({
             title: "Error",
             description: error.message,
@@ -87,6 +111,7 @@ const TransactionForm = ({ onSuccess, editData }: TransactionFormProps) => {
     } else {
       createTransaction(transactionData, {
         onSuccess: () => {
+          console.log("Transaction created successfully");
           toast({
             title: "Berhasil",
             description: "Transaksi berhasil ditambahkan",
@@ -95,6 +120,7 @@ const TransactionForm = ({ onSuccess, editData }: TransactionFormProps) => {
           onSuccess?.();
         },
         onError: (error) => {
+          console.error("Error creating transaction:", error);
           toast({
             title: "Error",
             description: error.message,
@@ -111,6 +137,7 @@ const TransactionForm = ({ onSuccess, editData }: TransactionFormProps) => {
         <FormField
           control={form.control}
           name="amount"
+          rules={{ required: "Jumlah harus diisi", min: { value: 1, message: "Jumlah harus lebih dari 0" } }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Jumlah</FormLabel>
@@ -129,6 +156,7 @@ const TransactionForm = ({ onSuccess, editData }: TransactionFormProps) => {
         <FormField
           control={form.control}
           name="wallet_id"
+          rules={{ required: "Dompet harus dipilih" }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Dompet</FormLabel>
@@ -154,6 +182,7 @@ const TransactionForm = ({ onSuccess, editData }: TransactionFormProps) => {
         <FormField
           control={form.control}
           name="category_id"
+          rules={{ required: "Kategori harus dipilih" }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Kategori</FormLabel>
@@ -179,6 +208,7 @@ const TransactionForm = ({ onSuccess, editData }: TransactionFormProps) => {
         <FormField
           control={form.control}
           name="date"
+          rules={{ required: "Tanggal harus diisi" }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Tanggal</FormLabel>
