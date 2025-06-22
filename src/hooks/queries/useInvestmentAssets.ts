@@ -23,7 +23,7 @@ export const useInvestmentAssets = (instrumentId?: number) => {
         query = query.eq("instrument_id", instrumentId);
       }
       
-      const { data, error } = await query.order("created_at", { ascending: false });
+      const { data, error } = await query.order("instrument_id.name").order("name");
       
       if (error) throw error;
       return data;

@@ -12,7 +12,8 @@ export const useCategories = (isIncome?: boolean) => {
       let query = supabase
         .from("categories")
         .select("*")
-        .eq("user_id", user?.id);
+        .eq("user_id", user?.id)
+        .order("name");
       
       if (isIncome !== undefined) {
         query = query.eq("is_income", isIncome);

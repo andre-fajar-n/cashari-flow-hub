@@ -13,7 +13,7 @@ export const useBusinessProjects = () => {
         .from("business_projects")
         .select("*")
         .eq("user_id", user?.id)
-        .order("created_at", { ascending: false });
+        .order("name");
       
       if (error) throw error;
       return data;
