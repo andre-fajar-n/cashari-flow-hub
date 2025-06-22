@@ -3,13 +3,13 @@ import { useState } from "react";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowRightLeft, Edit, Trash2 } from "lucide-react";
 import { useTransfers, useDeleteTransfer } from "@/hooks/queries/useTransfers";
-import TransferForm from "@/components/transfers/TransferForm";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { toast } from "@/hooks/use-toast";
+import TransferDialog from "@/components/transfers/TransferDialog";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,11 +17,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+interface Transfer {
+  id: number;
+  from_wallet_id: string;
+  to_wallet_id: string;
+  amount_from: number;
+  amount_to: number;
+  date: string;
+}
+
 const Transfer = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingTransfer, setEditingTransfer] = useState(null);
+  const [selectedTransfer, setSelectedTransfer] = useState<Transfer | undefined>(undefined);
   const { data: transfers, isLoading } = useTransfers();
   const { mutate: deleteTransfer } = useDeleteTransfer();
+  const queryClient = useQueryClient();
 
   const formatAmount = (amount: number, symbol: string) => {
     return `${symbol} ${amount.toLocaleString('id-ID')}`;
@@ -36,7 +46,12 @@ const Transfer = () => {
   };
 
   const handleEdit = (transfer: any) => {
-    setEditingTransfer(transfer);
+    setSelectedTransfer(transfer);
+    setIsDialogOpen(true);
+  };
+
+  const handleAddNew = () => {
+    setSelectedTransfer(undefined);
     setIsDialogOpen(true);
   };
 
@@ -60,11 +75,6 @@ const Transfer = () => {
     }
   };
 
-  const handleDialogClose = () => {
-    setIsDialogOpen(false);
-    setEditingTransfer(null);
-  };
-
   return (
     <ProtectedRoute>
       <Layout>
@@ -74,25 +84,19 @@ const Transfer = () => {
               <h1 className="text-3xl font-bold">Transfer</h1>
               <p className="text-muted-foreground">Kelola transfer antar dompet</p>
             </div>
-            <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Transfer Baru
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingTransfer ? 'Edit Transfer' : 'Transfer Baru'}
-                  </DialogTitle>
-                </DialogHeader>
-                <TransferForm 
-                  onSuccess={handleDialogClose}
-                  editData={editingTransfer}
-                />
-              </DialogContent>
-            </Dialog>
+            <Button onClick={handleAddNew}>
+              <Plus className="w-4 h-4 mr-2" />
+              Transfer Baru
+            </Button>
+
+            <TransferDialog
+              open={isDialogOpen}
+              onOpenChange={setIsDialogOpen}
+              transfer={selectedTransfer}
+              onSuccess={() => {
+                queryClient.invalidateQueries({ queryKey: ["transfers"] });
+              }}
+            />
           </div>
 
           <Card>
