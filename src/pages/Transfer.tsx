@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowRightLeft } from "lucide-react";
 import { useTransfers } from "@/hooks/queries/useTransfers";
 import TransferForm from "@/components/transfers/TransferForm";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const Transfer = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);

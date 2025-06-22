@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 import { useTransactions } from "@/hooks/queries/useTransactions";
 import TransactionForm from "@/components/transactions/TransactionForm";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const Transaction = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
