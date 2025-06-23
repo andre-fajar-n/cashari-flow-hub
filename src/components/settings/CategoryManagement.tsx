@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -43,6 +42,29 @@ const CategoryManagement = () => {
     },
   });
 
+  // Reset form when adding/editing state changes
+  useEffect(() => {
+    if (isAdding) {
+      form.reset({
+        name: "",
+        is_income: false,
+        parent_id: null,
+        application: 'transaction',
+      });
+    }
+  }, [isAdding, form]);
+
+  useEffect(() => {
+    if (editingCategory) {
+      form.reset({
+        name: editingCategory.name,
+        is_income: editingCategory.is_income,
+        parent_id: editingCategory.parent_id,
+        application: editingCategory.application,
+      });
+    }
+  }, [editingCategory, form]);
+
   const { data: categories, isLoading } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
@@ -72,7 +94,12 @@ const CategoryManagement = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
-      form.reset();
+      form.reset({
+        name: "",
+        is_income: false,
+        parent_id: null,
+        application: 'transaction',
+      });
       setIsAdding(false);
       toast({
         title: "Berhasil",
@@ -100,7 +127,12 @@ const CategoryManagement = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
-      form.reset();
+      form.reset({
+        name: "",
+        is_income: false,
+        parent_id: null,
+        application: 'transaction',
+      });
       setEditingCategory(null);
       toast({
         title: "Berhasil",
@@ -152,11 +184,17 @@ const CategoryManagement = () => {
 
   const startEdit = (category: Category) => {
     setEditingCategory(category);
+    setIsAdding(false);
+  };
+
+  const handleCancel = () => {
+    setIsAdding(false);
+    setEditingCategory(null);
     form.reset({
-      name: category.name,
-      is_income: category.is_income,
-      parent_id: category.parent_id,
-      application: category.application,
+      name: "",
+      is_income: false,
+      parent_id: null,
+      application: 'transaction',
     });
   };
 
@@ -265,11 +303,7 @@ const CategoryManagement = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => {
-                    setIsAdding(false);
-                    setEditingCategory(null);
-                    form.reset();
-                  }}
+                  onClick={handleCancel}
                 >
                   Batal
                 </Button>

@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -42,6 +41,27 @@ const WalletManagement = () => {
     },
   });
 
+  // Reset form when adding/editing state changes
+  useEffect(() => {
+    if (isAdding) {
+      form.reset({
+        name: "",
+        currency_code: "",
+        initial_amount: 0,
+      });
+    }
+  }, [isAdding, form]);
+
+  useEffect(() => {
+    if (editingWallet) {
+      form.reset({
+        name: editingWallet.name,
+        currency_code: editingWallet.currency_code,
+        initial_amount: editingWallet.initial_amount,
+      });
+    }
+  }, [editingWallet, form]);
+
   const { data: wallets, isLoading } = useQuery({
     queryKey: ["wallets"],
     queryFn: async () => {
@@ -72,7 +92,11 @@ const WalletManagement = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
-      form.reset();
+      form.reset({
+        name: "",
+        currency_code: "",
+        initial_amount: 0,
+      });
       setIsAdding(false);
       toast({
         title: "Berhasil",
@@ -100,7 +124,11 @@ const WalletManagement = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
-      form.reset();
+      form.reset({
+        name: "",
+        currency_code: "",
+        initial_amount: 0,
+      });
       setEditingWallet(null);
       toast({
         title: "Berhasil",
@@ -152,10 +180,16 @@ const WalletManagement = () => {
 
   const startEdit = (wallet: Wallet) => {
     setEditingWallet(wallet);
+    setIsAdding(false);
+  };
+
+  const handleCancel = () => {
+    setIsAdding(false);
+    setEditingWallet(null);
     form.reset({
-      name: wallet.name,
-      currency_code: wallet.currency_code,
-      initial_amount: wallet.initial_amount,
+      name: "",
+      currency_code: "",
+      initial_amount: 0,
     });
   };
 
@@ -233,11 +267,7 @@ const WalletManagement = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => {
-                    setIsAdding(false);
-                    setEditingWallet(null);
-                    form.reset();
-                  }}
+                  onClick={handleCancel}
                 >
                   Batal
                 </Button>
