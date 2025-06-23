@@ -15,7 +15,13 @@ export const useGoalTransfers = () => {
         .select(`
           *,
           from_wallet:wallets!goal_transfers_from_wallet_id_fkey(name),
-          to_goal:goals!goal_transfers_to_goal_id_fkey(name)
+          from_goal:goals!goal_transfers_from_goal_id_fkey(name),
+          to_wallet:wallets!goal_transfers_to_wallet_id_fkey(name),
+          to_goal:goals!goal_transfers_to_goal_id_fkey(name),
+          from_instrument:investment_instruments!goal_transfers_from_instrument_id_fkey(name),
+          to_instrument:investment_instruments!goal_transfers_to_instrument_id_fkey(name),
+          from_asset:investment_assets!goal_transfers_from_asset_id_fkey(name, symbol),
+          to_asset:investment_assets!goal_transfers_to_asset_id_fkey(name, symbol)
         `)
         .eq("user_id", user?.id)
         .order("date", { ascending: false });
@@ -46,6 +52,33 @@ export const useCreateGoalTransfer = () => {
       queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
       queryClient.invalidateQueries({ queryKey: ["goals"] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
+      queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
+    },
+  });
+};
+
+export const useUpdateGoalTransfer = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...transfer }: TablesUpdate<"goal_transfers"> & { id: number }) => {
+      const { data, error } = await supabase
+        .from("goal_transfers")
+        .update(transfer)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
+      queryClient.invalidateQueries({ queryKey: ["goals"] });
+      queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
+      queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
     },
   });
 };
@@ -66,6 +99,8 @@ export const useDeleteGoalTransfer = () => {
       queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
       queryClient.invalidateQueries({ queryKey: ["goals"] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
+      queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
     },
   });
 };
