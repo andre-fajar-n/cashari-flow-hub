@@ -63,9 +63,16 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
   const { data: instruments } = useInvestmentInstruments();
   const { data: assets } = useInvestmentAssets();
 
+  const fromWalletId = form.watch("from_wallet_id");
+  const toWalletId = form.watch("to_wallet_id");
+  const amountFrom = form.watch("amount_from");
+
+  const fromWallet = wallets?.find(w => w.id.toString() === fromWalletId);
+  const toWallet = wallets?.find(w => w.id.toString() === toWalletId);
+  const isSameCurrency = fromWallet?.currency_code === toWallet?.currency_code;
+
   const fromInstrumentId = form.watch("from_instrument_id");
   const toInstrumentId = form.watch("to_instrument_id");
-  const amountFrom = form.watch("amount_from");
 
   // Filter assets based on selected instruments
   const fromAssets = assets?.filter(asset => 
@@ -77,10 +84,10 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
 
   // Auto-populate amount_to when same currency (simplified logic)
   useEffect(() => {
-    if (amountFrom > 0) {
+    if (isSameCurrency && amountFrom > 0) {
       form.setValue("amount_to", amountFrom);
     }
-  }, [amountFrom, form]);
+  }, [isSameCurrency, amountFrom, form]);
 
   const onSubmit = async (data: GoalTransferFormData) => {
     if (!user) return;
@@ -203,7 +210,7 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Tidak ada</SelectItem>
+                          <SelectItem value="none">Tidak ada</SelectItem>
                           {wallets?.map((wallet) => (
                             <SelectItem key={wallet.id} value={wallet.id.toString()}>
                               {wallet.name} ({wallet.currency_code})
@@ -229,7 +236,7 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Tidak ada</SelectItem>
+                          <SelectItem value="none">Tidak ada</SelectItem>
                           {goals?.map((goal) => (
                             <SelectItem key={goal.id} value={goal.id.toString()}>
                               {goal.name} ({goal.currency_code})
@@ -255,7 +262,7 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Tidak ada</SelectItem>
+                          <SelectItem value="none">Tidak ada</SelectItem>
                           {instruments?.map((instrument) => (
                             <SelectItem key={instrument.id} value={instrument.id.toString()}>
                               {instrument.name}
@@ -281,7 +288,7 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Tidak ada</SelectItem>
+                          <SelectItem value="none">Tidak ada</SelectItem>
                           {fromAssets?.map((asset) => (
                             <SelectItem key={asset.id} value={asset.id.toString()}>
                               {asset.name} {asset.symbol && `(${asset.symbol})`}
@@ -313,7 +320,7 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Tidak ada</SelectItem>
+                          <SelectItem value="none">Tidak ada</SelectItem>
                           {wallets?.map((wallet) => (
                             <SelectItem key={wallet.id} value={wallet.id.toString()}>
                               {wallet.name} ({wallet.currency_code})
@@ -339,7 +346,7 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Tidak ada</SelectItem>
+                          <SelectItem value="none">Tidak ada</SelectItem>
                           {goals?.filter(goal => goal.is_active && !goal.is_achieved).map((goal) => (
                             <SelectItem key={goal.id} value={goal.id.toString()}>
                               {goal.name} ({goal.currency_code})
@@ -365,7 +372,7 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Tidak ada</SelectItem>
+                          <SelectItem value="none">Tidak ada</SelectItem>
                           {instruments?.map((instrument) => (
                             <SelectItem key={instrument.id} value={instrument.id.toString()}>
                               {instrument.name}
@@ -391,7 +398,7 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Tidak ada</SelectItem>
+                          <SelectItem value="none">Tidak ada</SelectItem>
                           {toAssets?.map((asset) => (
                             <SelectItem key={asset.id} value={asset.id.toString()}>
                               {asset.name} {asset.symbol && `(${asset.symbol})`}
@@ -439,13 +446,25 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
                         {...field} 
                         onChange={(value) => field.onChange(value)}
                         value={field.value}
+                        disabled={isSameCurrency}
                       />
                     </FormControl>
+                    {isSameCurrency && (
+                      <p className="text-xs text-muted-foreground">
+                        Otomatis sama dengan jumlah keluar (mata uang sama)
+                      </p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
+
+            {fromWallet && toWallet && (
+              <div className="text-sm text-muted-foreground bg-muted p-3 rounded">
+                Transfer dari {fromWallet.name} ({fromWallet.currency_code}) ke {toWallet.name} ({toWallet.currency_code})
+              </div>
+            )}
 
             <FormField
               control={form.control}
