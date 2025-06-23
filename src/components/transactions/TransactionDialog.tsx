@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useWallets } from "@/hooks/queries/useWallets";
 import { useCategories } from "@/hooks/queries/useCategories";
+import { useDebts } from "@/hooks/queries/useDebts";
+import { useBudgets } from "@/hooks/queries/useBudgets";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -21,6 +23,8 @@ interface TransactionFormData {
   wallet_id: string;
   date: string;
   description?: string;
+  debt_id?: string;
+  budget_id?: string;
 }
 
 interface TransactionDialogProps {
@@ -38,6 +42,8 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
 
   const { data: wallets } = useWallets();
   const { data: categories } = useCategories();
+  const { data: debts } = useDebts();
+  const { data: budgets } = useBudgets();
   const defaultCurrency = useDefaultCurrency();
   
   const form = useForm<TransactionFormData>({
@@ -47,8 +53,11 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
       wallet_id: transaction?.wallet_id?.toString() || "",
       date: transaction?.date || new Date().toISOString().split('T')[0],
       description: transaction?.description || "",
+      debt_id: "",
+      budget_id: "",
     },
   });
+
   const selectedWalletId = form.watch("wallet_id");
   const selectedWallet = wallets?.find(w => w.id.toString() === selectedWalletId);
 
@@ -66,32 +75,67 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
         description: data.description || null,
       };
 
+      let transactionId: number;
+
       if (transaction) {
         // Update existing transaction
-        const { error } = await supabase
+        const { data: updatedTransaction, error } = await supabase
           .from("transactions")
           .update({
             ...transactionData
           })
           .eq("id", transaction.id)
-          .eq("user_id", user.id);
+          .eq("user_id", user.id)
+          .select()
+          .single();
 
         if (error) throw error;
+        transactionId = updatedTransaction.id;
         toast({ title: "Transaksi berhasil diperbarui" });
       } else {
         // Create new transaction
-        const { error } = await supabase
+        const { data: newTransaction, error } = await supabase
           .from("transactions")
           .insert({
             user_id: user.id,
             ...transactionData,
-          });
+          })
+          .select()
+          .single();
 
         if (error) throw error;
+        transactionId = newTransaction.id;
         toast({ title: "Transaksi berhasil ditambahkan" });
       }
 
+      // Handle debt association
+      if (data.debt_id) {
+        await supabase
+          .from("debt_histories")
+          .insert({
+            user_id: user.id,
+            debt_id: parseInt(data.debt_id),
+            wallet_id: parseInt(data.wallet_id),
+            amount: data.amount,
+            currency_code: selectedWallet.currency_code,
+            date: data.date,
+            description: data.description || null,
+          });
+      }
+
+      // Handle budget association
+      if (data.budget_id) {
+        await supabase
+          .from("budget_items")
+          .insert({
+            budget_id: parseInt(data.budget_id),
+            transaction_id: transactionId,
+          });
+      }
+
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["debts"] });
+      queryClient.invalidateQueries({ queryKey: ["budgets"] });
       onOpenChange(false);
       form.reset();
       onSuccess?.();
@@ -116,6 +160,8 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
           wallet_id: transaction?.wallet_id?.toString() || "",
           date: transaction?.date || new Date().toISOString().split('T')[0],
           description: transaction?.description || "",
+          debt_id: "",
+          budget_id: "",
         });
       } else {
         form.reset({
@@ -124,6 +170,8 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
           wallet_id: "",
           date: new Date().toISOString().split('T')[0],
           description: "",
+          debt_id: "",
+          budget_id: "",
         });
       }
     }
@@ -131,7 +179,7 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {transaction ? "Edit Transaction" : "Tambah Transaction Baru"}
@@ -234,6 +282,58 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
                   <FormControl>
                     <Input {...field} placeholder="Masukkan deskripsi" />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="debt_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Kaitkan dengan Hutang/Piutang (Opsional)</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih hutang/piutang" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">Tidak ada</SelectItem>
+                      {debts?.map((debt) => (
+                        <SelectItem key={debt.id} value={debt.id.toString()}>
+                          {debt.name} ({debt.type === 'loan' ? 'Hutang' : 'Piutang'})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="budget_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Kaitkan dengan Budget (Opsional)</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih budget" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">Tidak ada</SelectItem>
+                      {budgets?.map((budget) => (
+                        <SelectItem key={budget.id} value={budget.id.toString()}>
+                          {budget.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

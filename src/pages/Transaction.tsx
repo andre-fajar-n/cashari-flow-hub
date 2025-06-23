@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowUpCircle, ArrowDownCircle, Edit, Trash2 } from "lucide-react";
 import { useTransactions, useDeleteTransaction } from "@/hooks/queries/useTransactions";
 import TransactionDialog from "@/components/transactions/TransactionDialog";
+import ConfirmationModal from "@/components/ConfirmationModal";
 import { useQueryClient } from "@tanstack/react-query";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { toast } from "@/hooks/use-toast";
@@ -26,8 +27,10 @@ interface TransactionFormData {
 }
 
 const Transaction = () => {
-  const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null)
+  const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState<number | null>(null);
   const queryClient = useQueryClient();
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionFormData | undefined>(undefined);
   const { data: transactions, isLoading } = useTransactions();
@@ -48,12 +51,18 @@ const Transaction = () => {
   const openDialog = (transaction: any) => {
     setSelectedTransaction(transaction);
     setActiveDropdownId(null);
-    setTimeout(() => setIsDialogOpen(true), 50)
+    setTimeout(() => setIsDialogOpen(true), 50);
   };
 
-  const handleDelete = (transactionId: number) => {
-    if (confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) {
-      deleteTransaction(transactionId, {
+  const handleDeleteClick = (transactionId: number) => {
+    setTransactionToDelete(transactionId);
+    setActiveDropdownId(null);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (transactionToDelete) {
+      deleteTransaction(transactionToDelete, {
         onSuccess: () => {
           toast({
             title: "Berhasil",
@@ -80,19 +89,31 @@ const Transaction = () => {
               <h1 className="text-3xl font-bold">Transaksi</h1>
               <p className="text-muted-foreground">Kelola pemasukan dan pengeluaran Anda</p>
             </div>
-            <Button onClick={openDialog}>
+            <Button onClick={() => openDialog(undefined)}>
               <Plus className="w-4 h-4 mr-2" />
               Tambah Transaksi
             </Button>
-            <TransactionDialog
-              open={isDialogOpen}
-              onOpenChange={setIsDialogOpen}
-              transaction={selectedTransaction}
-              onSuccess={() => {
-                queryClient.invalidateQueries({ queryKey: ["transactions"] });
-              }}
-            />
           </div>
+
+          <TransactionDialog
+            open={isDialogOpen}
+            onOpenChange={setIsDialogOpen}
+            transaction={selectedTransaction}
+            onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: ["transactions"] });
+            }}
+          />
+
+          <ConfirmationModal
+            open={isDeleteModalOpen}
+            onOpenChange={setIsDeleteModalOpen}
+            onConfirm={handleConfirmDelete}
+            title="Hapus Transaksi"
+            description="Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan."
+            confirmText="Ya, Hapus"
+            cancelText="Batal"
+            variant="destructive"
+          />
 
           <Card>
             <CardHeader>
@@ -166,7 +187,7 @@ const Transaction = () => {
                               Edit
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={() => handleDelete(transaction.id)}
+                              onClick={() => handleDeleteClick(transaction.id)}
                               className="text-red-600"
                             >
                               <Trash2 className="w-4 h-4 mr-2" />
