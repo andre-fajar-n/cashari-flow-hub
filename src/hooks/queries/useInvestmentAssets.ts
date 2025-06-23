@@ -10,20 +10,15 @@ export const useInvestmentAssets = (instrumentId?: number) => {
     queryKey: ["investment_assets", user?.id, instrumentId],
     queryFn: async () => {
       let query = supabase
-        .from("investment_assets")
-        .select(`
-          *,
-          investment_instruments (
-            name
-          )
-        `)
+        .from("investment_assets_with_instruments")
+        .select(`*`)
         .eq("user_id", user?.id);
       
       if (instrumentId) {
         query = query.eq("instrument_id", instrumentId);
       }
       
-      const { data, error } = await query.order("instrument_id.name").order("name");
+      const { data, error } = await query.order("instrument_name").order("name");
       
       if (error) throw error;
       return data;
