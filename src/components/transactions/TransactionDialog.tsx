@@ -53,8 +53,8 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
       wallet_id: transaction?.wallet_id?.toString() || "",
       date: transaction?.date || new Date().toISOString().split('T')[0],
       description: transaction?.description || "",
-      debt_id: "",
-      budget_id: "",
+      debt_id: "none",
+      budget_id: "none",
     },
   });
 
@@ -109,7 +109,7 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
       }
 
       // Handle debt association
-      if (data.debt_id) {
+      if (data.debt_id && data.debt_id !== "none") {
         await supabase
           .from("debt_histories")
           .insert({
@@ -124,7 +124,7 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
       }
 
       // Handle budget association
-      if (data.budget_id) {
+      if (data.budget_id && data.budget_id !== "none") {
         await supabase
           .from("budget_items")
           .insert({
@@ -160,8 +160,8 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
           wallet_id: transaction?.wallet_id?.toString() || "",
           date: transaction?.date || new Date().toISOString().split('T')[0],
           description: transaction?.description || "",
-          debt_id: "",
-          budget_id: "",
+          debt_id: "none",
+          budget_id: "none",
         });
       } else {
         form.reset({
@@ -170,8 +170,8 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
           wallet_id: "",
           date: new Date().toISOString().split('T')[0],
           description: "",
-          debt_id: "",
-          budget_id: "",
+          debt_id: "none",
+          budget_id: "none",
         });
       }
     }
@@ -300,7 +300,7 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Tidak ada</SelectItem>
+                      <SelectItem value="none">Tidak ada</SelectItem>
                       {debts?.map((debt) => (
                         <SelectItem key={debt.id} value={debt.id.toString()}>
                           {debt.name} ({debt.type === 'loan' ? 'Hutang' : 'Piutang'})
@@ -326,7 +326,7 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Tidak ada</SelectItem>
+                      <SelectItem value="none">Tidak ada</SelectItem>
                       {budgets?.map((budget) => (
                         <SelectItem key={budget.id} value={budget.id.toString()}>
                           {budget.name}
