@@ -23,7 +23,6 @@ interface Budget {
 }
 
 const Budget = () => {
-  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -39,8 +38,8 @@ const Budget = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDeleteClick = (transactionId: number) => {
-    setBudgetToDelete(transactionId);
+  const handleDeleteClick = (budgetId: number) => {
+    setBudgetToDelete(budgetId);
     setIsDeleteModalOpen(true);
   };
 
@@ -63,30 +62,6 @@ const Budget = () => {
       });
     }
   };
-
-  // const handleDelete = async (budget: Budget) => {
-  //   if (!confirm(`Apakah Anda yakin ingin menghapus budget "${budget.name}"?`)) return;
-
-  //   try {
-  //     const { error } = await supabase
-  //       .from("budgets")
-  //       .delete()
-  //       .eq("id", budget.id)
-  //       .eq("user_id", user?.id);
-
-  //     if (error) throw error;
-      
-  //     toast({ title: "Budget berhasil dihapus" });
-  //     queryClient.invalidateQueries({ queryKey: ["budgets"] });
-  //   } catch (error) {
-  //     console.error("Error deleting budget:", error);
-  //     toast({ 
-  //       title: "Error", 
-  //       description: "Gagal menghapus budget",
-  //       variant: "destructive"
-  //     });
-  //   }
-  // };
 
   const handleAddNew = () => {
     setSelectedBudget(undefined);
