@@ -12,17 +12,21 @@ export interface InputNumberProps extends Omit<React.ComponentProps<"input">, "o
 const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
   ({ className, onChange, value, autoComplete = "off", ...props }, ref) => {
     const formatNumber = (num: string) => {
+      const isNegative = num.startsWith('-');
+
       // Remove any non-digit characters
-      const cleanNum = num.replace(/\D/g, '');
-      if (cleanNum === '') return '';
-      
-      // Format with thousands separators
-      return parseInt(cleanNum, 10).toLocaleString('id-ID');
+      const digitsOnly = num.replace(/\D/g, '');
+
+      if (digitsOnly === '') return isNegative ? '-' : '';
+
+      const formatted = parseInt(digitsOnly, 10).toLocaleString('id-ID');
+      return isNegative ? `-${formatted}` : formatted;
     };
 
     const parseNumber = (formattedNum: string) => {
-      // Remove thousands separators and convert to number
-      return parseInt(formattedNum.replace(/\./g, ''), 10) || 0;
+      const isNegative = formattedNum.trim().startsWith('-');
+      const numeric = parseInt(formattedNum.replace(/[^0-9]/g, ''), 10) || 0;
+      return isNegative ? -numeric : numeric;
     };
     
     const [displayValue, setDisplayValue] = React.useState<string>(
@@ -36,22 +40,23 @@ const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
 
-      // Allow empty string
-      if (newValue === "") {
-        setDisplayValue("");
+      // Allow empty string or just "-"
+      if (newValue === "" || newValue === "-") {
+        setDisplayValue(newValue);
         if (onChange) {
-          onChange(0);
+          onChange(0); // optional: you can return NaN or null if "-" only
         }
         return;
       }
 
-      // Remove all non-digit characters for validation
+      const isNegative = newValue.startsWith('-');
       const digitsOnly = newValue.replace(/\D/g, '');
-      
+
       if (digitsOnly !== '') {
-        const formatted = formatNumber(digitsOnly);
+        const raw = isNegative ? `-${digitsOnly}` : digitsOnly;
+        const formatted = formatNumber(raw);
         setDisplayValue(formatted);
-        
+
         if (onChange) {
           const numericValue = parseNumber(formatted);
           onChange(numericValue);
