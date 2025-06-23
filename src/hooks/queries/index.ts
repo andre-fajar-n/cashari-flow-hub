@@ -6,6 +6,7 @@ export * from './useCategories';
 export * from './useInvestmentInstruments';
 export * from './useInvestmentAssets';
 export * from './useGoals';
+export * from './useGoalTransfers';
 export * from './useBudgets';
 export * from './useDebts';
 export * from './useBusinessProjects';

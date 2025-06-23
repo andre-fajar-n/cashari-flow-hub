@@ -1,31 +1,20 @@
 
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
 import { useWallets } from "@/hooks/queries/useWallets";
 import { useCategories } from "@/hooks/queries/useCategories";
 import { useDebts } from "@/hooks/queries/useDebts";
 import { useBudgets } from "@/hooks/queries/useBudgets";
+import { useBusinessProjects } from "@/hooks/queries/useBusinessProjects";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { InputNumber } from "@/components/ui/input-number";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { useDefaultCurrency } from "@/hooks/queries";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-interface TransactionFormData {
-  amount: number;
-  category_id: string;
-  wallet_id: string;
-  date: string;
-  description?: string;
-  debt_id?: string;
-  budget_id?: string;
-}
+import { useTransactionForm } from "@/hooks/useTransactionForm";
+import TransactionFormFields from "./TransactionFormFields";
+import TransactionAssociationFields from "./TransactionAssociationFields";
 
 interface TransactionDialogProps {
   open: boolean;
@@ -44,24 +33,14 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
   const { data: categories } = useCategories();
   const { data: debts } = useDebts();
   const { data: budgets } = useBudgets();
-  const defaultCurrency = useDefaultCurrency();
+  const { data: businessProjects } = useBusinessProjects();
   
-  const form = useForm<TransactionFormData>({
-    defaultValues: {
-      amount: transaction?.amount || 0,
-      category_id: transaction?.category_id?.toString() || "",
-      wallet_id: transaction?.wallet_id?.toString() || "",
-      date: transaction?.date || new Date().toISOString().split('T')[0],
-      description: transaction?.description || "",
-      debt_id: "none",
-      budget_id: "none",
-    },
-  });
+  const { form } = useTransactionForm(transaction, open);
 
   const selectedWalletId = form.watch("wallet_id");
   const selectedWallet = wallets?.find(w => w.id.toString() === selectedWalletId);
 
-  const onSubmit = async (data: TransactionFormData) => {
+  const onSubmit = async (data: any) => {
     if (!user) return;
     
     setIsLoading(true);
@@ -133,11 +112,22 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
           });
       }
 
+      // Handle business project association
+      if (data.business_project_id && data.business_project_id !== "none") {
+        await supabase
+          .from("business_project_transactions")
+          .insert({
+            user_id: user.id,
+            project_id: parseInt(data.business_project_id),
+            transaction_id: transactionId,
+          });
+      }
+
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["debts"] });
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
+      queryClient.invalidateQueries({ queryKey: ["business_projects"] });
       onOpenChange(false);
-      form.reset();
       onSuccess?.();
     } catch (error) {
       toast({ 
@@ -150,33 +140,6 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
     }
   };
 
-  // Reset form when transaction prop changes or dialog opens/closes
-  useEffect(() => {
-    if (open) {
-      if (transaction) {
-        form.reset({
-          amount: transaction?.amount || 0,
-          category_id: transaction?.category_id?.toString() || "",
-          wallet_id: transaction?.wallet_id?.toString() || "",
-          date: transaction?.date || new Date().toISOString().split('T')[0],
-          description: transaction?.description || "",
-          debt_id: "none",
-          budget_id: "none",
-        });
-      } else {
-        form.reset({
-          amount: 0,
-          category_id: "",
-          wallet_id: "",
-          date: new Date().toISOString().split('T')[0],
-          description: "",
-          debt_id: "none",
-          budget_id: "none",
-        });
-      }
-    }
-  }, [transaction, open, form, defaultCurrency]);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
@@ -187,156 +150,17 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
+            <TransactionFormFields
               control={form.control}
-              name="amount"
-              rules={{ required: "Jumlah harus diisi", min: { value: 1, message: "Jumlah harus lebih dari 0" } }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Jumlah</FormLabel>
-                  <FormControl>
-                    <InputNumber 
-                      {...field} 
-                      onChange={(value) => field.onChange(value)}
-                      value={field.value}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              wallets={wallets}
+              categories={categories}
             />
 
-            <FormField
+            <TransactionAssociationFields
               control={form.control}
-              name="wallet_id"
-              rules={{ required: "Dompet harus dipilih" }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Dompet</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih dompet" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {wallets?.map((wallet) => (
-                        <SelectItem key={wallet.id} value={wallet.id.toString()}>
-                          {wallet.name} ({wallet.currency_code})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="category_id"
-              rules={{ required: "Kategori harus dipilih" }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Kategori</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih kategori" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {categories?.map((category) => (
-                        <SelectItem key={category.id} value={category.id.toString()}>
-                          {category.name} {category.is_income ? "(Pemasukan)" : "(Pengeluaran)"}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="date"
-              rules={{ required: "Tanggal harus diisi" }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tanggal</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Deskripsi (Opsional)</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Masukkan deskripsi" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="debt_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Kaitkan dengan Hutang/Piutang (Opsional)</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih hutang/piutang" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">Tidak ada</SelectItem>
-                      {debts?.map((debt) => (
-                        <SelectItem key={debt.id} value={debt.id.toString()}>
-                          {debt.name} ({debt.type === 'loan' ? 'Hutang' : 'Piutang'})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="budget_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Kaitkan dengan Budget (Opsional)</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih budget" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">Tidak ada</SelectItem>
-                      {budgets?.map((budget) => (
-                        <SelectItem key={budget.id} value={budget.id.toString()}>
-                          {budget.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              debts={debts}
+              budgets={budgets}
+              businessProjects={businessProjects}
             />
 
             <div className="flex justify-end gap-2 pt-4">
