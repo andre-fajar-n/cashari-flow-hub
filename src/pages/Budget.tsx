@@ -9,7 +9,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import BudgetDialog from "@/components/budget/BudgetDialog";
 import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/Layout";
-import { useBudgets } from "@/hooks/queries";
+import { useBudgets, useDeleteBudget } from "@/hooks/queries";
+import ConfirmationModal from "@/components/ConfirmationModal";
 
 interface Budget {
   id: number;
@@ -25,8 +26,11 @@ const Budget = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [budgetToDelete, setBudgetToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<Budget | undefined>(undefined);
+  const { mutate: deleteBudget } = useDeleteBudget();
 
   const { data: budgets, isLoading } = useBudgets();
 
@@ -35,29 +39,54 @@ const Budget = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (budget: Budget) => {
-    if (!confirm(`Apakah Anda yakin ingin menghapus budget "${budget.name}"?`)) return;
+  const handleDeleteClick = (transactionId: number) => {
+    setBudgetToDelete(transactionId);
+    setIsDeleteModalOpen(true);
+  };
 
-    try {
-      const { error } = await supabase
-        .from("budgets")
-        .delete()
-        .eq("id", budget.id)
-        .eq("user_id", user?.id);
-
-      if (error) throw error;
-      
-      toast({ title: "Budget berhasil dihapus" });
-      queryClient.invalidateQueries({ queryKey: ["budgets"] });
-    } catch (error) {
-      console.error("Error deleting budget:", error);
-      toast({ 
-        title: "Error", 
-        description: "Gagal menghapus budget",
-        variant: "destructive"
+  const handleConfirmDelete = () => {
+    if (budgetToDelete) {
+      deleteBudget(budgetToDelete, {
+        onSuccess: () => {
+          toast({
+            title: "Berhasil",
+            description: "Transfer berhasil dihapus",
+          });
+        },
+        onError: (error: any) => {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        },
       });
     }
   };
+
+  // const handleDelete = async (budget: Budget) => {
+  //   if (!confirm(`Apakah Anda yakin ingin menghapus budget "${budget.name}"?`)) return;
+
+  //   try {
+  //     const { error } = await supabase
+  //       .from("budgets")
+  //       .delete()
+  //       .eq("id", budget.id)
+  //       .eq("user_id", user?.id);
+
+  //     if (error) throw error;
+      
+  //     toast({ title: "Budget berhasil dihapus" });
+  //     queryClient.invalidateQueries({ queryKey: ["budgets"] });
+  //   } catch (error) {
+  //     console.error("Error deleting budget:", error);
+  //     toast({ 
+  //       title: "Error", 
+  //       description: "Gagal menghapus budget",
+  //       variant: "destructive"
+  //     });
+  //   }
+  // };
 
   const handleAddNew = () => {
     setSelectedBudget(undefined);
@@ -77,6 +106,16 @@ const Budget = () => {
   return (
     <ProtectedRoute>
       <Layout>
+        <ConfirmationModal
+          open={isDeleteModalOpen}
+          onOpenChange={setIsDeleteModalOpen}
+          onConfirm={handleConfirmDelete}
+          title="Hapus Transaksi"
+          description="Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan."
+          confirmText="Ya, Hapus"
+          cancelText="Batal"
+          variant="destructive"
+        />
         <Card className="mb-6">
           <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
@@ -117,7 +156,7 @@ const Budget = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => handleDelete(budget)}
+                          onClick={() => handleDeleteClick(budget.id)}
                         >
                           <Trash2 className="w-3 h-3 mr-1" />
                           Hapus

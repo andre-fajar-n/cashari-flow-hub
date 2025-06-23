@@ -10,6 +10,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { toast } from "@/hooks/use-toast";
 import TransferDialog from "@/components/transfers/TransferDialog";
 import { useQueryClient } from "@tanstack/react-query";
+import ConfirmationModal from "@/components/ConfirmationModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,6 +29,8 @@ interface Transfer {
 
 const Transfer = () => {
   const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [transferToDelete, setTransferToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedTransfer, setSelectedTransfer] = useState<Transfer | undefined>(undefined);
   const { data: transfers, isLoading } = useTransfers();
@@ -52,9 +55,15 @@ const Transfer = () => {
     setTimeout(() => setIsDialogOpen(true), 50)
   };
 
-  const handleDelete = (transferId: number) => {
-    if (confirm('Apakah Anda yakin ingin menghapus transfer ini?')) {
-      deleteTransfer(transferId, {
+  const handleDeleteClick = (transactionId: number) => {
+    setTransferToDelete(transactionId);
+    setActiveDropdownId(null);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (transferToDelete) {
+      deleteTransfer(transferToDelete, {
         onSuccess: () => {
           toast({
             title: "Berhasil",
@@ -93,6 +102,17 @@ const Transfer = () => {
               onSuccess={() => {
                 queryClient.invalidateQueries({ queryKey: ["transfers"] });
               }}
+            />
+
+            <ConfirmationModal
+              open={isDeleteModalOpen}
+              onOpenChange={setIsDeleteModalOpen}
+              onConfirm={handleConfirmDelete}
+              title="Hapus Transfer"
+              description="Apakah Anda yakin ingin menghapus transfer ini? Tindakan ini tidak dapat dibatalkan."
+              confirmText="Ya, Hapus"
+              cancelText="Batal"
+              variant="destructive"
             />
           </div>
 
@@ -166,7 +186,7 @@ const Transfer = () => {
                               Edit
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              onClick={() => handleDelete(transfer.id)}
+                              onClick={() => handleDeleteClick(transfer.id)}
                               className="text-red-600"
                             >
                               <Trash2 className="w-4 h-4 mr-2" />

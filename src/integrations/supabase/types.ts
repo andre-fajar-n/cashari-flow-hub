@@ -653,6 +653,17 @@ export type Database = {
           },
         ]
       }
+      investment_assets_with_instruments: {
+        Row: {
+          created_at: string | null
+          id: number
+          instrument_id: number
+          name: string
+          symbol: string | null
+          updated_at: string | null
+          user_id: string
+        }
+      }
       investment_instruments: {
         Row: {
           created_at: string | null
