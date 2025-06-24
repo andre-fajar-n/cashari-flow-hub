@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
@@ -5,12 +6,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { InputNumber } from "@/components/ui/input-number";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
 import { useWallets, useGoals, useInvestmentInstruments, useInvestmentAssets } from "@/hooks/queries";
 import GoalTransferFormFields from "./GoalTransferFormFields";
+import GoalTransferAmountFields from "./GoalTransferAmountFields";
 
 interface GoalTransferFormData {
   from_wallet_id: string;
@@ -40,14 +40,14 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
 
   const form = useForm<GoalTransferFormData>({
     defaultValues: {
-      from_wallet_id: "",
-      from_goal_id: "",
-      from_instrument_id: "",
-      from_asset_id: "",
-      to_wallet_id: "",
-      to_goal_id: "",
-      to_instrument_id: "",
-      to_asset_id: "",
+      from_wallet_id: "none",
+      from_goal_id: "none",
+      from_instrument_id: "none",
+      from_asset_id: "none",
+      to_wallet_id: "none",
+      to_goal_id: "none",
+      to_instrument_id: "none",
+      to_asset_id: "none",
       amount_from: 0,
       amount_to: 0,
       date: new Date().toISOString().split('T')[0],
@@ -59,31 +59,30 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
   const { data: instruments } = useInvestmentInstruments();
   const { data: assets } = useInvestmentAssets();
 
-  const fromWalletId = form.watch("from_wallet_id");
-  const toWalletId = form.watch("to_wallet_id");
-  const amountFrom = form.watch("amount_from");
-
-  const fromWallet = wallets?.find(w => w.id.toString() === fromWalletId);
-  const toWallet = wallets?.find(w => w.id.toString() === toWalletId);
-  const isSameCurrency = fromWallet?.currency_code === toWallet?.currency_code;
-
   const fromInstrumentId = form.watch("from_instrument_id");
   const toInstrumentId = form.watch("to_instrument_id");
+  const amountFrom = form.watch("amount_from");
 
   // Filter assets based on selected instruments
   const fromAssets = assets?.filter(asset => 
-    !fromInstrumentId || asset.instrument_id.toString() === fromInstrumentId
+    fromInstrumentId === "none" || asset.instrument_id.toString() === fromInstrumentId
   );
   const toAssets = assets?.filter(asset => 
-    !toInstrumentId || asset.instrument_id.toString() === toInstrumentId
+    toInstrumentId === "none" || asset.instrument_id.toString() === toInstrumentId
   );
 
-  // Auto-populate amount_to when same currency (simplified logic)
+  // Auto-populate amount_to when same currency
   useEffect(() => {
+    const fromWalletId = form.watch("from_wallet_id");
+    const toWalletId = form.watch("to_wallet_id");
+    const fromWallet = wallets?.find(w => w.id.toString() === fromWalletId);
+    const toWallet = wallets?.find(w => w.id.toString() === toWalletId);
+    const isSameCurrency = fromWallet?.currency_code === toWallet?.currency_code;
+    
     if (isSameCurrency && amountFrom > 0) {
       form.setValue("amount_to", amountFrom);
     }
-  }, [isSameCurrency, amountFrom, form]);
+  }, [amountFrom, form, wallets]);
 
   const onSubmit = async (data: GoalTransferFormData) => {
     if (!user) return;
@@ -92,23 +91,22 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
     try {
       const transferData = {
         user_id: user.id,
-        from_wallet_id: data.from_wallet_id ? parseInt(data.from_wallet_id) : null,
-        from_goal_id: data.from_goal_id ? parseInt(data.from_goal_id) : null,
-        from_instrument_id: data.from_instrument_id ? parseInt(data.from_instrument_id) : null,
-        from_asset_id: data.from_asset_id ? parseInt(data.from_asset_id) : null,
-        to_wallet_id: data.to_wallet_id ? parseInt(data.to_wallet_id) : null,
-        to_goal_id: data.to_goal_id ? parseInt(data.to_goal_id) : null,
-        to_instrument_id: data.to_instrument_id ? parseInt(data.to_instrument_id) : null,
-        to_asset_id: data.to_asset_id ? parseInt(data.to_asset_id) : null,
+        from_wallet_id: data.from_wallet_id !== "none" ? parseInt(data.from_wallet_id) : null,
+        from_goal_id: data.from_goal_id !== "none" ? parseInt(data.from_goal_id) : null,
+        from_instrument_id: data.from_instrument_id !== "none" ? parseInt(data.from_instrument_id) : null,
+        from_asset_id: data.from_asset_id !== "none" ? parseInt(data.from_asset_id) : null,
+        to_wallet_id: data.to_wallet_id !== "none" ? parseInt(data.to_wallet_id) : null,
+        to_goal_id: data.to_goal_id !== "none" ? parseInt(data.to_goal_id) : null,
+        to_instrument_id: data.to_instrument_id !== "none" ? parseInt(data.to_instrument_id) : null,
+        to_asset_id: data.to_asset_id !== "none" ? parseInt(data.to_asset_id) : null,
         amount_from: data.amount_from,
         amount_to: data.amount_to,
-        currency_from: 'IDR', // Default for now
-        currency_to: 'IDR', // Default for now
+        currency_from: 'IDR',
+        currency_to: 'IDR',
         date: data.date,
       };
 
       if (transfer) {
-        // Update existing transfer
         const { error } = await supabase
           .from("goal_transfers")
           .update(transferData)
@@ -118,7 +116,6 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
         if (error) throw error;
         toast({ title: "Transfer goal berhasil diperbarui" });
       } else {
-        // Create new transfer
         const { error } = await supabase
           .from("goal_transfers")
           .insert(transferData);
@@ -146,36 +143,20 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
   };
 
   useEffect(() => {
-    if (open) {
-      if (transfer) {
-        form.reset({
-          from_wallet_id: transfer.from_wallet_id?.toString() || "",
-          from_goal_id: transfer.from_goal_id?.toString() || "",
-          from_instrument_id: transfer.from_instrument_id?.toString() || "",
-          from_asset_id: transfer.from_asset_id?.toString() || "",
-          to_wallet_id: transfer.to_wallet_id?.toString() || "",
-          to_goal_id: transfer.to_goal_id?.toString() || "",
-          to_instrument_id: transfer.to_instrument_id?.toString() || "",
-          to_asset_id: transfer.to_asset_id?.toString() || "",
-          amount_from: transfer.amount_from || 0,
-          amount_to: transfer.amount_to || 0,
-          date: transfer.date || new Date().toISOString().split('T')[0],
-        });
-      } else {
-        form.reset({
-          from_wallet_id: "",
-          from_goal_id: "",
-          from_instrument_id: "",
-          from_asset_id: "",
-          to_wallet_id: "",
-          to_goal_id: "",
-          to_instrument_id: "",
-          to_asset_id: "",
-          amount_from: 0,
-          amount_to: 0,
-          date: new Date().toISOString().split('T')[0],
-        });
-      }
+    if (open && !transfer) {
+      form.reset({
+        from_wallet_id: "none",
+        from_goal_id: "none",
+        from_instrument_id: "none",
+        from_asset_id: "none",
+        to_wallet_id: "none",
+        to_goal_id: "none",
+        to_instrument_id: "none",
+        to_asset_id: "none",
+        amount_from: 0,
+        amount_to: 0,
+        date: new Date().toISOString().split('T')[0],
+      });
     }
   }, [open, transfer, form]);
 
@@ -198,72 +179,10 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
               toAssets={toAssets}
             />
 
-            {/* Amount and Date Section */}
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="amount_from"
-                rules={{ required: "Jumlah keluar harus diisi", min: { value: 1, message: "Jumlah harus lebih dari 0" } }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Jumlah Keluar</FormLabel>
-                    <FormControl>
-                      <InputNumber 
-                        {...field} 
-                        onChange={(value) => field.onChange(value)}
-                        value={field.value}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="amount_to"
-                rules={{ required: "Jumlah masuk harus diisi", min: { value: 1, message: "Jumlah harus lebih dari 0" } }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Jumlah Masuk</FormLabel>
-                    <FormControl>
-                      <InputNumber 
-                        {...field} 
-                        onChange={(value) => field.onChange(value)}
-                        value={field.value}
-                        disabled={isSameCurrency}
-                      />
-                    </FormControl>
-                    {isSameCurrency && (
-                      <p className="text-xs text-muted-foreground">
-                        Otomatis sama dengan jumlah keluar (mata uang sama)
-                      </p>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {fromWallet && toWallet && (
-              <div className="text-sm text-muted-foreground bg-muted p-3 rounded">
-                Transfer dari {fromWallet.name} ({fromWallet.currency_code}) ke {toWallet.name} ({toWallet.currency_code})
-              </div>
-            )}
-
-            <FormField
+            <GoalTransferAmountFields
               control={form.control}
-              name="date"
-              rules={{ required: "Tanggal harus diisi" }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tanggal</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              watch={form.watch}
+              wallets={wallets}
             />
 
             <div className="flex justify-end gap-2 pt-4">

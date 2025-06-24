@@ -45,10 +45,10 @@ const GoalInvestmentRecordDialog = ({
   const form = useForm<GoalInvestmentRecordFormData>({
     defaultValues: {
       goal_id: goalId?.toString() || "",
-      instrument_id: "",
-      asset_id: "",
-      wallet_id: "",
-      category_id: "",
+      instrument_id: "none",
+      asset_id: "none",
+      wallet_id: "none",
+      category_id: "none",
       amount: 0,
       date: new Date().toISOString().split('T')[0],
       currency_code: defaultCurrency?.code || "IDR",
@@ -66,7 +66,7 @@ const GoalInvestmentRecordDialog = ({
 
   const instrumentId = form.watch("instrument_id");
   const filteredAssets = assets?.filter(asset => 
-    !instrumentId || asset.instrument_id.toString() === instrumentId
+    instrumentId === "none" || asset.instrument_id.toString() === instrumentId
   );
 
   const onSubmit = async (data: GoalInvestmentRecordFormData) => {
@@ -74,10 +74,10 @@ const GoalInvestmentRecordDialog = ({
     try {
       const recordData = {
         goal_id: parseInt(data.goal_id),
-        instrument_id: data.instrument_id ? parseInt(data.instrument_id) : null,
-        asset_id: data.asset_id ? parseInt(data.asset_id) : null,
-        wallet_id: data.wallet_id ? parseInt(data.wallet_id) : null,
-        category_id: data.category_id ? parseInt(data.category_id) : null,
+        instrument_id: data.instrument_id !== "none" ? parseInt(data.instrument_id) : null,
+        asset_id: data.asset_id !== "none" ? parseInt(data.asset_id) : null,
+        wallet_id: data.wallet_id !== "none" ? parseInt(data.wallet_id) : null,
+        category_id: data.category_id !== "none" ? parseInt(data.category_id) : null,
         amount: data.amount,
         date: data.date,
         currency_code: data.currency_code,
@@ -93,6 +93,7 @@ const GoalInvestmentRecordDialog = ({
             onSuccess?.();
           },
           onError: (error) => {
+            console.error("Error updating record:", error);
             toast({ 
               title: "Error", 
               description: "Gagal memperbarui record",
@@ -109,6 +110,7 @@ const GoalInvestmentRecordDialog = ({
             onSuccess?.();
           },
           onError: (error) => {
+            console.error("Error creating record:", error);
             toast({ 
               title: "Error", 
               description: "Gagal menambahkan record",
@@ -129,10 +131,10 @@ const GoalInvestmentRecordDialog = ({
       if (record) {
         form.reset({
           goal_id: record.goal_id?.toString() || "",
-          instrument_id: record.instrument_id?.toString() || "",
-          asset_id: record.asset_id?.toString() || "",
-          wallet_id: record.wallet_id?.toString() || "",
-          category_id: record.category_id?.toString() || "",
+          instrument_id: record.instrument_id?.toString() || "none",
+          asset_id: record.asset_id?.toString() || "none",
+          wallet_id: record.wallet_id?.toString() || "none",
+          category_id: record.category_id?.toString() || "none",
           amount: record.amount || 0,
           date: record.date || new Date().toISOString().split('T')[0],
           currency_code: record.currency_code || defaultCurrency?.code || "IDR",
@@ -141,10 +143,10 @@ const GoalInvestmentRecordDialog = ({
       } else {
         form.reset({
           goal_id: goalId?.toString() || "",
-          instrument_id: "",
-          asset_id: "",
-          wallet_id: "",
-          category_id: "",
+          instrument_id: "none",
+          asset_id: "none",
+          wallet_id: "none",
+          category_id: "none",
           amount: 0,
           date: new Date().toISOString().split('T')[0],
           currency_code: defaultCurrency?.code || "IDR",
@@ -178,7 +180,7 @@ const GoalInvestmentRecordDialog = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Tidak ada</SelectItem>
+                        <SelectItem value="none">Tidak ada</SelectItem>
                         {instruments?.map((instrument) => (
                           <SelectItem key={instrument.id} value={instrument.id.toString()}>
                             {instrument.name}
@@ -204,7 +206,7 @@ const GoalInvestmentRecordDialog = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Tidak ada</SelectItem>
+                        <SelectItem value="none">Tidak ada</SelectItem>
                         {filteredAssets?.map((asset) => (
                           <SelectItem key={asset.id} value={asset.id.toString()}>
                             {asset.name} {asset.symbol && `(${asset.symbol})`}
@@ -232,7 +234,7 @@ const GoalInvestmentRecordDialog = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Tidak ada</SelectItem>
+                        <SelectItem value="none">Tidak ada</SelectItem>
                         {wallets?.map((wallet) => (
                           <SelectItem key={wallet.id} value={wallet.id.toString()}>
                             {wallet.name} ({wallet.currency_code})
@@ -258,7 +260,7 @@ const GoalInvestmentRecordDialog = ({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Tidak ada</SelectItem>
+                        <SelectItem value="none">Tidak ada</SelectItem>
                         {categories?.map((category) => (
                           <SelectItem key={category.id} value={category.id.toString()}>
                             {category.name}
