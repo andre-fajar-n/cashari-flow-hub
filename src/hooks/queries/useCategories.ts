@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-export const useCategories = (isIncome?: boolean) => {
+export const useCategories = (isIncome?: boolean, application?: 'transaction' | 'investment') => {
   const { user } = useAuth();
 
   return useQuery({
@@ -17,6 +17,10 @@ export const useCategories = (isIncome?: boolean) => {
       
       if (isIncome !== undefined) {
         query = query.eq("is_income", isIncome);
+      }
+
+      if (application) {
+        query = query.eq("application", application);
       }
       
       const { data, error } = await query.order("name");

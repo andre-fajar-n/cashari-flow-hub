@@ -57,7 +57,7 @@ const GoalInvestmentRecordDialog = ({
   });
 
   const { data: wallets } = useWallets();
-  const { data: categories } = useCategories();
+  const { data: categories } = useCategories(undefined, 'investment');
   const { data: instruments } = useInvestmentInstruments();
   const { data: assets } = useInvestmentAssets();
 
