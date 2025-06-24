@@ -1,17 +1,17 @@
-
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar, Edit, Trash2, TrendingUp, ArrowUpCircle } from "lucide-react";
+import { Plus, Calendar, Edit, Trash2, TrendingUp, ArrowUpCircle, BarChart3, Eye } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import GoalDialog from "@/components/goal/GoalDialog";
 import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
+import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
 import { useToast } from "@/hooks/use-toast";
-import { useGoalTransfers } from "@/hooks/queries/useGoalTransfers";
+import { useGoalTransfers, useGoalInvestmentRecords } from "@/hooks/queries";
 import { Progress } from "@/components/ui/progress";
 
 interface Goal {
@@ -31,7 +31,9 @@ const Goal = () => {
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
+  const [isRecordDialogOpen, setIsRecordDialogOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | undefined>(undefined);
+  const [selectedGoalForRecord, setSelectedGoalForRecord] = useState<number | undefined>(undefined);
 
   const { data: goals, isLoading } = useQuery({
     queryKey: ["goals"],
@@ -49,12 +51,20 @@ const Goal = () => {
   });
 
   const { data: goalTransfers } = useGoalTransfers();
+  const { data: goalRecords } = useGoalInvestmentRecords();
 
   const calculateGoalProgress = (goalId: number, targetAmount: number) => {
+    // Calculate from transfers
     const transfers = goalTransfers?.filter(t => t.to_goal_id === goalId) || [];
-    const totalAmount = transfers.reduce((sum, transfer) => sum + transfer.amount_to, 0);
+    const transferAmount = transfers.reduce((sum, transfer) => sum + transfer.amount_to, 0);
+    
+    // Calculate from investment records
+    const records = goalRecords?.filter(r => r.goal_id === goalId && !r.is_valuation) || [];
+    const recordAmount = records.reduce((sum, record) => sum + record.amount, 0);
+    
+    const totalAmount = transferAmount + recordAmount;
     const percentage = Math.min((totalAmount / targetAmount) * 100, 100);
-    return { totalAmount, percentage };
+    return { totalAmount, percentage, transferAmount, recordAmount };
   };
 
   const handleEdit = (goal: Goal) => {
@@ -91,6 +101,11 @@ const Goal = () => {
     setIsDialogOpen(true);
   };
 
+  const handleAddRecord = (goalId: number) => {
+    setSelectedGoalForRecord(goalId);
+    setIsRecordDialogOpen(true);
+  };
+
   if (isLoading) {
     return (
       <ProtectedRoute>
@@ -125,7 +140,7 @@ const Goal = () => {
             {goals && goals.length > 0 ? (
               <div className="grid gap-4">
                 {goals.map((goal) => {
-                  const { totalAmount, percentage } = calculateGoalProgress(goal.id, goal.target_amount);
+                  const { totalAmount, percentage, transferAmount, recordAmount } = calculateGoalProgress(goal.id, goal.target_amount);
                   
                   return (
                     <Card key={goal.id} className="p-4">
@@ -158,6 +173,14 @@ const Goal = () => {
                             <Button 
                               variant="outline" 
                               size="sm"
+                              onClick={() => handleAddRecord(goal.id)}
+                            >
+                              <BarChart3 className="w-3 h-3 mr-1" />
+                              Record
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
                               onClick={() => handleEdit(goal)}
                             >
                               <Edit className="w-3 h-3 mr-1" />
@@ -186,8 +209,12 @@ const Goal = () => {
                             </span>
                           </div>
                           <Progress value={percentage} className="h-2" />
-                          <div className="text-right">
-                            <span className="text-xs text-gray-500">
+                          <div className="flex justify-between items-center text-xs text-gray-500">
+                            <div>
+                              Transfer: {transferAmount.toLocaleString()} | 
+                              Records: {recordAmount.toLocaleString()}
+                            </div>
+                            <span>
                               {percentage.toFixed(1)}% tercapai
                             </span>
                           </div>
@@ -223,6 +250,16 @@ const Goal = () => {
           onOpenChange={setIsTransferDialogOpen}
           onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
+            queryClient.invalidateQueries({ queryKey: ["goals"] });
+          }}
+        />
+
+        <GoalInvestmentRecordDialog
+          open={isRecordDialogOpen}
+          onOpenChange={setIsRecordDialogOpen}
+          goalId={selectedGoalForRecord}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
             queryClient.invalidateQueries({ queryKey: ["goals"] });
           }}
         />

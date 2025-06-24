@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,11 +9,8 @@ import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
-import { useWallets } from "@/hooks/queries/useWallets";
-import { useGoals } from "@/hooks/queries/useGoals";
-import { useInvestmentInstruments } from "@/hooks/queries/useInvestmentInstruments";
-import { useInvestmentAssets } from "@/hooks/queries/useInvestmentAssets";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useWallets, useGoals, useInvestmentInstruments, useInvestmentAssets } from "@/hooks/queries";
+import GoalTransferFormFields from "./GoalTransferFormFields";
 
 interface GoalTransferFormData {
   from_wallet_id: string;
@@ -193,225 +189,14 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* From Section */}
-            <div className="border-b pb-4">
-              <h3 className="text-sm font-medium mb-3">Dari (Sumber)</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="from_wallet_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Dompet Asal</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih dompet asal" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Tidak ada</SelectItem>
-                          {wallets?.map((wallet) => (
-                            <SelectItem key={wallet.id} value={wallet.id.toString()}>
-                              {wallet.name} ({wallet.currency_code})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="from_goal_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Goal Asal</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih goal asal" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Tidak ada</SelectItem>
-                          {goals?.map((goal) => (
-                            <SelectItem key={goal.id} value={goal.id.toString()}>
-                              {goal.name} ({goal.currency_code})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="from_instrument_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Instrumen Asal</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih instrumen asal" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Tidak ada</SelectItem>
-                          {instruments?.map((instrument) => (
-                            <SelectItem key={instrument.id} value={instrument.id.toString()}>
-                              {instrument.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="from_asset_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Aset Asal</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih aset asal" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Tidak ada</SelectItem>
-                          {fromAssets?.map((asset) => (
-                            <SelectItem key={asset.id} value={asset.id.toString()}>
-                              {asset.name} {asset.symbol && `(${asset.symbol})`}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* To Section */}
-            <div className="border-b pb-4">
-              <h3 className="text-sm font-medium mb-3">Ke (Tujuan)</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="to_wallet_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Dompet Tujuan</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih dompet tujuan" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Tidak ada</SelectItem>
-                          {wallets?.map((wallet) => (
-                            <SelectItem key={wallet.id} value={wallet.id.toString()}>
-                              {wallet.name} ({wallet.currency_code})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="to_goal_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Goal Tujuan</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih goal tujuan" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Tidak ada</SelectItem>
-                          {goals?.filter(goal => goal.is_active && !goal.is_achieved).map((goal) => (
-                            <SelectItem key={goal.id} value={goal.id.toString()}>
-                              {goal.name} ({goal.currency_code})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="to_instrument_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Instrumen Tujuan</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih instrumen tujuan" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Tidak ada</SelectItem>
-                          {instruments?.map((instrument) => (
-                            <SelectItem key={instrument.id} value={instrument.id.toString()}>
-                              {instrument.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="to_asset_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Aset Tujuan</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Pilih aset tujuan" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Tidak ada</SelectItem>
-                          {toAssets?.map((asset) => (
-                            <SelectItem key={asset.id} value={asset.id.toString()}>
-                              {asset.name} {asset.symbol && `(${asset.symbol})`}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
+            <GoalTransferFormFields
+              control={form.control}
+              wallets={wallets}
+              goals={goals}
+              instruments={instruments}
+              fromAssets={fromAssets}
+              toAssets={toAssets}
+            />
 
             {/* Amount and Date Section */}
             <div className="grid grid-cols-2 gap-4">

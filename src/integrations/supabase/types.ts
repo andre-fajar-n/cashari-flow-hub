@@ -401,6 +401,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "goal_investment_records_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "investment_assets_with_instruments"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "goal_investment_records_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
@@ -518,6 +525,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "goal_transfers_from_asset_id_fkey"
+            columns: ["from_asset_id"]
+            isOneToOne: false
+            referencedRelation: "investment_assets_with_instruments"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "goal_transfers_from_goal_id_fkey"
             columns: ["from_goal_id"]
             isOneToOne: false
@@ -543,6 +557,13 @@ export type Database = {
             columns: ["to_asset_id"]
             isOneToOne: false
             referencedRelation: "investment_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_transfers_to_asset_id_fkey"
+            columns: ["to_asset_id"]
+            isOneToOne: false
+            referencedRelation: "investment_assets_with_instruments"
             referencedColumns: ["id"]
           },
           {
@@ -652,17 +673,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      investment_assets_with_instruments: {
-        Row: {
-          created_at: string | null
-          id: number
-          instrument_id: number
-          name: string
-          symbol: string | null
-          updated_at: string | null
-          user_id: string
-        }
       }
       investment_instruments: {
         Row: {
@@ -890,7 +900,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      investment_assets_with_instruments: {
+        Row: {
+          created_at: string | null
+          id: number | null
+          instrument_id: number | null
+          instrument_name: string | null
+          name: string | null
+          symbol: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investment_assets_instrument_id_fkey"
+            columns: ["instrument_id"]
+            isOneToOne: false
+            referencedRelation: "investment_instruments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       initialize_missing_user_data: {
