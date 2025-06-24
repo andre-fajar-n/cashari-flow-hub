@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import InvestmentAssetDialog from "@/components/investment/InvestmentAssetDialog";
 import { useToast } from "@/hooks/use-toast";
-import { useInvestmentAssets } from "@/hooks/queries";
+import { useDeleteInvestmentAsset, useInvestmentAssets } from "@/hooks/queries";
+import ConfirmationModal from "@/components/ConfirmationModal";
 
 interface InvestmentAsset {
   id: number;
@@ -27,8 +27,11 @@ const InvestmentAsset = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [investmentAssetToDelete, setInvestmentAssetToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<InvestmentAsset | undefined>(undefined);
+  const { mutate: deleteInvestmentAsset } = useDeleteInvestmentAsset();
 
   const { data: assets, isLoading } = useInvestmentAssets();
 
@@ -37,26 +40,28 @@ const InvestmentAsset = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (asset: InvestmentAsset) => {
-    if (!confirm(`Apakah Anda yakin ingin menghapus aset "${asset.name}"?`)) return;
+  const handleDeleteClick = (investmentAssetId: number) => {
+    setInvestmentAssetToDelete(investmentAssetId);
+    setIsDeleteModalOpen(true);
+  };
 
-    try {
-      const { error } = await supabase
-        .from("investment_assets")
-        .delete()
-        .eq("id", asset.id)
-        .eq("user_id", user?.id);
-
-      if (error) throw error;
-      
-      toast({ title: "Aset berhasil dihapus" });
-      queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
-    } catch (error) {
-      console.error("Error deleting asset:", error);
-      toast({ 
-        title: "Error", 
-        description: "Gagal menghapus aset",
-        variant: "destructive"
+  const handleConfirmDelete = () => {
+    if (investmentAssetToDelete) {
+      deleteInvestmentAsset(investmentAssetToDelete, {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
+          toast({
+            title: "Berhasil",
+            description: "Aset berhasil dihapus",
+          });
+        },
+        onError: (error) => {
+          toast({
+            title: "Error",
+            description: `Gagal menghapus aset investasi: ${error.message}`,
+            variant: "destructive",
+          });
+        },
       });
     }
   };
@@ -79,6 +84,17 @@ const InvestmentAsset = () => {
   return (
     <ProtectedRoute>
       <Layout>
+        <ConfirmationModal
+          open={isDeleteModalOpen}
+          onOpenChange={setIsDeleteModalOpen}
+          onConfirm={handleConfirmDelete}
+          title="Hapus Aset Investasi"
+          description="Apakah Anda yakin ingin menghapus aset investasi ini? Tindakan ini tidak dapat dibatalkan."
+          confirmText="Ya, Hapus"
+          cancelText="Batal"
+          variant="destructive"
+        />
+
         <Card className="mb-6">
           <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
@@ -108,9 +124,9 @@ const InvestmentAsset = () => {
                             </span>
                           )}
                         </div>
-                        {asset.investment_instruments && (
+                        {asset.instrument_name && (
                           <p className="text-sm text-gray-600 mt-1">
-                            Instrumen: {asset.investment_instruments.name}
+                            Instrumen: {asset.instrument_name}
                           </p>
                         )}
                       </div>
@@ -127,7 +143,7 @@ const InvestmentAsset = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => handleDelete(asset)}
+                          onClick={() => handleDeleteClick(asset.id)}
                         >
                           <Trash2 className="w-3 h-3 mr-1" />
                           Hapus
