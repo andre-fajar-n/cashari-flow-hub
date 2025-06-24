@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { Plus, Trash, Pen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import ConfirmationModal from "@/components/ConfirmationModal";
+import { useCategories, useDeleteCategory } from "@/hooks/queries";
 
 interface Category {
   id: number;
@@ -30,8 +32,11 @@ const CategoryManagement = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const { mutate: deleteCategory } = useDeleteCategory();
 
   const form = useForm<CategoryFormData>({
     defaultValues: {
@@ -65,21 +70,7 @@ const CategoryManagement = () => {
     }
   }, [editingCategory, form]);
 
-  const { data: categories, isLoading } = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .eq("user_id", user?.id)
-        .order("is_income", { ascending: false })
-        .order("name");
-
-      if (error) throw error;
-      return data as Category[];
-    },
-    enabled: !!user,
-  });
+  const { data: categories, isLoading } = useCategories();
 
   const createMutation = useMutation({
     mutationFn: async (newCategory: CategoryFormData) => {
@@ -148,31 +139,31 @@ const CategoryManagement = () => {
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const { error } = await supabase
-        .from("categories")
-        .delete()
-        .eq("id", id)
-        .eq("user_id", user?.id);
+  const handleDeleteClick = (categoryId: number) => {
+    setCategoryToDelete(categoryId);
+    setIsDeleteModalOpen(true);
+  };
 
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
-      toast({
-        title: "Berhasil",
-        description: "Kategori berhasil dihapus",
+  const handleConfirmDelete = () => {
+    if (categoryToDelete) {
+      deleteCategory(categoryToDelete, {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["categories"] });
+          toast({
+            title: "Berhasil",
+            description: "Kategori berhasil dihapus",
+          });
+        },
+        onError: (error) => {
+          toast({
+            title: "Error",
+            description: `Gagal menghapus kategori: ${error.message}`,
+            variant: "destructive",
+          });
+        },
       });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: `Gagal menghapus kategori: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
+    }
+  };
 
   const onSubmit = (data: CategoryFormData) => {
     if (editingCategory) {
@@ -206,6 +197,16 @@ const CategoryManagement = () => {
 
   return (
     <Card>
+      <ConfirmationModal
+        open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        onConfirm={handleConfirmDelete}
+        title="Hapus Kategori"
+        description="Apakah Anda yakin ingin menghapus kategori ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        variant="destructive"
+      />
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Kelola Kategori</CardTitle>
         {
@@ -346,8 +347,7 @@ const CategoryManagement = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => deleteMutation.mutate(category.id)}
-                    disabled={deleteMutation.isPending}
+                    onClick={() => handleDeleteClick(category.id)}
                   >
                     <Trash className="w-4 h-4" />
                   </Button>
