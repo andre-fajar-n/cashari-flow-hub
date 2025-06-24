@@ -8,7 +8,6 @@ import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
 import GoalHeader from "@/components/goal/GoalHeader";
 import GoalList from "@/components/goal/GoalList";
-import { useToast } from "@/hooks/use-toast";
 import { useGoalTransfers, useGoalInvestmentRecords, useGoals, useDeleteGoal } from "@/hooks/queries";
 import { calculateGoalProgress } from "@/components/goal/GoalProgressCalculator";
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
@@ -26,7 +25,6 @@ interface Goal {
 }
 
 const Goal = () => {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [goalToDelete, setGoalToDelete] = useState<number | null>(null);

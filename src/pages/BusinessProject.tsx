@@ -1,7 +1,6 @@
 
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,8 @@ import { Plus, Calendar, Edit, Trash2 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import BusinessProjectDialog from "@/components/business-project/BusinessProjectDialog";
-import { useToast } from "@/hooks/use-toast";
+import ConfirmationModal from "@/components/ConfirmationModal";
+import { useBusinessProjects, useDeleteBusinessProject } from "@/hooks/queries";
 
 interface BusinessProject {
   id: number;
@@ -22,52 +22,29 @@ interface BusinessProject {
 
 const BusinessProject = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [businessProjectToDelete, setBusinessProjectToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<BusinessProject | undefined>(undefined);
 
-  const { data: projects, isLoading } = useQuery({
-    queryKey: ["business_projects"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("business_projects")
-        .select("*")
-        .eq("user_id", user?.id)
-        .order("created_at", { ascending: false });
+  const { mutate: deleteBusinessProject } = useDeleteBusinessProject();
 
-      if (error) throw error;
-      return data as BusinessProject[];
-    },
-    enabled: !!user,
-  });
+  const { data: projects, isLoading } = useBusinessProjects();
 
   const handleEdit = (project: BusinessProject) => {
     setSelectedProject(project);
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (project: BusinessProject) => {
-    if (!confirm(`Apakah Anda yakin ingin menghapus proyek "${project.name}"?`)) return;
+  const handleDeleteClick = (businessProjectId: number) => {
+    setBusinessProjectToDelete(businessProjectId);
+    setIsDeleteModalOpen(true);
+  };
 
-    try {
-      const { error } = await supabase
-        .from("business_projects")
-        .delete()
-        .eq("id", project.id)
-        .eq("user_id", user?.id);
-
-      if (error) throw error;
-      
-      toast({ title: "Proyek berhasil dihapus" });
-      queryClient.invalidateQueries({ queryKey: ["business_projects"] });
-    } catch (error) {
-      console.error("Error deleting project:", error);
-      toast({ 
-        title: "Error", 
-        description: "Gagal menghapus proyek",
-        variant: "destructive"
-      });
+  const handleConfirmDelete = () => {
+    if (businessProjectToDelete) {
+      deleteBusinessProject(businessProjectToDelete);
     }
   };
 
@@ -89,6 +66,17 @@ const BusinessProject = () => {
   return (
     <ProtectedRoute>
       <Layout>
+        <ConfirmationModal
+          open={isDeleteModalOpen}
+          onOpenChange={setIsDeleteModalOpen}
+          onConfirm={handleConfirmDelete}
+          title="Hapus BusinessProject"
+          description="Apakah Anda yakin ingin menghapus proyek ini? Tindakan ini tidak dapat dibatalkan."
+          confirmText="Ya, Hapus"
+          cancelText="Batal"
+          variant="destructive"
+        />
+        
         <Card className="mb-6">
           <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
@@ -138,7 +126,7 @@ const BusinessProject = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => handleDelete(project)}
+                          onClick={() => handleDeleteClick(project.id)}
                         >
                           <Trash2 className="w-3 h-3 mr-1" />
                           Hapus
