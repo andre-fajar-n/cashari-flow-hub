@@ -3,12 +3,13 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { useInvestmentInstruments } from "@/hooks/queries";
 
 interface AssetFormData {
   name: string;
@@ -37,18 +38,7 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
     },
   });
 
-  const { data: instruments } = useQuery({
-    queryKey: ["investment_instruments"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("investment_instruments")
-        .select("id, name")
-        .eq("user_id", user?.id);
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
+  const { data: instruments } = useInvestmentInstruments();
 
   const onSubmit = async (data: AssetFormData) => {
     if (!user) return;
