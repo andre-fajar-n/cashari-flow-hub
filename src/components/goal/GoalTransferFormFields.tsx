@@ -2,6 +2,7 @@
 import { Control } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { getTransferModeConfig, GoalTransferConfig } from "./GoalTransferModes";
 
 interface GoalTransferFormData {
   from_wallet_id: string;
@@ -24,6 +25,7 @@ interface GoalTransferFormFieldsProps {
   instruments?: any[];
   fromAssets?: any[];
   toAssets?: any[];
+  transferConfig?: GoalTransferConfig;
 }
 
 const GoalTransferFormFields = ({ 
@@ -32,8 +34,11 @@ const GoalTransferFormFields = ({
   goals, 
   instruments, 
   fromAssets, 
-  toAssets 
+  toAssets,
+  transferConfig
 }: GoalTransferFormFieldsProps) => {
+  const modeConfig = transferConfig ? getTransferModeConfig(transferConfig.mode) : null;
+
   return (
     <>
       {/* From Section */}
@@ -66,83 +71,89 @@ const GoalTransferFormFields = ({
             )}
           />
 
-          <FormField
-            control={control}
-            name="from_goal_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Goal Asal</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih goal asal" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">Tidak ada</SelectItem>
-                    {goals?.map((goal) => (
-                      <SelectItem key={goal.id} value={goal.id.toString()}>
-                        {goal.name} ({goal.currency_code})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {(!modeConfig || modeConfig.showFromGoal) && (
+            <FormField
+              control={control}
+              name="from_goal_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Goal Asal</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih goal asal" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">Tidak ada</SelectItem>
+                      {goals?.map((goal) => (
+                        <SelectItem key={goal.id} value={goal.id.toString()}>
+                          {goal.name} ({goal.currency_code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
-          <FormField
-            control={control}
-            name="from_instrument_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Instrumen Asal</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih instrumen asal" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">Tidak ada</SelectItem>
-                    {instruments?.map((instrument) => (
-                      <SelectItem key={instrument.id} value={instrument.id.toString()}>
-                        {instrument.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {(!modeConfig || modeConfig.showFromInstrument) && (
+            <FormField
+              control={control}
+              name="from_instrument_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Instrumen Asal</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih instrumen asal" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">Tidak ada</SelectItem>
+                      {instruments?.map((instrument) => (
+                        <SelectItem key={instrument.id} value={instrument.id.toString()}>
+                          {instrument.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
-          <FormField
-            control={control}
-            name="from_asset_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Aset Asal</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih aset asal" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">Tidak ada</SelectItem>
-                    {fromAssets?.map((asset) => (
-                      <SelectItem key={asset.id} value={asset.id.toString()}>
-                        {asset.name} {asset.symbol && `(${asset.symbol})`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {(!modeConfig || modeConfig.showFromAsset) && (
+            <FormField
+              control={control}
+              name="from_asset_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Aset Asal</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih aset asal" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">Tidak ada</SelectItem>
+                      {fromAssets?.map((asset) => (
+                        <SelectItem key={asset.id} value={asset.id.toString()}>
+                          {asset.name} {asset.symbol && `(${asset.symbol})`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
       </div>
 
@@ -176,85 +187,100 @@ const GoalTransferFormFields = ({
             )}
           />
 
-          <FormField
-            control={control}
-            name="to_goal_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Goal Tujuan</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih goal tujuan" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">Tidak ada</SelectItem>
-                    {goals?.filter(goal => goal.is_active && !goal.is_achieved).map((goal) => (
-                      <SelectItem key={goal.id} value={goal.id.toString()}>
-                        {goal.name} ({goal.currency_code})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {(!modeConfig || modeConfig.showToGoal) && (
+            <FormField
+              control={control}
+              name="to_goal_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Goal Tujuan</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih goal tujuan" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">Tidak ada</SelectItem>
+                      {goals?.filter(goal => goal.is_active && !goal.is_achieved).map((goal) => (
+                        <SelectItem key={goal.id} value={goal.id.toString()}>
+                          {goal.name} ({goal.currency_code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
-          <FormField
-            control={control}
-            name="to_instrument_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Instrumen Tujuan</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih instrumen tujuan" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">Tidak ada</SelectItem>
-                    {instruments?.map((instrument) => (
-                      <SelectItem key={instrument.id} value={instrument.id.toString()}>
-                        {instrument.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {(!modeConfig || modeConfig.showToInstrument) && (
+            <FormField
+              control={control}
+              name="to_instrument_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Instrumen Tujuan</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih instrumen tujuan" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">Tidak ada</SelectItem>
+                      {instruments?.map((instrument) => (
+                        <SelectItem key={instrument.id} value={instrument.id.toString()}>
+                          {instrument.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
-          <FormField
-            control={control}
-            name="to_asset_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Aset Tujuan</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih aset tujuan" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="none">Tidak ada</SelectItem>
-                    {toAssets?.map((asset) => (
-                      <SelectItem key={asset.id} value={asset.id.toString()}>
-                        {asset.name} {asset.symbol && `(${asset.symbol})`}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {(!modeConfig || modeConfig.showToAsset) && (
+            <FormField
+              control={control}
+              name="to_asset_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Aset Tujuan</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih aset tujuan" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">Tidak ada</SelectItem>
+                      {toAssets?.map((asset) => (
+                        <SelectItem key={asset.id} value={asset.id.toString()}>
+                          {asset.name} {asset.symbol && `(${asset.symbol})`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
       </div>
+
+      {/* Show goal info when prefilled */}
+      {transferConfig && (
+        <div className="text-sm text-muted-foreground bg-muted p-3 rounded">
+          <strong>{modeConfig?.title}:</strong> {transferConfig.goalName}
+          <br />
+          <span className="text-xs">{modeConfig?.description}</span>
+        </div>
+      )}
     </>
   );
 };

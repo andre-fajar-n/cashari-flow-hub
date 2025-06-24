@@ -11,6 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { useWallets, useGoals, useInvestmentInstruments, useInvestmentAssets } from "@/hooks/queries";
 import GoalTransferFormFields from "./GoalTransferFormFields";
 import GoalTransferAmountFields from "./GoalTransferAmountFields";
+import { GoalTransferConfig, getTransferModeConfig } from "./GoalTransferModes";
 
 interface GoalTransferFormData {
   from_wallet_id: string;
@@ -31,9 +32,16 @@ interface GoalTransferDialogProps {
   onOpenChange: (open: boolean) => void;
   transfer?: any;
   onSuccess?: () => void;
+  transferConfig?: GoalTransferConfig;
 }
 
-const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTransferDialogProps) => {
+const GoalTransferDialog = ({ 
+  open, 
+  onOpenChange, 
+  transfer, 
+  onSuccess,
+  transferConfig 
+}: GoalTransferDialogProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
@@ -83,6 +91,20 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
       form.setValue("amount_to", amountFrom);
     }
   }, [amountFrom, form, wallets]);
+
+  // Set prefilled values based on transfer config
+  useEffect(() => {
+    if (transferConfig && open) {
+      const modeConfig = getTransferModeConfig(transferConfig.mode);
+      const goalIdString = transferConfig.goalId.toString();
+      
+      if (modeConfig.prefilledField === 'to_goal_id') {
+        form.setValue("to_goal_id", goalIdString);
+      } else if (modeConfig.prefilledField === 'from_goal_id') {
+        form.setValue("from_goal_id", goalIdString);
+      }
+    }
+  }, [transferConfig, open, form]);
 
   const onSubmit = async (data: GoalTransferFormData) => {
     if (!user) return;
@@ -143,7 +165,7 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
   };
 
   useEffect(() => {
-    if (open && !transfer) {
+    if (open && !transfer && !transferConfig) {
       form.reset({
         from_wallet_id: "none",
         from_goal_id: "none",
@@ -158,15 +180,20 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
         date: new Date().toISOString().split('T')[0],
       });
     }
-  }, [open, transfer, form]);
+  }, [open, transfer, transferConfig, form]);
+
+  const modeConfig = transferConfig ? getTransferModeConfig(transferConfig.mode) : null;
+  const dialogTitle = transfer 
+    ? "Edit Transfer Goal" 
+    : transferConfig 
+      ? modeConfig?.title || "Transfer Goal Baru"
+      : "Transfer Goal Baru";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {transfer ? "Edit Transfer Goal" : "Transfer Goal Baru"}
-          </DialogTitle>
+          <DialogTitle>{dialogTitle}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -177,6 +204,7 @@ const GoalTransferDialog = ({ open, onOpenChange, transfer, onSuccess }: GoalTra
               instruments={instruments}
               fromAssets={fromAssets}
               toAssets={toAssets}
+              transferConfig={transferConfig}
             />
 
             <GoalTransferAmountFields

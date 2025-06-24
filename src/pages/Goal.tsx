@@ -14,6 +14,7 @@ import GoalList from "@/components/goal/GoalList";
 import { useToast } from "@/hooks/use-toast";
 import { useGoalTransfers, useGoalInvestmentRecords } from "@/hooks/queries";
 import { calculateGoalProgress } from "@/components/goal/GoalProgressCalculator";
+import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 
 interface Goal {
   id: number;
@@ -35,6 +36,7 @@ const Goal = () => {
   const [isRecordDialogOpen, setIsRecordDialogOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | undefined>(undefined);
   const [selectedGoalForRecord, setSelectedGoalForRecord] = useState<number | undefined>(undefined);
+  const [transferConfig, setTransferConfig] = useState<GoalTransferConfig | undefined>(undefined);
 
   const { data: goals, isLoading } = useQuery({
     queryKey: ["goals"],
@@ -98,6 +100,17 @@ const Goal = () => {
     setIsRecordDialogOpen(true);
   };
 
+  const handleTransferToGoal = (config: GoalTransferConfig) => {
+    console.log("Opening transfer dialog with config:", config);
+    setTransferConfig(config);
+    setIsTransferDialogOpen(true);
+  };
+
+  const handleGeneralTransfer = () => {
+    setTransferConfig(undefined);
+    setIsTransferDialogOpen(true);
+  };
+
   if (isLoading) {
     return (
       <ProtectedRoute>
@@ -114,7 +127,7 @@ const Goal = () => {
         <Card className="mb-6">
           <GoalHeader 
             onAddNew={handleAddNew}
-            onTransfer={() => setIsTransferDialogOpen(true)}
+            onTransfer={handleGeneralTransfer}
           />
           <CardContent>
             <GoalList
@@ -124,6 +137,7 @@ const Goal = () => {
               onDelete={handleDelete}
               onAddRecord={handleAddRecord}
               onAddNew={handleAddNew}
+              onTransferToGoal={handleTransferToGoal}
             />
           </CardContent>
         </Card>
@@ -139,7 +153,13 @@ const Goal = () => {
 
         <GoalTransferDialog
           open={isTransferDialogOpen}
-          onOpenChange={setIsTransferDialogOpen}
+          onOpenChange={(open) => {
+            setIsTransferDialogOpen(open);
+            if (!open) {
+              setTransferConfig(undefined);
+            }
+          }}
+          transferConfig={transferConfig}
           onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
             queryClient.invalidateQueries({ queryKey: ["goals"] });

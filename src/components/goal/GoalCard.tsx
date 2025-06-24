@@ -2,8 +2,9 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Edit, Trash2, TrendingUp, BarChart3 } from "lucide-react";
+import { Calendar, Edit, Trash2, TrendingUp, BarChart3, Plus, Minus, ArrowRightLeft } from "lucide-react";
 import { GoalProgressData } from "./GoalProgressCalculator";
+import { GoalTransferConfig } from "./GoalTransferModes";
 
 interface Goal {
   id: number;
@@ -22,9 +23,34 @@ interface GoalCardProps {
   onEdit: (goal: Goal) => void;
   onDelete: (goal: Goal) => void;
   onAddRecord: (goalId: number) => void;
+  onTransferToGoal?: (config: GoalTransferConfig) => void;
 }
 
-const GoalCard = ({ goal, progress, onEdit, onDelete, onAddRecord }: GoalCardProps) => {
+const GoalCard = ({ goal, progress, onEdit, onDelete, onAddRecord, onTransferToGoal }: GoalCardProps) => {
+  const handleAddToGoal = () => {
+    onTransferToGoal?.({
+      mode: 'add_to_goal',
+      goalId: goal.id,
+      goalName: goal.name,
+    });
+  };
+
+  const handleTakeFromGoal = () => {
+    onTransferToGoal?.({
+      mode: 'take_from_goal',
+      goalId: goal.id,
+      goalName: goal.name,
+    });
+  };
+
+  const handleTransferBetweenGoals = () => {
+    onTransferToGoal?.({
+      mode: 'transfer_between_goals',
+      goalId: goal.id,
+      goalName: goal.name,
+    });
+  };
+
   return (
     <Card className="p-4">
       <div className="flex flex-col gap-4">
@@ -102,6 +128,42 @@ const GoalCard = ({ goal, progress, onEdit, onDelete, onAddRecord }: GoalCardPro
             </span>
           </div>
         </div>
+
+        {/* Transfer Buttons */}
+        {goal.is_active && !goal.is_achieved && onTransferToGoal && (
+          <div className="border-t pt-3">
+            <div className="text-xs text-gray-500 mb-2">Transfer Goal</div>
+            <div className="grid grid-cols-3 gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleAddToGoal}
+                className="text-xs"
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Tambah
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleTakeFromGoal}
+                className="text-xs"
+              >
+                <Minus className="w-3 h-3 mr-1" />
+                Ambil
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleTransferBetweenGoals}
+                className="text-xs"
+              >
+                <ArrowRightLeft className="w-3 h-3 mr-1" />
+                Pindah
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </Card>
   );
