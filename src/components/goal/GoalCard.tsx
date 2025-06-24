@@ -2,7 +2,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Edit, Trash2, TrendingUp, BarChart3, Plus, Minus, ArrowRightLeft } from "lucide-react";
+import { Calendar, Edit, Trash2, TrendingUp, Plus, Minus, ArrowRightLeft, BarChart3 } from "lucide-react";
 import { GoalProgressData } from "./GoalProgressCalculator";
 import { GoalTransferConfig } from "./GoalTransferModes";
 
@@ -82,14 +82,6 @@ const GoalCard = ({ goal, progress, onEdit, onDelete, onAddRecord, onTransferToG
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => onAddRecord(goal.id)}
-            >
-              <BarChart3 className="w-3 h-3 mr-1" />
-              Record
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
               onClick={() => onEdit(goal)}
             >
               <Edit className="w-3 h-3 mr-1" />
@@ -129,11 +121,11 @@ const GoalCard = ({ goal, progress, onEdit, onDelete, onAddRecord, onTransferToG
           </div>
         </div>
 
-        {/* Transfer Buttons */}
+        {/* Action Buttons - Now includes Progress button */}
         {goal.is_active && !goal.is_achieved && onTransferToGoal && (
           <div className="border-t pt-3">
-            <div className="text-xs text-gray-500 mb-2">Transfer Goal</div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="text-xs text-gray-500 mb-2">Kelola Goal</div>
+            <div className="grid grid-cols-4 gap-2">
               <Button 
                 variant="outline" 
                 size="sm"
@@ -160,6 +152,15 @@ const GoalCard = ({ goal, progress, onEdit, onDelete, onAddRecord, onTransferToG
               >
                 <ArrowRightLeft className="w-3 h-3 mr-1" />
                 Pindah
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => onAddRecord(goal.id)}
+                className="text-xs"
+              >
+                <BarChart3 className="w-3 h-3 mr-1" />
+                Progress
               </Button>
             </div>
           </div>
