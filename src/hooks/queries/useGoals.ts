@@ -1,7 +1,8 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "../use-toast";
 
 export const useGoals = () => {
   const { user } = useAuth();
@@ -19,5 +20,33 @@ export const useGoals = () => {
       return data;
     },
     enabled: !!user,
+  });
+};
+
+export const useDeleteGoal = () => {
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const { error } = await supabase
+        .from("goals")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Berhasil",
+        description: "Goal berhasil dihapus",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 };

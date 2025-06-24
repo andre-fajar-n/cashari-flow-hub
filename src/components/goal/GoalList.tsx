@@ -20,7 +20,7 @@ interface GoalListProps {
   goals: Goal[];
   calculateProgress: (goalId: number, targetAmount: number) => GoalProgressData;
   onEdit: (goal: Goal) => void;
-  onDelete: (goal: Goal) => void;
+  onDelete: (goalId: number) => void;
   onAddRecord: (goalId: number) => void;
   onAddNew: () => void;
   onTransferToGoal?: (config: GoalTransferConfig) => void;

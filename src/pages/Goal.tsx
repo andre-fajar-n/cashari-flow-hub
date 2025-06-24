@@ -1,8 +1,5 @@
-
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
@@ -12,9 +9,10 @@ import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDi
 import GoalHeader from "@/components/goal/GoalHeader";
 import GoalList from "@/components/goal/GoalList";
 import { useToast } from "@/hooks/use-toast";
-import { useGoalTransfers, useGoalInvestmentRecords, useGoals } from "@/hooks/queries";
+import { useGoalTransfers, useGoalInvestmentRecords, useGoals, useDeleteGoal } from "@/hooks/queries";
 import { calculateGoalProgress } from "@/components/goal/GoalProgressCalculator";
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
+import ConfirmationModal from "@/components/ConfirmationModal";
 
 interface Goal {
   id: number;
@@ -28,15 +26,18 @@ interface Goal {
 }
 
 const Goal = () => {
-  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [goalToDelete, setGoalToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
   const [isRecordDialogOpen, setIsRecordDialogOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | undefined>(undefined);
   const [selectedGoalForRecord, setSelectedGoalForRecord] = useState<number | undefined>(undefined);
   const [transferConfig, setTransferConfig] = useState<GoalTransferConfig | undefined>(undefined);
+
+  const { mutate: deleteGoal } = useDeleteGoal();
 
   const { data: goals, isLoading } = useGoals();
   const { data: goalTransfers } = useGoalTransfers();
@@ -51,27 +52,14 @@ const Goal = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (goal: Goal) => {
-    if (!confirm(`Apakah Anda yakin ingin menghapus target "${goal.name}"?`)) return;
+  const handleDeleteClick = (goalId: number) => {
+    setGoalToDelete(goalId);
+    setIsDeleteModalOpen(true);
+  };
 
-    try {
-      const { error } = await supabase
-        .from("goals")
-        .delete()
-        .eq("id", goal.id)
-        .eq("user_id", user?.id);
-
-      if (error) throw error;
-      
-      toast({ title: "Target berhasil dihapus" });
-      queryClient.invalidateQueries({ queryKey: ["goals"] });
-    } catch (error) {
-      console.error("Error deleting goal:", error);
-      toast({ 
-        title: "Error", 
-        description: "Gagal menghapus target",
-        variant: "destructive"
-      });
+  const handleConfirmDelete = () => {
+    if (goalToDelete) {
+      deleteGoal(goalToDelete);
     }
   };
 
@@ -103,6 +91,17 @@ const Goal = () => {
   return (
     <ProtectedRoute>
       <Layout>
+        <ConfirmationModal
+          open={isDeleteModalOpen}
+          onOpenChange={setIsDeleteModalOpen}
+          onConfirm={handleConfirmDelete}
+          title="Hapus Goal"
+          description="Apakah Anda yakin ingin menghapus goal ini? Tindakan ini tidak dapat dibatalkan."
+          confirmText="Ya, Hapus"
+          cancelText="Batal"
+          variant="destructive"
+        />
+        
         <Card className="mb-6">
           <GoalHeader 
             onAddNew={handleAddNew}
@@ -112,7 +111,7 @@ const Goal = () => {
               goals={goals || []}
               calculateProgress={handleGoalProgressCalculation}
               onEdit={handleEdit}
-              onDelete={handleDelete}
+              onDelete={handleDeleteClick}
               onAddRecord={handleAddRecord}
               onAddNew={handleAddNew}
               onTransferToGoal={handleTransferToGoal}

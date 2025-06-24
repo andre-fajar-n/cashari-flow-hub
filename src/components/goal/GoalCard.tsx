@@ -21,7 +21,7 @@ interface GoalCardProps {
   goal: Goal;
   progress: GoalProgressData;
   onEdit: (goal: Goal) => void;
-  onDelete: (goal: Goal) => void;
+  onDelete: (goalId: number) => void;
   onAddRecord: (goalId: number) => void;
   onTransferToGoal?: (config: GoalTransferConfig) => void;
 }
@@ -98,7 +98,7 @@ const GoalCard = ({ goal, progress, onEdit, onDelete, onAddRecord, onTransferToG
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => onDelete(goal)}
+              onClick={() => onDelete(goal.id)}
             >
               <Trash2 className="w-3 h-3 mr-1" />
               Hapus
