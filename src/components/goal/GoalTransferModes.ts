@@ -14,11 +14,11 @@ export const getTransferModeConfig = (mode: GoalTransferMode) => {
         title: 'Tambah ke Goal',
         description: 'Transfer dana ke goal ini',
         showFromGoal: false,
-        showFromInstrument: true,
-        showFromAsset: true,
+        showFromInstrument: false,
+        showFromAsset: false,
         showToGoal: false,
-        showToInstrument: false,
-        showToAsset: false,
+        showToInstrument: true,
+        showToAsset: true,
         prefilledField: 'to_goal_id' as const,
       };
     case 'take_from_goal':
@@ -26,11 +26,11 @@ export const getTransferModeConfig = (mode: GoalTransferMode) => {
         title: 'Ambil dari Goal',
         description: 'Transfer dana dari goal ini',
         showFromGoal: false,
-        showFromInstrument: false,
-        showFromAsset: false,
+        showFromInstrument: true,
+        showFromAsset: true,
         showToGoal: false,
-        showToInstrument: true,
-        showToAsset: true,
+        showToInstrument: false,
+        showToAsset: false,
         prefilledField: 'from_goal_id' as const,
       };
     case 'transfer_between_goals':

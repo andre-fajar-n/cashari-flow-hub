@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDi
 import GoalHeader from "@/components/goal/GoalHeader";
 import GoalList from "@/components/goal/GoalList";
 import { useToast } from "@/hooks/use-toast";
-import { useGoalTransfers, useGoalInvestmentRecords } from "@/hooks/queries";
+import { useGoalTransfers, useGoalInvestmentRecords, useGoals } from "@/hooks/queries";
 import { calculateGoalProgress } from "@/components/goal/GoalProgressCalculator";
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 
@@ -38,21 +38,7 @@ const Goal = () => {
   const [selectedGoalForRecord, setSelectedGoalForRecord] = useState<number | undefined>(undefined);
   const [transferConfig, setTransferConfig] = useState<GoalTransferConfig | undefined>(undefined);
 
-  const { data: goals, isLoading } = useQuery({
-    queryKey: ["goals"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("goals")
-        .select("*")
-        .eq("user_id", user?.id)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data as Goal[];
-    },
-    enabled: !!user,
-  });
-
+  const { data: goals, isLoading } = useGoals();
   const { data: goalTransfers } = useGoalTransfers();
   const { data: goalRecords } = useGoalInvestmentRecords();
 
@@ -95,19 +81,12 @@ const Goal = () => {
   };
 
   const handleAddRecord = (goalId: number) => {
-    console.log("Opening record dialog for goal:", goalId);
     setSelectedGoalForRecord(goalId);
     setIsRecordDialogOpen(true);
   };
 
   const handleTransferToGoal = (config: GoalTransferConfig) => {
-    console.log("Opening transfer dialog with config:", config);
     setTransferConfig(config);
-    setIsTransferDialogOpen(true);
-  };
-
-  const handleGeneralTransfer = () => {
-    setTransferConfig(undefined);
     setIsTransferDialogOpen(true);
   };
 
@@ -127,7 +106,6 @@ const Goal = () => {
         <Card className="mb-6">
           <GoalHeader 
             onAddNew={handleAddNew}
-            onTransfer={handleGeneralTransfer}
           />
           <CardContent>
             <GoalList
