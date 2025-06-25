@@ -1,75 +1,40 @@
 
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Calendar, Edit, Trash2 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import DebtDialog from "@/components/debt/DebtDialog";
-import { useToast } from "@/hooks/use-toast";
 import { DEBT_TYPES } from "@/constants/enums";
-import type { Database } from '@/integrations/supabase/types';
-
-interface Debt {
-  id: number;
-  name: string;
-  type: Database["public"]["Enums"]["debt_type"];
-  currency_code: string;
-  due_date: string;
-  created_at: string;
-}
+import ConfirmationModal from "@/components/ConfirmationModal";
+import { DebtModel, useDebts, useDeleteDebt } from "@/hooks/queries";
 
 const Debt = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [debtToDelete, setDebtToDelete] = useState<DebtModel | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedDebt, setSelectedDebt] = useState<Debt | undefined>(undefined);
+  const [selectedDebt, setSelectedDebt] = useState<DebtModel | undefined>(undefined);
 
-  const { data: debts, isLoading } = useQuery({
-    queryKey: ["debts"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("debts")
-        .select("*")
-        .eq("user_id", user?.id)
-        .order("created_at", { ascending: false });
+  const { mutate: deleteDebt } = useDeleteDebt();
+  
+  const { data: debts, isLoading } = useDebts();
 
-      if (error) throw error;
-      return data as Debt[];
-    },
-    enabled: !!user,
-  });
-
-  const handleEdit = (debt: Debt) => {
+  const handleEdit = (debt: DebtModel) => {
     setSelectedDebt(debt);
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (debt: Debt) => {
-    if (!confirm(`Apakah Anda yakin ingin menghapus "${debt.name}"?`)) return;
+  const handleDeleteClick = (debt: DebtModel) => {
+    setDebtToDelete(debt);
+    setIsDeleteModalOpen(true);
+  };
 
-    try {
-      const { error } = await supabase
-        .from("debts")
-        .delete()
-        .eq("id", debt.id)
-        .eq("user_id", user?.id);
-
-      if (error) throw error;
-      
-      toast({ title: "Data berhasil dihapus" });
-      queryClient.invalidateQueries({ queryKey: ["debts"] });
-    } catch (error) {
-      console.error("Error deleting debt:", error);
-      toast({ 
-        title: "Error", 
-        description: "Gagal menghapus data",
-        variant: "destructive"
-      });
+  const handleConfirmDelete = () => {
+    if (debtToDelete) {
+      deleteDebt(debtToDelete);
     }
   };
 
@@ -91,6 +56,17 @@ const Debt = () => {
   return (
     <ProtectedRoute>
       <Layout>
+        <ConfirmationModal
+          open={isDeleteModalOpen}
+          onOpenChange={setIsDeleteModalOpen}
+          onConfirm={handleConfirmDelete}
+          title="Hapus Hutang/Piutang"
+          description="Apakah Anda yakin ingin menghapus hutang/piutang ini? Tindakan ini tidak dapat dibatalkan."
+          confirmText="Ya, Hapus"
+          cancelText="Batal"
+          variant="destructive"
+        />
+        
         <Card className="mb-6">
           <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
@@ -142,7 +118,7 @@ const Debt = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => handleDelete(debt)}
+                          onClick={() => handleDeleteClick(debt)}
                         >
                           <Trash2 className="w-3 h-3 mr-1" />
                           Hapus
