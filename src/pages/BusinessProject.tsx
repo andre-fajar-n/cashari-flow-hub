@@ -21,7 +21,6 @@ interface BusinessProject {
 }
 
 const BusinessProject = () => {
-  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [businessProjectToDelete, setBusinessProjectToDelete] = useState<number | null>(null);
