@@ -66,16 +66,6 @@ const Budget = () => {
     setIsDialogOpen(true);
   };
 
-  if (isLoading) {
-    return (
-      <ProtectedRoute>
-        <Layout>
-          <div className="text-center py-4">Loading...</div>
-        </Layout>
-      </ProtectedRoute>
-    );
-  }
-
   return (
     <ProtectedRoute>
       <Layout>
@@ -103,7 +93,19 @@ const Budget = () => {
             )}
           </CardHeader>
           <CardContent>
-            {budgets && budgets.length > 0 ? (
+            {isLoading ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Memuat budget...</p>
+              </div>
+            ) : budgets.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">Belum ada budget yang dibuat</p>
+                <Button onClick={handleAddNew} className="mt-4">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Buat Budget Pertama
+                </Button>
+              </div>
+            ) : (
               <div className="grid gap-4">
                 {budgets.map((budget) => (
                   <Card key={budget.id} className="p-4">
@@ -138,14 +140,6 @@ const Budget = () => {
                     </div>
                   </Card>
                 ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500">Belum ada budget yang dibuat</p>
-                <Button onClick={handleAddNew} className="mt-4">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Buat Budget Pertama
-                </Button>
               </div>
             )}
           </CardContent>

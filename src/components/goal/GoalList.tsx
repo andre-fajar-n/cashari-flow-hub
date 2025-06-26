@@ -17,6 +17,7 @@ interface Goal {
 }
 
 interface GoalListProps {
+  isLoading: boolean;
   goals: Goal[];
   calculateProgress: (goalId: number, targetAmount: number) => GoalProgressData;
   onEdit: (goal: Goal) => void;
@@ -27,6 +28,7 @@ interface GoalListProps {
 }
 
 const GoalList = ({ 
+  isLoading,
   goals, 
   calculateProgress, 
   onEdit, 
@@ -35,6 +37,14 @@ const GoalList = ({
   onAddNew,
   onTransferToGoal 
 }: GoalListProps) => {
+  if (isLoading) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">Memuat target...</p>
+      </div>
+    );
+  }
+
   if (!goals || goals.length === 0) {
     return (
       <div className="text-center py-8">

@@ -75,16 +75,6 @@ const InvestmentInstrument = () => {
     setIsDialogOpen(true);
   };
 
-  if (isLoading) {
-    return (
-      <ProtectedRoute>
-        <Layout>
-          <div className="text-center py-4">Loading...</div>
-        </Layout>
-      </ProtectedRoute>
-    );
-  }
-
   return (
     <ProtectedRoute>
       <Layout>
@@ -102,7 +92,19 @@ const InvestmentInstrument = () => {
             )}
           </CardHeader>
           <CardContent>
-            {instruments && instruments.length > 0 ? (
+            {isLoading ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Memuat instrumen investasi...</p>
+              </div>
+            ) : instruments.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">Belum ada instrumen investasi yang dibuat</p>
+                <Button onClick={handleAddNew} className="mt-4">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Tambah Instrumen Pertama
+                </Button>
+              </div>
+            ) : (
               <div className="grid gap-4">
                 {instruments.map((instrument) => (
                   <Card key={instrument.id} className="p-4">
@@ -149,14 +151,6 @@ const InvestmentInstrument = () => {
                     </div>
                   </Card>
                 ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500">Belum ada instrumen investasi yang dibuat</p>
-                <Button onClick={handleAddNew} className="mt-4">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Tambah Instrumen Pertama
-                </Button>
               </div>
             )}
           </CardContent>

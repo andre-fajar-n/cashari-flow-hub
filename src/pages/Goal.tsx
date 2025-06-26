@@ -76,16 +76,6 @@ const Goal = () => {
     setIsTransferDialogOpen(true);
   };
 
-  if (isLoading) {
-    return (
-      <ProtectedRoute>
-        <Layout>
-          <div className="text-center py-4">Loading...</div>
-        </Layout>
-      </ProtectedRoute>
-    );
-  }
-
   return (
     <ProtectedRoute>
       <Layout>
@@ -106,6 +96,7 @@ const Goal = () => {
           />
           <CardContent>
             <GoalList
+              isLoading={isLoading}
               goals={goals || []}
               calculateProgress={handleGoalProgressCalculation}
               onEdit={handleEdit}

@@ -71,16 +71,6 @@ const InvestmentAsset = () => {
     setIsDialogOpen(true);
   };
 
-  if (isLoading) {
-    return (
-      <ProtectedRoute>
-        <Layout>
-          <div className="text-center py-4">Loading...</div>
-        </Layout>
-      </ProtectedRoute>
-    );
-  }
-
   return (
     <ProtectedRoute>
       <Layout>
@@ -109,7 +99,19 @@ const InvestmentAsset = () => {
             )}
           </CardHeader>
           <CardContent>
-            {assets && assets.length > 0 ? (
+            {isLoading ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Memuat aset investasi...</p>
+              </div>
+            ) : assets.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">Belum ada aset investasi yang dibuat</p>
+                <Button onClick={handleAddNew} className="mt-4">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Tambah Aset Pertama
+                </Button>
+              </div>
+            ) : (
               <div className="grid gap-4">
                 {assets.map((asset) => (
                   <Card key={asset.id} className="p-4">
@@ -152,14 +154,6 @@ const InvestmentAsset = () => {
                     </div>
                   </Card>
                 ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500">Belum ada aset investasi yang dibuat</p>
-                <Button onClick={handleAddNew} className="mt-4">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Tambah Aset Pertama
-                </Button>
               </div>
             )}
           </CardContent>
