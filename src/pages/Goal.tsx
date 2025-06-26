@@ -93,6 +93,7 @@ const Goal = () => {
         <Card className="mb-6">
           <GoalHeader 
             onAddNew={handleAddNew}
+            goals={goals || []}
           />
           <CardContent>
             <GoalList

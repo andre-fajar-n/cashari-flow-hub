@@ -160,7 +160,7 @@ const GoalCard = ({ goal, progress, onEdit, onDelete, onAddRecord, onTransferToG
                 className="text-xs"
               >
                 <BarChart3 className="w-3 h-3 mr-1" />
-                Progress
+                Update Progress
               </Button>
             </div>
           </div>
