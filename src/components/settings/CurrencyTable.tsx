@@ -1,19 +1,18 @@
 
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Edit, Star, Trash } from "lucide-react";
-
-interface Currency {
-  code: string;
-  name: string;
-  symbol: string;
-  is_default: boolean;
-}
+import { CurrencyModel } from "@/models/currencies";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
 
 interface CurrencyTableProps {
-  currencies: Currency[] | undefined;
-  onEdit: (currency: Currency) => void;
+  currencies: CurrencyModel[] | undefined;
+  onEdit: (currency: CurrencyModel) => void;
   onSetDefault: (currencyCode: string) => void;
   onDelete: (currencyCode: string) => void;
   setDefaultLoading: boolean;
@@ -28,6 +27,9 @@ const CurrencyTable = ({
   setDefaultLoading, 
   deleteLoading 
 }: CurrencyTableProps) => {
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null);
+
   return (
     <div className="overflow-x-auto">
       <Table>

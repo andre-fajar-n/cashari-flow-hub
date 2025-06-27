@@ -1,45 +1,22 @@
 
-import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-
-interface Currency {
-  code: string;
-  name: string;
-  symbol: string;
-  is_default: boolean;
-}
-
-interface CurrencyFormData {
-  code: string;
-  name: string;
-  symbol: string;
-}
+import { CurrencyModel } from "@/models/currencies";
+import { CurrencyFormData } from "@/form-dto/currencies";
 
 interface CurrencyFormProps {
-  editingCurrency: Currency | null;
+  form: any;
+  editingCurrency: CurrencyModel | null;
   onSubmit: (data: CurrencyFormData) => void;
   onCancel: () => void;
   isLoading: boolean;
 }
 
-const CurrencyForm = ({ editingCurrency, onSubmit, onCancel, isLoading }: CurrencyFormProps) => {
-  const form = useForm<CurrencyFormData>({
-    defaultValues: {
-      code: editingCurrency?.code || "",
-      name: editingCurrency?.name || "",
-      symbol: editingCurrency?.symbol || "",
-    },
-  });
-
-  const handleSubmit = (data: CurrencyFormData) => {
-    onSubmit(data);
-  };
-
+const CurrencyForm = ({ form, editingCurrency, onSubmit, onCancel, isLoading }: CurrencyFormProps) => {
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 mb-6 p-4 border rounded-lg">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mb-6 p-4 border rounded-lg">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <FormField
             control={form.control}
