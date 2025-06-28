@@ -104,7 +104,6 @@ const CurrencyManagement = () => {
             onSetDefault={(currencyCode) => setDefaultMutation.mutate(currencyCode)}
             onDelete={(currencyCode) => deleteCurrency.mutate(currencyCode)}
             setDefaultLoading={setDefaultMutation.isPending}
-            deleteLoading={deleteCurrency.isPending}
           />
         )}
       </CardContent>

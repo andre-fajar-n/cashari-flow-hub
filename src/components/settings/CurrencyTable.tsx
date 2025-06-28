@@ -3,11 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Edit, Star, Trash } from "lucide-react";
 import { CurrencyModel } from "@/models/currencies";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel,
-  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
-  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
-} from "@/components/ui/alert-dialog";
+import ConfirmationModal from "@/components/ConfirmationModal";
 import { useState } from "react";
 
 interface CurrencyTableProps {
@@ -16,7 +12,6 @@ interface CurrencyTableProps {
   onSetDefault: (currencyCode: string) => void;
   onDelete: (currencyCode: string) => void;
   setDefaultLoading: boolean;
-  deleteLoading: boolean;
 }
 
 const CurrencyTable = ({ 
@@ -25,13 +20,33 @@ const CurrencyTable = ({
   onSetDefault, 
   onDelete, 
   setDefaultLoading, 
-  deleteLoading 
 }: CurrencyTableProps) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null);
+  const [currencyToDelete, setCurrencyToDelete] = useState<string | null>(null);
+
+  const handleDeleteClick = (currencyId: string) => {
+    setCurrencyToDelete(currencyId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (currencyToDelete) {
+      onDelete(currencyToDelete);
+    }
+  };
 
   return (
     <div className="overflow-x-auto">
+      <ConfirmationModal
+        open={isDeleteModalOpen}
+        onOpenChange={setIsDeleteModalOpen}
+        onConfirm={handleConfirmDelete}
+        title="Hapus Mata Uang"
+        description="Apakah Anda yakin ingin menghapus mata uang ini? Tindakan ini tidak dapat dibatalkan."
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        variant="destructive"
+      />
       <Table>
         <TableHeader>
           <TableRow>
@@ -80,35 +95,14 @@ const CurrencyTable = ({
                     <Edit className="w-4 h-4" />
                   </Button>
                   {!currency.is_default && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full sm:w-auto"
-                        >
-                          <Trash className="w-4 h-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Hapus Mata Uang</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Apakah Anda yakin ingin menghapus mata uang {currency.name}? 
-                            Pastikan mata uang ini tidak digunakan di manapun.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Batal</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => onDelete(currency.code)}
-                            disabled={deleteLoading}
-                          >
-                            {deleteLoading ? "Menghapus..." : "Hapus"}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full sm:w-auto"
+                      onClick={() => handleDeleteClick(currency.code)}
+                    >
+                      <Trash className="w-4 h-4" />
+                    </Button>
                   )}
                 </div>
               </TableCell>
