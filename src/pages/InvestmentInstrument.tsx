@@ -10,6 +10,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import InvestmentInstrumentDialog from "@/components/investment/InvestmentInstrumentDialog";
 import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/Layout";
+import ConfirmationModal from "@/components/ConfirmationModal";
+import { useDeleteInvestmentInstrument } from "@/hooks/queries";
 
 interface InvestmentInstrument {
   id: number;
@@ -21,10 +23,12 @@ interface InvestmentInstrument {
 
 const InvestmentInstrument = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [instrumentToDelete, setInstrumentToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedInstrument, setSelectedInstrument] = useState<InvestmentInstrument | undefined>(undefined);
+  const { mutate: deleteInstrument } = useDeleteInvestmentInstrument();
 
   const { data: instruments, isLoading } = useQuery({
     queryKey: ["investment_instruments"],
@@ -46,27 +50,14 @@ const InvestmentInstrument = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (instrument: InvestmentInstrument) => {
-    if (!confirm(`Apakah Anda yakin ingin menghapus instrumen "${instrument.name}"?`)) return;
+  const handleDeleteClick = (instrumentId: number) => {
+    setInstrumentToDelete(instrumentId);
+    setIsDeleteModalOpen(true);
+  };
 
-    try {
-      const { error } = await supabase
-        .from("investment_instruments")
-        .delete()
-        .eq("id", instrument.id)
-        .eq("user_id", user?.id);
-
-      if (error) throw error;
-      
-      toast({ title: "Instrumen berhasil dihapus" });
-      queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
-    } catch (error) {
-      console.error("Error deleting instrument:", error);
-      toast({ 
-        title: "Error", 
-        description: "Gagal menghapus instrumen",
-        variant: "destructive"
-      });
+  const handleConfirmDelete = () => {
+    if (instrumentToDelete) {
+      deleteInstrument(instrumentToDelete);
     }
   };
 
@@ -78,6 +69,16 @@ const InvestmentInstrument = () => {
   return (
     <ProtectedRoute>
       <Layout>
+        <ConfirmationModal
+          open={isDeleteModalOpen}
+          onOpenChange={setIsDeleteModalOpen}
+          onConfirm={handleConfirmDelete}
+          title="Hapus Instrumen Investasi"
+          description="Apakah Anda yakin ingin menghapus instrumen investasi ini? Tindakan ini tidak dapat dibatalkan."
+          confirmText="Ya, Hapus"
+          cancelText="Batal"
+          variant="destructive"
+        />
         <Card className="mb-6">
           <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
@@ -142,7 +143,7 @@ const InvestmentInstrument = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => handleDelete(instrument)}
+                          onClick={() => handleDeleteClick(instrument.id)}
                         >
                           <Trash2 className="w-3 h-3 mr-1" />
                           Hapus

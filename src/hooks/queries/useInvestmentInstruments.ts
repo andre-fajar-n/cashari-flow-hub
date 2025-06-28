@@ -1,7 +1,7 @@
-
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "../use-toast";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const useInvestmentInstruments = () => {
   const { user } = useAuth();
@@ -19,5 +19,37 @@ export const useInvestmentInstruments = () => {
       return data;
     },
     enabled: !!user,
+  });
+};
+
+export const useDeleteInvestmentInstrument = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (instrumentId: number) => {
+      const { error } = await supabase
+        .from("investment_instruments")
+        .delete()
+        .eq("user_id", user?.id)
+        .eq("id", instrumentId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
+      toast({
+        title: "Berhasil",
+        description: "Instrumen investasi berhasil dihapus",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 };
