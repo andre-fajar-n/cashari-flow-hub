@@ -6,8 +6,8 @@ export const DEBT_TYPES = {
 
 export const CATEGORY_APPLICATIONS = {
   TRANSACTION: 'transaction' as const,
-  BUDGET: 'budget' as const,
-  GOAL: 'goal' as const,
+  INVESTMENT: 'investment' as const,
+  DEBT: 'debt' as const,
 } as const;
 
 export type DebtType = typeof DEBT_TYPES[keyof typeof DEBT_TYPES];

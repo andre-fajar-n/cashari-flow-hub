@@ -12,21 +12,8 @@ import { Plus, Trash, Pen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useCategories, useDeleteCategory } from "@/hooks/queries";
-
-interface Category {
-  id: number;
-  name: string;
-  is_income: boolean;
-  parent_id: number | null;
-  application: 'transaction' | 'investment';
-}
-
-interface CategoryFormData {
-  name: string;
-  is_income: boolean;
-  parent_id: number | null;
-  application: 'transaction' | 'investment';
-}
+import { CategoryModel } from "@/models/categories";
+import { CategoryFormData, defaultCategoryFormValues } from "@/form-dto/categories";
 
 const CategoryManagement = () => {
   const { user } = useAuth();
@@ -35,27 +22,19 @@ const CategoryManagement = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null);
   const [isAdding, setIsAdding] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [editingCategory, setEditingCategory] = useState<CategoryModel | null>(null);
   const { mutate: deleteCategory } = useDeleteCategory();
 
   const form = useForm<CategoryFormData>({
-    defaultValues: {
-      name: "",
-      is_income: false,
-      parent_id: null,
-      application: 'transaction',
-    },
+    defaultValues: defaultCategoryFormValues,
   });
+
+  console.log("EDIT DATA:", editingCategory);
 
   // Reset form when adding/editing state changes
   useEffect(() => {
     if (isAdding) {
-      form.reset({
-        name: "",
-        is_income: false,
-        parent_id: null,
-        application: 'transaction',
-      });
+      form.reset(defaultCategoryFormValues);
     }
   }, [isAdding, form]);
 
@@ -85,12 +64,7 @@ const CategoryManagement = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
-      form.reset({
-        name: "",
-        is_income: false,
-        parent_id: null,
-        application: 'transaction',
-      });
+      form.reset(defaultCategoryFormValues);
       setIsAdding(false);
       toast({
         title: "Berhasil",
@@ -118,12 +92,7 @@ const CategoryManagement = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
-      form.reset({
-        name: "",
-        is_income: false,
-        parent_id: null,
-        application: 'transaction',
-      });
+      form.reset(defaultCategoryFormValues);
       setEditingCategory(null);
       toast({
         title: "Berhasil",
@@ -146,22 +115,7 @@ const CategoryManagement = () => {
 
   const handleConfirmDelete = () => {
     if (categoryToDelete) {
-      deleteCategory(categoryToDelete, {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ["categories"] });
-          toast({
-            title: "Berhasil",
-            description: "Kategori berhasil dihapus",
-          });
-        },
-        onError: (error) => {
-          toast({
-            title: "Error",
-            description: `Gagal menghapus kategori: ${error.message}`,
-            variant: "destructive",
-          });
-        },
-      });
+      deleteCategory(categoryToDelete);
     }
   };
 
@@ -173,7 +127,7 @@ const CategoryManagement = () => {
     }
   };
 
-  const startEdit = (category: Category) => {
+  const startEdit = (category: CategoryModel) => {
     setEditingCategory(category);
     setIsAdding(false);
   };
@@ -181,12 +135,7 @@ const CategoryManagement = () => {
   const handleCancel = () => {
     setIsAdding(false);
     setEditingCategory(null);
-    form.reset({
-      name: "",
-      is_income: false,
-      parent_id: null,
-      application: 'transaction',
-    });
+    form.reset(defaultCategoryFormValues);
   };
 
   const parentCategories = categories?.filter(cat => cat.parent_id === null) || [];
@@ -264,8 +213,10 @@ const CategoryManagement = () => {
                       <FormLabel>Aplikasi</FormLabel>
                       <FormControl>
                         <select className="w-full p-2 border rounded" {...field}>
+                          <option value="null">Tidak Ada</option>
                           <option value="transaction">Transaksi</option>
                           <option value="investment">Investasi</option>
+                          <option value="debt">Hutang/Piutang</option>
                         </select>
                       </FormControl>
                       <FormMessage />
@@ -328,7 +279,7 @@ const CategoryManagement = () => {
               <TableRow key={category.id}>
                 <TableCell className="font-medium">{category.name}</TableCell>
                 <TableCell>{category.is_income ? "Pemasukan" : "Pengeluaran"}</TableCell>
-                <TableCell className="capitalize">{category.application}</TableCell>
+                <TableCell className="capitalize">{category.application ?  category.application : '-'}</TableCell>
                 <TableCell>
                   {category.parent_id 
                     ? categories.find(c => c.id === category.parent_id)?.name || "-"

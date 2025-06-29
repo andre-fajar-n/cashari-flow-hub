@@ -1,3 +1,5 @@
+import { CategoryApplication, DebtType } from "@/constants/enums"
+
 export type Json =
   | string
   | number
@@ -929,8 +931,8 @@ export type Database = {
       }
     }
     Enums: {
-      category_application: "transaction" | "investment"
-      debt_type: "loan" | "borrowed"
+      category_application: CategoryApplication
+      debt_type: DebtType
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1042,12 +1044,3 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
-
-export const Constants = {
-  public: {
-    Enums: {
-      category_application: ["transaction", "investment"],
-      debt_type: ["loan", "borrowed"],
-    },
-  },
-} as const
