@@ -21,35 +21,28 @@ const CategoryManagement = () => {
   const queryClient = useQueryClient();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null);
-  const [isAdding, setIsAdding] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<CategoryModel | null>(null);
+  const [modifyingCategory, setModifyingCategory] = useState<CategoryModel | null>(null);
   const { mutate: deleteCategory } = useDeleteCategory();
+  const { data: categories, isLoading } = useCategories();
+  const parentCategories = categories?.filter((cat) => cat.parent_id === null) || [];
 
   const form = useForm<CategoryFormData>({
     defaultValues: defaultCategoryFormValues,
   });
 
-  console.log("EDIT DATA:", editingCategory);
-
   // Reset form when adding/editing state changes
   useEffect(() => {
-    if (isAdding) {
+    if (modifyingCategory) {
+      form.reset({
+        name: modifyingCategory.name,
+        is_income: modifyingCategory.is_income,
+        parent_id: modifyingCategory.parent_id,
+        application: modifyingCategory.application,
+      });
+    } else {
       form.reset(defaultCategoryFormValues);
     }
-  }, [isAdding, form]);
-
-  useEffect(() => {
-    if (editingCategory) {
-      form.reset({
-        name: editingCategory.name,
-        is_income: editingCategory.is_income,
-        parent_id: editingCategory.parent_id,
-        application: editingCategory.application,
-      });
-    }
-  }, [editingCategory, form]);
-
-  const { data: categories, isLoading } = useCategories();
+  }, [modifyingCategory, form]);
 
   const createMutation = useMutation({
     mutationFn: async (newCategory: CategoryFormData) => {
@@ -65,7 +58,6 @@ const CategoryManagement = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       form.reset(defaultCategoryFormValues);
-      setIsAdding(false);
       toast({
         title: "Berhasil",
         description: "Kategori berhasil ditambahkan",
@@ -93,7 +85,6 @@ const CategoryManagement = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       form.reset(defaultCategoryFormValues);
-      setEditingCategory(null);
       toast({
         title: "Berhasil",
         description: "Kategori berhasil diupdate",
@@ -120,25 +111,21 @@ const CategoryManagement = () => {
   };
 
   const onSubmit = (data: CategoryFormData) => {
-    if (editingCategory) {
-      updateMutation.mutate({ id: editingCategory.id, data });
+    if (modifyingCategory) {
+      updateMutation.mutate({ id: modifyingCategory.id, data });
     } else {
       createMutation.mutate(data);
     }
   };
 
   const startEdit = (category: CategoryModel) => {
-    setEditingCategory(category);
-    setIsAdding(false);
+    setModifyingCategory(category);
   };
 
   const handleCancel = () => {
-    setIsAdding(false);
-    setEditingCategory(null);
+    setModifyingCategory(null);
     form.reset(defaultCategoryFormValues);
   };
-
-  const parentCategories = categories?.filter(cat => cat.parent_id === null) || [];
 
   if (isLoading) {
     return <div className="text-center py-4">Loading...</div>;
@@ -158,17 +145,15 @@ const CategoryManagement = () => {
       />
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Kelola Kategori</CardTitle>
-        {
-          (!isAdding && !editingCategory) && 
-          <Button onClick={() => setIsAdding(true)}>
+        {!modifyingCategory && (
+          <Button onClick={() => setModifyingCategory(null)}>
             <Plus className="w-4 h-4 mr-2" />
             Tambah Kategori
           </Button>
-        }
+        )}
       </CardHeader>
       <CardContent>
-        {
-          (isAdding || editingCategory) ? (
+        {modifyingCategory ? (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mb-6 p-4 border rounded-lg">
               <div className="grid grid-cols-2 gap-4">
@@ -192,10 +177,10 @@ const CategoryManagement = () => {
                     <FormItem>
                       <FormLabel>Tipe</FormLabel>
                       <FormControl>
-                        <select 
-                          className="w-full p-2 border rounded" 
+                        <select
+                          className="w-full p-2 border rounded"
                           value={field.value.toString()}
-                          onChange={(e) => field.onChange(e.target.value === 'true')}
+                          onChange={(e) => field.onChange(e.target.value === "true")}
                         >
                           <option value="false">Pengeluaran</option>
                           <option value="true">Pemasukan</option>
@@ -230,8 +215,8 @@ const CategoryManagement = () => {
                     <FormItem>
                       <FormLabel>Kategori Induk (Opsional)</FormLabel>
                       <FormControl>
-                        <select 
-                          className="w-full p-2 border rounded" 
+                        <select
+                          className="w-full p-2 border rounded"
                           value={field.value?.toString() || ""}
                           onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
                         >
@@ -249,8 +234,11 @@ const CategoryManagement = () => {
                 />
               </div>
               <div className="flex gap-2">
-                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                  {editingCategory ? "Update" : "Simpan"}
+                <Button
+                  type="submit"
+                  disabled={createMutation.isPending || updateMutation.isPending}
+                >
+                  {modifyingCategory ? "Update" : "Simpan"}
                 </Button>
                 <Button
                   type="button"
@@ -262,52 +250,50 @@ const CategoryManagement = () => {
               </div>
             </form>
           </Form>
-        )
-        :
-        (<Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nama</TableHead>
-              <TableHead>Tipe</TableHead>
-              <TableHead>Aplikasi</TableHead>
-              <TableHead>Induk</TableHead>
-              <TableHead>Aksi</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {categories?.map((category) => (
-              <TableRow key={category.id}>
-                <TableCell className="font-medium">{category.name}</TableCell>
-                <TableCell>{category.is_income ? "Pemasukan" : "Pengeluaran"}</TableCell>
-                <TableCell className="capitalize">{category.application ?  category.application : '-'}</TableCell>
-                <TableCell>
-                  {category.parent_id 
-                    ? categories.find(c => c.id === category.parent_id)?.name || "-"
-                    : "-"
-                  }
-                </TableCell>
-                <TableCell className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => startEdit(category)}
-                    disabled={editingCategory?.id === category.id}
-                  >
-                    <Pen className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDeleteClick(category.id)}
-                  >
-                    <Trash className="w-4 h-4" />
-                  </Button>
-                </TableCell>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nama</TableHead>
+                <TableHead>Tipe</TableHead>
+                <TableHead>Aplikasi</TableHead>
+                <TableHead>Induk</TableHead>
+                <TableHead>Aksi</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>)
-        }
+            </TableHeader>
+            <TableBody>
+              {categories?.map((category) => (
+                <TableRow key={category.id}>
+                  <TableCell className="font-medium">{category.name}</TableCell>
+                  <TableCell>{category.is_income ? "Pemasukan" : "Pengeluaran"}</TableCell>
+                  <TableCell className="capitalize">{category.application ? category.application : "-"}</TableCell>
+                  <TableCell>
+                    {category.parent_id
+                      ? categories.find((c) => c.id === category.parent_id)?.name || "-"
+                      : "-"}
+                  </TableCell>
+                  <TableCell className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => startEdit(category)}
+                      disabled={modifyingCategory?.id === category.id}
+                    >
+                      <Pen className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteClick(category.id)}
+                    >
+                      <Trash className="w-4 h-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </CardContent>
     </Card>
   );
