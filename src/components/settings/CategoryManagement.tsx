@@ -215,14 +215,14 @@ const CategoryManagement = () => {
                     <FormItem>
                       <FormLabel>Kategori Induk (Opsional)</FormLabel>
                       <FormControl>
-                        <select
-                          className="w-full p-2 border rounded"
-                          value={field.value?.toString() || ""}
-                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : null)}
+                        <select 
+                          className="w-full p-2 border rounded" 
+                          value={field.value?.toString() || "none"}
+                          onChange={(e) => field.onChange(e.target.value === "none" ? null : parseInt(e.target.value))}
                         >
-                          <option value="">Tidak ada induk</option>
+                          <option value="none">Tidak ada induk</option>
                           {parentCategories.map((category) => (
-                            <option key={category.id} value={category.id}>
+                            <option key={category.id} value={category.id.toString()}>
                               {category.name}
                             </option>
                           ))}
