@@ -1,6 +1,5 @@
-
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useMemo, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
@@ -32,69 +31,89 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
+  const { data: wallets } = useWallets();
 
   const form = useForm<TransferFormData>({
     defaultValues: {
-      from_wallet_id: transfer?.from_wallet_id?.toString() || "",
-      to_wallet_id: transfer?.to_wallet_id?.toString() || "",
-      amount_from: transfer?.amount_from || 0,
-      amount_to: transfer?.amount_to || 0,
-      date: transfer?.date || new Date().toISOString().split('T')[0],
+      from_wallet_id: "",
+      to_wallet_id: "",
+      amount_from: 0,
+      amount_to: 0,
+      date: new Date().toISOString().split("T")[0],
     },
   });
 
-  const { data: wallets } = useWallets();
+  const watchFromId = form.watch("from_wallet_id");
+  const watchToId = form.watch("to_wallet_id");
+  const watchAmountFrom = form.watch("amount_from");
 
-  const fromWalletId = form.watch("from_wallet_id");
-  const toWalletId = form.watch("to_wallet_id");
-  const amountFrom = form.watch("amount_from");
-
-  const fromWallet = wallets?.find(w => w.id.toString() === fromWalletId);
-  const toWallet = wallets?.find(w => w.id.toString() === toWalletId);
+  const fromWallet = useMemo(
+    () => wallets?.find(w => w.id.toString() === watchFromId),
+    [wallets, watchFromId]
+  );
+  const toWallet = useMemo(
+    () => wallets?.find(w => w.id.toString() === watchToId),
+    [wallets, watchToId]
+  );
   const isSameCurrency = fromWallet?.currency_code === toWallet?.currency_code;
 
-  // Auto-populate amount_to when same currency
+  // Reset form values when dialog opens and wallets ready
   useEffect(() => {
-    if (isSameCurrency && amountFrom > 0) {
-      form.setValue("amount_to", amountFrom);
+    if (!open || !wallets) return;
+
+    if (transfer) {
+      form.reset({
+        from_wallet_id: transfer.from_wallet_id?.toString() || "",
+        to_wallet_id: transfer.to_wallet_id?.toString() || "",
+        amount_from: transfer.amount_from || 0,
+        amount_to: transfer.amount_to || 0,
+        date: transfer.date || new Date().toISOString().split("T")[0],
+      });
+    } else {
+      form.reset({
+        from_wallet_id: "",
+        to_wallet_id: "",
+        amount_from: 0,
+        amount_to: 0,
+        date: new Date().toISOString().split("T")[0],
+      });
     }
-  }, [isSameCurrency, amountFrom, form]);
+  }, [open, wallets, transfer, form]);
+
+  // Sync amount_to if currency same
+  useEffect(() => {
+    if (isSameCurrency && watchAmountFrom > 0) {
+      form.setValue("amount_to", watchAmountFrom);
+    }
+  }, [isSameCurrency, watchAmountFrom, form]);
 
   const onSubmit = async (data: TransferFormData) => {
     if (!user) return;
-    
-    setIsLoading(true);
+
     const transferData = {
       from_wallet_id: parseInt(data.from_wallet_id),
       to_wallet_id: parseInt(data.to_wallet_id),
       amount_from: data.amount_from,
       amount_to: isSameCurrency ? data.amount_from : data.amount_to,
-      currency_from: fromWallet.currency_code,
-      currency_to: toWallet.currency_code,
+      currency_from: fromWallet?.currency_code,
+      currency_to: toWallet?.currency_code,
       date: data.date,
     };
+
     try {
+      setIsLoading(true);
       if (transfer) {
-        // Update existing transfer
         const { error } = await supabase
           .from("transfers")
-          .update({
-            ...transferData,
-          })
+          .update(transferData)
           .eq("id", transfer.id)
           .eq("user_id", user.id);
-
         if (error) throw error;
         toast({ title: "Transfer berhasil diperbarui" });
       } else {
-        // Create new transfer
         const { error } = await supabase
           .from("transfers")
-          .insert({
-            user_id: user.id,
-            ...transferData,
-          });
-
+          .insert({ ...transferData, user_id: user.id });
         if (error) throw error;
         toast({ title: "Transfer berhasil ditambahkan" });
       }
@@ -104,48 +123,24 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
       form.reset();
       onSuccess?.();
     } catch (error) {
-      console.error("Error saving transfer:", error);
-      toast({ 
-        title: "Error", 
-        description: "Gagal menyimpan transfer",
-        variant: "destructive"
+      console.error(error);
+      toast({
+        title: "Gagal menyimpan transfer",
+        description: "Terjadi kesalahan saat menyimpan data.",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Reset form when transfer prop changes or dialog opens/closes
-  useEffect(() => {
-    if (open) {
-      if (transfer) {
-        form.reset({
-          from_wallet_id: transfer.from_wallet_id || "",
-          to_wallet_id: transfer.to_wallet_id || "",
-          amount_from: transfer.amount_from || 0,
-          amount_to: isSameCurrency ? transfer.amount_from : transfer.amount_to || 0,
-          date: transfer.date || "",
-        });
-      } else {
-        form.reset({
-          from_wallet_id: "",
-          to_wallet_id: "",
-          amount_from: 0,
-          amount_to: 0,
-          date: "",
-        });
-      }
-    }
-  }, [transfer, open, form]);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>
-            {transfer ? "Edit Transfer" : "Tambah Transfer Baru"}
-          </DialogTitle>
+          <DialogTitle>{transfer ? "Edit Transfer" : "Tambah Transfer"}</DialogTitle>
         </DialogHeader>
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -156,20 +151,26 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Dari Dompet</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih dompet asal" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {wallets?.map((wallet) => (
-                          <SelectItem key={wallet.id} value={wallet.id.toString()}>
-                            {wallet.name} ({wallet.currency_code})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      control={form.control}
+                      name="from_wallet_id"
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih dompet" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {wallets?.map(wallet => (
+                              <SelectItem key={wallet.id} value={wallet.id.toString()}>
+                                {wallet.name} ({wallet.currency_code})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -182,20 +183,26 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Ke Dompet</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih dompet tujuan" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {wallets?.map((wallet) => (
-                          <SelectItem key={wallet.id} value={wallet.id.toString()}>
-                            {wallet.name} ({wallet.currency_code})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Controller
+                      control={form.control}
+                      name="to_wallet_id"
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih dompet" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {wallets?.map(wallet => (
+                              <SelectItem key={wallet.id} value={wallet.id.toString()}>
+                                {wallet.name} ({wallet.currency_code})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -206,16 +213,12 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
               <FormField
                 control={form.control}
                 name="amount_from"
-                rules={{ required: "Jumlah keluar harus diisi", min: { value: 1, message: "Jumlah harus lebih dari 0" } }}
+                rules={{ required: "Jumlah keluar harus diisi", min: { value: 1, message: "Harus lebih dari 0" } }}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Jumlah Keluar</FormLabel>
                     <FormControl>
-                      <InputNumber 
-                        {...field} 
-                        onChange={(value) => field.onChange(value)}
-                        value={field.value}
-                      />
+                      <InputNumber {...field} onChange={field.onChange} value={field.value} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -225,21 +228,21 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
               <FormField
                 control={form.control}
                 name="amount_to"
-                rules={{ required: "Jumlah masuk harus diisi", min: { value: 1, message: "Jumlah harus lebih dari 0" } }}
+                rules={{ required: "Jumlah masuk harus diisi", min: { value: 1, message: "Harus lebih dari 0" } }}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Jumlah Masuk</FormLabel>
                     <FormControl>
-                      <InputNumber 
-                        {...field} 
-                        onChange={(value) => field.onChange(value)}
+                      <InputNumber
+                        {...field}
+                        onChange={field.onChange}
                         value={field.value}
                         disabled={isSameCurrency}
                       />
                     </FormControl>
                     {isSameCurrency && (
                       <p className="text-xs text-muted-foreground">
-                        Otomatis sama dengan jumlah keluar (mata uang sama)
+                        Otomatis disamakan dengan jumlah keluar karena mata uang sama
                       </p>
                     )}
                     <FormMessage />
@@ -250,7 +253,8 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
 
             {fromWallet && toWallet && (
               <div className="text-sm text-muted-foreground bg-muted p-3 rounded">
-                Transfer dari {fromWallet.name} ({fromWallet.currency_code}) ke {toWallet.name} ({toWallet.currency_code})
+                Transfer dari <b>{fromWallet.name}</b> ({fromWallet.currency_code}) ke{" "}
+                <b>{toWallet.name}</b> ({toWallet.currency_code})
               </div>
             )}
 
@@ -270,15 +274,11 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
             />
 
             <div className="flex justify-end gap-2 pt-4">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => onOpenChange(false)}
-              >
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Batal
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Menyimpan..." : transfer ? "Update" : "Simpan"}
+                {isLoading ? "Menyimpan..." : transfer ? "Perbarui" : "Simpan"}
               </Button>
             </div>
           </form>
