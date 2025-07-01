@@ -67,11 +67,11 @@ const CurrencyManagement = () => {
   };
 
   useEffect(() => {
-  if (createCurrency.isSuccess || updateCurrency.isSuccess) {
-    setEditingCurrency(null);
-    setIsAdding(false);
-  }
-}, [createCurrency.isSuccess, updateCurrency.isSuccess]);
+    if (createCurrency.isSuccess || updateCurrency.isSuccess) {
+      setEditingCurrency(null);
+      setIsAdding(false);
+    }
+  }, [createCurrency.isSuccess, updateCurrency.isSuccess]);
 
   if (isLoading) {
     return <div className="text-center py-4">Loading...</div>;
