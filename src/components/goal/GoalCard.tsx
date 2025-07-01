@@ -2,9 +2,9 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Edit, Trash2, TrendingUp, Plus, Minus, ArrowRightLeft, BarChart3 } from "lucide-react";
+import { Calendar, Edit, Trash2, TrendingUp, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { GoalProgressData } from "./GoalProgressCalculator";
-import { GoalTransferConfig } from "./GoalTransferModes";
 
 interface Goal {
   id: number;
@@ -22,42 +22,22 @@ interface GoalCardProps {
   progress: GoalProgressData;
   onEdit: (goal: Goal) => void;
   onDelete: (goalId: number) => void;
-  onAddRecord: (goalId: number) => void;
-  onTransferToGoal?: (config: GoalTransferConfig) => void;
 }
 
-const GoalCard = ({ goal, progress, onEdit, onDelete, onAddRecord, onTransferToGoal }: GoalCardProps) => {
-  const handleAddToGoal = () => {
-    onTransferToGoal?.({
-      mode: 'add_to_goal',
-      goalId: goal.id,
-      goalName: goal.name,
-    });
-  };
+const GoalCard = ({ goal, progress, onEdit, onDelete }: GoalCardProps) => {
+  const navigate = useNavigate();
 
-  const handleTakeFromGoal = () => {
-    onTransferToGoal?.({
-      mode: 'take_from_goal',
-      goalId: goal.id,
-      goalName: goal.name,
-    });
-  };
-
-  const handleTransferBetweenGoals = () => {
-    onTransferToGoal?.({
-      mode: 'transfer_between_goals',
-      goalId: goal.id,
-      goalName: goal.name,
-    });
+  const handleViewDetail = () => {
+    navigate(`/goal/${goal.id}`);
   };
 
   return (
-    <Card className="p-4">
-      <div className="flex flex-col gap-4">
+    <Card className="p-4 hover:shadow-md transition-shadow">
+      <div className="flex flex-col gap-3">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <div className="flex-1">
-            <h3 className="font-semibold">{goal.name}</h3>
-            <div className="flex items-center gap-4 mt-1">
+            <h3 className="font-semibold text-lg">{goal.name}</h3>
+            <div className="flex items-center gap-3 mt-1">
               <span className="text-sm font-medium text-blue-600">
                 Target: {goal.target_amount.toLocaleString()} {goal.currency_code}
               </span>
@@ -72,13 +52,21 @@ const GoalCard = ({ goal, progress, onEdit, onDelete, onAddRecord, onTransferToG
               </span>
             </div>
             {goal.target_date && (
-              <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
+              <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
                 <Calendar className="w-3 h-3" />
-                Target tanggal: {new Date(goal.target_date).toLocaleDateString()}
+                Target: {new Date(goal.target_date).toLocaleDateString()}
               </div>
             )}
           </div>
           <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleViewDetail}
+            >
+              <Eye className="w-3 h-3 mr-1" />
+              Detail
+            </Button>
             <Button 
               variant="outline" 
               size="sm"
@@ -98,7 +86,7 @@ const GoalCard = ({ goal, progress, onEdit, onDelete, onAddRecord, onTransferToG
           </div>
         </div>
         
-        {/* Progress Section */}
+        {/* Progress Section - Compact */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
@@ -106,65 +94,11 @@ const GoalCard = ({ goal, progress, onEdit, onDelete, onAddRecord, onTransferToG
               <span className="text-sm font-medium">Progress</span>
             </div>
             <span className="text-sm text-gray-600">
-              {progress.totalAmount.toLocaleString()} / {goal.target_amount.toLocaleString()} {goal.currency_code}
+              {progress.totalAmount.toLocaleString()} ({progress.percentage.toFixed(1)}%)
             </span>
           </div>
           <Progress value={progress.percentage} className="h-2" />
-          <div className="flex justify-between items-center text-xs text-gray-500">
-            <div>
-              Transfer: {progress.transferAmount.toLocaleString()} | 
-              Records: {progress.recordAmount.toLocaleString()}
-            </div>
-            <span>
-              {progress.percentage.toFixed(1)}% tercapai
-            </span>
-          </div>
         </div>
-
-        {/* Action Buttons - Now includes Progress button */}
-        {goal.is_active && !goal.is_achieved && onTransferToGoal && (
-          <div className="border-t pt-3">
-            <div className="text-xs text-gray-500 mb-2">Kelola Goal</div>
-            <div className="grid grid-cols-4 gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleAddToGoal}
-                className="text-xs"
-              >
-                <Plus className="w-3 h-3 mr-1" />
-                Tambah
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleTakeFromGoal}
-                className="text-xs"
-              >
-                <Minus className="w-3 h-3 mr-1" />
-                Ambil
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleTransferBetweenGoals}
-                className="text-xs"
-              >
-                <ArrowRightLeft className="w-3 h-3 mr-1" />
-                Pindah
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => onAddRecord(goal.id)}
-                className="text-xs"
-              >
-                <BarChart3 className="w-3 h-3 mr-1" />
-                Update Progress
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
     </Card>
   );

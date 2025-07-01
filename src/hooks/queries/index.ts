@@ -1,3 +1,4 @@
+
 // Export all query hooks for easy importing
 export * from './useCurrencies';
 export * from './useWallets';
@@ -6,6 +7,8 @@ export * from './useInvestmentInstruments';
 export * from './useInvestmentAssets';
 export * from './useGoals';
 export * from './useGoalTransfers';
+export * from './useGoalMovements';
+export * from './useGoalFundsSummary';
 export * from './useBudgets';
 export * from './useDebts';
 export * from './useBusinessProjects';

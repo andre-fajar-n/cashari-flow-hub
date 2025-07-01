@@ -1,5 +1,3 @@
-import { CategoryApplication, DebtType } from "@/constants/enums"
-
 export type Json =
   | string
   | number
@@ -902,6 +900,22 @@ export type Database = {
       }
     }
     Views: {
+      goal_movements: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          currency_code: string | null
+          date: string | null
+          destination_description: string | null
+          direction: string | null
+          goal_id: number | null
+          movement_id: number | null
+          movement_type: string | null
+          source_description: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       investment_assets_with_instruments: {
         Row: {
           created_at: string | null
@@ -923,6 +937,21 @@ export type Database = {
           },
         ]
       }
+      money_movements: {
+        Row: {
+          amount: number | null
+          asset_id: number | null
+          currency_code: string | null
+          date: string | null
+          goal_id: number | null
+          instrument_id: number | null
+          resource_id: number | null
+          resource_type: string | null
+          user_id: string | null
+          wallet_id: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       initialize_missing_user_data: {
@@ -931,8 +960,8 @@ export type Database = {
       }
     }
     Enums: {
-      category_application: CategoryApplication
-      debt_type: DebtType
+      category_application: "transaction" | "investment" | "debt"
+      debt_type: "loan" | "borrowed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1044,3 +1073,12 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      category_application: ["transaction", "investment", "debt"],
+      debt_type: ["loan", "borrowed"],
+    },
+  },
+} as const
