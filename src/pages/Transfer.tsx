@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowRightLeft, Edit, Trash2 } from "lucide-react";
 import { useTransfers, useDeleteTransfer } from "@/hooks/queries/useTransfers";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { toast } from "@/hooks/use-toast";
 import TransferDialog from "@/components/transfers/TransferDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -17,22 +16,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { TransferModel } from "@/models/transfer";
 
-interface Transfer {
-  id: number;
-  from_wallet_id: string;
-  to_wallet_id: string;
-  amount_from: number;
-  amount_to: number;
-  date: string;
-}
 
 const Transfer = () => {
   const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [transferToDelete, setTransferToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedTransfer, setSelectedTransfer] = useState<Transfer | undefined>(undefined);
+  const [selectedTransfer, setSelectedTransfer] = useState<TransferModel | undefined>(undefined);
   const { data: transfers, isLoading } = useTransfers();
   const { mutate: deleteTransfer } = useDeleteTransfer();
   const queryClient = useQueryClient();
@@ -49,7 +41,7 @@ const Transfer = () => {
     });
   };
 
-  const openDialog = (transfer: any) => {
+  const openDialog = (transfer: TransferModel | undefined) => {
     setSelectedTransfer(transfer);
     setActiveDropdownId(null);
     setTimeout(() => setIsDialogOpen(true), 50)
@@ -63,21 +55,7 @@ const Transfer = () => {
 
   const handleConfirmDelete = () => {
     if (transferToDelete) {
-      deleteTransfer(transferToDelete, {
-        onSuccess: () => {
-          toast({
-            title: "Berhasil",
-            description: "Transfer berhasil dihapus",
-          });
-        },
-        onError: (error: any) => {
-          toast({
-            title: "Error",
-            description: error.message,
-            variant: "destructive",
-          });
-        },
-      });
+      deleteTransfer(transferToDelete);
     }
   };
 
@@ -90,7 +68,7 @@ const Transfer = () => {
               <h1 className="text-3xl font-bold">Transfer</h1>
               <p className="text-muted-foreground">Kelola transfer antar dompet</p>
             </div>
-            <Button onClick={openDialog}>
+            <Button onClick={() => openDialog(undefined)}>
               <Plus className="w-4 h-4 mr-2" />
               Transfer Baru
             </Button>

@@ -1,24 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { toast } from "@/hooks/use-toast";
 import { useWallets } from "@/hooks/queries/useWallets";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-interface TransferFormData {
-  from_wallet_id: string;
-  to_wallet_id: string;
-  amount_from: number;
-  amount_to: number;
-  date: string;
-}
+import { defaultTransferFormData, TransferFormData } from "@/form-dto/transfer";
+import { useCreateTransfer, useUpdateTransfer } from "@/hooks/queries/useTransfers";
 
 interface TransferDialogProps {
   open: boolean;
@@ -29,18 +20,13 @@ interface TransferDialogProps {
 
 const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDialogProps) => {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { data: wallets } = useWallets();
+  const updateTransfer = useUpdateTransfer();
+  const createTransfer = useCreateTransfer();
 
   const form = useForm<TransferFormData>({
-    defaultValues: {
-      from_wallet_id: "",
-      to_wallet_id: "",
-      amount_from: 0,
-      amount_to: 0,
-      date: new Date().toISOString().split("T")[0],
-    },
+    defaultValues: defaultTransferFormData,
   });
 
   const watchFromId = form.watch("from_wallet_id");
@@ -70,13 +56,7 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
         date: transfer.date || new Date().toISOString().split("T")[0],
       });
     } else {
-      form.reset({
-        from_wallet_id: "",
-        to_wallet_id: "",
-        amount_from: 0,
-        amount_to: 0,
-        date: new Date().toISOString().split("T")[0],
-      });
+      form.reset(defaultTransferFormData);
     }
   }, [open, wallets, transfer, form]);
 
@@ -100,39 +80,20 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
       date: data.date,
     };
 
-    try {
-      setIsLoading(true);
-      if (transfer) {
-        const { error } = await supabase
-          .from("transfers")
-          .update(transferData)
-          .eq("id", transfer.id)
-          .eq("user_id", user.id);
-        if (error) throw error;
-        toast({ title: "Transfer berhasil diperbarui" });
-      } else {
-        const { error } = await supabase
-          .from("transfers")
-          .insert({ ...transferData, user_id: user.id });
-        if (error) throw error;
-        toast({ title: "Transfer berhasil ditambahkan" });
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["transfers"] });
-      onOpenChange(false);
-      form.reset();
-      onSuccess?.();
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Gagal menyimpan transfer",
-        description: "Terjadi kesalahan saat menyimpan data.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+    setIsLoading(true);
+    if (transfer) {
+      updateTransfer.mutate({ id: transfer.id, ...transferData });
+    } else {
+      createTransfer.mutate(transferData);
     }
   };
+
+  useEffect(() => {
+    if (createTransfer.isSuccess || updateTransfer.isSuccess) {
+      onOpenChange(false);
+      onSuccess?.();
+    }
+  }, [createTransfer.isSuccess, updateTransfer.isSuccess]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

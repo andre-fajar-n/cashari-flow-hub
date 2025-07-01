@@ -1,8 +1,8 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { useToast } from "@/hooks/use-toast";
 
 export const useTransfers = () => {
   const { user } = useAuth();
@@ -32,6 +32,7 @@ export const useTransfers = () => {
 export const useCreateTransfer = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async (transfer: Omit<TablesInsert<"transfers">, "user_id">) => {
@@ -48,11 +49,20 @@ export const useCreateTransfer = () => {
       queryClient.invalidateQueries({ queryKey: ["transfers"] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
     },
+    onError: (error) => {
+      console.error(error);
+      toast({
+        title: "Gagal menyimpan transfer",
+        description: "Terjadi kesalahan saat menyimpan data.",
+        variant: "destructive",
+      });
+    },
   });
 };
 
 export const useUpdateTransfer = () => {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async ({ id, ...transfer }: TablesUpdate<"transfers"> & { id: number }) => {
@@ -70,24 +80,44 @@ export const useUpdateTransfer = () => {
       queryClient.invalidateQueries({ queryKey: ["transfers"] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
     },
+    onError: (error) => {
+      console.error(error);
+      toast({
+        title: "Gagal menyimpan transfer",
+        description: "Terjadi kesalahan saat menyimpan data.",
+        variant: "destructive",
+      });
+    },
   });
 };
 
 export const useDeleteTransfer = () => {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (transferId: number) => {
       const { error } = await supabase
         .from("transfers")
         .delete()
-        .eq("id", id);
+        .eq("id", transferId);
 
       if (error) throw error;
     },
     onSuccess: () => {
+      toast({
+        title: "Berhasil",
+        description: "Transfer berhasil dihapus",
+      });
       queryClient.invalidateQueries({ queryKey: ["transfers"] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 };
