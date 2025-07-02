@@ -1,8 +1,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import GoalCard from "./GoalCard";
-import { GoalProgressData } from "./GoalProgressCalculator";
+import GoalCard from "@/components/goal/GoalCard";
+import { GoalProgressData } from "@/components/goal/GoalProgressCalculator";
 
 interface Goal {
   id: number;

@@ -9,7 +9,7 @@ interface Movement {
   amount: number;
   currency_code: string;
   date: string;
-  direction: 'IN' | 'OUT';
+  direction: string;
   source_description: string;
   destination_description: string;
 }

@@ -4,28 +4,29 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import Transaction from "./pages/Transaction";
-import Transfer from "./pages/Transfer";
-import Budget from "./pages/Budget";
-import Debt from "./pages/Debt";
-import BusinessProject from "./pages/BusinessProject";
-import Goal from "./pages/Goal";
-import GoalDetail from "./pages/GoalDetail";
-import InvestmentInstrument from "./pages/InvestmentInstrument";
-import InvestmentAsset from "./pages/InvestmentAsset";
-import Settings from "./pages/Settings";
-import NotFound from "./pages/NotFound";
+import Index from "@/pages/Index";
+import Auth from "@/pages/Auth";
+import Dashboard from "@/pages/Dashboard";
+import Transaction from "@/pages/Transaction";
+import Transfer from "@/pages/Transfer";
+import Budget from "@/pages/Budget";
+import Debt from "@/pages/Debt";
+import BusinessProject from "@/pages/BusinessProject";
+import Goal from "@/pages/Goal";
+import GoalDetail from "@/pages/GoalDetail";
+import InvestmentInstrument from "@/pages/InvestmentInstrument";
+import InvestmentAsset from "@/pages/InvestmentAsset";
+import Settings from "@/pages/Settings";
+import NotFound from "@/pages/NotFound";
+import { AuthProvider } from "@/hooks/useAuth";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <SidebarProvider>
+    <AuthProvider>
+
+      <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
@@ -46,8 +47,8 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
-      </SidebarProvider>
-    </TooltipProvider>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

@@ -13,8 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useTransactionForm } from "@/hooks/useTransactionForm";
-import TransactionFormFields from "./TransactionFormFields";
-import TransactionAssociationFields from "./TransactionAssociationFields";
+import TransactionFormFields from "@/components/transactions/TransactionFormFields";
+import TransactionAssociationFields from "@/components/transactions/TransactionAssociationFields";
 
 interface TransactionDialogProps {
   open: boolean;

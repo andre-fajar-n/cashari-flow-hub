@@ -2,7 +2,7 @@
 import { Control } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getTransferModeConfig, GoalTransferConfig } from "./GoalTransferModes";
+import { getTransferModeConfig, GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 
 interface GoalTransferFormData {
   from_wallet_id: string;

@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
 import { useWallets, useGoals, useInvestmentInstruments, useInvestmentAssets } from "@/hooks/queries";
-import GoalTransferFormFields from "./GoalTransferFormFields";
-import GoalTransferAmountFields from "./GoalTransferAmountFields";
-import { GoalTransferConfig, getTransferModeConfig } from "./GoalTransferModes";
+import GoalTransferFormFields from "@/components/goal/GoalTransferFormFields";
+import GoalTransferAmountFields from "@/components/goal/GoalTransferAmountFields";
+import { GoalTransferConfig, getTransferModeConfig } from "@/components/goal/GoalTransferModes";
 
 interface GoalTransferFormData {
   from_wallet_id: string;

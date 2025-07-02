@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Calendar, Edit, Trash2, TrendingUp, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { GoalProgressData } from "./GoalProgressCalculator";
+import { GoalProgressData } from "@/components/goal/GoalProgressCalculator";
 
 interface Goal {
   id: number;
