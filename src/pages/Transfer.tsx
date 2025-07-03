@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TransferModel } from "@/models/transfer";
+import { formatAmount } from "@/lib/utils";
 
 
 const Transfer = () => {
@@ -28,10 +29,6 @@ const Transfer = () => {
   const { data: transfers, isLoading } = useTransfers();
   const { mutate: deleteTransfer } = useDeleteTransfer();
   const queryClient = useQueryClient();
-
-  const formatAmount = (amount: number, symbol: string) => {
-    return `${symbol} ${amount.toLocaleString('id-ID')}`;
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {

@@ -17,6 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { formatAmount } from "@/lib/utils";
 
 interface TransactionFormData {
   amount: number;
@@ -35,10 +36,6 @@ const Transaction = () => {
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionFormData | undefined>(undefined);
   const { data: transactions, isLoading } = useTransactions();
   const { mutate: deleteTransaction } = useDeleteTransaction();
-
-  const formatAmount = (amount: number, symbol: string) => {
-    return `${symbol} ${amount.toLocaleString('id-ID')}`;
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {

@@ -2,6 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUpRight, ArrowDownLeft, Calendar } from "lucide-react";
+import { formatAmount } from "@/lib/utils";
 
 interface Movement {
   movement_type: string;
@@ -20,10 +21,6 @@ interface GoalMovementsHistoryProps {
 }
 
 const GoalMovementsHistory = ({ movements, goalName }: GoalMovementsHistoryProps) => {
-  const formatAmount = (amount: number, currencyCode: string) => {
-    return `${currencyCode === 'IDR' ? 'Rp' : currencyCode} ${amount.toLocaleString('id-ID')}`;
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
       day: '2-digit',

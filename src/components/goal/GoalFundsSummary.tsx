@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, TrendingUp, PieChart } from "lucide-react";
 import { useGoalFundsSummary } from "@/hooks/queries/useGoalFundsSummary";
+import { formatAmount } from "@/lib/utils";
 
 interface GoalFundsSummaryProps {
   goalId: number;
@@ -27,10 +28,6 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
       </Card>
     );
   }
-
-  const formatAmount = (amount: number, currencyCode: string) => {
-    return `${currencyCode === 'IDR' ? 'Rp' : currencyCode} ${amount.toLocaleString('id-ID')}`;
-  };
 
   return (
     <Card>
