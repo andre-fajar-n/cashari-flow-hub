@@ -1,24 +1,13 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
-import { useCurrencies, useDefaultCurrency } from "@/hooks/queries";
-
-interface BudgetFormData {
-  name: string;
-  amount: number;
-  currency_code: string;
-  start_date: string;
-  end_date: string;
-}
+import { useCreateBudget, useCurrencies, useDefaultCurrency, useUpdateBudget } from "@/hooks/queries";
+import { BudgetFormData, defaultBudgetFormValues } from "@/form-dto/budget";
 
 interface BudgetDialogProps {
   open: boolean;
@@ -29,74 +18,23 @@ interface BudgetDialogProps {
 
 const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogProps) => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
-
+  const updateBudget = useUpdateBudget();
+  const createBudget = useCreateBudget();
   const { data: currencies } = useCurrencies();
   const defaultCurrency = useDefaultCurrency();
-  
+
   const form = useForm<BudgetFormData>({
-    defaultValues: {
-      name: budget?.name || "",
-      amount: budget?.amount || 0,
-      currency_code: budget?.currency_code || defaultCurrency?.code || "IDR",
-      start_date: budget?.start_date || "",
-      end_date: budget?.end_date || "",
-    },
+    defaultValues: defaultBudgetFormValues,
   });
 
   const onSubmit = async (data: BudgetFormData) => {
     if (!user) return;
-    
     setIsLoading(true);
-    try {
-      if (budget) {
-        // Update existing budget
-        const { error } = await supabase
-          .from("budgets")
-          .update({
-            name: data.name,
-            amount: data.amount,
-            currency_code: data.currency_code,
-            start_date: data.start_date,
-            end_date: data.end_date,
-          })
-          .eq("id", budget.id)
-          .eq("user_id", user.id);
-
-        if (error) throw error;
-        toast({ title: "Budget berhasil diperbarui" });
-      } else {
-        // Create new budget
-        const { error } = await supabase
-          .from("budgets")
-          .insert({
-            user_id: user.id,
-            name: data.name,
-            amount: data.amount,
-            currency_code: data.currency_code,
-            start_date: data.start_date,
-            end_date: data.end_date,
-          });
-
-        if (error) throw error;
-        toast({ title: "Budget berhasil ditambahkan" });
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["budgets"] });
-      onOpenChange(false);
-      form.reset();
-      onSuccess?.();
-    } catch (error) {
-      console.error("Error saving budget:", error);
-      toast({ 
-        title: "Error", 
-        description: "Gagal menyimpan budget",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
+    if (budget) {
+      updateBudget.mutate({ id: budget.id, ...data });
+    } else {
+      createBudget.mutate(data);
     }
   };
 
@@ -112,16 +50,17 @@ const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogPro
           end_date: budget.end_date || "",
         });
       } else {
-        form.reset({
-          name: "",
-          amount: 0,
-          currency_code: defaultCurrency?.code || "IDR",
-          start_date: "",
-          end_date: "",
-        });
+        form.reset(defaultBudgetFormValues);
       }
     }
   }, [budget, open, form, defaultCurrency]);
+
+  useEffect(() => {
+    if (createBudget.isSuccess || updateBudget.isSuccess) {
+      onOpenChange(false);
+      onSuccess?.();
+    }
+  }, [createBudget.isSuccess, updateBudget.isSuccess]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -5,33 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import BudgetDialog from "@/components/budget/BudgetDialog";
-import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/Layout";
-import { useBudgets, useDeleteBudget } from "@/hooks/queries";
+import { useBudgets, useDeleteBudget } from "@/hooks/queries/useBudgets";
 import ConfirmationModal from "@/components/ConfirmationModal";
-
-interface Budget {
-  id: number;
-  name: string;
-  amount: number;
-  currency_code: string;
-  start_date: string;
-  end_date: string;
-  created_at: string;
-}
+import { BudgetModel } from "@/models/budgets";
 
 const Budget = () => {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [budgetToDelete, setBudgetToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedBudget, setSelectedBudget] = useState<Budget | undefined>(undefined);
+  const [selectedBudget, setSelectedBudget] = useState<BudgetModel | undefined>(undefined);
   const { mutate: deleteBudget } = useDeleteBudget();
-
   const { data: budgets, isLoading } = useBudgets();
 
-  const handleEdit = (budget: Budget) => {
+  const handleEdit = (budget: BudgetModel) => {
     setSelectedBudget(budget);
     setIsDialogOpen(true);
   };
@@ -43,21 +31,7 @@ const Budget = () => {
 
   const handleConfirmDelete = () => {
     if (budgetToDelete) {
-      deleteBudget(budgetToDelete, {
-        onSuccess: () => {
-          toast({
-            title: "Berhasil",
-            description: "Transfer berhasil dihapus",
-          });
-        },
-        onError: (error: any) => {
-          toast({
-            title: "Error",
-            description: error.message,
-            variant: "destructive",
-          });
-        },
-      });
+      deleteBudget(budgetToDelete);
     }
   };
 
@@ -73,8 +47,8 @@ const Budget = () => {
           open={isDeleteModalOpen}
           onOpenChange={setIsDeleteModalOpen}
           onConfirm={handleConfirmDelete}
-          title="Hapus Transaksi"
-          description="Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan."
+          title="Hapus Budget"
+          description="Apakah Anda yakin ingin menghapus budget ini? Tindakan ini tidak dapat dibatalkan."
           confirmText="Ya, Hapus"
           cancelText="Batal"
           variant="destructive"
