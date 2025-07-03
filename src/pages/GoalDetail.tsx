@@ -151,7 +151,7 @@ const GoalDetail = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Progress Amount</p>
-                  <p className="text-xl font-semibold text-green-600">{progress.totalAmount.toLocaleString()} {goal.currency_code}</p>
+                  <p className={`text-xl font-semibold text-${progress.totalAmount < 0 ? 'red' : 'green'}-600`}>{progress.totalAmount.toLocaleString()} {goal.currency_code}</p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Target Date</p>
