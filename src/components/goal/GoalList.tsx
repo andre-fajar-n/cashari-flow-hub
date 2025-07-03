@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import GoalCard from "@/components/goal/GoalCard";
 import { GoalProgressData } from "@/components/goal/GoalProgressCalculator";
+import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 
 interface Goal {
   id: number;
@@ -21,7 +22,9 @@ interface GoalListProps {
   calculateProgress: (goalId: number, targetAmount: number) => GoalProgressData;
   onEdit: (goal: Goal) => void;
   onDelete: (goalId: number) => void;
+  onAddRecord: (goalId: number) => void;
   onAddNew: () => void;
+  onTransferToGoal?: (config: GoalTransferConfig) => void;
 }
 
 const GoalList = ({ 
@@ -30,7 +33,9 @@ const GoalList = ({
   calculateProgress, 
   onEdit, 
   onDelete, 
-  onAddNew
+  onAddRecord, 
+  onAddNew,
+  onTransferToGoal 
 }: GoalListProps) => {
   if (isLoading) {
     return (
@@ -53,7 +58,7 @@ const GoalList = ({
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-4">
       {goals.map((goal) => {
         const progress = calculateProgress(goal.id, goal.target_amount);
         
@@ -64,6 +69,8 @@ const GoalList = ({
             progress={progress}
             onEdit={onEdit}
             onDelete={onDelete}
+            onAddRecord={onAddRecord}
+            onTransferToGoal={onTransferToGoal}
           />
         );
       })}

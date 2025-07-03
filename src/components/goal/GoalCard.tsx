@@ -1,10 +1,14 @@
-
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Edit, Trash2, TrendingUp, Eye } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import {
+  ArrowRightLeft, BarChart3, Eye, Minus, Plus, Settings2, TrendingUp, Trash2, Calendar, Edit,
+} from "lucide-react";
 import { GoalProgressData } from "@/components/goal/GoalProgressCalculator";
+import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ActionDropdown } from "@/components/ui/action-dropdown";
 
 interface Goal {
   id: number;
@@ -22,22 +26,50 @@ interface GoalCardProps {
   progress: GoalProgressData;
   onEdit: (goal: Goal) => void;
   onDelete: (goalId: number) => void;
+  onAddRecord: (goalId: number) => void;
+  onTransferToGoal?: (config: GoalTransferConfig) => void;
 }
 
-const GoalCard = ({ goal, progress, onEdit, onDelete }: GoalCardProps) => {
+const GoalCard = ({ goal, progress, onEdit, onDelete, onAddRecord, onTransferToGoal }: GoalCardProps) => {
+  const [settingsDropdownOpenId, setSettingsDropdownOpenId] = useState<number | null>(null);
+  const [optionsDropdownOpenId, setOptionsDropdownOpenId] = useState<number | null>(null);
   const navigate = useNavigate();
+
+  const handleAddToGoal = () => {
+    onTransferToGoal?.({
+      mode: 'add_to_goal',
+      goalId: goal.id,
+      goalName: goal.name,
+    });
+  };
+
+  const handleTakeFromGoal = () => {
+    onTransferToGoal?.({
+      mode: 'take_from_goal',
+      goalId: goal.id,
+      goalName: goal.name,
+    });
+  };
+
+  const handleTransferBetweenGoals = () => {
+    onTransferToGoal?.({
+      mode: 'transfer_between_goals',
+      goalId: goal.id,
+      goalName: goal.name,
+    });
+  };
 
   const handleViewDetail = () => {
     navigate(`/goal/${goal.id}`);
   };
 
   return (
-    <Card className="p-4 hover:shadow-md transition-shadow">
-      <div className="flex flex-col gap-3">
+    <Card className="p-4">
+      <div className="flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <div className="flex-1">
-            <h3 className="font-semibold text-lg">{goal.name}</h3>
-            <div className="flex items-center gap-3 mt-1">
+            <h3 className="font-semibold">{goal.name}</h3>
+            <div className="flex items-center gap-4 mt-1">
               <span className="text-sm font-medium text-blue-600">
                 Target: {goal.target_amount.toLocaleString()} {goal.currency_code}
               </span>
@@ -52,41 +84,83 @@ const GoalCard = ({ goal, progress, onEdit, onDelete }: GoalCardProps) => {
               </span>
             </div>
             {goal.target_date && (
-              <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+              <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
                 <Calendar className="w-3 h-3" />
-                Target: {new Date(goal.target_date).toLocaleDateString()}
+                Target tanggal: {new Date(goal.target_date).toLocaleDateString()}
               </div>
             )}
           </div>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleViewDetail}
-            >
-              <Eye className="w-3 h-3 mr-1" />
-              Detail
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => onEdit(goal)}
-            >
-              <Edit className="w-3 h-3 mr-1" />
-              Edit
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => onDelete(goal.id)}
-            >
-              <Trash2 className="w-3 h-3 mr-1" />
-              Hapus
-            </Button>
-          </div>
+          {goal.is_active && !goal.is_achieved && onTransferToGoal && (
+            <ActionDropdown
+              dropdownId={goal.id}
+              openDropdownId={optionsDropdownOpenId}
+              setOpenDropdownId={(id) => {
+                setOptionsDropdownOpenId(id);
+                if (id !== null) setSettingsDropdownOpenId(null); // optional close other
+              }}
+              triggerContent={
+                <Button variant="ghost" size="sm">
+                  <Settings2 className="w-4 h-4 mr-2" />
+                </Button>
+              }
+              menuItems={[
+                {
+                  label: "Tambah",
+                  icon: <Plus className="w-3 h-3 mr-1" />,
+                  onClick: handleAddToGoal,
+                },
+                {
+                  label: "Ambil",
+                  icon: <Minus className="w-3 h-3 mr-1" />,
+                  onClick: handleTakeFromGoal,
+                },
+                {
+                  label: "Pindah",
+                  icon: <ArrowRightLeft className="w-3 h-3 mr-1" />,
+                  onClick: handleTransferBetweenGoals,
+                },
+                {
+                  label: "Update Progress",
+                  icon: <BarChart3 className="w-3 h-3 mr-1" />,
+                  onClick: () => onAddRecord(goal.id),
+                },
+              ]}
+            />
+          )}
+          <ActionDropdown
+            dropdownId={goal.id}
+            openDropdownId={settingsDropdownOpenId}
+            setOpenDropdownId={(id) => {
+              setSettingsDropdownOpenId(id);
+              if (id !== null) setOptionsDropdownOpenId(null); // optional close other
+            }}
+            triggerContent={
+              <Button variant="ghost" size="sm">
+                •••
+              </Button>
+            }
+            menuItems={[
+              {
+                label: "Detail",
+                icon: <Eye className="w-3 h-3" />,
+                onClick: handleViewDetail,
+              },
+              {
+                label: "Edit",
+                icon: <Edit className="w-3 h-3" />,
+                onClick: () => onEdit(goal),
+              },
+              {
+                label: "Hapus",
+                icon: <Trash2 className="w-3 h-3" />,
+                onClick: () => onDelete(goal.id),
+                className: "text-red-600",
+              },
+            ]}
+          />
         </div>
         
-        {/* Progress Section - Compact */}
+        {/* Progress Section */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
@@ -94,10 +168,19 @@ const GoalCard = ({ goal, progress, onEdit, onDelete }: GoalCardProps) => {
               <span className="text-sm font-medium">Progress</span>
             </div>
             <span className="text-sm text-gray-600">
-              {progress.totalAmount.toLocaleString()} ({progress.percentage.toFixed(1)}%)
+              {progress.totalAmount.toLocaleString()} / {goal.target_amount.toLocaleString()} {goal.currency_code}
             </span>
           </div>
           <Progress value={progress.percentage} className="h-2" />
+          <div className="flex justify-between items-center text-xs text-gray-500">
+            <div>
+              Transfer: {progress.transferAmount.toLocaleString()} | 
+              Records: {progress.recordAmount.toLocaleString()}
+            </div>
+            <span>
+              {progress.percentage.toFixed(1)}% tercapai
+            </span>
+          </div>
         </div>
       </div>
     </Card>
