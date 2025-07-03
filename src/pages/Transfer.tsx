@@ -103,7 +103,7 @@ const Transfer = () => {
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">Memuat transfer...</p>
                 </div>
-              ) : transfers?.length === 0 ? (
+              ) : !transfers || transfers?.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">Belum ada transfer</p>
                 </div>

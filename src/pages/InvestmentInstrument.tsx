@@ -97,7 +97,7 @@ const InvestmentInstrument = () => {
               <div className="text-center py-8">
                 <p className="text-muted-foreground">Memuat instrumen investasi...</p>
               </div>
-            ) : instruments.length === 0 ? (
+            ) : !instruments || instruments.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-500">Belum ada instrumen investasi yang dibuat</p>
                 <Button onClick={handleAddNew} className="mt-4">

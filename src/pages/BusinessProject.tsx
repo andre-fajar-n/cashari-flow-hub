@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Calendar, Edit, Trash2 } from "lucide-react";
@@ -26,9 +25,7 @@ const BusinessProject = () => {
   const [businessProjectToDelete, setBusinessProjectToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<BusinessProject | undefined>(undefined);
-
   const { mutate: deleteBusinessProject } = useDeleteBusinessProject();
-
   const { data: projects, isLoading } = useBusinessProjects();
 
   const handleEdit = (project: BusinessProject) => {
@@ -84,7 +81,7 @@ const BusinessProject = () => {
               <div className="text-center py-8">
                 <p className="text-muted-foreground">Memuat proyek bisnis...</p>
               </div>
-            ) : projects.length === 0 ? (
+            ) : !projects || projects.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-500">Belum ada proyek bisnis yang dibuat</p>
                 <Button onClick={handleAddNew} className="mt-4">

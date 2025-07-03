@@ -30,7 +30,6 @@ const InvestmentAsset = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<InvestmentAsset | undefined>(undefined);
   const { mutate: deleteInvestmentAsset } = useDeleteInvestmentAsset();
-
   const { data: assets, isLoading } = useInvestmentAssets();
 
   const handleEdit = (asset: InvestmentAsset) => {
@@ -101,7 +100,7 @@ const InvestmentAsset = () => {
               <div className="text-center py-8">
                 <p className="text-muted-foreground">Memuat aset investasi...</p>
               </div>
-            ) : assets.length === 0 ? (
+            ) : !assets || assets.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-500">Belum ada aset investasi yang dibuat</p>
                 <Button onClick={handleAddNew} className="mt-4">

@@ -124,7 +124,7 @@ const Transaction = () => {
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">Memuat transaksi...</p>
                 </div>
-              ) : transactions?.length === 0 ? (
+              ) : !transactions || transactions?.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">Belum ada transaksi</p>
                 </div>
