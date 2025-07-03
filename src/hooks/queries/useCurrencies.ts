@@ -2,7 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "../use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { CurrencyFormData } from "@/form-dto/currencies";
 
 export const useCurrencies = (is_default?: boolean) => {
