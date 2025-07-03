@@ -34,7 +34,7 @@ export const useCurrencies = (is_default?: boolean) => {
 export const useDefaultCurrency = () => {
   const { data: defaultCurrency } = useCurrencies(true);
   
-  return defaultCurrency.length > 0 ? defaultCurrency[0] : null;
+  return defaultCurrency && defaultCurrency.length > 0 ? defaultCurrency[0] : null;
 };
 
 export const useCreateCurrency = () => {
