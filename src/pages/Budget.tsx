@@ -71,7 +71,7 @@ const Budget = () => {
               <div className="text-center py-8">
                 <p className="text-muted-foreground">Memuat budget...</p>
               </div>
-            ) : budgets.length === 0 ? (
+            ) : !budgets || budgets.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-500">Belum ada budget yang dibuat</p>
                 <Button onClick={handleAddNew} className="mt-4">
