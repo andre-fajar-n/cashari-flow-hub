@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, TrendingUp, PieChart } from "lucide-react";
@@ -10,6 +9,8 @@ interface GoalFundsSummaryProps {
 
 const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
   const { data: fundsSummary, isLoading } = useGoalFundsSummary(goalId);
+
+  fundsSummary?.sort((a, b) => b.total_amount - a.total_amount);
 
   if (isLoading) {
     return (
@@ -67,13 +68,13 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
                     )}
                     <div className="flex gap-2 mt-1">
                       <Badge variant="outline" className="text-xs">
-                        {fund.source_count} sumber
+                        {fund.currency_code}
                       </Badge>
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-green-600">
+                  <p className={`font-semibold text-${fund.total_amount < 0 ? 'red' : 'green'}-600`}>
                     {formatAmount(fund.total_amount, fund.currency_code)}
                   </p>
                 </div>

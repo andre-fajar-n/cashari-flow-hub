@@ -952,6 +952,17 @@ export type Database = {
         }
         Relationships: []
       }
+      fund_summary: {
+        Row: {
+          user_id: string | null
+          goal_id: number | null
+          instrument_name: string | null
+          asset_name: string | null
+          asset_symbol: string | null
+          total_amount: number | null
+          currency_code: string | null
+        }
+      }
     }
     Functions: {
       initialize_missing_user_data: {
