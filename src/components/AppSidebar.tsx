@@ -46,8 +46,11 @@ const AppSidebar = () => {
   const featureMenuItems = [
     { path: "/budget", label: "Budget", icon: Calendar },
     { path: "/business-project", label: "Proyek Bisnis", icon: Users },
-    { path: "/debt", label: "Hutang", icon: CreditCard },
+    { path: "/debt", label: "Hutang/Piutang", icon: CreditCard },
     { path: "/goal", label: "Target", icon: Target },
+  ];
+
+  const investmentMenuItems = [
     { path: "/investment-instrument", label: "Instrumen Investasi", icon: TrendingUp },
     { path: "/investment-asset", label: "Aset Investasi", icon: Wallet },
   ];
@@ -116,6 +119,32 @@ const AppSidebar = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {featureMenuItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path;
+                return (
+                  <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton 
+                      asChild 
+                      isActive={isActive}
+                      onClick={() => navigate(item.path)}
+                    >
+                      <button className="flex items-center gap-2 w-full">
+                        <Icon className="w-4 h-4" />
+                        <span>{item.label}</span>
+                      </button>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Investasi</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {investmentMenuItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
                 return (
