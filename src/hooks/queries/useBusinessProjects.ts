@@ -1,8 +1,8 @@
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { ProjectFormData } from "@/form-dto/business-projects";
 
 export const useBusinessProjects = () => {
   const { user } = useAuth();
@@ -49,6 +49,71 @@ export const useDeleteBusinessProject = () => {
       toast({
         title: "Error",
         description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useCreateProject = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (newProject: ProjectFormData) => {
+      const { error } = await supabase
+        .from("business_projects")
+        .insert({
+          ...newProject,
+          user_id: user.id,
+        });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["business_projects"] });
+      toast({
+        title: "Berhasil",
+        description: "Proyek berhasil ditambahkan",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Gagal menambahkan proyek: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useUpdateProject = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ id, ...project }: ProjectFormData & { id: number }) => {
+      const { error } = await supabase
+        .from("business_projects")
+        .update(project)
+        .eq("user_id", user?.id)
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["business_projects"] });
+      toast({
+        title: "Berhasil",
+        description: "Proyek berhasil diperbarui",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Gagal memperbarui proyek: ${error.message}`,
         variant: "destructive",
       });
     },

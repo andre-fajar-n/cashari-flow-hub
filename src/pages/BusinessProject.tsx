@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,26 +8,18 @@ import Layout from "@/components/Layout";
 import BusinessProjectDialog from "@/components/business-project/BusinessProjectDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useBusinessProjects, useDeleteBusinessProject } from "@/hooks/queries";
-
-interface BusinessProject {
-  id: number;
-  name: string;
-  description: string;
-  start_date: string;
-  end_date: string;
-  created_at: string;
-}
+import { BusinessProjectModel } from "@/models/business-projects";
 
 const BusinessProject = () => {
   const queryClient = useQueryClient();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [businessProjectToDelete, setBusinessProjectToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<BusinessProject | undefined>(undefined);
+  const [selectedProject, setSelectedProject] = useState<BusinessProjectModel | undefined>(undefined);
   const { mutate: deleteBusinessProject } = useDeleteBusinessProject();
   const { data: projects, isLoading } = useBusinessProjects();
 
-  const handleEdit = (project: BusinessProject) => {
+  const handleEdit = (project: BusinessProjectModel) => {
     setSelectedProject(project);
     setIsDialogOpen(true);
   };
@@ -56,7 +47,7 @@ const BusinessProject = () => {
           open={isDeleteModalOpen}
           onOpenChange={setIsDeleteModalOpen}
           onConfirm={handleConfirmDelete}
-          title="Hapus BusinessProject"
+          title="Hapus Proyek Bisnis"
           description="Apakah Anda yakin ingin menghapus proyek ini? Tindakan ini tidak dapat dibatalkan."
           confirmText="Ya, Hapus"
           cancelText="Batal"

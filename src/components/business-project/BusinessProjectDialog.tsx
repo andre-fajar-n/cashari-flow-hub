@@ -1,22 +1,13 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
-
-interface ProjectFormData {
-  name: string;
-  description: string;
-  start_date: string;
-  end_date: string;
-}
+import { defaultProjectFormValues, ProjectFormData } from "@/form-dto/business-projects";
+import { useCreateProject, useUpdateProject } from "@/hooks/queries";
 
 interface BusinessProjectDialogProps {
   open: boolean;
@@ -27,17 +18,13 @@ interface BusinessProjectDialogProps {
 
 const BusinessProjectDialog = ({ open, onOpenChange, project, onSuccess }: BusinessProjectDialogProps) => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
 
+  const createProject = useCreateProject();
+  const updateProject = useUpdateProject();
+
   const form = useForm<ProjectFormData>({
-    defaultValues: {
-      name: "",
-      description: "",
-      start_date: "",
-      end_date: "",
-    },
+    defaultValues: defaultProjectFormValues,
   });
 
   // Reset form when project prop changes or dialog opens/closes
@@ -51,12 +38,7 @@ const BusinessProjectDialog = ({ open, onOpenChange, project, onSuccess }: Busin
           end_date: project.end_date || "",
         });
       } else {
-        form.reset({
-          name: "",
-          description: "",
-          start_date: "",
-          end_date: "",
-        });
+        form.reset(defaultProjectFormValues);
       }
     }
   }, [project, open, form]);
@@ -65,53 +47,20 @@ const BusinessProjectDialog = ({ open, onOpenChange, project, onSuccess }: Busin
     if (!user) return;
     
     setIsLoading(true);
-    try {
-      if (project) {
-        // Update existing project
-        const { error } = await supabase
-          .from("business_projects")
-          .update({
-            name: data.name,
-            description: data.description,
-            start_date: data.start_date || null,
-            end_date: data.end_date || null,
-          })
-          .eq("id", project.id)
-          .eq("user_id", user.id);
+    if (project) {
+      updateProject.mutate({ id: project.id, ...data });
+    } else {
+      createProject.mutate(data);
+    }
+  };
 
-        if (error) throw error;
-        toast({ title: "Proyek berhasil diperbarui" });
-      } else {
-        // Create new project
-        const { error } = await supabase
-          .from("business_projects")
-          .insert({
-            user_id: user.id,
-            name: data.name,
-            description: data.description,
-            start_date: data.start_date || null,
-            end_date: data.end_date || null,
-          });
-
-        if (error) throw error;
-        toast({ title: "Proyek berhasil ditambahkan" });
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["business_projects"] });
+  useEffect(() => {
+    if (createProject.isSuccess || updateProject.isSuccess) {
       onOpenChange(false);
       form.reset();
       onSuccess?.();
-    } catch (error) {
-      console.error("Error saving project:", error);
-      toast({ 
-        title: "Error", 
-        description: "Gagal menyimpan proyek",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [createProject.isSuccess, updateProject.isSuccess]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
