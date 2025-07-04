@@ -9,7 +9,8 @@ import Layout from "@/components/Layout";
 import DebtDialog from "@/components/debt/DebtDialog";
 import { DEBT_TYPES } from "@/constants/enums";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { DebtModel, useDebts, useDeleteDebt } from "@/hooks/queries";
+import { useDebts, useDeleteDebt } from "@/hooks/queries";
+import { DebtModel } from "@/models/debts";
 
 const Debt = () => {
   const queryClient = useQueryClient();
@@ -34,7 +35,7 @@ const Debt = () => {
 
   const handleConfirmDelete = () => {
     if (debtToDelete) {
-      deleteDebt(debtToDelete);
+      deleteDebt(debtToDelete.id);
     }
   };
 
@@ -60,13 +61,13 @@ const Debt = () => {
         <Card className="mb-6">
           <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <CardTitle>Manajemen Hutang</CardTitle>
+              <CardTitle>Manajemen Hutang/Piutang</CardTitle>
               <p className="text-gray-600">Kelola hutang dan piutang Anda</p>
             </div>
             {debts && debts.length > 0 && (
               <Button onClick={handleAddNew} className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
-                Tambah Hutang
+                Tambah Hutang/Piutang
               </Button>
             )}
           </CardHeader>
