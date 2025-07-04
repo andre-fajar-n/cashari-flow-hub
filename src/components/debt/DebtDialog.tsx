@@ -1,24 +1,13 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
 import { DEBT_TYPES } from "@/constants/enums";
-import type { Database } from '@/integrations/supabase/types';
-import { useCurrencies, useDefaultCurrency } from "@/hooks/queries";
-
-interface DebtFormData {
-  name: string;
-  type: Database["public"]["Enums"]["debt_type"];
-  currency_code: string;
-  due_date: string;
-}
+import { useCreateDebt, useCurrencies, useDefaultCurrency, useUpdateDebt } from "@/hooks/queries";
+import { DebtFormData, defaultDebtFormValues } from "@/form-dto/debts";
 
 interface DebtDialogProps {
   open: boolean;
@@ -29,17 +18,14 @@ interface DebtDialogProps {
 
 const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
+  const createDebt = useCreateDebt();
+  const updateDebt = useUpdateDebt();
+  const { data: currencies } = useCurrencies();
+  const defaultCurrency = useDefaultCurrency();
 
   const form = useForm<DebtFormData>({
-    defaultValues: {
-      name: "",
-      type: DEBT_TYPES.LOAN,
-      currency_code: "IDR",
-      due_date: "",
-    },
+    defaultValues: defaultDebtFormValues,
   });
 
   // Reset form when debt prop changes or dialog opens/closes
@@ -53,70 +39,30 @@ const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) =>
           due_date: debt.due_date || "",
         });
       } else {
-        form.reset({
-          name: "",
-          type: DEBT_TYPES.LOAN,
-          currency_code: defaultCurrency?.code || "IDR",
-          due_date: "",
-        });
+        form.reset(defaultDebtFormValues);
       }
     }
-  }, [debt, open, form]);
-
-  const { data: currencies } = useCurrencies();
-  const defaultCurrency = useDefaultCurrency();
+  }, [debt, open, form, defaultCurrency]);
 
   const onSubmit = async (data: DebtFormData) => {
     if (!user) return;
-    
+
     setIsLoading(true);
-    try {
-      if (debt) {
-        // Update existing debt
-        const { error } = await supabase
-          .from("debts")
-          .update({
-            name: data.name,
-            type: data.type,
-            currency_code: data.currency_code,
-            due_date: data.due_date || null,
-          })
-          .eq("id", debt.id)
-          .eq("user_id", user.id);
+    if (debt) {
+      updateDebt.mutate({ id: debt.id, ...data });
+    } else {
+      createDebt.mutate(data);
+    }
+  };
 
-        if (error) throw error;
-        toast({ title: "Data berhasil diperbarui" });
-      } else {
-        // Create new debt
-        const { error } = await supabase
-          .from("debts")
-          .insert({
-            user_id: user.id,
-            name: data.name,
-            type: data.type,
-            currency_code: data.currency_code,
-            due_date: data.due_date || null,
-          });
-
-        if (error) throw error;
-        toast({ title: "Data berhasil ditambahkan" });
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["debts"] });
+  useEffect(() => {
+    if (createDebt.isSuccess || updateDebt.isSuccess) {
+      setIsLoading(false);
       onOpenChange(false);
       form.reset();
       onSuccess?.();
-    } catch (error) {
-      console.error("Error saving debt:", error);
-      toast({ 
-        title: "Error", 
-        description: "Gagal menyimpan data",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [createDebt.isSuccess, updateDebt.isSuccess, onOpenChange, form, onSuccess]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -196,9 +142,9 @@ const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) =>
             />
 
             <div className="flex justify-end gap-2 pt-4">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => onOpenChange(false)}
               >
                 Batal
