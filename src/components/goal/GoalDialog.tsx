@@ -1,22 +1,13 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
-import { useCurrencies, useDefaultCurrency } from "@/hooks/queries";
-
-interface GoalFormData {
-  name: string;
-  target_amount: number;
-  currency_code: string;
-  target_date: string;
-}
+import { useCreateGoal, useCurrencies, useDefaultCurrency, useUpdateGoal } from "@/hooks/queries";
+import { defaultGoalFormValues, GoalFormData } from "@/form-dto/goals";
 
 interface GoalDialogProps {
   open: boolean;
@@ -27,94 +18,26 @@ interface GoalDialogProps {
 
 const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
-
+  const createGoal = useCreateGoal();
+  const updateGoal = useUpdateGoal();
   const { data: currencies } = useCurrencies();
   const defaultCurrency = useDefaultCurrency();
 
   const form = useForm<GoalFormData>({
-    defaultValues: {
-      name: goal?.name || "",
-      target_amount: goal?.target_amount || "",
-      currency_code: goal?.currency_code || defaultCurrency?.code || "IDR",
-      target_date: goal?.target_date || "",
-    },
-  });
-
-  // Reset form when goal prop changes
-  useState(() => {
-    if (goal) {
-      form.reset({
-        name: goal.name || "",
-        target_amount: goal.target_amount || 0,
-        currency_code: goal.currency_code || defaultCurrency?.code || "IDR",
-        target_date: goal.target_date || "",
-      });
-    } else {
-      form.reset({
-        name: "",
-        target_amount: 0,
-        currency_code: defaultCurrency?.code || "IDR",
-        target_date: "",
-      });
-    }
+    defaultValues: defaultGoalFormValues,
   });
 
   const onSubmit = async (data: GoalFormData) => {
     if (!user) return;
-    
     setIsLoading(true);
-    try {
-      if (goal) {
-        // Update existing goal
-        const { error } = await supabase
-          .from("goals")
-          .update({
-            name: data.name,
-            target_amount: data.target_amount,
-            currency_code: data.currency_code,
-            target_date: data.target_date || null,
-          })
-          .eq("id", goal.id)
-          .eq("user_id", user.id);
-
-        if (error) throw error;
-        toast({ title: "Target berhasil diperbarui" });
-      } else {
-        // Create new goal
-        const { error } = await supabase
-          .from("goals")
-          .insert({
-            user_id: user.id,
-            name: data.name,
-            target_amount: data.target_amount,
-            currency_code: data.currency_code,
-            target_date: data.target_date || null,
-          });
-
-        if (error) throw error;
-        toast({ title: "Target berhasil ditambahkan" });
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["goals"] });
-      onOpenChange(false);
-      form.reset();
-      onSuccess?.();
-    } catch (error) {
-      console.error("Error saving goal:", error);
-      toast({ 
-        title: "Error", 
-        description: "Gagal menyimpan target",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
+    if (goal) {
+      updateGoal.mutate({ id: goal.id, ...data });
+    } else {
+      createGoal.mutate(data);
     }
   };
 
-  // Reset form when goal prop changes or dialog opens/closes
   useEffect(() => {
     if (open) {
       if (goal) {
@@ -125,15 +48,17 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
           target_date: goal.target_date || "",
         });
       } else {
-        form.reset({
-          name: "",
-          target_amount: 0,
-          currency_code: defaultCurrency?.code || "IDR",
-          target_date: "",
-        });
+        form.reset(defaultGoalFormValues);
       }
     }
   }, [goal, open, form, defaultCurrency]);
+
+  useEffect(() => {
+    if (createGoal.isSuccess || updateGoal.isSuccess) {
+      onOpenChange(false);
+      onSuccess?.();
+    }
+  }, [createGoal.isSuccess, updateGoal.isSuccess]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -163,7 +88,7 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
             <FormField
               control={form.control}
               name="target_amount"
-              rules={{ 
+              rules={{
                 required: "Jumlah target harus diisi",
                 min: { value: 1, message: "Jumlah harus lebih dari 0" }
               }}
@@ -213,9 +138,9 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
             />
 
             <div className="flex justify-end gap-2 pt-4">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => onOpenChange(false)}
               >
                 Batal
