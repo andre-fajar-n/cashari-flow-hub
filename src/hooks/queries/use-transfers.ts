@@ -48,6 +48,10 @@ export const useCreateTransfer = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transfers"] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      toast({
+        title: "Berhasil",
+        description: "Transfer berhasil ditambahkan",
+      });
     },
     onError: (error) => {
       console.error(error);
@@ -79,6 +83,10 @@ export const useUpdateTransfer = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transfers"] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      toast({
+        title: "Berhasil",
+        description: "Transfer berhasil diperbarui",
+      });
     },
     onError: (error) => {
       console.error(error);
@@ -111,6 +119,10 @@ export const useDeleteTransfer = () => {
       });
       queryClient.invalidateQueries({ queryKey: ["transfers"] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      toast({
+        title: "Berhasil",
+        description: "Transfer berhasil dihapus",
+      });
     },
     onError: (error: any) => {
       toast({
