@@ -1,21 +1,13 @@
 
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
-import { useInvestmentInstruments } from "@/hooks/queries";
-
-interface AssetFormData {
-  name: string;
-  symbol: string;
-  instrument_id: number;
-}
+import { useCreateInvestmentAsset, useInvestmentInstruments, useUpdateInvestmentAsset } from "@/hooks/queries";
+import { AssetFormData, defaultAssetFormValues } from "@/form-dto/investment-assets";
 
 interface InvestmentAssetDialogProps {
   open: boolean;
@@ -26,16 +18,12 @@ interface InvestmentAssetDialogProps {
 
 const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: InvestmentAssetDialogProps) => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
+  const createAsset = useCreateInvestmentAsset();
+  const updateAsset = useUpdateInvestmentAsset();
 
   const form = useForm<AssetFormData>({
-    defaultValues: {
-      name: asset?.name || "",
-      symbol: asset?.symbol || "",
-      instrument_id: asset?.instrument_id || 0,
-    },
+    defaultValues: defaultAssetFormValues,
   });
 
   const { data: instruments } = useInvestmentInstruments();
@@ -44,49 +32,10 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
     if (!user) return;
     
     setIsLoading(true);
-    try {
-      if (asset) {
-        // Update existing asset
-        const { error } = await supabase
-          .from("investment_assets")
-          .update({
-            name: data.name,
-            symbol: data.symbol,
-            instrument_id: data.instrument_id,
-          })
-          .eq("id", asset.id)
-          .eq("user_id", user.id);
-
-        if (error) throw error;
-        toast({ title: "Aset berhasil diperbarui" });
-      } else {
-        // Create new asset
-        const { error } = await supabase
-          .from("investment_assets")
-          .insert({
-            user_id: user.id,
-            name: data.name,
-            symbol: data.symbol,
-            instrument_id: data.instrument_id,
-          });
-
-        if (error) throw error;
-        toast({ title: "Aset berhasil ditambahkan" });
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
-      onOpenChange(false);
-      form.reset();
-      onSuccess?.();
-    } catch (error) {
-      console.error("Error saving asset:", error);
-      toast({ 
-        title: "Error", 
-        description: "Gagal menyimpan aset",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
+    if (asset) {
+      updateAsset.mutate({ id: asset.id, ...data });
+    } else {
+      createAsset.mutate(data);
     }
   };
 
@@ -100,14 +49,18 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
           instrument_id: asset.instrument_id || 0,
         });
       } else {
-        form.reset({
-          name: "",
-          symbol: "",
-          instrument_id: 0,
-        });
+        form.reset(defaultAssetFormValues);
       }
     }
   }, [asset, open, form]);
+
+  useEffect(() => {
+    if (createAsset.isSuccess || updateAsset.isSuccess) {
+      onOpenChange(false);
+      form.reset();
+      onSuccess?.();
+    }
+  }, [createAsset.isSuccess, updateAsset.isSuccess]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
