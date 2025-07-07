@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 import { GoalTransferFormData } from "@/form-dto/goal-transfers";
 
 export const useGoalTransfers = () => {
@@ -36,17 +37,15 @@ export const useGoalTransfers = () => {
 export const useCreateGoalTransfer = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async (transfer: GoalTransferFormData) => {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("goal_transfers")
-        .insert({ ...transfer, user_id: user?.id })
-        .select()
-        .single();
+        .insert({ ...transfer, user_id: user?.id });
 
       if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
@@ -54,43 +53,32 @@ export const useCreateGoalTransfer = () => {
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
       queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
       queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
+      toast({
+        title: "Berhasil",
+        description: "Transfer berhasil ditambahkan",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 };
 
 export const useUpdateGoalTransfer = () => {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ id, ...transfer }: GoalTransferFormData & { id: number }) => {
-      const { data, error } = await supabase
-        .from("goal_transfers")
-        .update(transfer)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
-      queryClient.invalidateQueries({ queryKey: ["goals"] });
-      queryClient.invalidateQueries({ queryKey: ["wallets"] });
-      queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
-      queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
-    },
-  });
-};
-
-export const useDeleteGoalTransfer = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: number) => {
       const { error } = await supabase
         .from("goal_transfers")
-        .delete()
+        .update(transfer)
+        .eq("user_id", user?.id)
         .eq("id", id);
 
       if (error) throw error;
@@ -101,6 +89,53 @@ export const useDeleteGoalTransfer = () => {
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
       queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
       queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
+      toast({
+        title: "Berhasil",
+        description: "Transfer berhasil diperbarui",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useDeleteGoalTransfer = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const { error } = await supabase
+        .from("goal_transfers")
+        .delete()
+        .eq("user_id", user?.id)
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
+      queryClient.invalidateQueries({ queryKey: ["goals"] });
+      queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
+      queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
+      toast({
+        title: "Berhasil",
+        description: "Transfer berhasil dihapus",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 };
