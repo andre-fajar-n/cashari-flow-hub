@@ -1,17 +1,18 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import { BudgetFormData } from "@/form-dto/budget";
 
-export const useBudgets = () => {
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { GoalFormData } from "@/form-dto/goals";
+
+export const useGoals = () => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["budgets", user?.id],
+    queryKey: ["goals", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("budgets")
+        .from("goals")
         .select("*")
         .eq("user_id", user?.id)
         .order("name");
@@ -23,15 +24,14 @@ export const useBudgets = () => {
   });
 };
 
-export const useDeleteBudget = () => {
-  const queryClient = useQueryClient();
+export const useDeleteGoal = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (id: number) => {
       const { error } = await supabase
-        .from("budgets")
+        .from("goals")
         .delete()
         .eq("user_id", user?.id)
         .eq("id", id);
@@ -39,10 +39,9 @@ export const useDeleteBudget = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["budgets"] });
       toast({
         title: "Berhasil",
-        description: "Budget berhasil dihapus",
+        description: "Goal berhasil dihapus",
       });
     },
     onError: (error: any) => {
@@ -55,65 +54,61 @@ export const useDeleteBudget = () => {
   });
 };
 
-export const useCreateBudget = () => {
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-  const { toast } = useToast();
-
-  return useMutation({
-    mutationFn: async (newBudget: BudgetFormData) => {
-      const { error } = await supabase
-        .from("budgets")
-        .insert({
-          ...newBudget,
-          user_id: user.id,
-        });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["budgets"] });
-      toast({
-        title: "Berhasil",
-        description: "Budget berhasil ditambahkan",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: `Gagal menambahkan budget: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
-};
-
-export const useUpdateBudget = () => {
-  const queryClient = useQueryClient();
+export const useUpdateGoal = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, ...budget }: BudgetFormData & { id: number }) => {
+    mutationFn: async ({ id, ...goal }: GoalFormData & { id: number }) => {
       const { error } = await supabase
-        .from("budgets")
-        .update(budget)
+        .from("goals")
+        .update(goal)
         .eq("user_id", user?.id)
         .eq("id", id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["budgets"] });
       toast({
         title: "Berhasil",
-        description: "Budget berhasil diperbarui",
+        description: "Goal berhasil diperbarui",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: `Gagal memperbarui budget: ${error.message}`,
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useCreateGoal = () => {
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (goal: GoalFormData) => {
+      const { error } = await supabase
+        .from("goals")
+        .insert({
+          ...goal,
+          user_id: user?.id,
+        });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Berhasil",
+        description: "Goal berhasil ditambahkan",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
         variant: "destructive",
       });
     },

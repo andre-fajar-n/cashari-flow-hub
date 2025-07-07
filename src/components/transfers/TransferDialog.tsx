@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useWallets } from "@/hooks/queries/useWallets";
+import { useWallets } from "@/hooks/queries/use-wallets";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { defaultTransferFormData, TransferFormData } from "@/form-dto/transfer";
-import { useCreateTransfer, useUpdateTransfer } from "@/hooks/queries/useTransfers";
+import { useCreateTransfer, useUpdateTransfer } from "@/hooks/queries/use-transfers";
 
 interface TransferDialogProps {
   open: boolean;

@@ -1,7 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export const useGoalInvestmentRecords = (goalId?: number) => {

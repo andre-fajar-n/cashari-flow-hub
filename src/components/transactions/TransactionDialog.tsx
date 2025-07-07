@@ -1,11 +1,11 @@
 
 import { useState } from "react";
-import { useWallets } from "@/hooks/queries/useWallets";
-import { useCategories } from "@/hooks/queries/useCategories";
-import { useDebts } from "@/hooks/queries/useDebts";
-import { useBudgets } from "@/hooks/queries/useBudgets";
-import { useBusinessProjects } from "@/hooks/queries/useBusinessProjects";
-import { useAuth } from "@/hooks/useAuth";
+import { useWallets } from "@/hooks/queries/use-wallets";
+import { useCategories } from "@/hooks/queries/use-categories";
+import { useDebts } from "@/hooks/queries/use-debts";
+import { useBudgets } from "@/hooks/queries/use-budgets";
+import { useBusinessProjects } from "@/hooks/queries/use-business-projects";
+import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";

@@ -6,7 +6,7 @@ import { Plus, Edit, Trash2 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import BudgetDialog from "@/components/budget/BudgetDialog";
 import Layout from "@/components/Layout";
-import { useBudgets, useDeleteBudget } from "@/hooks/queries/useBudgets";
+import { useBudgets, useDeleteBudget } from "@/hooks/queries/use-budgets";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { BudgetModel } from "@/models/budgets";
 

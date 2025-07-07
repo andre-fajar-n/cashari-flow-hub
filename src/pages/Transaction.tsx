@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowUpCircle, ArrowDownCircle, Edit, Trash2 } from "lucide-react";
-import { useTransactions, useDeleteTransaction } from "@/hooks/queries/useTransactions";
+import { useTransactions, useDeleteTransaction } from "@/hooks/queries/use-transactions";
 import TransactionDialog from "@/components/transactions/TransactionDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useQueryClient } from "@tanstack/react-query";

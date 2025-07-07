@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
 import { useWallets, useCategories, useInvestmentInstruments, useInvestmentAssets, useDefaultCurrency } from "@/hooks/queries";
-import { useCreateGoalInvestmentRecord, useUpdateGoalInvestmentRecord } from "@/hooks/queries/useGoalInvestmentRecords";
+import { useCreateGoalInvestmentRecord, useUpdateGoalInvestmentRecord } from "@/hooks/queries/use-goal-investment-records";
 
 interface GoalInvestmentRecordFormData {
   goal_id: string;

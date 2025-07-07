@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowRightLeft, Edit, Trash2 } from "lucide-react";
-import { useTransfers, useDeleteTransfer } from "@/hooks/queries/useTransfers";
+import { useTransfers, useDeleteTransfer } from "@/hooks/queries/use-transfers";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import TransferDialog from "@/components/transfers/TransferDialog";
 import { useQueryClient } from "@tanstack/react-query";

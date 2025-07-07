@@ -18,7 +18,7 @@ import InvestmentInstrument from "@/pages/InvestmentInstrument";
 import InvestmentAsset from "@/pages/InvestmentAsset";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
-import { AuthProvider } from "@/hooks/useAuth";
+import { AuthProvider } from "@/hooks/use-auth";
 
 const queryClient = new QueryClient();
 

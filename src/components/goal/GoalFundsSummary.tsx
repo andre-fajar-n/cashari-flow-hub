@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, TrendingUp, PieChart } from "lucide-react";
-import { useGoalFundsSummary } from "@/hooks/queries/useGoalFundsSummary";
+import { useGoalFundsSummary } from "@/hooks/queries/use-goal-funds-summary";
 import { formatAmount } from "@/lib/utils";
 
 interface GoalFundsSummaryProps {
