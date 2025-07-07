@@ -1,31 +1,15 @@
 
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { toast } from "@/hooks/use-toast";
-import { useWallets, useGoals, useInvestmentInstruments, useInvestmentAssets } from "@/hooks/queries";
+import { useWallets, useGoals, useInvestmentInstruments, useInvestmentAssets, useCreateGoalTransfer, useUpdateGoalTransfer } from "@/hooks/queries";
 import GoalTransferFormFields from "@/components/goal/GoalTransferFormFields";
 import GoalTransferAmountFields from "@/components/goal/GoalTransferAmountFields";
 import { GoalTransferConfig, getTransferModeConfig } from "@/components/goal/GoalTransferModes";
-
-interface GoalTransferFormData {
-  from_wallet_id: string;
-  from_goal_id: string;
-  from_instrument_id: string;
-  from_asset_id: string;
-  to_wallet_id: string;
-  to_goal_id: string;
-  to_instrument_id: string;
-  to_asset_id: string;
-  amount_from: number;
-  amount_to: number;
-  date: string;
-}
+import { defaultGoalTransferFormData, GoalTransferFormData } from "@/form-dto/goal-transfers";
 
 interface GoalTransferDialogProps {
   open: boolean;
@@ -43,23 +27,12 @@ const GoalTransferDialog = ({
   transferConfig 
 }: GoalTransferDialogProps) => {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
+  const createTransfer = useCreateGoalTransfer();
+  const updateTransfer = useUpdateGoalTransfer();
 
   const form = useForm<GoalTransferFormData>({
-    defaultValues: {
-      from_wallet_id: "none",
-      from_goal_id: "none",
-      from_instrument_id: "none",
-      from_asset_id: "none",
-      to_wallet_id: "none",
-      to_goal_id: "none",
-      to_instrument_id: "none",
-      to_asset_id: "none",
-      amount_from: 0,
-      amount_to: 0,
-      date: new Date().toISOString().split('T')[0],
-    },
+    defaultValues: defaultGoalTransferFormData,
   });
 
   const { data: wallets } = useWallets();
@@ -73,18 +46,18 @@ const GoalTransferDialog = ({
 
   // Filter assets based on selected instruments
   const fromAssets = assets?.filter(asset => 
-    fromInstrumentId === "none" || asset.instrument_id.toString() === fromInstrumentId
+    fromInstrumentId === 0 || asset.instrument_id === fromInstrumentId
   );
   const toAssets = assets?.filter(asset => 
-    toInstrumentId === "none" || asset.instrument_id.toString() === toInstrumentId
+    toInstrumentId === 0 || asset.instrument_id === toInstrumentId
   );
 
   // Auto-populate amount_to when same currency
   useEffect(() => {
     const fromWalletId = form.watch("from_wallet_id");
     const toWalletId = form.watch("to_wallet_id");
-    const fromWallet = wallets?.find(w => w.id.toString() === fromWalletId);
-    const toWallet = wallets?.find(w => w.id.toString() === toWalletId);
+    const fromWallet = wallets?.find(w => w.id === fromWalletId);
+    const toWallet = wallets?.find(w => w.id === toWalletId);
     const isSameCurrency = fromWallet?.currency_code === toWallet?.currency_code;
     
     if (isSameCurrency && amountFrom > 0) {
@@ -96,12 +69,12 @@ const GoalTransferDialog = ({
   useEffect(() => {
     if (transferConfig && open) {
       const modeConfig = getTransferModeConfig(transferConfig.mode);
-      const goalIdString = transferConfig.goalId.toString();
+      const goalId = transferConfig.goalId;
       
       if (modeConfig.prefilledField === 'to_goal_id') {
-        form.setValue("to_goal_id", goalIdString);
+        form.setValue("to_goal_id", goalId);
       } else if (modeConfig.prefilledField === 'from_goal_id') {
-        form.setValue("from_goal_id", goalIdString);
+        form.setValue("from_goal_id", goalId);
       }
     }
   }, [transferConfig, open, form]);
@@ -110,77 +83,36 @@ const GoalTransferDialog = ({
     if (!user) return;
     
     setIsLoading(true);
-    try {
-      const transferData = {
-        user_id: user.id,
-        from_wallet_id: data.from_wallet_id !== "none" ? parseInt(data.from_wallet_id) : null,
-        from_goal_id: data.from_goal_id !== "none" ? parseInt(data.from_goal_id) : null,
-        from_instrument_id: data.from_instrument_id !== "none" ? parseInt(data.from_instrument_id) : null,
-        from_asset_id: data.from_asset_id !== "none" ? parseInt(data.from_asset_id) : null,
-        to_wallet_id: data.to_wallet_id !== "none" ? parseInt(data.to_wallet_id) : null,
-        to_goal_id: data.to_goal_id !== "none" ? parseInt(data.to_goal_id) : null,
-        to_instrument_id: data.to_instrument_id !== "none" ? parseInt(data.to_instrument_id) : null,
-        to_asset_id: data.to_asset_id !== "none" ? parseInt(data.to_asset_id) : null,
-        amount_from: data.amount_from,
-        amount_to: data.amount_to,
-        currency_from: 'IDR',
-        currency_to: 'IDR',
-        date: data.date,
-      };
+    const transferData = {
+      user_id: user.id,
+      from_wallet_id: data.from_wallet_id > 0 ? data.from_wallet_id : null,
+      from_goal_id: data.from_goal_id > 0 ? data.from_goal_id : null,
+      from_instrument_id: data.from_instrument_id > 0 ? data.from_instrument_id : null,
+      from_asset_id: data.from_asset_id > 0 ? data.from_asset_id : null,
+      to_wallet_id: data.to_wallet_id > 0 ? data.to_wallet_id : null,
+      to_goal_id: data.to_goal_id > 0 ? data.to_goal_id : null,
+      to_instrument_id: data.to_instrument_id > 0 ? data.to_instrument_id : null,
+      to_asset_id: data.to_asset_id > 0 ? data.to_asset_id : null,
+      amount_from: data.amount_from,
+      amount_to: data.amount_to,
+      currency_from: 'IDR',
+      currency_to: 'IDR',
+      date: data.date,
+    };
 
-      if (transfer) {
-        const { error } = await supabase
-          .from("goal_transfers")
-          .update(transferData)
-          .eq("id", transfer.id)
-          .eq("user_id", user.id);
-
-        if (error) throw error;
-        toast({ title: "Transfer goal berhasil diperbarui" });
-      } else {
-        const { error } = await supabase
-          .from("goal_transfers")
-          .insert(transferData);
-
-        if (error) throw error;
-        toast({ title: "Transfer goal berhasil ditambahkan" });
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
-      queryClient.invalidateQueries({ queryKey: ["goals"] });
-      queryClient.invalidateQueries({ queryKey: ["wallets"] });
-      onOpenChange(false);
-      form.reset();
-      onSuccess?.();
-    } catch (error) {
-      console.error("Error saving goal transfer:", error);
-      toast({ 
-        title: "Error", 
-        description: "Gagal menyimpan transfer goal",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
+    if (transfer) {
+      updateTransfer.mutate({ id: transfer.id, ...transferData });
+    } else {
+      createTransfer.mutate({ ...transferData });
     }
   };
 
   useEffect(() => {
     if (open && !transfer && !transferConfig) {
-      form.reset({
-        from_wallet_id: "none",
-        from_goal_id: "none",
-        from_instrument_id: "none",
-        from_asset_id: "none",
-        to_wallet_id: "none",
-        to_goal_id: "none",
-        to_instrument_id: "none",
-        to_asset_id: "none",
-        amount_from: 0,
-        amount_to: 0,
-        date: new Date().toISOString().split('T')[0],
-      });
+      onOpenChange(false);
+      onSuccess?.();
     }
-  }, [open, transfer, transferConfig, form]);
+  }, [open, transfer, transferConfig]);
 
   const modeConfig = transferConfig ? getTransferModeConfig(transferConfig.mode) : null;
   const dialogTitle = transfer 

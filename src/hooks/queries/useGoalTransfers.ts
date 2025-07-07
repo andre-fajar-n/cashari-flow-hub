@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { GoalTransferFormData } from "@/form-dto/goal-transfers";
 
 export const useGoalTransfers = () => {
   const { user } = useAuth();
@@ -38,7 +38,7 @@ export const useCreateGoalTransfer = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (transfer: Omit<TablesInsert<"goal_transfers">, "user_id">) => {
+    mutationFn: async (transfer: GoalTransferFormData) => {
       const { data, error } = await supabase
         .from("goal_transfers")
         .insert({ ...transfer, user_id: user?.id })
@@ -62,7 +62,7 @@ export const useUpdateGoalTransfer = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...transfer }: TablesUpdate<"goal_transfers"> & { id: number }) => {
+    mutationFn: async ({ id, ...transfer }: GoalTransferFormData & { id: number }) => {
       const { data, error } = await supabase
         .from("goal_transfers")
         .update(transfer)

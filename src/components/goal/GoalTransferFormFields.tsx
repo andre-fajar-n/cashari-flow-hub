@@ -3,20 +3,7 @@ import { Control } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getTransferModeConfig, GoalTransferConfig } from "@/components/goal/GoalTransferModes";
-
-interface GoalTransferFormData {
-  from_wallet_id: string;
-  from_goal_id: string;
-  from_instrument_id: string;
-  from_asset_id: string;
-  to_wallet_id: string;
-  to_goal_id: string;
-  to_instrument_id: string;
-  to_asset_id: string;
-  amount_from: number;
-  amount_to: number;
-  date: string;
-}
+import { GoalTransferFormData } from "@/form-dto/goal-transfers";
 
 interface GoalTransferFormFieldsProps {
   control: Control<GoalTransferFormData>;
@@ -51,14 +38,14 @@ const GoalTransferFormFields = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Dompet Asal</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih dompet asal" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="none">Tidak ada</SelectItem>
+                    <SelectItem value="0">Tidak ada</SelectItem>
                     {wallets?.map((wallet) => (
                       <SelectItem key={wallet.id} value={wallet.id.toString()}>
                         {wallet.name} ({wallet.currency_code})
@@ -78,14 +65,14 @@ const GoalTransferFormFields = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Goal Asal</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Pilih goal asal" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="none">Tidak ada</SelectItem>
+                      <SelectItem value="0">Tidak ada</SelectItem>
                       {goals?.map((goal) => (
                         <SelectItem key={goal.id} value={goal.id.toString()}>
                           {goal.name} ({goal.currency_code})
@@ -106,14 +93,14 @@ const GoalTransferFormFields = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Instrumen Asal</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Pilih instrumen asal" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="none">Tidak ada</SelectItem>
+                      <SelectItem value="0">Tidak ada</SelectItem>
                       {instruments?.map((instrument) => (
                         <SelectItem key={instrument.id} value={instrument.id.toString()}>
                           {instrument.name}
@@ -134,14 +121,14 @@ const GoalTransferFormFields = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Aset Asal</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Pilih aset asal" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="none">Tidak ada</SelectItem>
+                      <SelectItem value="0">Tidak ada</SelectItem>
                       {fromAssets?.map((asset) => (
                         <SelectItem key={asset.id} value={asset.id.toString()}>
                           {asset.name} {asset.symbol && `(${asset.symbol})`}
@@ -167,14 +154,14 @@ const GoalTransferFormFields = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Dompet Tujuan</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Pilih dompet tujuan" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="none">Tidak ada</SelectItem>
+                    <SelectItem value="0">Tidak ada</SelectItem>
                     {wallets?.map((wallet) => (
                       <SelectItem key={wallet.id} value={wallet.id.toString()}>
                         {wallet.name} ({wallet.currency_code})
@@ -194,14 +181,14 @@ const GoalTransferFormFields = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Goal Tujuan</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Pilih goal tujuan" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="none">Tidak ada</SelectItem>
+                      <SelectItem value="0">Tidak ada</SelectItem>
                       {goals?.filter(goal => goal.is_active && !goal.is_achieved).map((goal) => (
                         <SelectItem key={goal.id} value={goal.id.toString()}>
                           {goal.name} ({goal.currency_code})
@@ -222,14 +209,14 @@ const GoalTransferFormFields = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Instrumen Tujuan</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Pilih instrumen tujuan" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="none">Tidak ada</SelectItem>
+                      <SelectItem value="0">Tidak ada</SelectItem>
                       {instruments?.map((instrument) => (
                         <SelectItem key={instrument.id} value={instrument.id.toString()}>
                           {instrument.name}
@@ -250,14 +237,14 @@ const GoalTransferFormFields = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Aset Tujuan</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Pilih aset tujuan" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="none">Tidak ada</SelectItem>
+                      <SelectItem value="0">Tidak ada</SelectItem>
                       {toAssets?.map((asset) => (
                         <SelectItem key={asset.id} value={asset.id.toString()}>
                           {asset.name} {asset.symbol && `(${asset.symbol})`}

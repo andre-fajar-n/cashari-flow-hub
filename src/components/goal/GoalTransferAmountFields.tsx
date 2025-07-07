@@ -3,20 +3,7 @@ import { Control, UseFormWatch } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
-
-interface GoalTransferFormData {
-  from_wallet_id: string;
-  from_goal_id: string;
-  from_instrument_id: string;
-  from_asset_id: string;
-  to_wallet_id: string;
-  to_goal_id: string;
-  to_instrument_id: string;
-  to_asset_id: string;
-  amount_from: number;
-  amount_to: number;
-  date: string;
-}
+import { GoalTransferFormData } from "@/form-dto/goal-transfers";
 
 interface GoalTransferAmountFieldsProps {
   control: Control<GoalTransferFormData>;
@@ -28,8 +15,8 @@ const GoalTransferAmountFields = ({ control, watch, wallets }: GoalTransferAmoun
   const fromWalletId = watch("from_wallet_id");
   const toWalletId = watch("to_wallet_id");
 
-  const fromWallet = wallets?.find(w => w.id.toString() === fromWalletId);
-  const toWallet = wallets?.find(w => w.id.toString() === toWalletId);
+  const fromWallet = wallets?.find(w => w.id === fromWalletId);
+  const toWallet = wallets?.find(w => w.id === toWalletId);
   const isSameCurrency = fromWallet?.currency_code === toWallet?.currency_code;
 
   return (
