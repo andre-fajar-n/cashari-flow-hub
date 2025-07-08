@@ -10,17 +10,7 @@ import InvestmentAssetDialog from "@/components/investment/InvestmentAssetDialog
 import { useToast } from "@/hooks/use-toast";
 import { useDeleteInvestmentAsset, useInvestmentAssets } from "@/hooks/queries";
 import ConfirmationModal from "@/components/ConfirmationModal";
-
-interface InvestmentAsset {
-  id: number;
-  name: string;
-  symbol: string;
-  instrument_id: number;
-  created_at: string;
-  investment_instruments?: {
-    name: string;
-  };
-}
+import { InvestmentAssetModel } from "@/models/investment-assets";
 
 const InvestmentAsset = () => {
   const { toast } = useToast();
@@ -28,11 +18,11 @@ const InvestmentAsset = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [investmentAssetToDelete, setInvestmentAssetToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedAsset, setSelectedAsset] = useState<InvestmentAsset | undefined>(undefined);
+  const [selectedAsset, setSelectedAsset] = useState<InvestmentAssetModel | undefined>(undefined);
   const { mutate: deleteInvestmentAsset } = useDeleteInvestmentAsset();
   const { data: assets, isLoading } = useInvestmentAssets();
 
-  const handleEdit = (asset: InvestmentAsset) => {
+  const handleEdit = (asset: InvestmentAssetModel) => {
     setSelectedAsset(asset);
     setIsDialogOpen(true);
   };
