@@ -1,51 +1,26 @@
-
 import { useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, TrendingUp, Edit, Trash2 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import InvestmentInstrumentDialog from "@/components/investment/InvestmentInstrumentDialog";
-import { useToast } from "@/hooks/use-toast";
 import Layout from "@/components/Layout";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { useDeleteInvestmentInstrument } from "@/hooks/queries";
-
-interface InvestmentInstrument {
-  id: number;
-  name: string;
-  unit_label: string;
-  is_trackable: boolean;
-  created_at: string;
-}
+import { useDeleteInvestmentInstrument, useInvestmentInstruments } from "@/hooks/queries";
+import { InvestmentInstrumentModel } from "@/models/investment-instruments";
 
 const InvestmentInstrument = () => {
-  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [instrumentToDelete, setInstrumentToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedInstrument, setSelectedInstrument] = useState<InvestmentInstrument | undefined>(undefined);
+  const [selectedInstrument, setSelectedInstrument] = useState<InvestmentInstrumentModel | undefined>(undefined);
   const { mutate: deleteInstrument } = useDeleteInvestmentInstrument();
 
-  const { data: instruments, isLoading } = useQuery({
-    queryKey: ["investment_instruments"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("investment_instruments")
-        .select("*")
-        .eq("user_id", user?.id)
-        .order("created_at", { ascending: false });
+  const { data: instruments, isLoading } = useInvestmentInstruments();
 
-      if (error) throw error;
-      return data as InvestmentInstrument[];
-    },
-    enabled: !!user,
-  });
-
-  const handleEdit = (instrument: InvestmentInstrument) => {
+  const handleEdit = (instrument: InvestmentInstrumentModel) => {
     setSelectedInstrument(instrument);
     setIsDialogOpen(true);
   };

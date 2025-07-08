@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { InstrumentFormData } from "@/form-dto/investment-instruments";
 
 export const useInvestmentInstruments = () => {
   const { user } = useAuth();
@@ -42,6 +43,68 @@ export const useDeleteInvestmentInstrument = () => {
       toast({
         title: "Berhasil",
         description: "Instrumen investasi berhasil dihapus",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useCreateInvestmentInstrument = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (instrument: InstrumentFormData) => {
+      const { error } = await supabase
+        .from("investment_instruments")
+        .insert({ ...instrument, user_id: user?.id });
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
+      toast({
+        title: "Berhasil",
+        description: "Instrumen investasi berhasil ditambahkan",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useUpdateInvestmentInstrument = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ id, ...instrument }: InstrumentFormData & { id: number }) => {
+      const { error } = await supabase
+        .from("investment_instruments")
+        .update({ ...instrument })
+        .eq("user_id", user?.id)
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
+      toast({
+        title: "Berhasil",
+        description: "Instrumen investasi berhasil diperbarui",
       });
     },
     onError: (error: any) => {

@@ -1,21 +1,14 @@
 
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
-
-interface InstrumentFormData {
-  name: string;
-  unit_label: string;
-  is_trackable: boolean;
-}
+import { defaultInstrumentFormValues, InstrumentFormData } from "@/form-dto/investment-instruments";
+import { useCreateInvestmentInstrument, useUpdateInvestmentInstrument } from "@/hooks/queries";
 
 interface InvestmentInstrumentDialogProps {
   open: boolean;
@@ -26,65 +19,22 @@ interface InvestmentInstrumentDialogProps {
 
 const InvestmentInstrumentDialog = ({ open, onOpenChange, instrument, onSuccess }: InvestmentInstrumentDialogProps) => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
+  const createInstrument = useCreateInvestmentInstrument();
+  const updateInstrument = useUpdateInvestmentInstrument();
 
   const form = useForm<InstrumentFormData>({
-    defaultValues: {
-      name: instrument?.name || "",
-      unit_label: instrument?.unit_label || "",
-      is_trackable: instrument?.is_trackable ?? true,
-    },
+    defaultValues: defaultInstrumentFormValues,
   });
 
   const onSubmit = async (data: InstrumentFormData) => {
     if (!user) return;
     
     setIsLoading(true);
-    try {
-      if (instrument) {
-        // Update existing instrument
-        const { error } = await supabase
-          .from("investment_instruments")
-          .update({
-            name: data.name,
-            unit_label: data.unit_label,
-            is_trackable: data.is_trackable,
-          })
-          .eq("id", instrument.id)
-          .eq("user_id", user.id);
-
-        if (error) throw error;
-        toast({ title: "Instrumen berhasil diperbarui" });
-      } else {
-        // Create new instrument
-        const { error } = await supabase
-          .from("investment_instruments")
-          .insert({
-            user_id: user.id,
-            name: data.name,
-            unit_label: data.unit_label,
-            is_trackable: data.is_trackable,
-          });
-
-        if (error) throw error;
-        toast({ title: "Instrumen berhasil ditambahkan" });
-      }
-
-      queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
-      onOpenChange(false);
-      form.reset();
-      onSuccess?.();
-    } catch (error) {
-      console.error("Error saving instrument:", error);
-      toast({ 
-        title: "Error", 
-        description: "Gagal menyimpan instrumen",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
+    if (instrument) {
+      updateInstrument.mutate({ id: instrument.id, ...data });
+    } else {
+      createInstrument.mutate(data);
     }
   };
 
@@ -98,14 +48,18 @@ const InvestmentInstrumentDialog = ({ open, onOpenChange, instrument, onSuccess 
           is_trackable: instrument.is_trackable ?? false,
         });
       } else {
-        form.reset({
-          name: "",
-          unit_label: "",
-          is_trackable: false,
-        });
+        form.reset(defaultInstrumentFormValues);
       }
     }
   }, [instrument, open, form]);
+
+  useEffect(() => {
+    if (createInstrument.isSuccess || updateInstrument.isSuccess) {
+      onOpenChange(false);
+      form.reset();
+      onSuccess?.();
+    }
+  }, [createInstrument.isSuccess, updateInstrument.isSuccess]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
