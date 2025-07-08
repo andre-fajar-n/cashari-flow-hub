@@ -18,6 +18,7 @@ import { calculateGoalProgress } from "@/components/goal/GoalProgressCalculator"
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { Progress } from "@/components/ui/progress";
+import { GoalModel } from "@/models/goals";
 
 const GoalDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,7 +36,7 @@ const GoalDetail = () => {
   const { data: goalRecords } = useGoalInvestmentRecords();
   const { data: goalMovements } = useGoalMovements(parseInt(id!));
 
-  const goal = goals?.find(g => g.id === parseInt(id!));
+  const goal = goals?.find(g => g.id === parseInt(id!)) as GoalModel;
 
   if (!goal) {
     return (

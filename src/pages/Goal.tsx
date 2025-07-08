@@ -12,17 +12,7 @@ import { useGoalTransfers, useGoalInvestmentRecords, useGoals, useDeleteGoal } f
 import { calculateGoalProgress } from "@/components/goal/GoalProgressCalculator";
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
-
-interface Goal {
-  id: number;
-  name: string;
-  target_amount: number;
-  currency_code: string;
-  target_date: string;
-  is_achieved: boolean;
-  is_active: boolean;
-  created_at: string;
-}
+import { GoalModel } from "@/models/goals";
 
 const Goal = () => {
   const queryClient = useQueryClient();
@@ -31,7 +21,7 @@ const Goal = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
   const [isRecordDialogOpen, setIsRecordDialogOpen] = useState(false);
-  const [selectedGoal, setSelectedGoal] = useState<Goal | undefined>(undefined);
+  const [selectedGoal, setSelectedGoal] = useState<GoalModel | undefined>(undefined);
   const [selectedGoalForRecord, setSelectedGoalForRecord] = useState<number | undefined>(undefined);
   const [transferConfig, setTransferConfig] = useState<GoalTransferConfig | undefined>(undefined);
 
@@ -45,7 +35,7 @@ const Goal = () => {
     return calculateGoalProgress(goalId, targetAmount, goalTransfers, goalRecords);
   };
 
-  const handleEdit = (goal: Goal) => {
+  const handleEdit = (goal: GoalModel) => {
     setSelectedGoal(goal);
     setIsDialogOpen(true);
   };
