@@ -14,7 +14,8 @@ import { CategoryFormData, defaultCategoryFormValues } from "@/form-dto/categori
 const CategoryManagement = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null);
-  const [modifyingCategory, setModifyingCategory] = useState<CategoryModel | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<CategoryModel | null>(null);
   const { mutate: deleteCategory } = useDeleteCategory();
   const { data: categories, isLoading } = useCategories();
   const parentCategories = categories?.filter((cat) => cat.parent_id === null) || [];
@@ -27,17 +28,21 @@ const CategoryManagement = () => {
 
   // Reset form when adding/editing state changes
   useEffect(() => {
-    if (modifyingCategory) {
-      form.reset({
-        name: modifyingCategory.name,
-        is_income: modifyingCategory.is_income,
-        parent_id: modifyingCategory.parent_id,
-        application: modifyingCategory.application,
-      });
-    } else {
+    if (!isAdding) {
       form.reset(defaultCategoryFormValues);
     }
-  }, [modifyingCategory, form]);
+  }, [isAdding, form]);
+
+  useEffect(() => {
+    if (editingCategory) {
+      form.reset({
+        name: editingCategory.name,
+        is_income: editingCategory.is_income,
+        parent_id: editingCategory.parent_id,
+        application: editingCategory.application,
+      });
+    }
+  }, [editingCategory, form]);
 
   const handleDeleteClick = (categoryId: number) => {
     setCategoryToDelete(categoryId);
@@ -51,21 +56,29 @@ const CategoryManagement = () => {
   };
 
   const onSubmit = (data: CategoryFormData) => {
-    if (modifyingCategory) {
-      updateCategory.mutate({ id: modifyingCategory.id, ...data });
+    if (editingCategory) {
+      updateCategory.mutate({ id: editingCategory.id, ...data });
     } else {
       createCategory.mutate(data);
     }
   };
 
   const startEdit = (category: CategoryModel) => {
-    setModifyingCategory(category);
+    setEditingCategory(category);
+    setIsAdding(true);
   };
 
   const handleCancel = () => {
-    setModifyingCategory(null);
-    form.reset(defaultCategoryFormValues);
+    setEditingCategory(null);
+    setIsAdding(false);
   };
+
+  useEffect(() => {
+    if (createCategory.isSuccess || updateCategory.isSuccess) {
+      setIsAdding(false);
+      setEditingCategory(null);
+    }
+  }, [createCategory.isSuccess, updateCategory.isSuccess]);
 
   if (isLoading) {
     return <div className="text-center py-4">Loading...</div>;
@@ -85,15 +98,15 @@ const CategoryManagement = () => {
       />
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Kelola Kategori</CardTitle>
-        {!modifyingCategory && (
-          <Button onClick={() => setModifyingCategory(null)}>
+        {!isAdding && (
+          <Button onClick={() => setIsAdding(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Tambah Kategori
           </Button>
         )}
       </CardHeader>
       <CardContent>
-        {modifyingCategory ? (
+        {isAdding ? (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mb-6 p-4 border rounded-lg">
               <div className="grid grid-cols-2 gap-4">
@@ -178,7 +191,7 @@ const CategoryManagement = () => {
                   type="submit"
                   disabled={createCategory.isPending || updateCategory.isPending}
                 >
-                  {modifyingCategory ? "Update" : "Simpan"}
+                  {editingCategory ? "Update" : "Simpan"}
                 </Button>
                 <Button
                   type="button"
@@ -217,7 +230,7 @@ const CategoryManagement = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => startEdit(category)}
-                      disabled={modifyingCategory?.id === category.id}
+                      disabled={editingCategory?.id === category.id}
                     >
                       <Pen className="w-4 h-4" />
                     </Button>
