@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useWallets } from "@/hooks/queries/use-wallets";
-import { useCategories } from "@/hooks/queries/use-categories";
+import { useTransactionCategories } from "@/hooks/queries/use-categories";
 import { useDebts } from "@/hooks/queries/use-debts";
 import { useBudgets } from "@/hooks/queries/use-budgets";
 import { useBusinessProjects } from "@/hooks/queries/use-business-projects";
@@ -31,7 +31,7 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
   const [isLoading, setIsLoading] = useState(false);
 
   const { data: wallets } = useWallets();
-  const { data: categories } = useCategories();
+  const { data: categories } = useTransactionCategories();
   const { data: debts } = useDebts();
   const { data: budgets } = useBudgets();
   const { data: businessProjects } = useBusinessProjects();

@@ -9,8 +9,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/hooks/use-toast";
-import { useWallets, useCategories, useInvestmentInstruments, useInvestmentAssets, useDefaultCurrency } from "@/hooks/queries";
+import { useWallets } from "@/hooks/queries/use-wallets";
 import { useCreateGoalInvestmentRecord, useUpdateGoalInvestmentRecord } from "@/hooks/queries/use-goal-investment-records";
+import { useDefaultCurrency } from "@/hooks/queries/use-currencies";
+import { useInvestmentCategories } from "@/hooks/queries/use-categories";
+import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
+import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
 
 interface GoalInvestmentRecordFormData {
   goal_id: string;
@@ -57,7 +61,7 @@ const GoalInvestmentRecordDialog = ({
   });
 
   const { data: wallets } = useWallets();
-  const { data: categories } = useCategories(undefined, 'investment');
+  const { data: categories } = useInvestmentCategories();
   const { data: instruments } = useInvestmentInstruments();
   const { data: assets } = useInvestmentAssets();
 
