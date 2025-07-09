@@ -16,7 +16,7 @@ export const useTransactions = () => {
         .select(`
           *,
           categories(name, is_income),
-          wallets(name),
+          wallets(name)
         `)
         .eq("user_id", user?.id)
         .order("date", { ascending: false });
