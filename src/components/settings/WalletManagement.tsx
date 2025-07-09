@@ -1,7 +1,4 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
@@ -10,45 +7,28 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { Plus, Trash, Pen } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { useCurrencies } from "@/hooks/queries";
-
-interface Wallet {
-  id: number;
-  name: string;
-  currency_code: string;
-  initial_amount: number;
-}
-
-interface WalletFormData {
-  name: string;
-  currency_code: string;
-  initial_amount: number;
-}
+import { useCurrencies } from "@/hooks/queries/use-currencies";
+import { useCreateWallet, useDeleteWallet, useUpdateWallet, useWallets } from "@/hooks/queries/use-wallets";
+import { defaultWalletFormValues, WalletFormData } from "@/form-dto/wallets";
+import { WalletModel } from "@/models/wallets";
 
 const WalletManagement = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [isAdding, setIsAdding] = useState(false);
-  const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
+  const [editingWallet, setEditingWallet] = useState<WalletModel | null>(null);
+  const { data: wallets, isLoading } = useWallets();
+  const { data: currencies } = useCurrencies();
+  const deleteMutation = useDeleteWallet();
+  const createMutation = useCreateWallet();
+  const updateMutation = useUpdateWallet();
 
   const form = useForm<WalletFormData>({
-    defaultValues: {
-      name: "",
-      currency_code: "",
-      initial_amount: 0,
-    },
+    defaultValues: defaultWalletFormValues,
   });
 
   // Reset form when adding/editing state changes
   useEffect(() => {
     if (isAdding) {
-      form.reset({
-        name: "",
-        currency_code: "",
-        initial_amount: 0,
-      });
+      form.reset(defaultWalletFormValues);
     }
   }, [isAdding, form]);
 
@@ -62,123 +42,23 @@ const WalletManagement = () => {
     }
   }, [editingWallet, form]);
 
-  const { data: wallets, isLoading } = useQuery({
-    queryKey: ["wallets"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("wallets")
-        .select("*")
-        .eq("user_id", user?.id)
-        .order("name");
-
-      if (error) throw error;
-      return data as Wallet[];
-    },
-    enabled: !!user,
-  });
-
-  const { data: currencies } = useCurrencies();
-
-  const createMutation = useMutation({
-    mutationFn: async (newWallet: WalletFormData) => {
-      const { error } = await supabase
-        .from("wallets")
-        .insert({
-          ...newWallet,
-          user_id: user?.id,
-        });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["wallets"] });
-      form.reset({
-        name: "",
-        currency_code: "",
-        initial_amount: 0,
-      });
+  useEffect(() => {
+    if (createMutation.isSuccess || updateMutation.isSuccess) {
       setIsAdding(false);
-      toast({
-        title: "Berhasil",
-        description: "Dompet berhasil ditambahkan",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: `Gagal menambahkan dompet: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: WalletFormData }) => {
-      const { error } = await supabase
-        .from("wallets")
-        .update(data)
-        .eq("id", id)
-        .eq("user_id", user?.id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["wallets"] });
-      form.reset({
-        name: "",
-        currency_code: "",
-        initial_amount: 0,
-      });
       setEditingWallet(null);
-      toast({
-        title: "Berhasil",
-        description: "Dompet berhasil diupdate",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: `Gagal mengupdate dompet: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const { error } = await supabase
-        .from("wallets")
-        .delete()
-        .eq("id", id)
-        .eq("user_id", user?.id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["wallets"] });
-      toast({
-        title: "Berhasil",
-        description: "Dompet berhasil dihapus",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: `Gagal menghapus dompet: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
+      form.reset(defaultWalletFormValues);
+    }
+  }, [createMutation.isSuccess, updateMutation.isSuccess, form]);
 
   const onSubmit = (data: WalletFormData) => {
     if (editingWallet) {
-      updateMutation.mutate({ id: editingWallet.id, data });
+      updateMutation.mutate({ id: editingWallet.id, ...data });
     } else {
       createMutation.mutate(data);
     }
   };
 
-  const startEdit = (wallet: Wallet) => {
+  const startEdit = (wallet: WalletModel) => {
     setEditingWallet(wallet);
     setIsAdding(false);
   };
@@ -186,11 +66,7 @@ const WalletManagement = () => {
   const handleCancel = () => {
     setIsAdding(false);
     setEditingWallet(null);
-    form.reset({
-      name: "",
-      currency_code: "",
-      initial_amount: 0,
-    });
+    form.reset(defaultWalletFormValues);
   };
 
   if (isLoading) {
