@@ -17,15 +17,14 @@ export const useTransactions = () => {
           *,
           categories(name, is_income),
           wallets(name),
-          currencies(symbol),
-          debts(name),
-          budgets(name),
-          business_projects(name)
         `)
         .eq("user_id", user?.id)
         .order("date", { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Failed to fetch transactions", error);
+        throw error
+      };
       return data;
     },
     enabled: !!user,
