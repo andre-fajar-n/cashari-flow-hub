@@ -1,7 +1,4 @@
 import { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,22 +6,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { Plus, Trash, Pen } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { useCategories, useDeleteCategory } from "@/hooks/queries";
+import { useCategories, useCreateCategory, useDeleteCategory, useUpdateCategory } from "@/hooks/queries";
 import { CategoryModel } from "@/models/categories";
 import { CategoryFormData, defaultCategoryFormValues } from "@/form-dto/categories";
 
 const CategoryManagement = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null);
   const [modifyingCategory, setModifyingCategory] = useState<CategoryModel | null>(null);
   const { mutate: deleteCategory } = useDeleteCategory();
   const { data: categories, isLoading } = useCategories();
   const parentCategories = categories?.filter((cat) => cat.parent_id === null) || [];
+  const createCategory = useCreateCategory();
+  const updateCategory = useUpdateCategory();
 
   const form = useForm<CategoryFormData>({
     defaultValues: defaultCategoryFormValues,
@@ -44,61 +39,6 @@ const CategoryManagement = () => {
     }
   }, [modifyingCategory, form]);
 
-  const createMutation = useMutation({
-    mutationFn: async (newCategory: CategoryFormData) => {
-      const { error } = await supabase
-        .from("categories")
-        .insert({
-          ...newCategory,
-          user_id: user?.id,
-        });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
-      form.reset(defaultCategoryFormValues);
-      toast({
-        title: "Berhasil",
-        description: "Kategori berhasil ditambahkan",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: `Gagal menambahkan kategori: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: CategoryFormData }) => {
-      const { error } = await supabase
-        .from("categories")
-        .update(data)
-        .eq("id", id)
-        .eq("user_id", user?.id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
-      form.reset(defaultCategoryFormValues);
-      toast({
-        title: "Berhasil",
-        description: "Kategori berhasil diupdate",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: `Gagal mengupdate kategori: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
-
   const handleDeleteClick = (categoryId: number) => {
     setCategoryToDelete(categoryId);
     setIsDeleteModalOpen(true);
@@ -112,9 +52,9 @@ const CategoryManagement = () => {
 
   const onSubmit = (data: CategoryFormData) => {
     if (modifyingCategory) {
-      updateMutation.mutate({ id: modifyingCategory.id, data });
+      updateCategory.mutate({ id: modifyingCategory.id, ...data });
     } else {
-      createMutation.mutate(data);
+      createCategory.mutate(data);
     }
   };
 
@@ -236,7 +176,7 @@ const CategoryManagement = () => {
               <div className="flex gap-2">
                 <Button
                   type="submit"
-                  disabled={createMutation.isPending || updateMutation.isPending}
+                  disabled={createCategory.isPending || updateCategory.isPending}
                 >
                   {modifyingCategory ? "Update" : "Simpan"}
                 </Button>
