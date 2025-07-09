@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useTransactionForm } from "@/hooks/useTransactionForm";
 import TransactionFormFields from "@/components/transactions/TransactionFormFields";
 import TransactionAssociationFields from "@/components/transactions/TransactionAssociationFields";
+import { TransactionFormData } from "@/form-dto/transactions";
 
 interface TransactionDialogProps {
   open: boolean;
@@ -34,13 +35,13 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
   const { data: debts } = useDebts();
   const { data: budgets } = useBudgets();
   const { data: businessProjects } = useBusinessProjects();
-  
+
   const { form } = useTransactionForm(transaction, open);
 
   const selectedWalletId = form.watch("wallet_id");
   const selectedWallet = wallets?.find(w => w.id.toString() === selectedWalletId);
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: TransactionFormData) => {
     if (!user) return;
     
     setIsLoading(true);

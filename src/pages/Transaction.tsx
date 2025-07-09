@@ -10,7 +10,6 @@ import TransactionDialog from "@/components/transactions/TransactionDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useQueryClient } from "@tanstack/react-query";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import { toast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,14 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatAmount } from "@/lib/utils";
-
-interface TransactionFormData {
-  amount: number;
-  category_id: string;
-  wallet_id: string;
-  date: string;
-  description?: string;
-}
+import { TransactionFormData } from "@/form-dto/transactions";
 
 const Transaction = () => {
   const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
@@ -59,21 +51,7 @@ const Transaction = () => {
 
   const handleConfirmDelete = () => {
     if (transactionToDelete) {
-      deleteTransaction(transactionToDelete, {
-        onSuccess: () => {
-          toast({
-            title: "Berhasil",
-            description: "Transaksi berhasil dihapus",
-          });
-        },
-        onError: (error: any) => {
-          toast({
-            title: "Error",
-            description: error.message,
-            variant: "destructive",
-          });
-        },
-      });
+      deleteTransaction(transactionToDelete);
     }
   };
 
