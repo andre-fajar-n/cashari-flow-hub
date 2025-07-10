@@ -40,7 +40,7 @@ const Transaction = () => {
   const openDialog = (transaction: any) => {
     setSelectedTransaction(transaction);
     setActiveDropdownId(null);
-    setTimeout(() => setIsDialogOpen(true), 50);
+    setIsDialogOpen(true);
   };
 
   const handleDeleteClick = (transactionId: number) => {

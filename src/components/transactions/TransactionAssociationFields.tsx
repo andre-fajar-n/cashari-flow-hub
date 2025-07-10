@@ -5,43 +5,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface TransactionAssociationFieldsProps {
   control: Control<any>;
-  debts?: any[];
   budgets?: any[];
   businessProjects?: any[];
 }
 
-const TransactionAssociationFields = ({ control, debts, budgets, businessProjects }: TransactionAssociationFieldsProps) => {
+const TransactionAssociationFields = ({ control, budgets, businessProjects }: TransactionAssociationFieldsProps) => {
   return (
     <>
       <FormField
         control={control}
-        name="debt_id"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Kaitkan dengan Hutang/Piutang (Opsional)</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih hutang/piutang" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="none">Tidak ada</SelectItem>
-                {debts?.map((debt) => (
-                  <SelectItem key={debt.id} value={debt.id.toString()}>
-                    {debt.name} ({debt.type === 'loan' ? 'Hutang' : 'Piutang'})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={control}
-        name="budget_id"
+        name="budget_ids"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Kaitkan dengan Budget (Opsional)</FormLabel>
@@ -67,7 +40,7 @@ const TransactionAssociationFields = ({ control, debts, budgets, businessProject
 
       <FormField
         control={control}
-        name="business_project_id"
+        name="business_project_ids"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Kaitkan dengan Proyek Bisnis (Opsional)</FormLabel>

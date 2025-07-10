@@ -1,21 +1,21 @@
 export interface TransactionFormData {
   amount: number;
-  category_id: string;
-  wallet_id: string;
+  category_id: number;
+  wallet_id: number;
   date: string;
-  description?: string;
-  debt_id?: string;
-  budget_id?: string;
-  business_project_id?: string;
+  currency_code: string;
+  description: string | null;
+  budget_ids: number[];
+  business_project_ids: number[];
 }
 
 export const defaultTransactionFormValues: TransactionFormData = {
   amount: 0,
-  category_id: "",
-  wallet_id: "",
+  category_id: 0,
+  wallet_id: 0,
   date: new Date().toISOString().split("T")[0],
+  currency_code: "IDR",
   description: "",
-  debt_id: "none",
-  budget_id: "none",
-  business_project_id: "none",
+  budget_ids: [],
+  business_project_ids: [],
 };

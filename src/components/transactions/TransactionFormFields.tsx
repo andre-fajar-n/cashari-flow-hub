@@ -1,4 +1,3 @@
-
 import { Control } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
@@ -22,8 +21,8 @@ const TransactionFormFields = ({ control, wallets, categories }: TransactionForm
           <FormItem>
             <FormLabel>Jumlah</FormLabel>
             <FormControl>
-              <InputNumber 
-                {...field} 
+              <InputNumber
+                {...field}
                 onChange={(value) => field.onChange(value)}
                 value={field.value}
               />
@@ -48,7 +47,7 @@ const TransactionFormFields = ({ control, wallets, categories }: TransactionForm
               </FormControl>
               <SelectContent>
                 {wallets?.map((wallet) => (
-                  <SelectItem key={wallet.id} value={wallet.id.toString()}>
+                  <SelectItem key={wallet.id} value={wallet.id}>
                     {wallet.name} ({wallet.currency_code})
                   </SelectItem>
                 ))}
@@ -74,7 +73,7 @@ const TransactionFormFields = ({ control, wallets, categories }: TransactionForm
               </FormControl>
               <SelectContent>
                 {categories?.map((category) => (
-                  <SelectItem key={category.id} value={category.id.toString()}>
+                  <SelectItem key={category.id} value={category.id}>
                     {category.name} {category.is_income ? "(Pemasukan)" : "(Pengeluaran)"}
                   </SelectItem>
                 ))}
