@@ -1,7 +1,5 @@
-
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Calendar, Edit, Trash2 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -11,6 +9,8 @@ import { DEBT_TYPES } from "@/constants/enums";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useDebts, useDeleteDebt } from "@/hooks/queries";
 import { DebtModel } from "@/models/debts";
+import { DataTable } from "@/components/ui/data-table";
+import { Card } from "@/components/ui/card";
 
 const Debt = () => {
   const queryClient = useQueryClient();
@@ -20,7 +20,6 @@ const Debt = () => {
   const [selectedDebt, setSelectedDebt] = useState<DebtModel | undefined>(undefined);
 
   const { mutate: deleteDebt } = useDeleteDebt();
-  
   const { data: debts, isLoading } = useDebts();
 
   const handleEdit = (debt: DebtModel) => {
@@ -44,6 +43,84 @@ const Debt = () => {
     setIsDialogOpen(true);
   };
 
+  const renderDebtItem = (debt: DebtModel) => (
+    <Card key={debt.id} className="p-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <div className="flex-1">
+          <h3 className="font-semibold">{debt.name}</h3>
+          <div className="flex items-center gap-4 mt-1">
+            <span className={`text-xs px-2 py-1 rounded ${
+              debt.type === DEBT_TYPES.LOAN 
+                ? 'bg-red-100 text-red-800' 
+                : 'bg-green-100 text-green-800'
+            }`}>
+              {debt.type === DEBT_TYPES.LOAN ? 'Hutang' : 'Piutang'}
+            </span>
+            <span className="text-sm text-muted-foreground">{debt.currency_code}</span>
+          </div>
+          {debt.due_date && (
+            <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+              <Calendar className="w-3 h-3" />
+              Jatuh tempo: {new Date(debt.due_date).toLocaleDateString()}
+            </div>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm">History</Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => handleEdit(debt)}
+          >
+            <Edit className="w-3 h-3 mr-1" />
+            Edit
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => handleDeleteClick(debt)}
+          >
+            <Trash2 className="w-3 h-3 mr-1" />
+            Hapus
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+
+  const filterOptions = [
+    {
+      label: "Hutang",
+      value: "loan",
+      filterFn: (debt: DebtModel) => debt.type === DEBT_TYPES.LOAN
+    },
+    {
+      label: "Piutang",
+      value: "borrowed",
+      filterFn: (debt: DebtModel) => debt.type === DEBT_TYPES.BORROWED
+    },
+    {
+      label: "Jatuh Tempo Hari Ini",
+      value: "due_today",
+      filterFn: (debt: DebtModel) => {
+        if (!debt.due_date) return false;
+        const today = new Date();
+        const dueDate = new Date(debt.due_date);
+        return today.toDateString() === dueDate.toDateString();
+      }
+    },
+    {
+      label: "Sudah Jatuh Tempo",
+      value: "overdue",
+      filterFn: (debt: DebtModel) => {
+        if (!debt.due_date) return false;
+        const today = new Date();
+        const dueDate = new Date(debt.due_date);
+        return today > dueDate;
+      }
+    }
+  ];
+
   return (
     <ProtectedRoute>
       <Layout>
@@ -58,82 +135,34 @@ const Debt = () => {
           variant="destructive"
         />
         
-        <Card className="mb-6">
-          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <CardTitle>Manajemen Hutang/Piutang</CardTitle>
-              <p className="text-gray-600">Kelola hutang dan piutang Anda</p>
-            </div>
-            {debts && debts.length > 0 && (
+        <DataTable
+          data={debts || []}
+          isLoading={isLoading}
+          searchPlaceholder="Cari hutang/piutang..."
+          searchFields={["name", "currency_code"]}
+          filterOptions={filterOptions}
+          renderItem={renderDebtItem}
+          emptyStateMessage="Belum ada data hutang/piutang"
+          title="Manajemen Hutang/Piutang"
+          description="Kelola hutang dan piutang Anda"
+          headerActions={
+            debts && debts.length > 0 && (
               <Button onClick={handleAddNew} className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Tambah Hutang/Piutang
               </Button>
-            )}
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Memuat data hutang/piutang...</p>
-              </div>
-            ) : !debts || debts.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">Belum ada data hutang/piutang</p>
-                <Button onClick={handleAddNew} className="mt-4">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Tambah Data Pertama
-                </Button>
-              </div>
-            ) : (
-              <div className="grid gap-4">
-                {debts.map((debt) => (
-                  <Card key={debt.id} className="p-4">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{debt.name}</h3>
-                        <div className="flex items-center gap-4 mt-1">
-                          <span className={`text-xs px-2 py-1 rounded ${
-                            debt.type === DEBT_TYPES.LOAN 
-                              ? 'bg-red-100 text-red-800' 
-                              : 'bg-green-100 text-green-800'
-                          }`}>
-                            {debt.type === DEBT_TYPES.LOAN ? 'Hutang' : 'Piutang'}
-                          </span>
-                          <span className="text-sm text-gray-600">{debt.currency_code}</span>
-                        </div>
-                        {debt.due_date && (
-                          <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
-                            <Calendar className="w-3 h-3" />
-                            Jatuh tempo: {new Date(debt.due_date).toLocaleDateString()}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">History</Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleEdit(debt)}
-                        >
-                          <Edit className="w-3 h-3 mr-1" />
-                          Edit
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleDeleteClick(debt)}
-                        >
-                          <Trash2 className="w-3 h-3 mr-1" />
-                          Hapus
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            )
+          }
+        />
+
+        {(!debts || debts.length === 0) && !isLoading && (
+          <div className="text-center py-8">
+            <Button onClick={handleAddNew} className="mt-4">
+              <Plus className="w-4 h-4 mr-2" />
+              Tambah Data Pertama
+            </Button>
+          </div>
+        )}
 
         <DebtDialog
           open={isDialogOpen}

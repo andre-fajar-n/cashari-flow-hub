@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, TrendingUp, Edit, Trash2 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -9,6 +8,8 @@ import Layout from "@/components/Layout";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useDeleteInvestmentInstrument, useInvestmentInstruments } from "@/hooks/queries";
 import { InvestmentInstrumentModel } from "@/models/investment-instruments";
+import { DataTable } from "@/components/ui/data-table";
+import { Card } from "@/components/ui/card";
 
 const InvestmentInstrument = () => {
   const queryClient = useQueryClient();
@@ -41,6 +42,70 @@ const InvestmentInstrument = () => {
     setIsDialogOpen(true);
   };
 
+  const renderInstrumentItem = (instrument: InvestmentInstrumentModel) => (
+    <Card key={instrument.id} className="p-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-blue-600" />
+            <h3 className="font-semibold">{instrument.name}</h3>
+          </div>
+          <div className="flex items-center gap-4 mt-1">
+            {instrument.unit_label && (
+              <span className="text-sm text-muted-foreground">
+                Unit: {instrument.unit_label}
+              </span>
+            )}
+            <span className={`text-xs px-2 py-1 rounded ${
+              instrument.is_trackable 
+                ? 'bg-green-100 text-green-800' 
+                : 'bg-gray-100 text-gray-800'
+            }`}>
+              {instrument.is_trackable ? 'Dapat Dilacak' : 'Tidak Dapat Dilacak'}
+            </span>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm">Assets</Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => handleEdit(instrument)}
+          >
+            <Edit className="w-3 h-3 mr-1" />
+            Edit
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => handleDeleteClick(instrument.id)}
+          >
+            <Trash2 className="w-3 h-3 mr-1" />
+            Hapus
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+
+  const filterOptions = [
+    {
+      label: "Dapat Dilacak",
+      value: "trackable",
+      filterFn: (instrument: InvestmentInstrumentModel) => instrument.is_trackable === true
+    },
+    {
+      label: "Tidak Dapat Dilacak",
+      value: "not_trackable",
+      filterFn: (instrument: InvestmentInstrumentModel) => instrument.is_trackable === false
+    },
+    {
+      label: "Memiliki Unit Label",
+      value: "with_unit",
+      filterFn: (instrument: InvestmentInstrumentModel) => !!instrument.unit_label
+    }
+  ];
+
   return (
     <ProtectedRoute>
       <Layout>
@@ -54,83 +119,35 @@ const InvestmentInstrument = () => {
           cancelText="Batal"
           variant="destructive"
         />
-        <Card className="mb-6">
-          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <CardTitle>Instrumen Investasi</CardTitle>
-              <p className="text-gray-600">Kelola jenis instrumen investasi Anda</p>
-            </div>
-            {instruments && instruments.length > 0 && (
+
+        <DataTable
+          data={instruments || []}
+          isLoading={isLoading}
+          searchPlaceholder="Cari instrumen investasi..."
+          searchFields={["name", "unit_label"]}
+          filterOptions={filterOptions}
+          renderItem={renderInstrumentItem}
+          emptyStateMessage="Belum ada instrumen investasi yang dibuat"
+          title="Instrumen Investasi"
+          description="Kelola jenis instrumen investasi Anda"
+          headerActions={
+            instruments && instruments.length > 0 && (
               <Button onClick={handleAddNew} className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Tambah Instrumen
               </Button>
-            )}
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Memuat instrumen investasi...</p>
-              </div>
-            ) : !instruments || instruments.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">Belum ada instrumen investasi yang dibuat</p>
-                <Button onClick={handleAddNew} className="mt-4">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Tambah Instrumen Pertama
-                </Button>
-              </div>
-            ) : (
-              <div className="grid gap-4">
-                {instruments.map((instrument) => (
-                  <Card key={instrument.id} className="p-4">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="w-4 h-4 text-blue-600" />
-                          <h3 className="font-semibold">{instrument.name}</h3>
-                        </div>
-                        <div className="flex items-center gap-4 mt-1">
-                          {instrument.unit_label && (
-                            <span className="text-sm text-gray-600">
-                              Unit: {instrument.unit_label}
-                            </span>
-                          )}
-                          <span className={`text-xs px-2 py-1 rounded ${
-                            instrument.is_trackable 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {instrument.is_trackable ? 'Dapat Dilacak' : 'Tidak Dapat Dilacak'}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">Assets</Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleEdit(instrument)}
-                        >
-                          <Edit className="w-3 h-3 mr-1" />
-                          Edit
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleDeleteClick(instrument.id)}
-                        >
-                          <Trash2 className="w-3 h-3 mr-1" />
-                          Hapus
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            )
+          }
+        />
+
+        {(!instruments || instruments.length === 0) && !isLoading && (
+          <div className="text-center py-8">
+            <Button onClick={handleAddNew} className="mt-4">
+              <Plus className="w-4 h-4 mr-2" />
+              Tambah Instrumen Pertama
+            </Button>
+          </div>
+        )}
 
         <InvestmentInstrumentDialog
           open={isDialogOpen}

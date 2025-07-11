@@ -1,7 +1,5 @@
-
 import { useState } from "react";
 import Layout from "@/components/Layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowRightLeft, Edit, Trash2 } from "lucide-react";
@@ -18,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { TransferModel } from "@/models/transfer";
 import { formatAmount } from "@/lib/utils";
-
+import { DataTable } from "@/components/ui/data-table";
 
 const Transfer = () => {
   const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null)
@@ -56,6 +54,97 @@ const Transfer = () => {
     }
   };
 
+  const renderTransferItem = (transfer: TransferModel) => (
+    <div
+      key={transfer.id}
+      className="flex items-center justify-between p-4 border rounded-lg"
+    >
+      <div className="flex items-center gap-3">
+        <div className="flex-shrink-0">
+          <ArrowRightLeft className="w-5 h-5 text-blue-600" />
+        </div>
+        <div>
+          <p className="font-medium">
+            Dompet {transfer.from_wallet_id} → Dompet {transfer.to_wallet_id}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {formatDate(transfer.date)}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="text-right">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="text-red-600">
+                -{formatAmount(transfer.amount_from, transfer.currency_from)}
+              </Badge>
+              <span className="text-muted-foreground">→</span>
+              <Badge variant="outline" className="text-green-600">
+                +{formatAmount(transfer.amount_to, transfer.currency_to)}
+              </Badge>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {transfer.currency_from} → {transfer.currency_to}
+            </div>
+          </div>
+        </div>
+        <DropdownMenu
+          open={activeDropdownId === transfer.id}
+          onOpenChange={(open) =>
+            setActiveDropdownId(open ? transfer.id : null)
+          }
+        >
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm">
+              •••
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => openDialog(transfer)}>
+              <Edit className="w-4 h-4 mr-2" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => handleDeleteClick(transfer.id)}
+              className="text-red-600"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Hapus
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
+  );
+
+  const filterOptions = [
+    {
+      label: "Hari Ini",
+      value: "today",
+      filterFn: (transfer: TransferModel) => {
+        const today = new Date();
+        const transferDate = new Date(transfer.date);
+        return today.toDateString() === transferDate.toDateString();
+      }
+    },
+    {
+      label: "Minggu Ini",
+      value: "this_week",
+      filterFn: (transfer: TransferModel) => {
+        const today = new Date();
+        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const transferDate = new Date(transfer.date);
+        return transferDate >= weekAgo && transferDate <= today;
+      }
+    },
+    {
+      label: "Transfer Multi Mata Uang",
+      value: "multi_currency",
+      filterFn: (transfer: TransferModel) => transfer.currency_from !== transfer.currency_to
+    }
+  ];
+
   return (
     <ProtectedRoute>
       <Layout>
@@ -91,91 +180,17 @@ const Transfer = () => {
             />
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Riwayat Transfer</CardTitle>
-              <CardDescription>
-                Daftar semua transfer yang telah dilakukan
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">Memuat transfer...</p>
-                </div>
-              ) : !transfers || transfers?.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">Belum ada transfer</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {transfers?.map((transfer) => (
-                    <div
-                      key={transfer.id}
-                      className="flex items-center justify-between p-4 border rounded-lg"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex-shrink-0">
-                          <ArrowRightLeft className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium">
-                            {(transfer.from_wallet as any)?.name} → {(transfer.to_wallet as any)?.name}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {formatDate(transfer.date)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-right">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="text-red-600">
-                                -{formatAmount(transfer.amount_from, (transfer.from_currency as any)?.symbol)}
-                              </Badge>
-                              <span className="text-muted-foreground">→</span>
-                              <Badge variant="outline" className="text-green-600">
-                                +{formatAmount(transfer.amount_to, (transfer.to_currency as any)?.symbol)}
-                              </Badge>
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {transfer.currency_from} → {transfer.currency_to}
-                            </div>
-                          </div>
-                        </div>
-                        <DropdownMenu
-                          open={activeDropdownId === transfer.id}
-                          onOpenChange={(open) =>
-                            setActiveDropdownId(open ? transfer.id : null)
-                          }
-                        >
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              •••
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => openDialog(transfer)}>
-                              <Edit className="w-4 h-4 mr-2" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleDeleteClick(transfer.id)}
-                              className="text-red-600"
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              Hapus
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <DataTable
+            data={transfers || []}
+            isLoading={isLoading}
+            searchPlaceholder="Cari transfer..."
+            searchFields={["amount_from", "amount_to"]}
+            filterOptions={filterOptions}
+            renderItem={renderTransferItem}
+            emptyStateMessage="Belum ada transfer"
+            title="Riwayat Transfer"
+            description="Daftar semua transfer yang telah dilakukan"
+          />
         </div>
       </Layout>
     </ProtectedRoute>

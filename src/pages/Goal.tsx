@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import GoalDialog from "@/components/goal/GoalDialog";
@@ -13,6 +15,8 @@ import { calculateGoalProgress } from "@/components/goal/GoalProgressCalculator"
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { GoalModel } from "@/models/goals";
+import { DataTable } from "@/components/ui/data-table";
+import GoalCard from "@/components/goal/GoalCard";
 
 const Goal = () => {
   const queryClient = useQueryClient();
@@ -66,6 +70,60 @@ const Goal = () => {
     setIsTransferDialogOpen(true);
   };
 
+  const renderGoalItem = (goal: GoalModel) => {
+    const progress = handleGoalProgressCalculation(goal.id, goal.target_amount);
+    
+    return (
+      <GoalCard
+        key={goal.id}
+        goal={goal}
+        progress={progress}
+        onEdit={handleEdit}
+        onDelete={handleDeleteClick}
+        onAddRecord={handleAddRecord}
+        onTransferToGoal={handleTransferToGoal}
+      />
+    );
+  };
+
+  const filterOptions = [
+    {
+      label: "Target Tercapai",
+      value: "achieved",
+      filterFn: (goal: GoalModel) => goal.is_achieved === true
+    },
+    {
+      label: "Target Aktif",
+      value: "active",
+      filterFn: (goal: GoalModel) => goal.is_active === true && goal.is_achieved === false
+    },
+    {
+      label: "Target Tidak Aktif",
+      value: "inactive",
+      filterFn: (goal: GoalModel) => goal.is_active === false
+    },
+    {
+      label: "Jatuh Tempo Hari Ini",
+      value: "due_today",
+      filterFn: (goal: GoalModel) => {
+        if (!goal.target_date) return false;
+        const today = new Date();
+        const targetDate = new Date(goal.target_date);
+        return today.toDateString() === targetDate.toDateString();
+      }
+    },
+    {
+      label: "Sudah Jatuh Tempo",
+      value: "overdue",
+      filterFn: (goal: GoalModel) => {
+        if (!goal.target_date) return false;
+        const today = new Date();
+        const targetDate = new Date(goal.target_date);
+        return today > targetDate && !goal.is_achieved;
+      }
+    }
+  ];
+
   return (
     <ProtectedRoute>
       <Layout>
@@ -80,24 +138,34 @@ const Goal = () => {
           variant="destructive"
         />
         
-        <Card className="mb-6">
-          <GoalHeader 
-            onAddNew={handleAddNew}
-            goals={goals || []}
-          />
-          <CardContent>
-            <GoalList
-              isLoading={isLoading}
-              goals={goals || []}
-              calculateProgress={handleGoalProgressCalculation}
-              onEdit={handleEdit}
-              onDelete={handleDeleteClick}
-              onAddRecord={handleAddRecord}
-              onAddNew={handleAddNew}
-              onTransferToGoal={handleTransferToGoal}
-            />
-          </CardContent>
-        </Card>
+        <DataTable
+          data={goals || []}
+          isLoading={isLoading}
+          searchPlaceholder="Cari target..."
+          searchFields={["name", "currency_code"]}
+          filterOptions={filterOptions}
+          renderItem={renderGoalItem}
+          emptyStateMessage="Belum ada target yang dibuat"
+          title="Manajemen Target"
+          description="Kelola target keuangan Anda"
+          headerActions={
+            goals && goals.length > 0 && (
+              <Button onClick={handleAddNew} className="w-full sm:w-auto">
+                <Plus className="w-4 h-4 mr-2" />
+                Tambah Target
+              </Button>
+            )
+          }
+        />
+
+        {(!goals || goals.length === 0) && !isLoading && (
+          <div className="text-center py-8">
+            <Button onClick={handleAddNew} className="mt-4">
+              <Plus className="w-4 h-4 mr-2" />
+              Buat Target Pertama
+            </Button>
+          </div>
+        )}
 
         <GoalDialog
           open={isDialogOpen}

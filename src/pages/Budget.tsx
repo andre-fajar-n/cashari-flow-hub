@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -9,6 +8,8 @@ import Layout from "@/components/Layout";
 import { useBudgets, useDeleteBudget } from "@/hooks/queries/use-budgets";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { BudgetModel } from "@/models/budgets";
+import { DataTable } from "@/components/ui/data-table";
+import { Card } from "@/components/ui/card";
 
 const Budget = () => {
   const queryClient = useQueryClient();
@@ -40,6 +41,71 @@ const Budget = () => {
     setIsDialogOpen(true);
   };
 
+  const renderBudgetItem = (budget: BudgetModel) => (
+    <Card key={budget.id} className="p-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <div>
+          <h3 className="font-semibold">{budget.name}</h3>
+          <p className="text-sm text-muted-foreground">
+            {budget.currency_code} {budget.amount.toLocaleString()}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {new Date(budget.start_date).toLocaleDateString()} - {new Date(budget.end_date).toLocaleDateString()}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => handleEdit(budget)}
+          >
+            <Edit className="w-3 h-3 mr-1" />
+            Edit
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => handleDeleteClick(budget.id)}
+          >
+            <Trash2 className="w-3 h-3 mr-1" />
+            Hapus
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+
+  const filterOptions = [
+    {
+      label: "Budget Aktif",
+      value: "active",
+      filterFn: (budget: BudgetModel) => {
+        const today = new Date();
+        const startDate = new Date(budget.start_date);
+        const endDate = new Date(budget.end_date);
+        return today >= startDate && today <= endDate;
+      }
+    },
+    {
+      label: "Budget Berakhir",
+      value: "expired",
+      filterFn: (budget: BudgetModel) => {
+        const today = new Date();
+        const endDate = new Date(budget.end_date);
+        return today > endDate;
+      }
+    },
+    {
+      label: "Budget Mendatang",
+      value: "upcoming",
+      filterFn: (budget: BudgetModel) => {
+        const today = new Date();
+        const startDate = new Date(budget.start_date);
+        return today < startDate;
+      }
+    }
+  ];
+
   return (
     <ProtectedRoute>
       <Layout>
@@ -53,71 +119,35 @@ const Budget = () => {
           cancelText="Batal"
           variant="destructive"
         />
-        <Card className="mb-6">
-          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <CardTitle>Manajemen Budget</CardTitle>
-              <p className="text-gray-600">Kelola anggaran keuangan Anda</p>
-            </div>
-            {budgets && budgets.length > 0 && (
+
+        <DataTable
+          data={budgets || []}
+          isLoading={isLoading}
+          searchPlaceholder="Cari budget..."
+          searchFields={["name", "currency_code"]}
+          filterOptions={filterOptions}
+          renderItem={renderBudgetItem}
+          emptyStateMessage="Belum ada budget yang dibuat"
+          title="Manajemen Budget"
+          description="Kelola anggaran keuangan Anda"
+          headerActions={
+            budgets && budgets.length > 0 && (
               <Button onClick={handleAddNew} className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Tambah Budget
               </Button>
-            )}
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">Memuat budget...</p>
-              </div>
-            ) : !budgets || budgets.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">Belum ada budget yang dibuat</p>
-                <Button onClick={handleAddNew} className="mt-4">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Buat Budget Pertama
-                </Button>
-              </div>
-            ) : (
-              <div className="grid gap-4">
-                {budgets.map((budget) => (
-                  <Card key={budget.id} className="p-4">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                      <div>
-                        <h3 className="font-semibold">{budget.name}</h3>
-                        <p className="text-sm text-gray-600">
-                          {budget.currency_code} {budget.amount.toLocaleString()}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(budget.start_date).toLocaleDateString()} - {new Date(budget.end_date).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleEdit(budget)}
-                        >
-                          <Edit className="w-3 h-3 mr-1" />
-                          Edit
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleDeleteClick(budget.id)}
-                        >
-                          <Trash2 className="w-3 h-3 mr-1" />
-                          Hapus
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            )
+          }
+        />
+
+        {(!budgets || budgets.length === 0) && !isLoading && (
+          <div className="text-center py-8">
+            <Button onClick={handleAddNew} className="mt-4">
+              <Plus className="w-4 h-4 mr-2" />
+              Buat Budget Pertama
+            </Button>
+          </div>
+        )}
 
         <BudgetDialog
           open={isDialogOpen}
@@ -128,7 +158,6 @@ const Budget = () => {
           }}
         />
       </Layout>
-
     </ProtectedRoute>
   );
 };

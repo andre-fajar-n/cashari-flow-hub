@@ -1,7 +1,5 @@
-
 import { useState } from "react";
 import Layout from "@/components/Layout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowUpCircle, ArrowDownCircle, Edit, Trash2 } from "lucide-react";
@@ -18,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { formatAmount } from "@/lib/utils";
 import { TransactionFormData } from "@/form-dto/transactions";
+import { DataTable } from "@/components/ui/data-table";
 
 const Transaction = () => {
   const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
@@ -55,6 +54,104 @@ const Transaction = () => {
     }
   };
 
+  const renderTransactionItem = (transaction: any) => (
+    <div
+      key={transaction.id}
+      className="flex items-center justify-between p-4 border rounded-lg"
+    >
+      <div className="flex items-center gap-3">
+        <div className="flex-shrink-0">
+          {(transaction.categories as any)?.is_income ? (
+            <ArrowUpCircle className="w-5 h-5 text-green-600" />
+          ) : (
+            <ArrowDownCircle className="w-5 h-5 text-red-600" />
+          )}
+        </div>
+        <div>
+          <p className="font-medium">{(transaction.categories as any)?.name}</p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>{(transaction.wallets as any)?.name}</span>
+            <span>•</span>
+            <span>{formatDate(transaction.date)}</span>
+          </div>
+          {transaction.description && (
+            <p className="text-sm text-muted-foreground mt-1">
+              {transaction.description}
+            </p>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="text-right">
+          <p className={`font-semibold ${(transaction.categories as any)?.is_income ? 'text-green-600' : 'text-red-600'}`}>
+            {(transaction.categories as any)?.is_income ? '+' : '-'}
+            {formatAmount(transaction.amount, transaction.currency_code)}
+          </p>
+          <Badge variant="outline" className="mt-1">
+            {transaction.currency_code}
+          </Badge>
+        </div>
+        <DropdownMenu
+          open={activeDropdownId === transaction.id}
+          onOpenChange={(open) =>
+            setActiveDropdownId(open ? transaction.id : null)
+          }
+        >
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm">
+              •••
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onClick={() => openDialog(transaction)}>
+              <Edit className="w-4 h-4 mr-2" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => handleDeleteClick(transaction.id)}
+              className="text-red-600"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Hapus
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
+  );
+
+  const filterOptions = [
+    {
+      label: "Pemasukan",
+      value: "income",
+      filterFn: (transaction: any) => (transaction.categories as any)?.is_income === true
+    },
+    {
+      label: "Pengeluaran",
+      value: "expense",
+      filterFn: (transaction: any) => (transaction.categories as any)?.is_income === false
+    },
+    {
+      label: "Hari Ini",
+      value: "today",
+      filterFn: (transaction: any) => {
+        const today = new Date();
+        const transactionDate = new Date(transaction.date);
+        return today.toDateString() === transactionDate.toDateString();
+      }
+    },
+    {
+      label: "Minggu Ini",
+      value: "this_week",
+      filterFn: (transaction: any) => {
+        const today = new Date();
+        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const transactionDate = new Date(transaction.date);
+        return transactionDate >= weekAgo && transactionDate <= today;
+      }
+    }
+  ];
+
   return (
     <ProtectedRoute>
       <Layout>
@@ -90,93 +187,17 @@ const Transaction = () => {
             variant="destructive"
           />
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Riwayat Transaksi</CardTitle>
-              <CardDescription>
-                Daftar semua transaksi yang telah dilakukan
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">Memuat transaksi...</p>
-                </div>
-              ) : !transactions || transactions?.length === 0 ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">Belum ada transaksi</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {transactions?.map((transaction) => (
-                    <div
-                      key={transaction.id}
-                      className="flex items-center justify-between p-4 border rounded-lg"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex-shrink-0">
-                          {(transaction.categories as any)?.is_income ? (
-                            <ArrowUpCircle className="w-5 h-5 text-green-600" />
-                          ) : (
-                            <ArrowDownCircle className="w-5 h-5 text-red-600" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium">{(transaction.categories as any)?.name}</p>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span>{(transaction.wallets as any)?.name}</span>
-                            <span>•</span>
-                            <span>{formatDate(transaction.date)}</span>
-                          </div>
-                          {transaction.description && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {transaction.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-right">
-                          <p className={`font-semibold ${(transaction.categories as any)?.is_income ? 'text-green-600' : 'text-red-600'}`}>
-                            {(transaction.categories as any)?.is_income ? '+' : '-'}
-                            {formatAmount(transaction.amount, (transaction.currencies as any)?.symbol)}
-                          </p>
-                          <Badge variant="outline" className="mt-1">
-                            {transaction.currency_code}
-                          </Badge>
-                        </div>
-                        <DropdownMenu
-                          open={activeDropdownId === transaction.id}
-                          onOpenChange={(open) =>
-                            setActiveDropdownId(open ? transaction.id : null)
-                          }
-                        >
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              •••
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => openDialog(transaction)}>
-                              <Edit className="w-4 h-4 mr-2" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleDeleteClick(transaction.id)}
-                              className="text-red-600"
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              Hapus
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <DataTable
+            data={transactions || []}
+            isLoading={isLoading}
+            searchPlaceholder="Cari transaksi..."
+            searchFields={["description", "amount"]}
+            filterOptions={filterOptions}
+            renderItem={renderTransactionItem}
+            emptyStateMessage="Belum ada transaksi"
+            title="Riwayat Transaksi"
+            description="Daftar semua transaksi yang telah dilakukan"
+          />
         </div>
       </Layout>
     </ProtectedRoute>
