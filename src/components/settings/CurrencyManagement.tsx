@@ -138,7 +138,7 @@ const CurrencyManagement = () => {
           )}
         </div>
       </div>
-      <div className="flex gap-2 ml-4">
+      <div className="flex gap-2 ml-4 min-w-[80px]">
         <Button
           variant="outline"
           size="sm"
@@ -146,7 +146,7 @@ const CurrencyManagement = () => {
         >
           <Edit className="w-4 h-4" />
         </Button>
-        {!currency.is_default && (
+        {!currency.is_default ? (
           <Button
             variant="outline"
             size="sm"
@@ -154,6 +154,8 @@ const CurrencyManagement = () => {
           >
             <Trash className="w-4 h-4" />
           </Button>
+        ) : (
+          <div className="w-8 h-8"></div>
         )}
       </div>
     </div>
