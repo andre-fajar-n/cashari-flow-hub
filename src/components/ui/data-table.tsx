@@ -26,7 +26,7 @@ export interface DataTableProps<T> {
   headerActions?: React.ReactNode;
 }
 
-export function DataTable<T extends { id: any }>({
+export function DataTable<T extends Record<string, any>>({
   data,
   isLoading,
   searchPlaceholder = "Cari...",
@@ -196,7 +196,11 @@ export function DataTable<T extends { id: any }>({
         ) : (
           <>
             <div className="space-y-4">
-              {currentData.map(renderItem)}
+              {currentData.map((item, index) => (
+                <div key={index}>
+                  {renderItem(item)}
+                </div>
+              ))}
             </div>
             {renderPagination()}
             {filteredData.length > 0 && (

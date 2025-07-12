@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { DataTable, FilterOption } from "@/components/ui/data-table";
 import { useForm } from "react-hook-form";
 import { Plus, Trash, Pen } from "lucide-react";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -80,12 +80,86 @@ const CategoryManagement = () => {
     }
   }, [createCategory.isSuccess, updateCategory.isSuccess]);
 
-  if (isLoading) {
-    return <div className="text-center py-4">Loading...</div>;
-  }
+  // Filter options for DataTable
+  const filterOptions: FilterOption[] = [
+    {
+      label: "Pemasukan",
+      value: "income",
+      filterFn: (category: CategoryModel) => category.is_income
+    },
+    {
+      label: "Pengeluaran",
+      value: "expense",
+      filterFn: (category: CategoryModel) => !category.is_income
+    },
+    {
+      label: "Transaksi",
+      value: "transaction",
+      filterFn: (category: CategoryModel) => category.application === "transaction"
+    },
+    {
+      label: "Investasi",
+      value: "investment",
+      filterFn: (category: CategoryModel) => category.application === "investment"
+    },
+    {
+      label: "Hutang/Piutang",
+      value: "debt",
+      filterFn: (category: CategoryModel) => category.application === "debt"
+    },
+    {
+      label: "Tidak Ber-aplikasi",
+      value: "none",
+      filterFn: (category: CategoryModel) => category.application === null
+    }
+  ];
+
+  const renderCategoryItem = (category: CategoryModel) => (
+    <div className="flex items-center justify-between p-4 border rounded-lg">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <p className="font-medium">{category.name}</p>
+          <p className="text-sm text-muted-foreground">Nama</p>
+        </div>
+        <div>
+          <p className="font-medium">{category.is_income ? "Pemasukan" : "Pengeluaran"}</p>
+          <p className="text-sm text-muted-foreground">Tipe</p>
+        </div>
+        <div>
+          <p className="font-medium capitalize">{category.application || "-"}</p>
+          <p className="text-sm text-muted-foreground">Aplikasi</p>
+        </div>
+        <div>
+          <p className="font-medium">
+            {category.parent_id
+              ? categories?.find((c) => c.id === category.parent_id)?.name || "-"
+              : "-"}
+          </p>
+          <p className="text-sm text-muted-foreground">Induk</p>
+        </div>
+      </div>
+      <div className="flex gap-2 ml-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => startEdit(category)}
+          disabled={editingCategory?.id === category.id}
+        >
+          <Pen className="w-4 h-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleDeleteClick(category.id)}
+        >
+          <Trash className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
-    <Card>
+    <div className="space-y-6">
       <ConfirmationModal
         open={isDeleteModalOpen}
         onOpenChange={setIsDeleteModalOpen}
@@ -96,159 +170,133 @@ const CategoryManagement = () => {
         cancelText="Batal"
         variant="destructive"
       />
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Kelola Kategori</CardTitle>
-        {!isAdding && (
-          <Button onClick={() => setIsAdding(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Tambah Kategori
-          </Button>
-        )}
-      </CardHeader>
-      <CardContent>
-        {isAdding ? (
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mb-6 p-4 border rounded-lg">
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nama Kategori</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Makanan & Minuman" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="is_income"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tipe</FormLabel>
-                      <FormControl>
-                        <select
-                          className="w-full p-2 border rounded"
-                          value={field.value.toString()}
-                          onChange={(e) => field.onChange(e.target.value === "true")}
-                        >
-                          <option value="false">Pengeluaran</option>
-                          <option value="true">Pemasukan</option>
-                        </select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="application"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Aplikasi</FormLabel>
-                      <FormControl>
-                        <select className="w-full p-2 border rounded" {...field}>
-                          <option value="null">Tidak Ada</option>
-                          <option value="transaction">Transaksi</option>
-                          <option value="investment">Investasi</option>
-                          <option value="debt">Hutang/Piutang</option>
-                        </select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="parent_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Kategori Induk (Opsional)</FormLabel>
-                      <FormControl>
-                        <select 
-                          className="w-full p-2 border rounded" 
-                          value={field.value?.toString() || "none"}
-                          onChange={(e) => field.onChange(e.target.value === "none" ? null : parseInt(e.target.value))}
-                        >
-                          <option value="none">Tidak ada induk</option>
-                          {parentCategories.map((category) => (
-                            <option key={category.id} value={category.id.toString()}>
-                              {category.name}
-                            </option>
-                          ))}
-                        </select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  type="submit"
-                  disabled={createCategory.isPending || updateCategory.isPending}
-                >
-                  {editingCategory ? "Update" : "Simpan"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleCancel}
-                >
-                  Batal
-                </Button>
-              </div>
-            </form>
-          </Form>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nama</TableHead>
-                <TableHead>Tipe</TableHead>
-                <TableHead>Aplikasi</TableHead>
-                <TableHead>Induk</TableHead>
-                <TableHead>Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categories?.map((category) => (
-                <TableRow key={category.id}>
-                  <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell>{category.is_income ? "Pemasukan" : "Pengeluaran"}</TableCell>
-                  <TableCell className="capitalize">{category.application ? category.application : "-"}</TableCell>
-                  <TableCell>
-                    {category.parent_id
-                      ? categories.find((c) => c.id === category.parent_id)?.name || "-"
-                      : "-"}
-                  </TableCell>
-                  <TableCell className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => startEdit(category)}
-                      disabled={editingCategory?.id === category.id}
-                    >
-                      <Pen className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteClick(category.id)}
-                    >
-                      <Trash className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </CardContent>
-    </Card>
+
+      {isAdding ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{editingCategory ? "Edit Kategori" : "Tambah Kategori Baru"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nama Kategori</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Makanan & Minuman" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="is_income"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tipe</FormLabel>
+                        <FormControl>
+                          <select
+                            className="w-full p-2 border rounded"
+                            value={field.value.toString()}
+                            onChange={(e) => field.onChange(e.target.value === "true")}
+                          >
+                            <option value="false">Pengeluaran</option>
+                            <option value="true">Pemasukan</option>
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="application"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Aplikasi</FormLabel>
+                        <FormControl>
+                          <select className="w-full p-2 border rounded" {...field}>
+                            <option value="null">Tidak Ada</option>
+                            <option value="transaction">Transaksi</option>
+                            <option value="investment">Investasi</option>
+                            <option value="debt">Hutang/Piutang</option>
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="parent_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Kategori Induk (Opsional)</FormLabel>
+                        <FormControl>
+                          <select
+                            className="w-full p-2 border rounded"
+                            value={field.value?.toString() || "none"}
+                            onChange={(e) => field.onChange(e.target.value === "none" ? null : parseInt(e.target.value))}
+                          >
+                            <option value="none">Tidak ada induk</option>
+                            {parentCategories.map((category) => (
+                              <option key={category.id} value={category.id.toString()}>
+                                {category.name}
+                              </option>
+                            ))}
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="submit"
+                    disabled={createCategory.isPending || updateCategory.isPending}
+                  >
+                    {editingCategory ? "Update" : "Simpan"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCancel}
+                  >
+                    Batal
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      ) : (
+        <DataTable
+          data={categories || []}
+          isLoading={isLoading}
+          searchPlaceholder="Cari kategori berdasarkan nama..."
+          searchFields={['name']}
+          filterOptions={filterOptions}
+          itemsPerPage={10}
+          renderItem={renderCategoryItem}
+          emptyStateMessage="Belum ada kategori yang dibuat"
+          title="Kelola Kategori"
+          headerActions={
+            !isAdding && (
+              <Button onClick={() => setIsAdding(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Tambah Kategori
+              </Button>
+            )
+          }
+        />
+      )}
+    </div>
   );
 };
 

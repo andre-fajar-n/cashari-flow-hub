@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { DataTable, FilterOption } from "@/components/ui/data-table";
 import { useForm } from "react-hook-form";
 import { Plus, Trash, Pen } from "lucide-react";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
@@ -69,128 +69,146 @@ const WalletManagement = () => {
     form.reset(defaultWalletFormValues);
   };
 
-  if (isLoading) {
-    return <div className="text-center py-4">Loading...</div>;
-  }
+  // Add dynamic filter options based on available currencies
+  const dynamicFilterOptions: FilterOption[] = currencies?.map(currency => ({
+    label: currency.code,
+    value: currency.code,
+    filterFn: (wallet: WalletModel) => wallet.currency_code === currency.code
+  })) || [];
+
+  const renderWalletItem = (wallet: WalletModel) => (
+    <div className="flex items-center justify-between p-4 border rounded-lg">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <p className="font-medium">{wallet.name}</p>
+          <p className="text-sm text-muted-foreground">Nama Dompet</p>
+        </div>
+        <div>
+          <p className="font-medium">{wallet.currency_code}</p>
+          <p className="text-sm text-muted-foreground">Mata Uang</p>
+        </div>
+        <div>
+          <p className="font-medium">{wallet.initial_amount.toLocaleString()}</p>
+          <p className="text-sm text-muted-foreground">Saldo Awal</p>
+        </div>
+      </div>
+      <div className="flex gap-2 ml-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => startEdit(wallet)}
+          disabled={editingWallet?.id === wallet.id}
+        >
+          <Pen className="w-4 h-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => deleteMutation.mutate(wallet.id)}
+          disabled={deleteMutation.isPending}
+        >
+          <Trash className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
+  );
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Kelola Dompet</CardTitle>
-        {!isAdding && !editingWallet && (
-          <Button onClick={() => setIsAdding(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Tambah Dompet
-          </Button>
-        )}
-      </CardHeader>
-      <CardContent>
-        {(isAdding || editingWallet) ? 
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mb-6 p-4 border rounded-lg">
-              <div className="grid grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nama Dompet</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Dompet Utama" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="currency_code"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Mata Uang</FormLabel>
-                      <FormControl>
-                        <select className="w-full p-2 border rounded" {...field}>
-                          <option value="">Pilih mata uang</option>
-                          {currencies?.map((currency) => (
-                            <option key={currency.code} value={currency.code}>
-                              {currency.code} - {currency.name}
-                            </option>
-                          ))}
-                        </select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="initial_amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Saldo Awal</FormLabel>
-                      <FormControl>
-                        <InputNumber {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-                  {editingWallet ? "Update" : "Simpan"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleCancel}
-                >
-                  Batal
-                </Button>
-              </div>
-            </form>
-          </Form>
-        :
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nama</TableHead>
-              <TableHead>Mata Uang</TableHead>
-              <TableHead>Saldo Awal</TableHead>
-              <TableHead>Aksi</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {wallets?.map((wallet) => (
-              <TableRow key={wallet.id}>
-                <TableCell className="font-medium">{wallet.name}</TableCell>
-                <TableCell>{wallet.currency_code}</TableCell>
-                <TableCell>{wallet.initial_amount.toLocaleString()}</TableCell>
-                <TableCell className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => startEdit(wallet)}
-                    disabled={editingWallet?.id === wallet.id}
-                  >
-                    <Pen className="w-4 h-4" />
+    <div className="space-y-6">
+      {isAdding || editingWallet ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{editingWallet ? "Edit Dompet" : "Tambah Dompet Baru"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nama Dompet</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Dompet Utama" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="currency_code"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Mata Uang</FormLabel>
+                        <FormControl>
+                          <select className="w-full p-2 border rounded" {...field}>
+                            <option value="">Pilih mata uang</option>
+                            {currencies?.map((currency) => (
+                              <option key={currency.code} value={currency.code}>
+                                {currency.code} - {currency.name}
+                              </option>
+                            ))}
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="initial_amount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Saldo Awal</FormLabel>
+                        <FormControl>
+                          <InputNumber {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
+                    {editingWallet ? "Update" : "Simpan"}
                   </Button>
                   <Button
+                    type="button"
                     variant="outline"
-                    size="sm"
-                    onClick={() => deleteMutation.mutate(wallet.id)}
-                    disabled={deleteMutation.isPending}
+                    onClick={handleCancel}
                   >
-                    <Trash className="w-4 h-4" />
+                    Batal
                   </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        }
-      </CardContent>
-    </Card>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      ) : (
+        <DataTable
+          data={wallets || []}
+          isLoading={isLoading}
+          searchPlaceholder="Cari dompet berdasarkan nama atau mata uang..."
+          searchFields={['name', 'currency_code']}
+          filterOptions={dynamicFilterOptions}
+          itemsPerPage={10}
+          renderItem={renderWalletItem}
+          emptyStateMessage="Belum ada dompet yang dibuat"
+          title="Kelola Dompet"
+          headerActions={
+            !isAdding && !editingWallet && (
+              <Button onClick={() => setIsAdding(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Tambah Dompet
+              </Button>
+            )
+          }
+        />
+      )}
+    </div>
   );
 };
 
