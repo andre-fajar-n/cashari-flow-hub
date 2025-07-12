@@ -65,7 +65,7 @@ const Transfer = () => {
         </div>
         <div>
           <p className="font-medium">
-            Dompet {transfer.from_wallet_id} → Dompet {transfer.to_wallet_id}
+            {transfer.from_wallet?.name || `Dompet ${transfer.from_wallet_id}`} → {transfer.to_wallet?.name || `Dompet ${transfer.to_wallet_id}`}
           </p>
           <p className="text-sm text-muted-foreground">
             {formatDate(transfer.date)}
@@ -77,11 +77,11 @@ const Transfer = () => {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-red-600">
-                -{formatAmount(transfer.amount_from, transfer.currency_from)}
+                -{formatAmount(transfer.amount_from, transfer.from_currency?.symbol || transfer.currency_from)}
               </Badge>
               <span className="text-muted-foreground">→</span>
               <Badge variant="outline" className="text-green-600">
-                +{formatAmount(transfer.amount_to, transfer.currency_to)}
+                +{formatAmount(transfer.amount_to, transfer.to_currency?.symbol || transfer.currency_to)}
               </Badge>
             </div>
             <div className="text-xs text-muted-foreground">
