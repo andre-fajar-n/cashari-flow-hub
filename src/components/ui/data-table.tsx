@@ -9,7 +9,7 @@ import { Search } from "lucide-react";
 export interface ColumnFilter {
   field: string;
   label: string;
-  type: 'text' | 'select' | 'date' | 'number';
+  type: 'text' | 'select' | 'date' | 'daterange' | 'number';
   options?: { label: string; value: string }[];
 }
 
@@ -70,6 +70,26 @@ export function DataTable<T extends Record<string, any>>({
       if (value && value !== "") {
         filtered = filtered.filter((item) => {
           const itemValue = item[field];
+
+          // Handle date range filtering (format: "2024-01-01,2024-01-31" or single date "2024-01-01")
+          const filter = columnFilters.find(f => f.field === field);
+          if (filter?.type === 'daterange') {
+            const itemDate = new Date(itemValue);
+
+            if (value.includes(',')) {
+              // Range format: "startDate,endDate"
+              const [startDate, endDate] = value.split(',');
+              const start = new Date(startDate);
+              const end = new Date(endDate);
+              return itemDate >= start && itemDate <= end;
+            } else {
+              // Single date format
+              const filterDate = new Date(value);
+              return itemDate.toDateString() === filterDate.toDateString();
+            }
+          }
+
+          // Handle regular filtering
           if (typeof itemValue === 'string') {
             return itemValue.toLowerCase().includes(value.toLowerCase());
           }
@@ -82,7 +102,7 @@ export function DataTable<T extends Record<string, any>>({
     });
 
     return filtered;
-  }, [data, searchTerm, columnFilterValues, searchFields]);
+  }, [data, searchTerm, columnFilterValues, searchFields, columnFilters]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -209,6 +229,44 @@ export function DataTable<T extends Record<string, any>>({
                         ))}
                       </SelectContent>
                     </Select>
+                  ) : filter.type === 'daterange' ? (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Dari tanggal"
+                          type="date"
+                          value={columnFilterValues[filter.field]?.split(',')[0] || ""}
+                          onChange={(e) => {
+                            const currentValue = columnFilterValues[filter.field] || "";
+                            const endDate = currentValue.includes(',') ? currentValue.split(',')[1] : "";
+                            const newValue = endDate ? `${e.target.value},${endDate}` : e.target.value;
+                            setColumnFilterValues(prev => ({
+                              ...prev,
+                              [filter.field]: newValue
+                            }));
+                            setCurrentPage(1);
+                          }}
+                        />
+                        <Input
+                          placeholder="Sampai tanggal"
+                          type="date"
+                          value={columnFilterValues[filter.field]?.split(',')[1] || ""}
+                          onChange={(e) => {
+                            const currentValue = columnFilterValues[filter.field] || "";
+                            const startDate = currentValue.includes(',') ? currentValue.split(',')[0] : currentValue;
+                            const newValue = startDate ? `${startDate},${e.target.value}` : `,${e.target.value}`;
+                            setColumnFilterValues(prev => ({
+                              ...prev,
+                              [filter.field]: newValue
+                            }));
+                            setCurrentPage(1);
+                          }}
+                        />
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Kosongkan salah satu untuk filter satu tanggal
+                      </div>
+                    </div>
                   ) : (
                     <Input
                       placeholder={`Filter ${filter.label}`}

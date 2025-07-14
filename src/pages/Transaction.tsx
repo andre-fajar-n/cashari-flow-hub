@@ -150,7 +150,7 @@ const Transaction = () => {
     {
       field: "date",
       label: "Tanggal",
-      type: "date"
+      type: "daterange"
     }
   ];
 

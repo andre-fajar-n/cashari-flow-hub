@@ -166,7 +166,7 @@ const Transfer = () => {
     {
       field: "date",
       label: "Tanggal",
-      type: "date"
+      type: "daterange"
     }
   ];
 
