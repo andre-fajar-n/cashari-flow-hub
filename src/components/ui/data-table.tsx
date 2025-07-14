@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Search } from "lucide-react";
+import { Search, RotateCcw } from "lucide-react";
 
 export interface ColumnFilter {
   field: string;
@@ -45,6 +45,14 @@ export function DataTable<T extends Record<string, any>>({
   const [searchTerm, setSearchTerm] = useState("");
   const [columnFilterValues, setColumnFilterValues] = useState<Record<string, any>>({});
   const [currentPage, setCurrentPage] = useState(1);
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setColumnFilterValues({});
+    setCurrentPage(1);
+  };
+
+  const hasActiveFilters = searchTerm !== "" || Object.keys(columnFilterValues).some(key => columnFilterValues[key] !== "");
 
   const filteredData = useMemo(() => {
     let filtered = data;
@@ -191,11 +199,19 @@ export function DataTable<T extends Record<string, any>>({
                 className="pl-10"
               />
             </div>
-            {onRefresh && (
-              <Button variant="outline" onClick={onRefresh}>
-                Refresh
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {hasActiveFilters && (
+                <Button variant="outline" onClick={resetFilters}>
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Reset Filter
+                </Button>
+              )}
+              {onRefresh && (
+                <Button variant="outline" onClick={onRefresh}>
+                  Refresh
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Column Filters */}
