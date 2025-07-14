@@ -1,10 +1,12 @@
+
 import React, { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { Search, RotateCcw } from "lucide-react";
+import { Search, RotateCcw, Filter } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export interface ColumnFilter {
   field: string;
@@ -45,6 +47,7 @@ export function DataTable<T extends Record<string, any>>({
   const [searchTerm, setSearchTerm] = useState("");
   const [columnFilterValues, setColumnFilterValues] = useState<Record<string, any>>({});
   const [currentPage, setCurrentPage] = useState(1);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
   const resetFilters = () => {
     setSearchTerm("");
@@ -172,21 +175,23 @@ export function DataTable<T extends Record<string, any>>({
 
   return (
     <Card className="mb-6">
-      {(title || description || headerActions) && (
-        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          {(title || description) && (
-            <div>
-              {title && <CardTitle>{title}</CardTitle>}
-              {description && <p className="text-muted-foreground">{description}</p>}
-            </div>
-          )}
-          {headerActions}
-        </CardHeader>
-      )}
-      <CardContent>
-        {/* Search and Filter Controls */}
-        <div className="space-y-4 mb-6">
-          <div className="flex flex-col sm:flex-row gap-4">
+      {/* Fixed/Sticky Header */}
+      <div className="sticky top-0 z-10 bg-background border-b">
+        {(title || description || headerActions) && (
+          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4">
+            {(title || description) && (
+              <div>
+                {title && <CardTitle>{title}</CardTitle>}
+                {description && <p className="text-muted-foreground">{description}</p>}
+              </div>
+            )}
+            {headerActions}
+          </CardHeader>
+        )}
+        
+        {/* Compact Search and Filter Controls */}
+        <div className="px-6 pb-4 space-y-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -196,113 +201,132 @@ export function DataTable<T extends Record<string, any>>({
                   setSearchTerm(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="pl-10"
+                className="pl-10 h-9"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              {columnFilters.length > 0 && (
+                <Collapsible open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-9">
+                      <Filter className="w-4 h-4 mr-2" />
+                      Filter
+                      {hasActiveFilters && (
+                        <span className="ml-1 bg-primary text-primary-foreground rounded-full w-2 h-2"></span>
+                      )}
+                    </Button>
+                  </CollapsibleTrigger>
+                </Collapsible>
+              )}
               {hasActiveFilters && (
-                <Button variant="outline" onClick={resetFilters}>
+                <Button variant="outline" size="sm" onClick={resetFilters} className="h-9">
                   <RotateCcw className="w-4 h-4 mr-2" />
-                  Reset Filter
+                  Reset
                 </Button>
               )}
               {onRefresh && (
-                <Button variant="outline" onClick={onRefresh}>
+                <Button variant="outline" size="sm" onClick={onRefresh} className="h-9">
                   Refresh
                 </Button>
               )}
             </div>
           </div>
 
-          {/* Column Filters */}
+          {/* Collapsible Filter Fields */}
           {columnFilters.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {columnFilters.map((filter) => (
-                <div key={filter.field}>
-                  <label className="text-sm font-medium text-gray-700 mb-1 block">
-                    {filter.label}
-                  </label>
-                  {filter.type === 'select' ? (
-                    <Select
-                      value={columnFilterValues[filter.field] || ""}
-                      onValueChange={(value) => {
-                        setColumnFilterValues(prev => ({
-                          ...prev,
-                          [filter.field]: value === "all" ? "" : value
-                        }));
-                        setCurrentPage(1);
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={`Filter ${filter.label}`} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Semua</SelectItem>
-                        {filter.options?.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : filter.type === 'daterange' ? (
-                    <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Dari tanggal"
-                          type="date"
-                          value={columnFilterValues[filter.field]?.split(',')[0] || ""}
-                          onChange={(e) => {
-                            const currentValue = columnFilterValues[filter.field] || "";
-                            const endDate = currentValue.includes(',') ? currentValue.split(',')[1] : "";
-                            const newValue = endDate ? `${e.target.value},${endDate}` : e.target.value;
+            <Collapsible open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
+              <CollapsibleContent className="space-y-0">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 pt-3 border-t">
+                  {columnFilters.map((filter) => (
+                    <div key={filter.field} className="space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground">
+                        {filter.label}
+                      </label>
+                      {filter.type === 'select' ? (
+                        <Select
+                          value={columnFilterValues[filter.field] || ""}
+                          onValueChange={(value) => {
                             setColumnFilterValues(prev => ({
                               ...prev,
-                              [filter.field]: newValue
+                              [filter.field]: value === "all" ? "" : value
                             }));
                             setCurrentPage(1);
                           }}
-                        />
+                        >
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue placeholder="Semua" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Semua</SelectItem>
+                            {filter.options?.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : filter.type === 'daterange' ? (
+                        <div className="space-y-1">
+                          <div className="flex gap-1">
+                            <Input
+                              placeholder="Dari"
+                              type="date"
+                              value={columnFilterValues[filter.field]?.split(',')[0] || ""}
+                              onChange={(e) => {
+                                const currentValue = columnFilterValues[filter.field] || "";
+                                const endDate = currentValue.includes(',') ? currentValue.split(',')[1] : "";
+                                const newValue = endDate ? `${e.target.value},${endDate}` : e.target.value;
+                                setColumnFilterValues(prev => ({
+                                  ...prev,
+                                  [filter.field]: newValue
+                                }));
+                                setCurrentPage(1);
+                              }}
+                              className="h-8 text-xs"
+                            />
+                            <Input
+                              placeholder="Sampai"
+                              type="date"
+                              value={columnFilterValues[filter.field]?.split(',')[1] || ""}
+                              onChange={(e) => {
+                                const currentValue = columnFilterValues[filter.field] || "";
+                                const startDate = currentValue.includes(',') ? currentValue.split(',')[0] : currentValue;
+                                const newValue = startDate ? `${startDate},${e.target.value}` : `,${e.target.value}`;
+                                setColumnFilterValues(prev => ({
+                                  ...prev,
+                                  [filter.field]: newValue
+                                }));
+                                setCurrentPage(1);
+                              }}
+                              className="h-8 text-xs"
+                            />
+                          </div>
+                        </div>
+                      ) : (
                         <Input
-                          placeholder="Sampai tanggal"
-                          type="date"
-                          value={columnFilterValues[filter.field]?.split(',')[1] || ""}
+                          placeholder={`Filter...`}
+                          value={columnFilterValues[filter.field] || ""}
                           onChange={(e) => {
-                            const currentValue = columnFilterValues[filter.field] || "";
-                            const startDate = currentValue.includes(',') ? currentValue.split(',')[0] : currentValue;
-                            const newValue = startDate ? `${startDate},${e.target.value}` : `,${e.target.value}`;
                             setColumnFilterValues(prev => ({
                               ...prev,
-                              [filter.field]: newValue
+                              [filter.field]: e.target.value
                             }));
                             setCurrentPage(1);
                           }}
+                          type={filter.type === 'number' ? 'number' : filter.type === 'date' ? 'date' : 'text'}
+                          className="h-8 text-xs"
                         />
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Kosongkan salah satu untuk filter satu tanggal
-                      </div>
+                      )}
                     </div>
-                  ) : (
-                    <Input
-                      placeholder={`Filter ${filter.label}`}
-                      value={columnFilterValues[filter.field] || ""}
-                      onChange={(e) => {
-                        setColumnFilterValues(prev => ({
-                          ...prev,
-                          [filter.field]: e.target.value
-                        }));
-                        setCurrentPage(1);
-                      }}
-                      type={filter.type === 'number' ? 'number' : filter.type === 'date' ? 'date' : 'text'}
-                    />
-                  )}
+                  ))}
                 </div>
-              ))}
-            </div>
+              </CollapsibleContent>
+            </Collapsible>
           )}
         </div>
+      </div>
 
+      <CardContent>
         {/* Data Display */}
         {isLoading ? (
           <div className="text-center py-8">
