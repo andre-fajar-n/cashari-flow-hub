@@ -8,7 +8,7 @@ import Layout from "@/components/Layout";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useDeleteInvestmentInstrument, useInvestmentInstruments } from "@/hooks/queries";
 import { InvestmentInstrumentModel } from "@/models/investment-instruments";
-import { DataTable } from "@/components/ui/data-table";
+import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
 
 const InvestmentInstrument = () => {
@@ -88,21 +88,20 @@ const InvestmentInstrument = () => {
     </Card>
   );
 
-  const filterOptions = [
+  const columnFilters: ColumnFilter[] = [
     {
-      label: "Dapat Dilacak",
-      value: "trackable",
-      filterFn: (instrument: InvestmentInstrumentModel) => instrument.is_trackable === true
+      field: "is_trackable",
+      label: "Status Tracking",
+      type: "select",
+      options: [
+        { label: "Dapat Dilacak", value: "true" },
+        { label: "Tidak Dapat Dilacak", value: "false" }
+      ]
     },
     {
-      label: "Tidak Dapat Dilacak",
-      value: "not_trackable",
-      filterFn: (instrument: InvestmentInstrumentModel) => instrument.is_trackable === false
-    },
-    {
-      label: "Memiliki Unit Label",
-      value: "with_unit",
-      filterFn: (instrument: InvestmentInstrumentModel) => !!instrument.unit_label
+      field: "unit_label",
+      label: "Unit Label",
+      type: "text"
     }
   ];
 
@@ -125,11 +124,12 @@ const InvestmentInstrument = () => {
           isLoading={isLoading}
           searchPlaceholder="Cari instrumen investasi..."
           searchFields={["name", "unit_label"]}
-          filterOptions={filterOptions}
+          columnFilters={columnFilters}
           renderItem={renderInstrumentItem}
           emptyStateMessage="Belum ada instrumen investasi yang dibuat"
           title="Instrumen Investasi"
           description="Kelola jenis instrumen investasi Anda"
+          onRefresh={() => queryClient.invalidateQueries({ queryKey: ["investment_instruments"] })}
           headerActions={
             instruments && instruments.length > 0 && (
               <Button onClick={handleAddNew} className="w-full sm:w-auto">

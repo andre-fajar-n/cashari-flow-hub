@@ -8,7 +8,7 @@ import BusinessProjectDialog from "@/components/business-project/BusinessProject
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useBusinessProjects, useDeleteBusinessProject } from "@/hooks/queries";
 import { BusinessProjectModel } from "@/models/business-projects";
-import { DataTable } from "@/components/ui/data-table";
+import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
 
 const BusinessProject = () => {
@@ -84,37 +84,21 @@ const BusinessProject = () => {
     </Card>
   );
 
-  const filterOptions = [
+  const columnFilters: ColumnFilter[] = [
     {
-      label: "Proyek Aktif",
-      value: "active",
-      filterFn: (project: BusinessProjectModel) => {
-        if (!project.start_date) return false;
-        const today = new Date();
-        const startDate = new Date(project.start_date);
-        const endDate = project.end_date ? new Date(project.end_date) : null;
-        return today >= startDate && (!endDate || today <= endDate);
-      }
+      field: "start_date",
+      label: "Tanggal Mulai",
+      type: "date"
     },
     {
-      label: "Proyek Selesai",
-      value: "completed",
-      filterFn: (project: BusinessProjectModel) => {
-        if (!project.end_date) return false;
-        const today = new Date();
-        const endDate = new Date(project.end_date);
-        return today > endDate;
-      }
+      field: "end_date",
+      label: "Tanggal Selesai",
+      type: "date"
     },
     {
-      label: "Proyek Mendatang",
-      value: "upcoming",
-      filterFn: (project: BusinessProjectModel) => {
-        if (!project.start_date) return true;
-        const today = new Date();
-        const startDate = new Date(project.start_date);
-        return today < startDate;
-      }
+      field: "description",
+      label: "Deskripsi",
+      type: "text"
     }
   ];
 
@@ -137,11 +121,12 @@ const BusinessProject = () => {
           isLoading={isLoading}
           searchPlaceholder="Cari proyek..."
           searchFields={["name", "description"]}
-          filterOptions={filterOptions}
+          columnFilters={columnFilters}
           renderItem={renderProjectItem}
           emptyStateMessage="Belum ada proyek bisnis yang dibuat"
           title="Proyek Bisnis"
           description="Kelola proyek bisnis dan investasi Anda"
+          onRefresh={() => queryClient.invalidateQueries({ queryKey: ["business_projects"] })}
           headerActions={
             projects && projects.length > 0 && (
               <Button onClick={handleAddNew} className="w-full sm:w-auto">

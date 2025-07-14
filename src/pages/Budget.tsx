@@ -6,9 +6,10 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import BudgetDialog from "@/components/budget/BudgetDialog";
 import Layout from "@/components/Layout";
 import { useBudgets, useDeleteBudget } from "@/hooks/queries/use-budgets";
+import { useCurrencies } from "@/hooks/queries";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { BudgetModel } from "@/models/budgets";
-import { DataTable } from "@/components/ui/data-table";
+import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
 
 const Budget = () => {
@@ -19,6 +20,7 @@ const Budget = () => {
   const [selectedBudget, setSelectedBudget] = useState<BudgetModel | undefined>(undefined);
   const { mutate: deleteBudget } = useDeleteBudget();
   const { data: budgets, isLoading } = useBudgets();
+  const { data: currencies } = useCurrencies();
 
   const handleEdit = (budget: BudgetModel) => {
     setSelectedBudget(budget);
@@ -75,34 +77,30 @@ const Budget = () => {
     </Card>
   );
 
-  const filterOptions = [
+  const columnFilters: ColumnFilter[] = [
     {
-      label: "Budget Aktif",
-      value: "active",
-      filterFn: (budget: BudgetModel) => {
-        const today = new Date();
-        const startDate = new Date(budget.start_date);
-        const endDate = new Date(budget.end_date);
-        return today >= startDate && today <= endDate;
-      }
+      field: "currency_code",
+      label: "Mata Uang",
+      type: "select",
+      options: currencies?.map(currency => ({
+        label: `${currency.code} (${currency.symbol})`,
+        value: currency.code
+      })) || []
     },
     {
-      label: "Budget Berakhir",
-      value: "expired",
-      filterFn: (budget: BudgetModel) => {
-        const today = new Date();
-        const endDate = new Date(budget.end_date);
-        return today > endDate;
-      }
+      field: "amount",
+      label: "Jumlah Min",
+      type: "number"
     },
     {
-      label: "Budget Mendatang",
-      value: "upcoming",
-      filterFn: (budget: BudgetModel) => {
-        const today = new Date();
-        const startDate = new Date(budget.start_date);
-        return today < startDate;
-      }
+      field: "start_date",
+      label: "Tanggal Mulai",
+      type: "date"
+    },
+    {
+      field: "end_date",
+      label: "Tanggal Berakhir",
+      type: "date"
     }
   ];
 
@@ -125,11 +123,12 @@ const Budget = () => {
           isLoading={isLoading}
           searchPlaceholder="Cari budget..."
           searchFields={["name", "currency_code"]}
-          filterOptions={filterOptions}
+          columnFilters={columnFilters}
           renderItem={renderBudgetItem}
           emptyStateMessage="Belum ada budget yang dibuat"
           title="Manajemen Budget"
           description="Kelola anggaran keuangan Anda"
+          onRefresh={() => queryClient.invalidateQueries({ queryKey: ["budgets"] })}
           headerActions={
             budgets && budgets.length > 0 && (
               <Button onClick={handleAddNew} className="w-full sm:w-auto">

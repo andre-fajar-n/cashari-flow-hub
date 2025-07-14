@@ -7,9 +7,9 @@ import Layout from "@/components/Layout";
 import DebtDialog from "@/components/debt/DebtDialog";
 import { DEBT_TYPES } from "@/constants/enums";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { useDebts, useDeleteDebt } from "@/hooks/queries";
+import { useDebts, useDeleteDebt, useCurrencies } from "@/hooks/queries";
 import { DebtModel } from "@/models/debts";
-import { DataTable } from "@/components/ui/data-table";
+import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
 
 const Debt = () => {
@@ -21,6 +21,7 @@ const Debt = () => {
 
   const { mutate: deleteDebt } = useDeleteDebt();
   const { data: debts, isLoading } = useDebts();
+  const { data: currencies } = useCurrencies();
 
   const handleEdit = (debt: DebtModel) => {
     setSelectedDebt(debt);
@@ -88,36 +89,39 @@ const Debt = () => {
     </Card>
   );
 
-  const filterOptions = [
+  const columnFilters: ColumnFilter[] = [
     {
-      label: "Hutang",
-      value: "loan",
-      filterFn: (debt: DebtModel) => debt.type === DEBT_TYPES.LOAN
+      field: "type",
+      label: "Tipe",
+      type: "select",
+      options: [
+        { label: "Hutang", value: DEBT_TYPES.LOAN },
+        { label: "Piutang", value: DEBT_TYPES.BORROWED }
+      ]
     },
     {
-      label: "Piutang",
-      value: "borrowed",
-      filterFn: (debt: DebtModel) => debt.type === DEBT_TYPES.BORROWED
+      field: "currency_code",
+      label: "Mata Uang",
+      type: "select",
+      options: currencies?.map(currency => ({
+        label: `${currency.code} (${currency.symbol})`,
+        value: currency.code
+      })) || []
     },
     {
-      label: "Jatuh Tempo Hari Ini",
-      value: "due_today",
-      filterFn: (debt: DebtModel) => {
-        if (!debt.due_date) return false;
-        const today = new Date();
-        const dueDate = new Date(debt.due_date);
-        return today.toDateString() === dueDate.toDateString();
-      }
+      field: "amount",
+      label: "Jumlah Min",
+      type: "number"
     },
     {
-      label: "Sudah Jatuh Tempo",
-      value: "overdue",
-      filterFn: (debt: DebtModel) => {
-        if (!debt.due_date) return false;
-        const today = new Date();
-        const dueDate = new Date(debt.due_date);
-        return today > dueDate;
-      }
+      field: "due_date",
+      label: "Tanggal Jatuh Tempo",
+      type: "date"
+    },
+    {
+      field: "person_name",
+      label: "Nama Orang",
+      type: "text"
     }
   ];
 
@@ -140,11 +144,12 @@ const Debt = () => {
           isLoading={isLoading}
           searchPlaceholder="Cari hutang/piutang..."
           searchFields={["name", "currency_code"]}
-          filterOptions={filterOptions}
+          columnFilters={columnFilters}
           renderItem={renderDebtItem}
           emptyStateMessage="Belum ada data hutang/piutang"
           title="Manajemen Hutang/Piutang"
           description="Kelola hutang dan piutang Anda"
+          onRefresh={() => queryClient.invalidateQueries({ queryKey: ["debts"] })}
           headerActions={
             debts && debts.length > 0 && (
               <Button onClick={handleAddNew} className="w-full sm:w-auto">

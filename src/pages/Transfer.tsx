@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowRightLeft, Edit, Trash2 } from "lucide-react";
 import { useTransfers, useDeleteTransfer } from "@/hooks/queries/use-transfers";
+import { useWallets, useCurrencies } from "@/hooks/queries";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import TransferDialog from "@/components/transfers/TransferDialog";
 import { useQueryClient } from "@tanstack/react-query";
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { TransferModel } from "@/models/transfer";
 import { formatAmount } from "@/lib/utils";
-import { DataTable } from "@/components/ui/data-table";
+import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 
 const Transfer = () => {
   const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null)
@@ -25,6 +26,8 @@ const Transfer = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedTransfer, setSelectedTransfer] = useState<TransferModel | undefined>(undefined);
   const { data: transfers, isLoading } = useTransfers();
+  const { data: wallets } = useWallets();
+  const { data: currencies } = useCurrencies();
   const { mutate: deleteTransfer } = useDeleteTransfer();
   const queryClient = useQueryClient();
 
@@ -118,30 +121,52 @@ const Transfer = () => {
     </div>
   );
 
-  const filterOptions = [
+  const columnFilters: ColumnFilter[] = [
     {
-      label: "Hari Ini",
-      value: "today",
-      filterFn: (transfer: TransferModel) => {
-        const today = new Date();
-        const transferDate = new Date(transfer.date);
-        return today.toDateString() === transferDate.toDateString();
-      }
+      field: "from_wallet_id",
+      label: "Dari Dompet",
+      type: "select",
+      options: wallets?.map(wallet => ({
+        label: wallet.name,
+        value: wallet.id.toString()
+      })) || []
     },
     {
-      label: "Minggu Ini",
-      value: "this_week",
-      filterFn: (transfer: TransferModel) => {
-        const today = new Date();
-        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-        const transferDate = new Date(transfer.date);
-        return transferDate >= weekAgo && transferDate <= today;
-      }
+      field: "to_wallet_id",
+      label: "Ke Dompet",
+      type: "select",
+      options: wallets?.map(wallet => ({
+        label: wallet.name,
+        value: wallet.id.toString()
+      })) || []
     },
     {
-      label: "Transfer Multi Mata Uang",
-      value: "multi_currency",
-      filterFn: (transfer: TransferModel) => transfer.currency_from !== transfer.currency_to
+      field: "currency_from",
+      label: "Mata Uang Asal",
+      type: "select",
+      options: currencies?.map(currency => ({
+        label: `${currency.code} (${currency.symbol})`,
+        value: currency.code
+      })) || []
+    },
+    {
+      field: "currency_to",
+      label: "Mata Uang Tujuan",
+      type: "select",
+      options: currencies?.map(currency => ({
+        label: `${currency.code} (${currency.symbol})`,
+        value: currency.code
+      })) || []
+    },
+    {
+      field: "amount_from",
+      label: "Jumlah Asal Min",
+      type: "number"
+    },
+    {
+      field: "date",
+      label: "Tanggal",
+      type: "date"
     }
   ];
 
@@ -185,11 +210,12 @@ const Transfer = () => {
             isLoading={isLoading}
             searchPlaceholder="Cari transfer..."
             searchFields={["amount_from", "amount_to"]}
-            filterOptions={filterOptions}
+            columnFilters={columnFilters}
             renderItem={renderTransferItem}
             emptyStateMessage="Belum ada transfer"
             title="Riwayat Transfer"
             description="Daftar semua transfer yang telah dilakukan"
+            onRefresh={() => queryClient.invalidateQueries({ queryKey: ["transfers"] })}
           />
         </div>
       </Layout>

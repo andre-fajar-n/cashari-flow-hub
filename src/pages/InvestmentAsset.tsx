@@ -6,10 +6,10 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import InvestmentAssetDialog from "@/components/investment/InvestmentAssetDialog";
 import { useToast } from "@/hooks/use-toast";
-import { useDeleteInvestmentAsset, useInvestmentAssets } from "@/hooks/queries";
+import { useDeleteInvestmentAsset, useInvestmentAssets, useInvestmentInstruments } from "@/hooks/queries";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { InvestmentAssetModel } from "@/models/investment-assets";
-import { DataTable } from "@/components/ui/data-table";
+import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
 
 const InvestmentAsset = () => {
@@ -21,6 +21,7 @@ const InvestmentAsset = () => {
   const [selectedAsset, setSelectedAsset] = useState<InvestmentAssetModel | undefined>(undefined);
   const { mutate: deleteInvestmentAsset } = useDeleteInvestmentAsset();
   const { data: assets, isLoading } = useInvestmentAssets();
+  const { data: instruments } = useInvestmentInstruments();
 
   const handleEdit = (asset: InvestmentAssetModel) => {
     setSelectedAsset(asset);
@@ -98,16 +99,20 @@ const InvestmentAsset = () => {
     </Card>
   );
 
-  const filterOptions = [
+  const columnFilters: ColumnFilter[] = [
     {
-      label: "Memiliki Simbol",
-      value: "with_symbol",
-      filterFn: (asset: InvestmentAssetModel) => !!asset.symbol
+      field: "instrument_id",
+      label: "Instrumen",
+      type: "select",
+      options: instruments?.map(instrument => ({
+        label: instrument.name,
+        value: instrument.id.toString()
+      })) || []
     },
     {
-      label: "Tanpa Simbol",
-      value: "without_symbol",
-      filterFn: (asset: InvestmentAssetModel) => !asset.symbol
+      field: "symbol",
+      label: "Simbol",
+      type: "text"
     }
   ];
 
@@ -130,11 +135,12 @@ const InvestmentAsset = () => {
           isLoading={isLoading}
           searchPlaceholder="Cari aset investasi..."
           searchFields={["name", "symbol"]}
-          filterOptions={filterOptions}
+          columnFilters={columnFilters}
           renderItem={renderAssetItem}
           emptyStateMessage="Belum ada aset investasi yang dibuat"
           title="Aset Investasi"
           description="Kelola aset investasi dalam instrumen Anda"
+          onRefresh={() => queryClient.invalidateQueries({ queryKey: ["investment_assets"] })}
           headerActions={
             assets && assets.length > 0 && (
               <Button onClick={handleAddNew} className="w-full sm:w-auto">

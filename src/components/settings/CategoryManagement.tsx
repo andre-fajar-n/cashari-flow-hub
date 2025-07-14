@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { DataTable, FilterOption } from "@/components/ui/data-table";
+import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { useForm } from "react-hook-form";
 import { Plus, Trash, Pen } from "lucide-react";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -80,37 +80,35 @@ const CategoryManagement = () => {
     }
   }, [createCategory.isSuccess, updateCategory.isSuccess]);
 
-  // Filter options for DataTable
-  const filterOptions: FilterOption[] = [
+  const columnFilters: ColumnFilter[] = [
     {
-      label: "Pemasukan",
-      value: "income",
-      filterFn: (category: CategoryModel) => category.is_income
+      field: "is_income",
+      label: "Tipe",
+      type: "select",
+      options: [
+        { label: "Pemasukan", value: "true" },
+        { label: "Pengeluaran", value: "false" }
+      ]
     },
     {
-      label: "Pengeluaran",
-      value: "expense",
-      filterFn: (category: CategoryModel) => !category.is_income
+      field: "application",
+      label: "Aplikasi",
+      type: "select",
+      options: [
+        { label: "Transaksi", value: "transaction" },
+        { label: "Investasi", value: "investment" },
+        { label: "Hutang/Piutang", value: "debt" },
+        { label: "Tidak Ber-aplikasi", value: "null" }
+      ]
     },
     {
-      label: "Transaksi",
-      value: "transaction",
-      filterFn: (category: CategoryModel) => category.application === "transaction"
-    },
-    {
-      label: "Investasi",
-      value: "investment",
-      filterFn: (category: CategoryModel) => category.application === "investment"
-    },
-    {
-      label: "Hutang/Piutang",
-      value: "debt",
-      filterFn: (category: CategoryModel) => category.application === "debt"
-    },
-    {
-      label: "Tidak Ber-aplikasi",
-      value: "none",
-      filterFn: (category: CategoryModel) => category.application === null
+      field: "parent_id",
+      label: "Parent",
+      type: "select",
+      options: parentCategories?.map(cat => ({
+        label: cat.name,
+        value: cat.id.toString()
+      })) || []
     }
   ];
 
@@ -281,7 +279,7 @@ const CategoryManagement = () => {
           isLoading={isLoading}
           searchPlaceholder="Cari kategori berdasarkan nama..."
           searchFields={['name']}
-          filterOptions={filterOptions}
+          columnFilters={columnFilters}
           itemsPerPage={10}
           renderItem={renderCategoryItem}
           emptyStateMessage="Belum ada kategori yang dibuat"

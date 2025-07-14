@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { DataTable, FilterOption } from "@/components/ui/data-table";
+import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { useForm } from "react-hook-form";
 import { Plus, Trash, Pen } from "lucide-react";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
@@ -69,12 +69,22 @@ const WalletManagement = () => {
     form.reset(defaultWalletFormValues);
   };
 
-  // Add dynamic filter options based on available currencies
-  const dynamicFilterOptions: FilterOption[] = currencies?.map(currency => ({
-    label: currency.code,
-    value: currency.code,
-    filterFn: (wallet: WalletModel) => wallet.currency_code === currency.code
-  })) || [];
+  const columnFilters: ColumnFilter[] = [
+    {
+      field: "currency_code",
+      label: "Mata Uang",
+      type: "select",
+      options: currencies?.map(currency => ({
+        label: `${currency.code} (${currency.symbol})`,
+        value: currency.code
+      })) || []
+    },
+    {
+      field: "balance",
+      label: "Saldo Min",
+      type: "number"
+    }
+  ];
 
   const renderWalletItem = (wallet: WalletModel) => (
     <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -193,7 +203,7 @@ const WalletManagement = () => {
           isLoading={isLoading}
           searchPlaceholder="Cari dompet berdasarkan nama atau mata uang..."
           searchFields={['name', 'currency_code']}
-          filterOptions={dynamicFilterOptions}
+          columnFilters={columnFilters}
           itemsPerPage={10}
           renderItem={renderWalletItem}
           emptyStateMessage="Belum ada dompet yang dibuat"

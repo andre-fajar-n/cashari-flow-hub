@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -8,14 +7,12 @@ import Layout from "@/components/Layout";
 import GoalDialog from "@/components/goal/GoalDialog";
 import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
-import GoalHeader from "@/components/goal/GoalHeader";
-import GoalList from "@/components/goal/GoalList";
-import { useGoalTransfers, useGoalInvestmentRecords, useGoals, useDeleteGoal } from "@/hooks/queries";
+import { useGoalTransfers, useGoalInvestmentRecords, useGoals, useDeleteGoal, useCurrencies } from "@/hooks/queries";
 import { calculateGoalProgress } from "@/components/goal/GoalProgressCalculator";
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { GoalModel } from "@/models/goals";
-import { DataTable } from "@/components/ui/data-table";
+import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import GoalCard from "@/components/goal/GoalCard";
 
 const Goal = () => {
@@ -34,6 +31,7 @@ const Goal = () => {
   const { data: goals, isLoading } = useGoals();
   const { data: goalTransfers } = useGoalTransfers();
   const { data: goalRecords } = useGoalInvestmentRecords();
+  const { data: currencies } = useCurrencies();
 
   const handleGoalProgressCalculation = (goalId: number, targetAmount: number) => {
     return calculateGoalProgress(goalId, targetAmount, goalTransfers, goalRecords);
@@ -86,41 +84,43 @@ const Goal = () => {
     );
   };
 
-  const filterOptions = [
+  const columnFilters: ColumnFilter[] = [
     {
-      label: "Target Tercapai",
-      value: "achieved",
-      filterFn: (goal: GoalModel) => goal.is_achieved === true
+      field: "is_achieved",
+      label: "Status Pencapaian",
+      type: "select",
+      options: [
+        { label: "Tercapai", value: "true" },
+        { label: "Belum Tercapai", value: "false" }
+      ]
     },
     {
-      label: "Target Aktif",
-      value: "active",
-      filterFn: (goal: GoalModel) => goal.is_active === true && goal.is_achieved === false
+      field: "is_active",
+      label: "Status Aktif",
+      type: "select",
+      options: [
+        { label: "Aktif", value: "true" },
+        { label: "Tidak Aktif", value: "false" }
+      ]
     },
     {
-      label: "Target Tidak Aktif",
-      value: "inactive",
-      filterFn: (goal: GoalModel) => goal.is_active === false
+      field: "currency_code",
+      label: "Mata Uang",
+      type: "select",
+      options: currencies?.map(currency => ({
+        label: `${currency.code} (${currency.symbol})`,
+        value: currency.code
+      })) || []
     },
     {
-      label: "Jatuh Tempo Hari Ini",
-      value: "due_today",
-      filterFn: (goal: GoalModel) => {
-        if (!goal.target_date) return false;
-        const today = new Date();
-        const targetDate = new Date(goal.target_date);
-        return today.toDateString() === targetDate.toDateString();
-      }
+      field: "target_amount",
+      label: "Target Min",
+      type: "number"
     },
     {
-      label: "Sudah Jatuh Tempo",
-      value: "overdue",
-      filterFn: (goal: GoalModel) => {
-        if (!goal.target_date) return false;
-        const today = new Date();
-        const targetDate = new Date(goal.target_date);
-        return today > targetDate && !goal.is_achieved;
-      }
+      field: "target_date",
+      label: "Tanggal Target",
+      type: "date"
     }
   ];
 
@@ -143,11 +143,12 @@ const Goal = () => {
           isLoading={isLoading}
           searchPlaceholder="Cari target..."
           searchFields={["name", "currency_code"]}
-          filterOptions={filterOptions}
+          columnFilters={columnFilters}
           renderItem={renderGoalItem}
           emptyStateMessage="Belum ada target yang dibuat"
           title="Manajemen Target"
           description="Kelola target keuangan Anda"
+          onRefresh={() => queryClient.invalidateQueries({ queryKey: ["goals"] })}
           headerActions={
             goals && goals.length > 0 && (
               <Button onClick={handleAddNew} className="w-full sm:w-auto">

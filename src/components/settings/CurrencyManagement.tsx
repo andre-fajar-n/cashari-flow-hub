@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DataTable, FilterOption } from "@/components/ui/data-table";
+import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Plus, Edit, Star, Trash } from "lucide-react";
 import CurrencyForm from "@/components/settings/CurrencyForm";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -89,17 +89,25 @@ const CurrencyManagement = () => {
     }
   };
 
-  // Filter options for DataTable
-  const filterOptions: FilterOption[] = [
+  const columnFilters: ColumnFilter[] = [
     {
-      label: "Default",
-      value: "default",
-      filterFn: (currency: CurrencyModel) => currency.is_default
+      field: "is_default",
+      label: "Status Default",
+      type: "select",
+      options: [
+        { label: "Default", value: "true" },
+        { label: "Non-Default", value: "false" }
+      ]
     },
     {
-      label: "Non-Default",
-      value: "non-default",
-      filterFn: (currency: CurrencyModel) => !currency.is_default
+      field: "code",
+      label: "Kode",
+      type: "text"
+    },
+    {
+      field: "symbol",
+      label: "Simbol",
+      type: "text"
     }
   ];
 
@@ -195,7 +203,7 @@ const CurrencyManagement = () => {
           isLoading={isLoading}
           searchPlaceholder="Cari mata uang berdasarkan kode, nama, atau symbol..."
           searchFields={['code', 'name', 'symbol']}
-          filterOptions={filterOptions}
+          columnFilters={columnFilters}
           itemsPerPage={10}
           renderItem={renderCurrencyItem}
           emptyStateMessage="Belum ada mata uang yang dibuat"

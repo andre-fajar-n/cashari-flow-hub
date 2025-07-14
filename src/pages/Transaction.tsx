@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowUpCircle, ArrowDownCircle, Edit, Trash2 } from "lucide-react";
 import { useTransactions, useDeleteTransaction } from "@/hooks/queries/use-transactions";
+import { useCategories, useWallets } from "@/hooks/queries";
 import TransactionDialog from "@/components/transactions/TransactionDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useQueryClient } from "@tanstack/react-query";
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { formatAmount } from "@/lib/utils";
 import { TransactionFormData } from "@/form-dto/transactions";
-import { DataTable } from "@/components/ui/data-table";
+import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 
 const Transaction = () => {
   const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
@@ -26,6 +27,8 @@ const Transaction = () => {
   const queryClient = useQueryClient();
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionFormData | undefined>(undefined);
   const { data: transactions, isLoading } = useTransactions();
+  const { data: categories } = useCategories();
+  const { data: wallets } = useWallets();
   const { mutate: deleteTransaction } = useDeleteTransaction();
 
   const formatDate = (dateString: string) => {
@@ -120,35 +123,34 @@ const Transaction = () => {
     </div>
   );
 
-  const filterOptions = [
+  const columnFilters: ColumnFilter[] = [
     {
-      label: "Pemasukan",
-      value: "income",
-      filterFn: (transaction: any) => (transaction.categories as any)?.is_income === true
+      field: "category_id",
+      label: "Kategori",
+      type: "select",
+      options: categories?.map(cat => ({
+        label: cat.name,
+        value: cat.id.toString()
+      })) || []
     },
     {
-      label: "Pengeluaran",
-      value: "expense",
-      filterFn: (transaction: any) => (transaction.categories as any)?.is_income === false
+      field: "wallet_id",
+      label: "Dompet",
+      type: "select",
+      options: wallets?.map(wallet => ({
+        label: wallet.name,
+        value: wallet.id.toString()
+      })) || []
     },
     {
-      label: "Hari Ini",
-      value: "today",
-      filterFn: (transaction: any) => {
-        const today = new Date();
-        const transactionDate = new Date(transaction.date);
-        return today.toDateString() === transactionDate.toDateString();
-      }
+      field: "amount",
+      label: "Jumlah Min",
+      type: "number"
     },
     {
-      label: "Minggu Ini",
-      value: "this_week",
-      filterFn: (transaction: any) => {
-        const today = new Date();
-        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-        const transactionDate = new Date(transaction.date);
-        return transactionDate >= weekAgo && transactionDate <= today;
-      }
+      field: "date",
+      label: "Tanggal",
+      type: "date"
     }
   ];
 
@@ -192,11 +194,12 @@ const Transaction = () => {
             isLoading={isLoading}
             searchPlaceholder="Cari transaksi..."
             searchFields={["description", "amount"]}
-            filterOptions={filterOptions}
+            columnFilters={columnFilters}
             renderItem={renderTransactionItem}
             emptyStateMessage="Belum ada transaksi"
             title="Riwayat Transaksi"
             description="Daftar semua transaksi yang telah dilakukan"
+            onRefresh={() => queryClient.invalidateQueries({ queryKey: ["transactions"] })}
           />
         </div>
       </Layout>
