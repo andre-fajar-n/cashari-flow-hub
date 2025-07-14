@@ -47,7 +47,7 @@ const TransactionFormFields = ({ control, wallets, categories }: TransactionForm
               </FormControl>
               <SelectContent>
                 {wallets?.map((wallet) => (
-                  <SelectItem key={wallet.id} value={wallet.id}>
+                  <SelectItem key={wallet.id} value={wallet.id.toString()}>
                     {wallet.name} ({wallet.currency_code})
                   </SelectItem>
                 ))}
@@ -73,7 +73,7 @@ const TransactionFormFields = ({ control, wallets, categories }: TransactionForm
               </FormControl>
               <SelectContent>
                 {categories?.map((category) => (
-                  <SelectItem key={category.id} value={category.id}>
+                  <SelectItem key={category.id} value={category.id.toString()}>
                     {category.name} {category.is_income ? "(Pemasukan)" : "(Pengeluaran)"}
                   </SelectItem>
                 ))}

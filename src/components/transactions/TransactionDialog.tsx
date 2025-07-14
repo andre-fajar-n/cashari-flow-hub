@@ -39,8 +39,8 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
       if (transaction) {
         form.reset({
           amount: transaction.amount || 0,
-          category_id: transaction.category_id || "",
-          wallet_id: transaction.wallet_id || "",
+          category_id: transaction.category_id ? transaction.category_id.toString() : "",
+          wallet_id: transaction.wallet_id ? transaction.wallet_id.toString() : "",
           date: transaction.date || new Date().toISOString().split("T")[0],
           description: transaction.description || "",
           budget_ids: transaction.budget_ids || [],
@@ -53,13 +53,13 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
   }, [transaction, open, form]);
 
   const selectedWalletId = form.watch("wallet_id");
-  const selectedWallet = wallets?.find(w => w.id === selectedWalletId);
+  const selectedWallet = wallets?.find(w => w.id.toString() === selectedWalletId);
 
   const onSubmit = (data: TransactionFormData) => {
     const transactionData = {
       amount: data.amount,
-      category_id: data.category_id,
-      wallet_id: data.wallet_id,
+      category_id: parseInt(data.category_id),
+      wallet_id: parseInt(data.wallet_id),
       currency_code: selectedWallet?.currency_code,
       date: data.date,
       description: data.description || null,
@@ -67,9 +67,9 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
       business_project_ids: data.business_project_ids,
     };
     if (transaction) {
-      updateTransactionWithRelations.mutate({ id: transaction.id, ...transactionData });
+      updateTransactionWithRelations.mutate({ id: transaction.id, ...transactionData } as any);
     } else {
-      insertTransactionWithRelations.mutate(transactionData);
+      insertTransactionWithRelations.mutate(transactionData as any);
     }
   };
 
