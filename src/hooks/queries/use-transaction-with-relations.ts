@@ -15,13 +15,13 @@ export const useInsertTransactionWithRelations = () => {
         .rpc("insert_transaction_with_relations", {
           _amount: transaction.amount,
           _budget_ids: transaction.budget_ids,
-          _category_id: transaction.category_id,
+          _category_id: parseInt(transaction.category_id),
           _currency_code: transaction.currency_code,
           _description: transaction.description,
           _project_ids: transaction.business_project_ids,
           _trx_date: transaction.date,
           _user_id: user?.id,
-          _wallet_id: transaction.wallet_id,
+          _wallet_id: parseInt(transaction.wallet_id),
         });
 
       if (error) {
@@ -60,8 +60,8 @@ export const useUpdateTransactionWithRelations = () => {
         .rpc("update_transaction_with_relations", {
           _transaction_id: id,
           _user_id: user?.id,
-          _wallet_id: transaction.wallet_id,
-          _category_id: transaction.category_id,
+          _wallet_id: parseInt(transaction.wallet_id),
+          _category_id: parseInt(transaction.category_id),
           _amount: transaction.amount,
           _currency_code: transaction.currency_code,
           _trx_date: transaction.date,
