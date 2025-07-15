@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -20,11 +19,11 @@ export const useTransactions = () => {
         `)
         .eq("user_id", user?.id)
         .order("date", { ascending: false });
-      
+
       if (error) {
         console.error("Failed to fetch transactions", error);
-        throw error
-      };
+        throw error;
+      }
       return data;
     },
     enabled: !!user,
@@ -40,7 +39,10 @@ export const useCreateTransaction = () => {
     mutationFn: async (transaction: TransactionFormData) => {
       const { data, error } = await supabase
         .from("transactions")
-        .insert({ ...transaction, user_id: user?.id })
+        .insert({
+          user_id: user?.id,
+          ...transaction as any,
+        })
         .select()
         .single();
 
@@ -74,7 +76,7 @@ export const useUpdateTransaction = () => {
     mutationFn: async ({ id, ...transaction }: TransactionFormData & { id: number }) => {
       const { data, error } = await supabase
         .from("transactions")
-        .update(transaction)
+        .update(transaction as any)
         .eq("user_id", user?.id)
         .eq("id", id)
         .select()
