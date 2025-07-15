@@ -101,7 +101,21 @@ export function DataTable<T extends Record<string, any>>({
           }
 
           if (filter?.type === 'select') {
-            return itemValue.toString() === value;
+            // Handle special NULL_VALUE case
+            if (value === 'NULL_VALUE') {
+              return itemValue === null || itemValue === undefined;
+            }
+
+            // Handle boolean values
+            if (value === 'true') {
+              return itemValue === true;
+            }
+            if (value === 'false') {
+              return itemValue === false;
+            }
+
+            // Handle regular string/number comparison
+            return itemValue?.toString() === value;
           }
 
           // Handle regular filtering

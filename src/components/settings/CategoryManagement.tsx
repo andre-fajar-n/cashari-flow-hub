@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
+import { CATEGORY_APPLICATIONS } from "@/constants/enums";
 import { useForm } from "react-hook-form";
 import { Plus, Trash, Pen } from "lucide-react";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -95,10 +96,10 @@ const CategoryManagement = () => {
       label: "Aplikasi",
       type: "select",
       options: [
-        { label: "Transaksi", value: "transaction" },
-        { label: "Investasi", value: "investment" },
-        { label: "Hutang/Piutang", value: "debt" },
-        { label: "Tidak Ber-aplikasi", value: "null" }
+        { label: "Transaksi", value: CATEGORY_APPLICATIONS.TRANSACTION },
+        { label: "Investasi", value: CATEGORY_APPLICATIONS.INVESTMENT },
+        { label: "Hutang/Piutang", value: CATEGORY_APPLICATIONS.DEBT },
+        { label: "Tidak Ber-aplikasi", value: "NULL_VALUE" }
       ]
     },
     {
