@@ -174,16 +174,6 @@ const Transfer = () => {
     <ProtectedRoute>
       <Layout>
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Transfer</h1>
-              <p className="text-muted-foreground">Kelola transfer antar dompet</p>
-            </div>
-            <Button onClick={() => openDialog(undefined)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Transfer Baru
-            </Button>
-
             <TransferDialog
               open={isDialogOpen}
               onOpenChange={setIsDialogOpen}
@@ -203,7 +193,6 @@ const Transfer = () => {
               cancelText="Batal"
               variant="destructive"
             />
-          </div>
 
           <DataTable
             data={transfers || []}
@@ -213,9 +202,17 @@ const Transfer = () => {
             columnFilters={columnFilters}
             renderItem={renderTransferItem}
             emptyStateMessage="Belum ada transfer"
-            title="Riwayat Transfer"
-            description="Daftar semua transfer yang telah dilakukan"
+            title="Manajemen Transfer"
+            description="Kelola transfer antar dompet"
             onRefresh={() => queryClient.invalidateQueries({ queryKey: ["transfers"] })}
+            headerActions={
+              transfers && transfers.length > 0 && (
+                <Button onClick={() => openDialog(undefined)} className="w-full sm:w-auto">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Transfer Baru
+                </Button>
+              )
+            }
           />
         </div>
       </Layout>

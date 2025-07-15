@@ -158,17 +158,6 @@ const Transaction = () => {
     <ProtectedRoute>
       <Layout>
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Transaksi</h1>
-              <p className="text-muted-foreground">Kelola pemasukan dan pengeluaran Anda</p>
-            </div>
-            <Button onClick={() => openDialog(undefined)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Tambah Transaksi
-            </Button>
-          </div>
-
           <TransactionDialog
             open={isDialogOpen}
             onOpenChange={setIsDialogOpen}
@@ -197,9 +186,17 @@ const Transaction = () => {
             columnFilters={columnFilters}
             renderItem={renderTransactionItem}
             emptyStateMessage="Belum ada transaksi"
-            title="Riwayat Transaksi"
-            description="Daftar semua transaksi yang telah dilakukan"
+            title="Manajemen Transaksi"
+            description="Kelola pemasukan dan pengeluaran Anda"
             onRefresh={() => queryClient.invalidateQueries({ queryKey: ["transactions"] })}
+            headerActions={
+              transactions && transactions.length > 0 && (
+                <Button onClick={() => openDialog(undefined)} className="w-full sm:w-auto">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Tambah Transaksi
+                </Button>
+              )
+            }
           />
         </div>
       </Layout>
