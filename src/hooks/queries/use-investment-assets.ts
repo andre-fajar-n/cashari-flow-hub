@@ -11,16 +11,16 @@ export const useInvestmentAssets = (instrumentId?: number) => {
     queryKey: ["investment_assets", user?.id, instrumentId],
     queryFn: async () => {
       let query = supabase
-        .from("investment_assets_with_instruments")
-        .select(`*`)
+        .from("investment_assets")
+        .select(`*, investment_instruments(name)`)
         .eq("user_id", user?.id);
-      
+
       if (instrumentId) {
         query = query.eq("instrument_id", instrumentId);
       }
-      
-      const { data, error } = await query.order("instrument_name").order("name");
-      
+
+      const { data, error } = await query.order("name");
+
       if (error) throw error;
       return data;
     },
@@ -34,12 +34,12 @@ export const useDeleteInvestmentAsset = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (assetId: number) => {
       const { error } = await supabase
         .from("investment_assets")
         .delete()
         .eq("user_id", user?.id)
-        .eq("id", id);
+        .eq("id", assetId);
 
       if (error) throw error;
     },
@@ -93,12 +93,14 @@ export const useCreateInvestmentAsset = () => {
 export const useUpdateInvestmentAsset = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ id, ...asset }: AssetFormData & { id: number }) => {
       const { error } = await supabase
         .from("investment_assets")
         .update(asset)
+        .eq("user_id", user?.id)
         .eq("id", id);
 
       if (error) throw error;

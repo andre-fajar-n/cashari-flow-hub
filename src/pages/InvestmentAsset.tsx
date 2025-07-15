@@ -5,7 +5,6 @@ import { Plus, Coins, Edit, Trash2 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import InvestmentAssetDialog from "@/components/investment/InvestmentAssetDialog";
-import { useToast } from "@/hooks/use-toast";
 import { useDeleteInvestmentAsset, useInvestmentAssets, useInvestmentInstruments } from "@/hooks/queries";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { InvestmentAssetModel } from "@/models/investment-assets";
@@ -13,7 +12,6 @@ import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
 
 const InvestmentAsset = () => {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [investmentAssetToDelete, setInvestmentAssetToDelete] = useState<number | null>(null);
@@ -35,22 +33,7 @@ const InvestmentAsset = () => {
 
   const handleConfirmDelete = () => {
     if (investmentAssetToDelete) {
-      deleteInvestmentAsset(investmentAssetToDelete, {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
-          toast({
-            title: "Berhasil",
-            description: "Aset berhasil dihapus",
-          });
-        },
-        onError: (error) => {
-          toast({
-            title: "Error",
-            description: `Gagal menghapus aset investasi: ${error.message}`,
-            variant: "destructive",
-          });
-        },
-      });
+      deleteInvestmentAsset(investmentAssetToDelete);
     }
   };
 
@@ -73,7 +56,7 @@ const InvestmentAsset = () => {
             )}
           </div>
           <p className="text-sm text-muted-foreground mt-1">
-            Instrumen ID: {asset.instrument_id}
+            Instrumen: {asset.investment_instruments?.name}
           </p>
         </div>
         <div className="flex gap-2">
@@ -108,11 +91,6 @@ const InvestmentAsset = () => {
         label: instrument.name,
         value: instrument.id.toString()
       })) || []
-    },
-    {
-      field: "symbol",
-      label: "Simbol",
-      type: "text"
     }
   ];
 
