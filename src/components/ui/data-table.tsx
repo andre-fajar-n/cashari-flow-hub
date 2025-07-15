@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -84,6 +83,7 @@ export function DataTable<T extends Record<string, any>>({
 
           // Handle date range filtering (format: "2024-01-01,2024-01-31" or single date "2024-01-01")
           const filter = columnFilters.find(f => f.field === field);
+
           if (filter?.type === 'daterange') {
             const itemDate = new Date(itemValue);
 
@@ -98,6 +98,10 @@ export function DataTable<T extends Record<string, any>>({
               const filterDate = new Date(value);
               return itemDate.toDateString() === filterDate.toDateString();
             }
+          }
+
+          if (filter?.type === 'select') {
+            return itemValue.toString() === value;
           }
 
           // Handle regular filtering
