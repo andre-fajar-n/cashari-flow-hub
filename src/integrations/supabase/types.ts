@@ -249,6 +249,7 @@ export type Database = {
       debt_histories: {
         Row: {
           amount: number
+          category_id: number
           created_at: string | null
           currency_code: string
           date: string
@@ -262,6 +263,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          category_id: number
           created_at?: string | null
           currency_code: string
           date: string
@@ -275,6 +277,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          category_id?: number
           created_at?: string | null
           currency_code?: string
           date?: string
@@ -287,6 +290,13 @@ export type Database = {
           wallet_id?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "debt_histories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "debt_histories_currency_code_fkey"
             columns: ["currency_code"]
@@ -317,6 +327,7 @@ export type Database = {
           due_date: string | null
           id: number
           name: string
+          status: Database["public"]["Enums"]["debt_statuses"]
           type: Database["public"]["Enums"]["debt_type"]
           updated_at: string | null
           user_id: string
@@ -327,6 +338,7 @@ export type Database = {
           due_date?: string | null
           id?: number
           name: string
+          status?: Database["public"]["Enums"]["debt_statuses"]
           type: Database["public"]["Enums"]["debt_type"]
           updated_at?: string | null
           user_id: string
@@ -337,6 +349,7 @@ export type Database = {
           due_date?: string | null
           id?: number
           name?: string
+          status?: Database["public"]["Enums"]["debt_statuses"]
           type?: Database["public"]["Enums"]["debt_type"]
           updated_at?: string | null
           user_id?: string
@@ -403,13 +416,6 @@ export type Database = {
             columns: ["asset_id"]
             isOneToOne: false
             referencedRelation: "investment_assets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "goal_investment_records_asset_id_fkey"
-            columns: ["asset_id"]
-            isOneToOne: false
-            referencedRelation: "investment_assets_with_instruments"
             referencedColumns: ["id"]
           },
           {
@@ -530,13 +536,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "goal_transfers_from_asset_id_fkey"
-            columns: ["from_asset_id"]
-            isOneToOne: false
-            referencedRelation: "investment_assets_with_instruments"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "goal_transfers_from_goal_id_fkey"
             columns: ["from_goal_id"]
             isOneToOne: false
@@ -562,13 +561,6 @@ export type Database = {
             columns: ["to_asset_id"]
             isOneToOne: false
             referencedRelation: "investment_assets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "goal_transfers_to_asset_id_fkey"
-            columns: ["to_asset_id"]
-            isOneToOne: false
-            referencedRelation: "investment_assets_with_instruments"
             referencedColumns: ["id"]
           },
           {
@@ -933,27 +925,6 @@ export type Database = {
         }
         Relationships: []
       }
-      investment_assets_with_instruments: {
-        Row: {
-          created_at: string | null
-          id: number | null
-          instrument_id: number | null
-          instrument_name: string | null
-          name: string | null
-          symbol: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "investment_assets_instrument_id_fkey"
-            columns: ["instrument_id"]
-            isOneToOne: false
-            referencedRelation: "investment_instruments"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       money_movements: {
         Row: {
           amount: number | null
@@ -1007,6 +978,7 @@ export type Database = {
     }
     Enums: {
       category_application: "transaction" | "investment" | "debt"
+      debt_statuses: "active" | "paid_off"
       debt_type: "loan" | "borrowed"
     }
     CompositeTypes: {
@@ -1136,6 +1108,7 @@ export const Constants = {
   public: {
     Enums: {
       category_application: ["transaction", "investment", "debt"],
+      debt_statuses: ["active", "paid_off"],
       debt_type: ["loan", "borrowed"],
     },
   },

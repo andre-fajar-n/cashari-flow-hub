@@ -1,16 +1,19 @@
+
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar, Edit, Trash2 } from "lucide-react";
+import { Plus, Calendar, Edit, Trash2, History, CheckCircle } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import DebtDialog from "@/components/debt/DebtDialog";
+import DebtDetailDialog from "@/components/debt/DebtDetailDialog";
 import { DEBT_TYPES } from "@/constants/enums";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useDebts, useDeleteDebt, useCurrencies } from "@/hooks/queries";
 import { DebtModel } from "@/models/debts";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 const Debt = () => {
   const queryClient = useQueryClient();
@@ -18,6 +21,8 @@ const Debt = () => {
   const [debtToDelete, setDebtToDelete] = useState<DebtModel | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDebt, setSelectedDebt] = useState<DebtModel | undefined>(undefined);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [debtForDetail, setDebtForDetail] = useState<DebtModel | undefined>(undefined);
 
   const { mutate: deleteDebt } = useDeleteDebt();
   const { data: debts, isLoading } = useDebts();
@@ -44,11 +49,21 @@ const Debt = () => {
     setIsDialogOpen(true);
   };
 
+  const handleViewHistory = (debt: DebtModel) => {
+    setDebtForDetail(debt);
+    setIsDetailDialogOpen(true);
+  };
+
   const renderDebtItem = (debt: DebtModel) => (
     <Card key={debt.id} className="p-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <div className="flex-1">
-          <h3 className="font-semibold">{debt.name}</h3>
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="font-semibold">{debt.name}</h3>
+            <Badge variant={debt.status === 'active' ? 'default' : 'secondary'}>
+              {debt.status === 'active' ? 'Aktif' : 'Lunas'}
+            </Badge>
+          </div>
           <div className="flex items-center gap-4 mt-1">
             <span className={`text-xs px-2 py-1 rounded ${
               debt.type === DEBT_TYPES.LOAN 
@@ -67,7 +82,14 @@ const Debt = () => {
           )}
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">History</Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => handleViewHistory(debt)}
+          >
+            <History className="w-3 h-3 mr-1" />
+            History
+          </Button>
           <Button 
             variant="outline" 
             size="sm"
@@ -100,6 +122,15 @@ const Debt = () => {
       ]
     },
     {
+      field: "status",
+      label: "Status",
+      type: "select",
+      options: [
+        { label: "Aktif", value: "active" },
+        { label: "Lunas", value: "paid_off" }
+      ]
+    },
+    {
       field: "currency_code",
       label: "Mata Uang",
       type: "select",
@@ -109,19 +140,9 @@ const Debt = () => {
       })) || []
     },
     {
-      field: "amount",
-      label: "Jumlah Min",
-      type: "number"
-    },
-    {
       field: "due_date",
       label: "Tanggal Jatuh Tempo",
       type: "date"
-    },
-    {
-      field: "person_name",
-      label: "Nama Orang",
-      type: "text"
     }
   ];
 
@@ -173,6 +194,15 @@ const Debt = () => {
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
           debt={selectedDebt}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ["debts"] });
+          }}
+        />
+
+        <DebtDetailDialog
+          open={isDetailDialogOpen}
+          onOpenChange={setIsDetailDialogOpen}
+          debt={debtForDetail}
           onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: ["debts"] });
           }}
