@@ -1,12 +1,11 @@
-
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar, Edit, Trash2, History, CheckCircle } from "lucide-react";
+import { Plus, Calendar, Edit, Trash2, History } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import DebtDialog from "@/components/debt/DebtDialog";
-import DebtDetailDialog from "@/components/debt/DebtDetailDialog";
 import { DEBT_TYPES } from "@/constants/enums";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useDebts, useDeleteDebt, useCurrencies } from "@/hooks/queries";
@@ -17,12 +16,11 @@ import { Badge } from "@/components/ui/badge";
 
 const Debt = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [debtToDelete, setDebtToDelete] = useState<DebtModel | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDebt, setSelectedDebt] = useState<DebtModel | undefined>(undefined);
-  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
-  const [debtForDetail, setDebtForDetail] = useState<DebtModel | undefined>(undefined);
 
   const { mutate: deleteDebt } = useDeleteDebt();
   const { data: debts, isLoading } = useDebts();
@@ -50,8 +48,7 @@ const Debt = () => {
   };
 
   const handleViewHistory = (debt: DebtModel) => {
-    setDebtForDetail(debt);
-    setIsDetailDialogOpen(true);
+    navigate(`/debt/${debt.id}/history`);
   };
 
   const renderDebtItem = (debt: DebtModel) => (
@@ -193,15 +190,6 @@ const Debt = () => {
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
           debt={selectedDebt}
-          onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ["debts"] });
-          }}
-        />
-
-        <DebtDetailDialog
-          open={isDetailDialogOpen}
-          onOpenChange={setIsDetailDialogOpen}
-          debt={debtForDetail}
           onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: ["debts"] });
           }}

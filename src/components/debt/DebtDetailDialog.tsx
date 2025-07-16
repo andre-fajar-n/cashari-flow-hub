@@ -2,13 +2,10 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Plus, DollarSign, CheckCircle } from "lucide-react";
+import { Calendar, CheckCircle } from "lucide-react";
 import { DEBT_TYPES } from "@/constants/enums";
 import { useMarkDebtAsPaid } from "@/hooks/queries/use-debt-histories";
-import DebtHistoryDialog from "./DebtHistoryDialog";
-import DebtHistoryList from "./DebtHistoryList";
 import ConfirmationModal from "@/components/ConfirmationModal";
 
 interface DebtDetailDialogProps {
@@ -19,7 +16,6 @@ interface DebtDetailDialogProps {
 }
 
 const DebtDetailDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDetailDialogProps) => {
-  const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [isMarkPaidModalOpen, setIsMarkPaidModalOpen] = useState(false);
   const markAsPaid = useMarkDebtAsPaid();
 
@@ -38,7 +34,7 @@ const DebtDetailDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDetailDia
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {debt.name}
@@ -71,53 +67,20 @@ const DebtDetailDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDetailDia
               )}
             </div>
 
-            <Tabs defaultValue="history" className="w-full">
-              <TabsList className="grid w-full grid-cols-1">
-                <TabsTrigger value="history">History Pembayaran</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="history" className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">History Pembayaran</h3>
-                  <div className="flex gap-2">
-                    {debt.status === 'active' && (
-                      <>
-                        <Button
-                          onClick={() => setIsHistoryDialogOpen(true)}
-                          size="sm"
-                        >
-                          <Plus className="w-4 h-4 mr-1" />
-                          Tambah History
-                        </Button>
-                        <Button
-                          onClick={() => setIsMarkPaidModalOpen(true)}
-                          variant="outline"
-                          size="sm"
-                        >
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          Tandai Lunas
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </div>
-                
-                <DebtHistoryList debtId={debt.id} />
-              </TabsContent>
-            </Tabs>
+            {debt.status === 'active' && (
+              <div className="flex justify-end pt-4">
+                <Button
+                  onClick={() => setIsMarkPaidModalOpen(true)}
+                  variant="outline"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Tandai Lunas
+                </Button>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
-
-      <DebtHistoryDialog
-        open={isHistoryDialogOpen}
-        onOpenChange={setIsHistoryDialogOpen}
-        debtId={debt.id}
-        debtCurrency={debt.currency_code}
-        onSuccess={() => {
-          onSuccess?.();
-        }}
-      />
 
       <ConfirmationModal
         open={isMarkPaidModalOpen}

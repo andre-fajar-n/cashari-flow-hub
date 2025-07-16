@@ -11,6 +11,7 @@ import Transaction from "@/pages/Transaction";
 import Transfer from "@/pages/Transfer";
 import Budget from "@/pages/Budget";
 import Debt from "@/pages/Debt";
+import DebtHistory from "@/pages/DebtHistory";
 import BusinessProject from "@/pages/BusinessProject";
 import Goal from "@/pages/Goal";
 import GoalDetail from "@/pages/GoalDetail";
@@ -25,7 +26,6 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -38,6 +38,7 @@ const App = () => (
             <Route path="/transfer" element={<Transfer />} />
             <Route path="/budget" element={<Budget />} />
             <Route path="/debt" element={<Debt />} />
+            <Route path="/debt/:id/history" element={<DebtHistory />} />
             <Route path="/business-project" element={<BusinessProject />} />
             <Route path="/goal" element={<Goal />} />
             <Route path="/goal/:id" element={<GoalDetail />} />
