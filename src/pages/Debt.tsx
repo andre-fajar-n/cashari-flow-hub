@@ -170,7 +170,6 @@ const Debt = () => {
           emptyStateMessage="Belum ada data hutang/piutang"
           title="Manajemen Hutang/Piutang"
           description="Kelola hutang dan piutang Anda"
-          onRefresh={() => queryClient.invalidateQueries({ queryKey: ["debts"] })}
           headerActions={
             debts && debts.length > 0 && (
               <Button onClick={handleAddNew} className="w-full sm:w-auto">

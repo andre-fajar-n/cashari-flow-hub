@@ -204,7 +204,6 @@ const Transfer = () => {
             emptyStateMessage="Belum ada transfer"
             title="Manajemen Transfer"
             description="Kelola transfer antar dompet"
-            onRefresh={() => queryClient.invalidateQueries({ queryKey: ["transfers"] })}
             headerActions={
               transfers && transfers.length > 0 && (
                 <Button onClick={() => openDialog(undefined)} className="w-full sm:w-auto">

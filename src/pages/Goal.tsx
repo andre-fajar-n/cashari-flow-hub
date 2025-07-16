@@ -148,7 +148,6 @@ const Goal = () => {
           emptyStateMessage="Belum ada target yang dibuat"
           title="Manajemen Target"
           description="Kelola target keuangan Anda"
-          onRefresh={() => queryClient.invalidateQueries({ queryKey: ["goals"] })}
           headerActions={
             goals && goals.length > 0 && (
               <Button onClick={handleAddNew} className="w-full sm:w-auto">

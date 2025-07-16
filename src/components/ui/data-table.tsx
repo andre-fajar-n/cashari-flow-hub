@@ -26,7 +26,6 @@ export interface DataTableProps<T> {
   title?: string;
   description?: string;
   headerActions?: React.ReactNode;
-  onRefresh?: () => void;
 }
 
 export function DataTable<T extends Record<string, any>>({
@@ -41,7 +40,6 @@ export function DataTable<T extends Record<string, any>>({
   title,
   description,
   headerActions,
-  onRefresh,
 }: DataTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState("");
   const [columnFilterValues, setColumnFilterValues] = useState<Record<string, any>>({});
@@ -240,11 +238,6 @@ export function DataTable<T extends Record<string, any>>({
                 <Button variant="outline" size="sm" onClick={resetFilters} className="h-9">
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Reset
-                </Button>
-              )}
-              {onRefresh && (
-                <Button variant="outline" size="sm" onClick={onRefresh} className="h-9">
-                  Refresh
                 </Button>
               )}
             </div>

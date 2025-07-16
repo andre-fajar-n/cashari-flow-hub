@@ -126,7 +126,6 @@ const BusinessProject = () => {
           emptyStateMessage="Belum ada proyek bisnis yang dibuat"
           title="Proyek Bisnis"
           description="Kelola proyek bisnis dan investasi Anda"
-          onRefresh={() => queryClient.invalidateQueries({ queryKey: ["business_projects"] })}
           headerActions={
             projects && projects.length > 0 && (
               <Button onClick={handleAddNew} className="w-full sm:w-auto">

@@ -118,7 +118,6 @@ const InvestmentAsset = () => {
           emptyStateMessage="Belum ada aset investasi yang dibuat"
           title="Aset Investasi"
           description="Kelola aset investasi dalam instrumen Anda"
-          onRefresh={() => queryClient.invalidateQueries({ queryKey: ["investment_assets"] })}
           headerActions={
             assets && assets.length > 0 && (
               <Button onClick={handleAddNew} className="w-full sm:w-auto">

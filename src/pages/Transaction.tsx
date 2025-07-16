@@ -188,7 +188,6 @@ const Transaction = () => {
             emptyStateMessage="Belum ada transaksi"
             title="Manajemen Transaksi"
             description="Kelola pemasukan dan pengeluaran Anda"
-            onRefresh={() => queryClient.invalidateQueries({ queryKey: ["transactions"] })}
             headerActions={
               transactions && transactions.length > 0 && (
                 <Button onClick={() => openDialog(undefined)} className="w-full sm:w-auto">

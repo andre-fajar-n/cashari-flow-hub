@@ -128,7 +128,6 @@ const Budget = () => {
           emptyStateMessage="Belum ada budget yang dibuat"
           title="Manajemen Budget"
           description="Kelola anggaran keuangan Anda"
-          onRefresh={() => queryClient.invalidateQueries({ queryKey: ["budgets"] })}
           headerActions={
             budgets && budgets.length > 0 && (
               <Button onClick={handleAddNew} className="w-full sm:w-auto">
