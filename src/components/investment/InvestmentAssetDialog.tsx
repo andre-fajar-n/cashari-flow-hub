@@ -59,6 +59,7 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
       onOpenChange(false);
       form.reset();
       onSuccess?.();
+      setIsLoading(false);
     }
   }, [createAsset.isSuccess, updateAsset.isSuccess]);
 
