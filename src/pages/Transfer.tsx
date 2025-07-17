@@ -80,15 +80,15 @@ const Transfer = () => {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-red-600">
-                -{formatAmount(transfer.amount_from, transfer.from_currency?.symbol || transfer.currency_from)}
+                -{formatAmount(transfer.from_amount, transfer.from_currency_detail?.symbol || transfer.from_currency)}
               </Badge>
               <span className="text-muted-foreground">→</span>
               <Badge variant="outline" className="text-green-600">
-                +{formatAmount(transfer.amount_to, transfer.to_currency?.symbol || transfer.currency_to)}
+                +{formatAmount(transfer.to_amount, transfer.to_currency_detail?.symbol || transfer.to_currency)}
               </Badge>
             </div>
             <div className="text-xs text-muted-foreground">
-              {transfer.currency_from} → {transfer.currency_to}
+              {transfer.from_currency} → {transfer.to_currency}
             </div>
           </div>
         </div>
@@ -141,7 +141,7 @@ const Transfer = () => {
       })) || []
     },
     {
-      field: "currency_from",
+      field: "from_currency",
       label: "Mata Uang Asal",
       type: "select",
       options: currencies?.map(currency => ({
@@ -150,7 +150,7 @@ const Transfer = () => {
       })) || []
     },
     {
-      field: "currency_to",
+      field: "to_currency",
       label: "Mata Uang Tujuan",
       type: "select",
       options: currencies?.map(currency => ({
@@ -159,7 +159,7 @@ const Transfer = () => {
       })) || []
     },
     {
-      field: "amount_from",
+      field: "from_amount",
       label: "Jumlah Asal Min",
       type: "number"
     },
@@ -198,7 +198,7 @@ const Transfer = () => {
             data={transfers || []}
             isLoading={isLoading}
             searchPlaceholder="Cari transfer..."
-            searchFields={["amount_from", "amount_to"]}
+            searchFields={["from_amount", "to_amount"]}
             columnFilters={columnFilters}
             renderItem={renderTransferItem}
             emptyStateMessage="Belum ada transfer"

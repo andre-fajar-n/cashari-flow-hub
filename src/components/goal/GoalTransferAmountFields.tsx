@@ -24,7 +24,7 @@ const GoalTransferAmountFields = ({ control, watch, wallets }: GoalTransferAmoun
       <div className="grid grid-cols-2 gap-4">
         <FormField
           control={control}
-          name="amount_from"
+          name="from_amount"
           rules={{ required: "Jumlah keluar harus diisi", min: { value: 1, message: "Jumlah harus lebih dari 0" } }}
           render={({ field }) => (
             <FormItem>
@@ -43,7 +43,7 @@ const GoalTransferAmountFields = ({ control, watch, wallets }: GoalTransferAmoun
 
         <FormField
           control={control}
-          name="amount_to"
+          name="to_amount"
           rules={{ required: "Jumlah masuk harus diisi", min: { value: 1, message: "Jumlah harus lebih dari 0" } }}
           render={({ field }) => (
             <FormItem>

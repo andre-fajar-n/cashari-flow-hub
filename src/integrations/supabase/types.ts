@@ -457,11 +457,11 @@ export type Database = {
       }
       goal_transfers: {
         Row: {
-          amount_from: number | null
-          amount_to: number | null
+          from_amount: number | null
+          to_amount: number | null
           created_at: string | null
-          currency_from: string | null
-          currency_to: string | null
+          from_currency: string | null
+          to_currency: string | null
           date: string
           from_asset_id: number | null
           from_goal_id: number | null
@@ -476,11 +476,11 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          amount_from?: number | null
-          amount_to?: number | null
+          from_amount?: number | null
+          to_amount?: number | null
           created_at?: string | null
-          currency_from?: string | null
-          currency_to?: string | null
+          from_currency?: string | null
+          to_currency?: string | null
           date: string
           from_asset_id?: number | null
           from_goal_id?: number | null
@@ -495,11 +495,11 @@ export type Database = {
           user_id: string
         }
         Update: {
-          amount_from?: number | null
-          amount_to?: number | null
+          from_amount?: number | null
+          to_amount?: number | null
           created_at?: string | null
-          currency_from?: string | null
-          currency_to?: string | null
+          from_currency?: string | null
+          to_currency?: string | null
           date?: string
           from_asset_id?: number | null
           from_goal_id?: number | null
@@ -515,15 +515,15 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "goal_transfers_currency_from_fkey"
-            columns: ["currency_from"]
+            foreignKeyName: "goal_transfers_from_currency_fkey"
+            columns: ["from_currency"]
             isOneToOne: false
             referencedRelation: "currencies"
             referencedColumns: ["code"]
           },
           {
-            foreignKeyName: "goal_transfers_currency_to_fkey"
-            columns: ["currency_to"]
+            foreignKeyName: "goal_transfers_to_currency_fkey"
+            columns: ["to_currency"]
             isOneToOne: false
             referencedRelation: "currencies"
             referencedColumns: ["code"]
@@ -788,11 +788,11 @@ export type Database = {
       }
       transfers: {
         Row: {
-          amount_from: number
-          amount_to: number
+          from_amount: number
+          to_amount: number
           created_at: string | null
-          currency_from: string
-          currency_to: string
+          from_currency: string
+          to_currency: string
           date: string
           from_wallet_id: number
           id: number
@@ -801,11 +801,11 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          amount_from: number
-          amount_to: number
+          from_amount: number
+          to_amount: number
           created_at?: string | null
-          currency_from: string
-          currency_to: string
+          from_currency: string
+          to_currency: string
           date: string
           from_wallet_id: number
           id?: number
@@ -814,11 +814,11 @@ export type Database = {
           user_id: string
         }
         Update: {
-          amount_from?: number
-          amount_to?: number
+          from_amount?: number
+          to_amount?: number
           created_at?: string | null
-          currency_from?: string
-          currency_to?: string
+          from_currency?: string
+          to_currency?: string
           date?: string
           from_wallet_id?: number
           id?: number
@@ -828,15 +828,15 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "transfers_currency_from_fkey"
-            columns: ["currency_from"]
+            foreignKeyName: "transfers_from_currency_fkey"
+            columns: ["from_currency"]
             isOneToOne: false
             referencedRelation: "currencies"
             referencedColumns: ["code"]
           },
           {
-            foreignKeyName: "transfers_currency_to_fkey"
-            columns: ["currency_to"]
+            foreignKeyName: "transfers_to_currency_fkey"
+            columns: ["to_currency"]
             isOneToOne: false
             referencedRelation: "currencies"
             referencedColumns: ["code"]

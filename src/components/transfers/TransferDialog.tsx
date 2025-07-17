@@ -31,7 +31,7 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
 
   const watchFromId = form.watch("from_wallet_id");
   const watchToId = form.watch("to_wallet_id");
-  const watchAmountFrom = form.watch("amount_from");
+  const watchAmountFrom = form.watch("from_amount");
 
   const fromWallet = useMemo(
     () => wallets?.find(w => w.id.toString() === watchFromId),
@@ -51,8 +51,8 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
       form.reset({
         from_wallet_id: transfer.from_wallet_id?.toString() || "",
         to_wallet_id: transfer.to_wallet_id?.toString() || "",
-        amount_from: transfer.amount_from || 0,
-        amount_to: transfer.amount_to || 0,
+        from_amount: transfer.from_amount || 0,
+        to_amount: transfer.to_amount || 0,
         date: transfer.date || new Date().toISOString().split("T")[0],
       });
     } else {
@@ -60,10 +60,10 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
     }
   }, [open, wallets, transfer, form]);
 
-  // Sync amount_to if currency same
+  // Sync to_amount if currency same
   useEffect(() => {
     if (isSameCurrency && watchAmountFrom > 0) {
-      form.setValue("amount_to", watchAmountFrom);
+      form.setValue("to_amount", watchAmountFrom);
     }
   }, [isSameCurrency, watchAmountFrom, form]);
 
@@ -73,10 +73,10 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
     const transferData = {
       from_wallet_id: parseInt(data.from_wallet_id),
       to_wallet_id: parseInt(data.to_wallet_id),
-      amount_from: data.amount_from,
-      amount_to: isSameCurrency ? data.amount_from : data.amount_to,
-      currency_from: fromWallet?.currency_code,
-      currency_to: toWallet?.currency_code,
+      from_amount: data.from_amount,
+      to_amount: isSameCurrency ? data.from_amount : data.to_amount,
+      from_currency: fromWallet?.currency_code,
+      to_currency: toWallet?.currency_code,
       date: data.date,
     };
 
@@ -173,7 +173,7 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="amount_from"
+                name="from_amount"
                 rules={{ required: "Jumlah keluar harus diisi", min: { value: 1, message: "Harus lebih dari 0" } }}
                 render={({ field }) => (
                   <FormItem>
@@ -188,7 +188,7 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
 
               <FormField
                 control={form.control}
-                name="amount_to"
+                name="to_amount"
                 rules={{ required: "Jumlah masuk harus diisi", min: { value: 1, message: "Harus lebih dari 0" } }}
                 render={({ field }) => (
                   <FormItem>

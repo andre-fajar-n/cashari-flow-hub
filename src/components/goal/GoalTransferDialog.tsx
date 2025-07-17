@@ -42,7 +42,7 @@ const GoalTransferDialog = ({
 
   const fromInstrumentId = form.watch("from_instrument_id");
   const toInstrumentId = form.watch("to_instrument_id");
-  const amountFrom = form.watch("amount_from");
+  const amountFrom = form.watch("from_amount");
 
   // Filter assets based on selected instruments
   const fromAssets = assets?.filter(asset => 
@@ -52,7 +52,7 @@ const GoalTransferDialog = ({
     toInstrumentId === 0 || asset.instrument_id === toInstrumentId
   );
 
-  // Auto-populate amount_to when same currency
+  // Auto-populate to_amount when same currency
   useEffect(() => {
     const fromWalletId = form.watch("from_wallet_id");
     const toWalletId = form.watch("to_wallet_id");
@@ -61,7 +61,7 @@ const GoalTransferDialog = ({
     const isSameCurrency = fromWallet?.currency_code === toWallet?.currency_code;
     
     if (isSameCurrency && amountFrom > 0) {
-      form.setValue("amount_to", amountFrom);
+      form.setValue("to_amount", amountFrom);
     }
   }, [amountFrom, form, wallets]);
 
@@ -93,10 +93,10 @@ const GoalTransferDialog = ({
       to_goal_id: data.to_goal_id > 0 ? data.to_goal_id : null,
       to_instrument_id: data.to_instrument_id > 0 ? data.to_instrument_id : null,
       to_asset_id: data.to_asset_id > 0 ? data.to_asset_id : null,
-      amount_from: data.amount_from,
-      amount_to: data.amount_to,
-      currency_from: 'IDR',
-      currency_to: 'IDR',
+      from_amount: data.from_amount,
+      to_amount: data.to_amount,
+      from_currency: 'IDR',
+      to_currency: 'IDR',
       date: data.date,
     };
 

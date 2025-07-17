@@ -16,13 +16,16 @@ export const useTransfers = () => {
           *,
           from_wallet:wallets!transfers_from_wallet_id_fkey(name),
           to_wallet:wallets!transfers_to_wallet_id_fkey(name),
-          from_currency:currencies!transfers_currency_from_fkey(symbol),
-          to_currency:currencies!transfers_currency_to_fkey(symbol)
+          from_currency:currencies!transfers_from_currency_fkey(symbol),
+          to_currency:currencies!transfers_to_currency_fkey(symbol)
         `)
         .eq("user_id", user?.id)
         .order("date", { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Failed to fetch transfers", error);
+        throw error;
+      }
       return data;
     },
     enabled: !!user,

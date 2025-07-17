@@ -2,10 +2,10 @@ export interface TransferModel {
   id: number;
   from_wallet_id: number;
   to_wallet_id: number;
-  amount_from: number;
-  amount_to: number;
-  currency_from: string;
-  currency_to: string;
+  from_amount: number;
+  to_amount: number;
+  from_currency: string;
+  to_currency: string;
   date: string;
   from_wallet?: {
     name: string;
@@ -13,10 +13,10 @@ export interface TransferModel {
   to_wallet?: {
     name: string;
   };
-  from_currency?: {
+  from_currency_detail?: {
     symbol: string;
   };
-  to_currency?: {
+  to_currency_detail?: {
     symbol: string;
   };
 }

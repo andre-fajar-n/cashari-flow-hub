@@ -15,7 +15,7 @@ export const calculateGoalProgress = (
   // Calculate from transfers
   const transfers = goalTransfers?.filter(t => t.to_goal_id === goalId || t.from_goal_id === goalId) || [];
   const transferAmount = transfers.reduce((sum, transfer) => {
-    const amount = transfer.to_goal_id === goalId ? transfer.amount_to : -transfer.amount_from;
+    const amount = transfer.to_goal_id === goalId ? transfer.to_amount : -transfer.from_amount;
     return sum + amount
   }, 0);
   
