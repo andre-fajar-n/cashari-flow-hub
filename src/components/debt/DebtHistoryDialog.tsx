@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -6,73 +5,81 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useCreateDebtHistory, DebtHistoryFormData } from "@/hooks/queries/use-debt-histories";
-import { useWallets, useCategories, useCurrencies, useDefaultCurrency } from "@/hooks/queries";
+import { useCreateDebtHistory, useUpdateDebtHistory } from "@/hooks/queries/use-debt-histories";
+import { DebtHistoryFormData, defaultDebtHistoryFormValues } from "@/form-dto/debt-histories";
+import { useWallets } from "@/hooks/queries/use-wallets";
+import { useDebtCategories } from "@/hooks/queries/use-categories";
+import { useCurrencies } from "@/hooks/queries/use-currencies";
 
 interface DebtHistoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   debtId: number;
-  debtCurrency: string;
   onSuccess?: () => void;
+  history?: any;
 }
 
-const DebtHistoryDialog = ({ open, onOpenChange, debtId, debtCurrency, onSuccess }: DebtHistoryDialogProps) => {
+const DebtHistoryDialog = ({ open, onOpenChange, debtId, onSuccess, history }: DebtHistoryDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const createDebtHistory = useCreateDebtHistory();
+  const updateDebtHistory = useUpdateDebtHistory();
   const { data: wallets } = useWallets();
-  const { data: categories } = useCategories();
+  const { data: categories } = useDebtCategories();
   const { data: currencies } = useCurrencies();
-  const defaultCurrency = useDefaultCurrency();
 
   const form = useForm<DebtHistoryFormData>({
-    defaultValues: {
-      debt_id: debtId,
-      wallet_id: 0,
-      category_id: 0,
-      amount: 0,
-      currency_code: debtCurrency,
-      date: new Date().toISOString().split('T')[0],
-      description: "",
-      exchange_rate: 1,
-    },
+    defaultValues: defaultDebtHistoryFormValues,
   });
-
-  useEffect(() => {
-    if (open && wallets && wallets.length > 0) {
-      form.setValue("wallet_id", wallets[0].id);
-    }
-    if (open && categories && categories.length > 0) {
-      const debtCategories = categories.filter(cat => cat.application === 'debt' || cat.application === null);
-      if (debtCategories.length > 0) {
-        form.setValue("category_id", debtCategories[0].id);
-      }
-    }
-  }, [open, wallets, categories, form]);
 
   const onSubmit = async (data: DebtHistoryFormData) => {
     setIsLoading(true);
-    try {
-      await createDebtHistory.mutateAsync(data);
-      onOpenChange(false);
-      onSuccess?.();
-      form.reset();
-    } catch (error) {
-      console.error("Error creating debt history:", error);
-    } finally {
-      setIsLoading(false);
+    const submitData = {
+      ...data,
+      wallet_id: parseInt(data.wallet_id),
+      category_id: parseInt(data.category_id),
+    };
+
+    if (history) {
+      updateDebtHistory.mutate({ id: history.id, ...submitData } as any);
+    } else {
+      createDebtHistory.mutate(submitData as any);
     }
   };
 
-  const debtRelatedCategories = categories?.filter(cat => 
-    cat.application === 'debt' || cat.application === null
-  ) || [];
+  useEffect(() => {
+    if (open) {
+      if (history) {
+        form.reset({
+          debt_id: history.debt_id || debtId,
+          wallet_id: history.wallet_id ? history.wallet_id.toString() : "",
+          category_id: history.category_id ? history.category_id.toString() : "",
+          amount: history.amount || 0,
+          currency_code: history.currency_code || "IDR",
+          date: history.date || new Date().toISOString().split("T")[0],
+          description: history.description || "",
+          exchange_rate: history.exchange_rate || 1,
+        });
+      } else {
+        form.reset({
+          debt_id: debtId,
+          ...defaultDebtHistoryFormValues,
+        });
+      }
+    }
+  }, [open, history, form, debtId]);
+
+  useEffect(() => {
+    if (createDebtHistory.isSuccess || updateDebtHistory.isSuccess) {
+      onOpenChange(false);
+      onSuccess?.();
+    }
+  }, [createDebtHistory.isSuccess, updateDebtHistory.isSuccess]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Tambah History Hutang/Piutang</DialogTitle>
+          <DialogTitle>{(history ? "Edit" : "Tambah") + " History Pembayaran"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -125,10 +132,14 @@ const DebtHistoryDialog = ({ open, onOpenChange, debtId, debtCurrency, onSuccess
                 <FormItem>
                   <FormLabel>Dompet</FormLabel>
                   <FormControl>
-                    <select {...field} className="w-full p-2 border rounded-md" onChange={(e) => field.onChange(parseInt(e.target.value))}>
+                    <select
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className="w-full p-2 border rounded-md"
+                    >
                       <option value="">Pilih dompet</option>
                       {wallets?.map((wallet) => (
-                        <option key={wallet.id} value={wallet.id}>
+                        <option key={wallet.id} value={wallet.id.toString()}>
                           {wallet.name} ({wallet.currency_code})
                         </option>
                       ))}
@@ -147,10 +158,14 @@ const DebtHistoryDialog = ({ open, onOpenChange, debtId, debtCurrency, onSuccess
                 <FormItem>
                   <FormLabel>Kategori</FormLabel>
                   <FormControl>
-                    <select {...field} className="w-full p-2 border rounded-md" onChange={(e) => field.onChange(parseInt(e.target.value))}>
+                    <select
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      className="w-full p-2 border rounded-md"
+                    >
                       <option value="">Pilih kategori</option>
-                      {debtRelatedCategories.map((category) => (
-                        <option key={category.id} value={category.id}>
+                      {categories?.map((category) => (
+                        <option key={category.id} value={category.id.toString()}>
                           {category.name}
                         </option>
                       ))}

@@ -1,19 +1,8 @@
-
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-
-export interface DebtHistoryFormData {
-  debt_id: number;
-  wallet_id: number;
-  category_id: number;
-  amount: number;
-  currency_code: string;
-  date: string;
-  description?: string;
-  exchange_rate?: number;
-}
+import { DebtHistoryFormData } from "@/form-dto/debt-histories";
 
 export const useDebtHistories = (debtId?: number) => {
   const { user } = useAuth();
@@ -26,7 +15,7 @@ export const useDebtHistories = (debtId?: number) => {
         .select(`
           *,
           wallets (name),
-          categories (name)
+          categories (name, is_income)
         `)
         .eq("user_id", user?.id)
         .order("date", { ascending: false });
@@ -78,26 +67,60 @@ export const useCreateDebtHistory = () => {
   });
 };
 
-export const useMarkDebtAsPaid = () => {
+export const useDeleteDebtHistory = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (debtId: number) => {
+    mutationFn: async (id: number) => {
       const { error } = await supabase
-        .from("debts")
-        .update({ status: "paid_off" })
-        .eq("id", debtId)
-        .eq("user_id", user?.id);
+        .from("debt_histories")
+        .delete()
+        .eq("user_id", user?.id)
+        .eq("id", id);
 
       if (error) throw error;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["debt-histories"] });
       queryClient.invalidateQueries({ queryKey: ["debts"] });
       toast({
         title: "Berhasil",
-        description: "Hutang/piutang berhasil ditandai sebagai lunas",
+        description: "History hutang/piutang berhasil dihapus",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useUpdateDebtHistory = () => {
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...debtHistory }: DebtHistoryFormData & { id: number }) => {
+      const { error } = await supabase
+        .from("debt_histories")
+        .update(debtHistory)
+        .eq("user_id", user?.id)
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["debt-histories"] });
+      queryClient.invalidateQueries({ queryKey: ["debts"] });
+      toast({
+        title: "Berhasil",
+        description: "History hutang/piutang berhasil diperbarui",
       });
     },
     onError: (error: any) => {

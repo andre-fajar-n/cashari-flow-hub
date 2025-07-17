@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { DebtFormData } from "@/form-dto/debts";
+import { Database } from "@/integrations/supabase/types";
 
 export const useDebts = () => {
   const { user } = useAuth();
@@ -119,3 +120,38 @@ export const useCreateDebt = () => {
     },
   });
 };
+
+const useDebtChangeStatus = (status: Database["public"]["Enums"]["debt_statuses"]) => {
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (debtId: number) => {
+      const { error } = await supabase
+        .from("debts")
+        .update({ status: status })
+        .eq("id", debtId)
+        .eq("user_id", user?.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["debts"] });
+      toast({
+        title: "Berhasil",
+        description: "Hutang/piutang berhasil ditandai sebagai " + status,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useMarkDebtAsPaid = () => useDebtChangeStatus("paid_off");
+export const useMarkDebtAsActive = () => useDebtChangeStatus("active");
