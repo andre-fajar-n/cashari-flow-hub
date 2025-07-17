@@ -59,6 +59,7 @@ const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogPro
     if (createBudget.isSuccess || updateBudget.isSuccess) {
       onOpenChange(false);
       onSuccess?.();
+      setIsLoading(false);
     }
   }, [createBudget.isSuccess, updateBudget.isSuccess]);
 

@@ -57,6 +57,7 @@ const InvestmentInstrumentDialog = ({ open, onOpenChange, instrument, onSuccess 
     if (createInstrument.isSuccess || updateInstrument.isSuccess) {
       onOpenChange(false);
       form.reset();
+      setIsLoading(false);
       onSuccess?.();
     }
   }, [createInstrument.isSuccess, updateInstrument.isSuccess]);

@@ -58,6 +58,7 @@ const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) =>
   useEffect(() => {
     if (createDebt.isSuccess || updateDebt.isSuccess) {
       onOpenChange(false);
+      setIsLoading(false);
       onSuccess?.();
     }
   }, [createDebt.isSuccess, updateDebt.isSuccess]);

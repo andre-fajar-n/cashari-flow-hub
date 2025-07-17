@@ -58,6 +58,7 @@ const BusinessProjectDialog = ({ open, onOpenChange, project, onSuccess }: Busin
     if (createProject.isSuccess || updateProject.isSuccess) {
       onOpenChange(false);
       form.reset();
+      setIsLoading(false);
       onSuccess?.();
     }
   }, [createProject.isSuccess, updateProject.isSuccess]);

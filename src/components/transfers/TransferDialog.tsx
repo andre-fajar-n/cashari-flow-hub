@@ -92,6 +92,7 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
     if (createTransfer.isSuccess || updateTransfer.isSuccess) {
       onOpenChange(false);
       onSuccess?.();
+      setIsLoading(false);
     }
   }, [createTransfer.isSuccess, updateTransfer.isSuccess]);
 

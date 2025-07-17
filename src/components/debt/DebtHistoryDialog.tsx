@@ -71,6 +71,7 @@ const DebtHistoryDialog = ({ open, onOpenChange, debtId, onSuccess, history }: D
   useEffect(() => {
     if (createDebtHistory.isSuccess || updateDebtHistory.isSuccess) {
       onOpenChange(false);
+      setIsLoading(false);
       onSuccess?.();
     }
   }, [createDebtHistory.isSuccess, updateDebtHistory.isSuccess]);

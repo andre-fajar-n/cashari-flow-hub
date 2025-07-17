@@ -56,6 +56,7 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
   useEffect(() => {
     if (createGoal.isSuccess || updateGoal.isSuccess) {
       onOpenChange(false);
+      setIsLoading(false);
       onSuccess?.();
     }
   }, [createGoal.isSuccess, updateGoal.isSuccess]);
