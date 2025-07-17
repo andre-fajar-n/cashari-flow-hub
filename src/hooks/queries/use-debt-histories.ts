@@ -43,7 +43,7 @@ export const useCreateDebtHistory = () => {
       const { error } = await supabase
         .from("debt_histories")
         .insert({
-          ...debtHistory,
+          ...debtHistory as any,
           user_id: user?.id,
         });
 
@@ -109,7 +109,7 @@ export const useUpdateDebtHistory = () => {
     mutationFn: async ({ id, ...debtHistory }: DebtHistoryFormData & { id: number }) => {
       const { error } = await supabase
         .from("debt_histories")
-        .update(debtHistory)
+        .update(debtHistory as any)
         .eq("user_id", user?.id)
         .eq("id", id);
 
