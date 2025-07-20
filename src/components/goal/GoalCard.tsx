@@ -168,19 +168,10 @@ const GoalCard = ({ goal, progress, onEdit, onDelete, onAddRecord, onTransferToG
               <span className="text-sm font-medium">Progress</span>
             </div>
             <span className="text-sm text-gray-600">
-              {progress.totalAmount.toLocaleString()} / {goal.target_amount.toLocaleString()} {goal.currency_code}
+              {progress.totalAmount.toLocaleString()} / {goal.target_amount.toLocaleString()} {goal.currency_code} ({progress.percentage.toFixed(1)}% tercapai)
             </span>
           </div>
           <Progress value={progress.percentage} className="h-2" />
-          <div className="flex justify-between items-center text-xs text-gray-500">
-            <div>
-              Transfer: {progress.transferAmount.toLocaleString()} | 
-              Records: {progress.recordAmount.toLocaleString()}
-            </div>
-            <span>
-              {progress.percentage.toFixed(1)}% tercapai
-            </span>
-          </div>
         </div>
       </div>
     </Card>

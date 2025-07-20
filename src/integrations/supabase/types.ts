@@ -909,22 +909,6 @@ export type Database = {
         }
         Relationships: []
       }
-      goal_movements: {
-        Row: {
-          amount: number | null
-          created_at: string | null
-          currency_code: string | null
-          date: string | null
-          destination_description: string | null
-          direction: string | null
-          goal_id: number | null
-          movement_id: number | null
-          movement_type: string | null
-          source_description: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
       money_movements: {
         Row: {
           amount: number | null
@@ -937,6 +921,7 @@ export type Database = {
           resource_type: string | null
           user_id: string | null
           wallet_id: number | null
+          description: string | null
         }
         Relationships: []
       }

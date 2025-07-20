@@ -13,12 +13,13 @@ import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
 import GoalMovementsHistory from "@/components/goal/GoalMovementsHistory";
 import GoalFundsSummary from "@/components/goal/GoalFundsSummary";
-import { useGoalTransfers, useGoalInvestmentRecords, useGoals, useDeleteGoal, useGoalMovements } from "@/hooks/queries";
+import { useGoalTransfers, useGoalInvestmentRecords, useGoals, useDeleteGoal } from "@/hooks/queries";
 import { calculateGoalProgress } from "@/components/goal/GoalProgressCalculator";
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { Progress } from "@/components/ui/progress";
 import { GoalModel } from "@/models/goals";
+import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
 
 const GoalDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -34,7 +35,7 @@ const GoalDetail = () => {
   const { data: goals } = useGoals();
   const { data: goalTransfers } = useGoalTransfers();
   const { data: goalRecords } = useGoalInvestmentRecords();
-  const { data: goalMovements } = useGoalMovements(parseInt(id!));
+  const { data: goalMovements } = useMoneyMovements({ goalId: parseInt(id!) });
 
   const goal = goals?.find(g => g.id === parseInt(id!)) as GoalModel;
 
@@ -211,7 +212,7 @@ const GoalDetail = () => {
           <GoalFundsSummary goalId={goal.id} />
 
           {/* Movement History */}
-          <GoalMovementsHistory movements={goalMovements || []} goalName={goal.name} />
+          <GoalMovementsHistory movements={goalMovements || []} />
 
           {/* Modals */}
           <ConfirmationModal

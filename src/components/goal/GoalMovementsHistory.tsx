@@ -1,26 +1,14 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUpRight, ArrowDownLeft, Calendar } from "lucide-react";
 import { formatAmount } from "@/lib/utils";
-
-interface Movement {
-  movement_type: string;
-  movement_id: number;
-  amount: number;
-  currency_code: string;
-  date: string;
-  direction: string;
-  source_description: string;
-  destination_description: string;
-}
+import { Database } from "@/integrations/supabase/types";
 
 interface GoalMovementsHistoryProps {
-  movements: Movement[];
-  goalName: string;
+  movements: Database["public"]["Views"]["money_movements"]["Row"][];
 }
 
-const GoalMovementsHistory = ({ movements, goalName }: GoalMovementsHistoryProps) => {
+const GoalMovementsHistory = ({ movements }: GoalMovementsHistoryProps) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
       day: '2-digit',
@@ -44,14 +32,14 @@ const GoalMovementsHistory = ({ movements, goalName }: GoalMovementsHistoryProps
           </div>
         ) : (
           <div className="space-y-4">
-            {movements.map((movement) => (
+            {movements.map((movement, index) => (
               <div
-                key={`${movement.movement_type}-${movement.movement_id}`}
+                key={`${movement.resource_type}-${movement.resource_id}-${index}`}
                 className="flex items-center justify-between p-4 border rounded-lg"
               >
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0">
-                    {movement.direction === 'IN' ? (
+                    {movement.amount && movement.amount > 0 ? (
                       <ArrowDownLeft className="w-5 h-5 text-green-600" />
                     ) : (
                       <ArrowUpRight className="w-5 h-5 text-red-600" />
@@ -60,29 +48,26 @@ const GoalMovementsHistory = ({ movements, goalName }: GoalMovementsHistoryProps
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="font-medium">
-                        {movement.direction === 'IN' ? 'Dana Masuk' : 'Dana Keluar'}
+                        {movement.amount && movement.amount > 0 ? 'Dana Masuk' : 'Dana Keluar'}
                       </p>
                       <Badge variant="outline" className="text-xs">
-                        {movement.movement_type === 'goal_transfer' ? 'Transfer' : 'Record'}
+                        {movement.resource_type}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {movement.direction === 'IN' 
-                        ? `Dari ${movement.source_description}`
-                        : `Ke ${movement.destination_description}`
-                      }
+                      {movement.description}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {formatDate(movement.date)}
+                      {formatDate(movement.date || '')}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className={`font-semibold ${
-                    movement.direction === 'IN' ? 'text-green-600' : 'text-red-600'
+                    movement.amount && movement.amount > 0 ? 'text-green-600' : 'text-red-600'
                   }`}>
-                    {movement.direction === 'IN' ? '+' : '-'}
-                    {formatAmount(movement.amount, movement.currency_code)}
+                    {movement.amount && movement.amount > 0 ? '+' : '-'}
+                    {formatAmount(Math.abs(movement.amount || 0), movement.currency_code || 'IDR')}
                   </p>
                 </div>
               </div>

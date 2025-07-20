@@ -6,7 +6,6 @@ export * from '@/hooks/queries/use-investment-instruments';
 export * from '@/hooks/queries/use-investment-assets';
 export * from '@/hooks/queries/use-goals';
 export * from '@/hooks/queries/use-goal-transfers';
-export * from '@/hooks/queries/use-goal-movements';
 export * from '@/hooks/queries/use-goal-funds-summary';
 export * from '@/hooks/queries/use-budgets';
 export * from '@/hooks/queries/use-debts';
