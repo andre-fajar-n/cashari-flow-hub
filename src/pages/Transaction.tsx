@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { Plus, ArrowUpCircle, ArrowDownCircle, Edit, Trash2 } from "lucide-react
 import { useTransactions, useDeleteTransaction } from "@/hooks/queries/use-transactions";
 import { useCategories, useWallets } from "@/hooks/queries";
 import TransactionDialog from "@/components/transactions/TransactionDialog";
+import TransactionAssociations from "@/components/transactions/TransactionAssociations";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useQueryClient } from "@tanstack/react-query";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -62,7 +64,7 @@ const Transaction = () => {
       key={transaction.id}
       className="flex items-center justify-between p-4 border rounded-lg"
     >
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-1">
         <div className="flex-shrink-0">
           {(transaction.categories as any)?.is_income ? (
             <ArrowUpCircle className="w-5 h-5 text-green-600" />
@@ -70,7 +72,7 @@ const Transaction = () => {
             <ArrowDownCircle className="w-5 h-5 text-red-600" />
           )}
         </div>
-        <div>
+        <div className="flex-1">
           <p className="font-medium">{(transaction.categories as any)?.name}</p>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>{(transaction.wallets as any)?.name}</span>
@@ -82,6 +84,7 @@ const Transaction = () => {
               {transaction.description}
             </p>
           )}
+          <TransactionAssociations transaction={transaction} />
         </div>
       </div>
       <div className="flex items-center gap-2">

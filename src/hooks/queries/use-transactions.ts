@@ -15,7 +15,15 @@ export const useTransactions = () => {
         .select(`
           *,
           categories(name, is_income),
-          wallets(name)
+          wallets(name),
+          budget_items(
+            budget_id,
+            budgets(name)
+          ),
+          business_project_transactions(
+            project_id,
+            business_projects(name)
+          )
         `)
         .eq("user_id", user?.id)
         .order("date", { ascending: false });

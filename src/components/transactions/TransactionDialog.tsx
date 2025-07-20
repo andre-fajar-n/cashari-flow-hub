@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useTransactionCategories } from "@/hooks/queries/use-categories";
@@ -37,14 +38,19 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
   useEffect(() => {
     if (open) {
       if (transaction) {
+        // Extract budget IDs from the associations
+        const budgetIds = transaction.budget_items?.map((item: any) => item.budget_id) || [];
+        // Extract business project IDs from the associations
+        const businessProjectIds = transaction.business_project_transactions?.map((item: any) => item.project_id) || [];
+
         form.reset({
           amount: transaction.amount || 0,
           category_id: transaction.category_id ? transaction.category_id.toString() : "",
           wallet_id: transaction.wallet_id ? transaction.wallet_id.toString() : "",
           date: transaction.date || new Date().toISOString().split("T")[0],
           description: transaction.description || "",
-          budget_ids: transaction.budget_ids || [],
-          business_project_ids: transaction.business_project_ids || [],
+          budget_ids: budgetIds,
+          business_project_ids: businessProjectIds,
         });
       } else {
         form.reset(defaultTransactionFormValues);
