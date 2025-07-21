@@ -5,193 +5,132 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { toast } from "@/hooks/use-toast";
-import { useWallets } from "@/hooks/queries/use-wallets";
-import { useCreateGoalInvestmentRecord, useUpdateGoalInvestmentRecord } from "@/hooks/queries/use-goal-investment-records";
-import { useDefaultCurrency } from "@/hooks/queries/use-currencies";
-import { useInvestmentCategories } from "@/hooks/queries/use-categories";
-import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
-import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
-
-interface GoalInvestmentRecordFormData {
-  goal_id: string;
-  instrument_id: string;
-  asset_id: string;
-  wallet_id: string;
-  category_id: string;
-  amount: number;
-  date: string;
-  currency_code: string;
-  is_valuation: boolean;
-}
+import { useCreateGoalInvestmentRecord, useInvestmentInstruments, useInvestmentAssets, useWallets, useCategories, useCurrencies } from "@/hooks/queries";
+import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData } from "@/form-dto/goal-investment-records";
 
 interface GoalInvestmentRecordDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  goalId?: number;
-  record?: any;
+  goalId: number;
   onSuccess?: () => void;
 }
 
-const GoalInvestmentRecordDialog = ({ 
-  open, 
-  onOpenChange, 
-  goalId, 
-  record, 
-  onSuccess 
-}: GoalInvestmentRecordDialogProps) => {
+const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, onSuccess }: GoalInvestmentRecordDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const defaultCurrency = useDefaultCurrency();
-
-  const form = useForm<GoalInvestmentRecordFormData>({
-    defaultValues: {
-      goal_id: goalId?.toString() || "",
-      instrument_id: "none",
-      asset_id: "none",
-      wallet_id: "none",
-      category_id: "none",
-      amount: 0,
-      date: new Date().toISOString().split('T')[0],
-      currency_code: defaultCurrency?.code || "IDR",
-      is_valuation: false,
-    },
-  });
-
-  const { data: wallets } = useWallets();
-  const { data: categories } = useInvestmentCategories();
+  const createRecord = useCreateGoalInvestmentRecord();
   const { data: instruments } = useInvestmentInstruments();
   const { data: assets } = useInvestmentAssets();
+  const { data: wallets } = useWallets();
+  const { data: categories } = useCategories();
+  const { data: currencies } = useCurrencies();
 
-  const { mutate: createRecord } = useCreateGoalInvestmentRecord();
-  const { mutate: updateRecord } = useUpdateGoalInvestmentRecord();
+  const form = useForm<GoalInvestmentRecordFormData>({
+    defaultValues: { ...defaultGoalInvestmentRecordFormData, goal_id: goalId },
+  });
 
-  const instrumentId = form.watch("instrument_id");
-  const filteredAssets = assets?.filter(asset => 
-    instrumentId === "none" || asset.instrument_id.toString() === instrumentId
-  );
+  const selectedInstrument = form.watch("instrument_id");
+  const isValuation = form.watch("is_valuation");
+
+  const filteredAssets = assets?.filter(asset => asset.instrument_id === selectedInstrument) || [];
 
   const onSubmit = async (data: GoalInvestmentRecordFormData) => {
     setIsLoading(true);
-    try {
-      const recordData = {
-        goal_id: parseInt(data.goal_id),
-        instrument_id: data.instrument_id !== "none" ? parseInt(data.instrument_id) : null,
-        asset_id: data.asset_id !== "none" ? parseInt(data.asset_id) : null,
-        wallet_id: data.wallet_id !== "none" ? parseInt(data.wallet_id) : null,
-        category_id: data.category_id !== "none" ? parseInt(data.category_id) : null,
-        amount: data.amount,
-        date: data.date,
-        currency_code: data.currency_code,
-        is_valuation: data.is_valuation,
-      };
-
-      if (record) {
-        updateRecord({ id: record.id, ...recordData }, {
-          onSuccess: () => {
-            toast({ title: "Record berhasil diperbarui" });
-            onOpenChange(false);
-            form.reset();
-            onSuccess?.();
-          },
-          onError: (error) => {
-            console.error("Error updating record:", error);
-            toast({ 
-              title: "Error", 
-              description: "Gagal memperbarui record",
-              variant: "destructive"
-            });
-          },
-        });
-      } else {
-        createRecord(recordData, {
-          onSuccess: () => {
-            toast({ title: "Record berhasil ditambahkan" });
-            onOpenChange(false);
-            form.reset();
-            onSuccess?.();
-          },
-          onError: (error) => {
-            console.error("Error creating record:", error);
-            toast({ 
-              title: "Error", 
-              description: "Gagal menambahkan record",
-              variant: "destructive"
-            });
-          },
-        });
-      }
-    } catch (error) {
-      console.error("Error saving record:", error);
-    } finally {
-      setIsLoading(false);
+    
+    // Remove fields that should be null when not applicable
+    const cleanData = { ...data };
+    
+    if (isValuation) {
+      cleanData.wallet_id = null;
+      cleanData.category_id = null;
+    } else {
+      cleanData.wallet_id = data.wallet_id || null;
+      cleanData.category_id = data.category_id || null;
     }
+
+    if (!data.instrument_id) {
+      cleanData.instrument_id = null;
+    }
+    
+    if (!data.asset_id) {
+      cleanData.asset_id = null;
+    }
+
+    createRecord.mutate(cleanData);
   };
 
   useEffect(() => {
-    if (open) {
-      if (record) {
-        form.reset({
-          goal_id: record.goal_id?.toString() || "",
-          instrument_id: record.instrument_id?.toString() || "none",
-          asset_id: record.asset_id?.toString() || "none",
-          wallet_id: record.wallet_id?.toString() || "none",
-          category_id: record.category_id?.toString() || "none",
-          amount: record.amount || 0,
-          date: record.date || new Date().toISOString().split('T')[0],
-          currency_code: record.currency_code || defaultCurrency?.code || "IDR",
-          is_valuation: record.is_valuation || false,
-        });
-      } else {
-        form.reset({
-          goal_id: goalId?.toString() || "",
-          instrument_id: "none",
-          asset_id: "none",
-          wallet_id: "none",
-          category_id: "none",
-          amount: 0,
-          date: new Date().toISOString().split('T')[0],
-          currency_code: defaultCurrency?.code || "IDR",
-          is_valuation: false,
-        });
-      }
+    if (createRecord.isSuccess) {
+      onOpenChange(false);
+      setIsLoading(false);
+      form.reset({ ...defaultGoalInvestmentRecordFormData, goal_id: goalId });
+      onSuccess?.();
     }
-  }, [open, record, goalId, form, defaultCurrency]);
+  }, [createRecord.isSuccess, onOpenChange, form, goalId, onSuccess]);
+
+  useEffect(() => {
+    if (open) {
+      form.reset({ ...defaultGoalInvestmentRecordFormData, goal_id: goalId });
+    }
+  }, [open, form, goalId]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {record ? "Edit Record Goal" : "Tambah Record Goal"}
-          </DialogTitle>
+          <DialogTitle>Update Progress Investasi</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="is_valuation"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Valuation Only</FormLabel>
+                    <div className="text-sm text-muted-foreground">
+                      Hanya untuk pencatatan nilai, tidak melibatkan transaksi
+                    </div>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="instrument_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Instrumen</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih instrumen" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="none">Tidak ada</SelectItem>
+                    <FormLabel>Instrumen Investasi</FormLabel>
+                    <FormControl>
+                      <select 
+                        {...field}
+                        value={field.value || ""}
+                        onChange={(e) => {
+                          const value = e.target.value ? parseInt(e.target.value) : null;
+                          field.onChange(value);
+                          form.setValue("asset_id", null);
+                        }}
+                        className="w-full p-2 border rounded-md"
+                      >
+                        <option value="">Pilih Instrumen</option>
                         {instruments?.map((instrument) => (
-                          <SelectItem key={instrument.id} value={instrument.id.toString()}>
+                          <option key={instrument.id} value={instrument.id}>
                             {instrument.name}
-                          </SelectItem>
+                          </option>
                         ))}
-                      </SelectContent>
-                    </Select>
+                      </select>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -202,96 +141,143 @@ const GoalInvestmentRecordDialog = ({
                 name="asset_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Aset</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih aset" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="none">Tidak ada</SelectItem>
-                        {filteredAssets?.map((asset) => (
-                          <SelectItem key={asset.id} value={asset.id.toString()}>
+                    <FormLabel>Aset Investasi</FormLabel>
+                    <FormControl>
+                      <select 
+                        {...field}
+                        value={field.value || ""}
+                        onChange={(e) => {
+                          const value = e.target.value ? parseInt(e.target.value) : null;
+                          field.onChange(value);
+                        }}
+                        className="w-full p-2 border rounded-md"
+                        disabled={!selectedInstrument}
+                      >
+                        <option value="">Pilih Aset</option>
+                        {filteredAssets.map((asset) => (
+                          <option key={asset.id} value={asset.id}>
                             {asset.name} {asset.symbol && `(${asset.symbol})`}
-                          </SelectItem>
+                          </option>
                         ))}
-                      </SelectContent>
-                    </Select>
+                      </select>
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="wallet_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dompet</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+            {!isValuation && (
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="wallet_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Wallet</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih dompet" />
-                        </SelectTrigger>
+                        <select 
+                          {...field}
+                          value={field.value || ""}
+                          onChange={(e) => {
+                            const value = e.target.value ? parseInt(e.target.value) : null;
+                            field.onChange(value);
+                          }}
+                          className="w-full p-2 border rounded-md"
+                        >
+                          <option value="">Pilih Wallet</option>
+                          {wallets?.map((wallet) => (
+                            <option key={wallet.id} value={wallet.id}>
+                              {wallet.name}
+                            </option>
+                          ))}
+                        </select>
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="none">Tidak ada</SelectItem>
-                        {wallets?.map((wallet) => (
-                          <SelectItem key={wallet.id} value={wallet.id.toString()}>
-                            {wallet.name} ({wallet.currency_code})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="category_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Kategori</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                <FormField
+                  control={form.control}
+                  name="category_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Kategori</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih kategori" />
-                        </SelectTrigger>
+                        <select 
+                          {...field}
+                          value={field.value || ""}
+                          onChange={(e) => {
+                            const value = e.target.value ? parseInt(e.target.value) : null;
+                            field.onChange(value);
+                          }}
+                          className="w-full p-2 border rounded-md"
+                        >
+                          <option value="">Pilih Kategori</option>
+                          {categories?.map((category) => (
+                            <option key={category.id} value={category.id}>
+                              {category.name}
+                            </option>
+                          ))}
+                        </select>
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="none">Tidak ada</SelectItem>
-                        {categories?.map((category) => (
-                          <SelectItem key={category.id} value={category.id.toString()}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="amount"
-                rules={{ required: "Jumlah harus diisi", min: { value: 1, message: "Jumlah harus lebih dari 0" } }}
+                rules={{
+                  required: "Jumlah amount harus diisi",
+                  min: { value: 0, message: "Jumlah harus >= 0" }
+                }}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Jumlah</FormLabel>
+                    <FormLabel>Amount</FormLabel>
                     <FormControl>
-                      <InputNumber 
-                        {...field} 
-                        onChange={(value) => field.onChange(value)}
-                        value={field.value}
-                      />
+                      <InputNumber {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="amount_unit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Unit</FormLabel>
+                    <FormControl>
+                      <InputNumber {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="currency_code"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mata Uang</FormLabel>
+                    <FormControl>
+                      <select {...field} className="w-full p-2 border rounded-md">
+                        {currencies?.map((currency) => (
+                          <option key={currency.code} value={currency.code}>
+                            {currency.code} - {currency.name}
+                          </option>
+                        ))}
+                      </select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -316,34 +302,32 @@ const GoalInvestmentRecordDialog = ({
 
             <FormField
               control={form.control}
-              name="is_valuation"
+              name="description"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormItem>
+                  <FormLabel>Deskripsi</FormLabel>
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
+                    <Textarea 
+                      placeholder="Masukkan deskripsi (opsional)"
+                      {...field}
+                      rows={3}
                     />
                   </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      Valuasi (bukan transaksi aktual)
-                    </FormLabel>
-                  </div>
+                  <FormMessage />
                 </FormItem>
               )}
             />
 
             <div className="flex justify-end gap-2 pt-4">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={() => onOpenChange(false)}
               >
                 Batal
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Menyimpan..." : record ? "Update" : "Simpan"}
+                {isLoading ? "Menyimpan..." : "Simpan"}
               </Button>
             </div>
           </form>

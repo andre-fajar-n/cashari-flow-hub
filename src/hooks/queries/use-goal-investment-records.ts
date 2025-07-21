@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 import { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export const useGoalInvestmentRecords = (goalId?: number) => {
@@ -38,6 +39,7 @@ export const useGoalInvestmentRecords = (goalId?: number) => {
 export const useCreateGoalInvestmentRecord = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async (record: Omit<TablesInsert<"goal_investment_records">, "user_id">) => {
@@ -53,12 +55,24 @@ export const useCreateGoalInvestmentRecord = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
       queryClient.invalidateQueries({ queryKey: ["goals"] });
+      toast({
+        title: "Berhasil",
+        description: "Investment record berhasil ditambahkan",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 };
 
 export const useUpdateGoalInvestmentRecord = () => {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async ({ id, ...record }: TablesUpdate<"goal_investment_records"> & { id: number }) => {
@@ -75,6 +89,17 @@ export const useUpdateGoalInvestmentRecord = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
       queryClient.invalidateQueries({ queryKey: ["goals"] });
+      toast({
+        title: "Berhasil",
+        description: "Investment record berhasil diperbarui",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 };

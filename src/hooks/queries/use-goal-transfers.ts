@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { GoalTransferFormData } from "@/form-dto/goal-transfers";
+import { TablesInsert } from "@/integrations/supabase/types";
 
 export const useGoalTransfers = () => {
   const { user } = useAuth();
@@ -15,14 +15,14 @@ export const useGoalTransfers = () => {
         .from("goal_transfers")
         .select(`
           *,
-          from_wallet:wallets!goal_transfers_from_wallet_id_fkey(name),
-          from_goal:goals!goal_transfers_from_goal_id_fkey(name),
-          to_wallet:wallets!goal_transfers_to_wallet_id_fkey(name),
-          to_goal:goals!goal_transfers_to_goal_id_fkey(name),
-          from_instrument:investment_instruments!goal_transfers_from_instrument_id_fkey(name),
-          to_instrument:investment_instruments!goal_transfers_to_instrument_id_fkey(name),
-          from_asset:investment_assets!goal_transfers_from_asset_id_fkey(name, symbol),
-          to_asset:investment_assets!goal_transfers_to_asset_id_fkey(name, symbol)
+          from_goal:from_goal_id(name),
+          to_goal:to_goal_id(name),
+          from_wallet:from_wallet_id(name),
+          to_wallet:to_wallet_id(name),
+          from_instrument:from_instrument_id(name),
+          to_instrument:to_instrument_id(name),
+          from_asset:from_asset_id(name, symbol),
+          to_asset:to_asset_id(name, symbol)
         `)
         .eq("user_id", user?.id)
         .order("date", { ascending: false });
@@ -40,19 +40,19 @@ export const useCreateGoalTransfer = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (transfer: GoalTransferFormData) => {
-      const { error } = await supabase
+    mutationFn: async (transfer: Omit<TablesInsert<"goal_transfers">, "user_id">) => {
+      const { data, error } = await supabase
         .from("goal_transfers")
-        .insert({ ...transfer, user_id: user?.id });
+        .insert({ ...transfer, user_id: user?.id })
+        .select()
+        .single();
 
       if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
       queryClient.invalidateQueries({ queryKey: ["goals"] });
-      queryClient.invalidateQueries({ queryKey: ["wallets"] });
-      queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
-      queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
       toast({
         title: "Berhasil",
         description: "Transfer berhasil ditambahkan",
@@ -68,53 +68,14 @@ export const useCreateGoalTransfer = () => {
   });
 };
 
-export const useUpdateGoalTransfer = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const { user } = useAuth();
-
-  return useMutation({
-    mutationFn: async ({ id, ...transfer }: GoalTransferFormData & { id: number }) => {
-      const { error } = await supabase
-        .from("goal_transfers")
-        .update(transfer)
-        .eq("user_id", user?.id)
-        .eq("id", id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
-      queryClient.invalidateQueries({ queryKey: ["goals"] });
-      queryClient.invalidateQueries({ queryKey: ["wallets"] });
-      queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
-      queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
-      toast({
-        title: "Berhasil",
-        description: "Transfer berhasil diperbarui",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-};
-
 export const useDeleteGoalTransfer = () => {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (id: number) => {
       const { error } = await supabase
         .from("goal_transfers")
         .delete()
-        .eq("user_id", user?.id)
         .eq("id", id);
 
       if (error) throw error;
@@ -122,20 +83,6 @@ export const useDeleteGoalTransfer = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
       queryClient.invalidateQueries({ queryKey: ["goals"] });
-      queryClient.invalidateQueries({ queryKey: ["wallets"] });
-      queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
-      queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
-      toast({
-        title: "Berhasil",
-        description: "Transfer berhasil dihapus",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
     },
   });
 };

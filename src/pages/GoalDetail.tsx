@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Edit, Trash2, Plus, Minus, ArrowRightLeft, BarChart3 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
@@ -13,15 +14,12 @@ import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
 import GoalMovementsHistory from "@/components/goal/GoalMovementsHistory";
 import GoalFundsSummary from "@/components/goal/GoalFundsSummary";
+import GoalOverview from "@/components/goal/GoalOverview";
 import { useGoalTransfers, useGoalInvestmentRecords, useGoals, useDeleteGoal } from "@/hooks/queries";
-import { calculateGoalProgress } from "@/components/goal/GoalProgressCalculator";
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { Progress } from "@/components/ui/progress";
 import { GoalModel } from "@/models/goals";
 import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
-import { formatAmountCurrency } from "@/lib/utils";
-import AmountText from "@/components/ui/amount-text";
 
 const GoalDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -56,8 +54,6 @@ const GoalDetail = () => {
       </ProtectedRoute>
     );
   }
-
-  const progress = calculateGoalProgress(goal.id, goal.target_amount, goalTransfers, goalRecords);
 
   const handleEdit = () => {
     setIsDialogOpen(true);
@@ -137,86 +133,56 @@ const GoalDetail = () => {
             </div>
           </div>
 
-          {/* Goal Overview */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Ringkasan Goal</span>
-                <Badge variant={goal.is_achieved ? "default" : goal.is_active ? "secondary" : "outline"}>
-                  {goal.is_achieved ? 'Tercapai' : goal.is_active ? 'Aktif' : 'Tidak Aktif'}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Target Amount</p>
-                  <p className="text-xl font-semibold">{goal.target_amount.toLocaleString()} {goal.currency_code}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Progress Amount</p>
-                  <AmountText amount={progress.totalAmount} showSign={true} className="text-xl font-semibold">
-                    {formatAmountCurrency(Math.abs(progress.totalAmount), goal.currency_code)}
-                  </AmountText>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Target Date</p>
-                  <p className="text-xl font-semibold">
-                    {goal.target_date ? new Date(goal.target_date).toLocaleDateString() : 'Tidak ada'}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Progress</span>
-                  <span className="text-sm text-muted-foreground">
-                    {progress.percentage.toFixed(1)}%
-                  </span>
-                </div>
-                <Progress value={progress.percentage} className="h-3" />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Transfer: {progress.transferAmount.toLocaleString()}</span>
-                  <span>Records: {progress.recordAmount.toLocaleString()}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Action Buttons */}
           {goal.is_active && !goal.is_achieved && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Kelola Goal</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <Button onClick={handleAddToGoal} className="flex-col h-16">
-                    <Plus className="w-5 h-5 mb-1" />
-                    <span className="text-xs">Tambah Dana</span>
-                  </Button>
-                  <Button onClick={handleTakeFromGoal} variant="outline" className="flex-col h-16">
-                    <Minus className="w-5 h-5 mb-1" />
-                    <span className="text-xs">Ambil Dana</span>
-                  </Button>
-                  <Button onClick={handleTransferBetweenGoals} variant="outline" className="flex-col h-16">
-                    <ArrowRightLeft className="w-5 h-5 mb-1" />
-                    <span className="text-xs">Transfer Goal</span>
-                  </Button>
-                  <Button onClick={handleAddRecord} variant="outline" className="flex-col h-16">
-                    <BarChart3 className="w-5 h-5 mb-1" />
-                    <span className="text-xs">Update Progress</span>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="flex gap-2">
+              <Button onClick={handleAddToGoal} size="sm">
+                <Plus className="w-4 h-4 mr-1" />
+                Tambah Dana
+              </Button>
+              <Button onClick={handleTakeFromGoal} variant="outline" size="sm">
+                <Minus className="w-4 h-4 mr-1" />
+                Ambil Dana
+              </Button>
+              <Button onClick={handleTransferBetweenGoals} variant="outline" size="sm">
+                <ArrowRightLeft className="w-4 h-4 mr-1" />
+                Transfer Goal
+              </Button>
+              <Button onClick={handleAddRecord} variant="outline" size="sm">
+                <BarChart3 className="w-4 h-4 mr-1" />
+                Update Progress
+              </Button>
+            </div>
           )}
 
-          {/* Funds Summary */}
-          <GoalFundsSummary goalId={goal.id} />
-
-          {/* Movement History */}
-          <GoalMovementsHistory movements={goalMovements || []} transfers={goalTransfers || []} />
+          {/* Tabs */}
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="summary">Summary</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="overview" className="space-y-4">
+              <GoalOverview 
+                goal={goal} 
+                goalTransfers={goalTransfers || []} 
+                goalRecords={goalRecords || []} 
+              />
+            </TabsContent>
+            
+            <TabsContent value="summary" className="space-y-4">
+              <GoalFundsSummary goalId={goal.id} />
+            </TabsContent>
+            
+            <TabsContent value="history" className="space-y-4">
+              <GoalMovementsHistory 
+                movements={goalMovements || []} 
+                transfers={goalTransfers || []} 
+                goalId={goal.id}
+              />
+            </TabsContent>
+          </Tabs>
 
           {/* Modals */}
           <ConfirmationModal
