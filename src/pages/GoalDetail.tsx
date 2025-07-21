@@ -216,7 +216,7 @@ const GoalDetail = () => {
           <GoalFundsSummary goalId={goal.id} />
 
           {/* Movement History */}
-          <GoalMovementsHistory movements={goalMovements || []} />
+          <GoalMovementsHistory movements={goalMovements || []} transfers={goalTransfers || []} />
 
           {/* Modals */}
           <ConfirmationModal

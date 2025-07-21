@@ -7,15 +7,89 @@ import { AmountText } from "@/components/ui/amount-text";
 
 interface GoalMovementsHistoryProps {
   movements: Database["public"]["Views"]["money_movements"]["Row"][];
+  transfers: Database["public"]["Tables"]["goal_transfers"]["Row"][];
 }
 
-const GoalMovementsHistory = ({ movements }: GoalMovementsHistoryProps) => {
+const GoalMovementsHistory = ({ movements, transfers }: GoalMovementsHistoryProps) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
       day: '2-digit',
       month: 'short',
       year: 'numeric'
     });
+  };
+
+  // Create a mapping of goal transfers by ID for quick lookup
+  const transfersMap = new Map();
+  transfers.forEach(transfer => {
+    transfersMap.set(transfer.id, transfer);
+  });
+
+  // Function to get detailed description for goal transfers
+  const getTransferDescription = (movement: any) => {
+    if ((movement.resource_type === 'goal_transfers_in' || movement.resource_type === 'goal_transfers_out') && movement.resource_id) {
+      const transfer = transfersMap.get(movement.resource_id);
+      if (transfer) {
+        const lines = [];
+
+        // Handle wallet transfers (check for same wallet)
+        if (transfer.from_wallet_id && transfer.to_wallet_id) {
+          if (transfer.from_wallet_id === transfer.to_wallet_id) {
+            lines.push(`Wallet: ${transfer.from_wallet?.name || 'Unknown'}`);
+          } else {
+            lines.push(`${transfer.from_wallet?.name || 'Unknown'} → ${transfer.to_wallet?.name || 'Unknown'}`);
+          }
+        } else if (transfer.from_wallet_id) {
+          lines.push(`Dari Wallet: ${transfer.from_wallet?.name || 'Unknown'}`);
+        } else if (transfer.to_wallet_id) {
+          lines.push(`Ke Wallet: ${transfer.to_wallet?.name || 'Unknown'}`);
+        }
+
+        // Handle goal transfers (check for same goal)
+        if (transfer.from_goal_id && transfer.to_goal_id) {
+          if (transfer.from_goal_id === transfer.to_goal_id) {
+            lines.push(`Goal: ${transfer.from_goal?.name || 'Unknown'}`);
+          } else {
+            lines.push(`${transfer.from_goal?.name || 'Unknown'} → ${transfer.to_goal?.name || 'Unknown'}`);
+          }
+        } else if (transfer.from_goal_id) {
+          lines.push(`Dari Goal: ${transfer.from_goal?.name || 'Unknown'}`);
+        } else if (transfer.to_goal_id) {
+          lines.push(`Ke Goal: ${transfer.to_goal?.name || 'Unknown'}`);
+        }
+
+        // Handle instrument transfers (check for same instrument)
+        if (transfer.from_instrument_id && transfer.to_instrument_id) {
+          if (transfer.from_instrument_id === transfer.to_instrument_id) {
+            lines.push(`Instrumen: ${transfer.from_instrument?.name || 'Unknown'}`);
+          } else {
+            lines.push(`${transfer.from_instrument?.name || 'Unknown'} → ${transfer.to_instrument?.name || 'Unknown'}`);
+          }
+        } else if (transfer.from_instrument_id) {
+          lines.push(`Dari Instrumen: ${transfer.from_instrument?.name || 'Unknown'}`);
+        } else if (transfer.to_instrument_id) {
+          lines.push(`Ke Instrumen: ${transfer.to_instrument?.name || 'Unknown'}`);
+        }
+
+        // Handle asset transfers (check for same asset)
+        if (transfer.from_asset_id && transfer.to_asset_id) {
+          if (transfer.from_asset_id === transfer.to_asset_id) {
+            lines.push(`Aset: ${transfer.from_asset?.name || 'Unknown'}${transfer.from_asset?.symbol ? ` (${transfer.from_asset?.symbol})` : ''}`);
+          } else {
+            lines.push(`${transfer.from_asset?.name || 'Unknown'}${transfer.from_asset?.symbol ? ` (${transfer.from_asset?.symbol})` : ''} → ${transfer.to_asset?.name || 'Unknown'}${transfer.to_asset?.symbol ? ` (${transfer.to_asset?.symbol})` : ''}`);
+          }
+        } else if (transfer.from_asset_id) {
+          lines.push(`Dari Aset: ${transfer.from_asset?.name || 'Unknown'}${transfer.from_asset?.symbol ? ` (${transfer.from_asset?.symbol})` : ''}`);
+        } else if (transfer.to_asset_id) {
+          lines.push(`Ke Aset: ${transfer.to_asset?.name || 'Unknown'}${transfer.to_asset?.symbol ? ` (${transfer.to_asset?.symbol})` : ''}`);
+        }
+
+        return lines;
+      }
+    }
+
+    // Fallback to original description
+    return [movement.description || 'Money movement'];
   };
 
   return (
@@ -55,9 +129,11 @@ const GoalMovementsHistory = ({ movements }: GoalMovementsHistoryProps) => {
                         {movement.resource_type}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {movement.description}
-                    </p>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      {getTransferDescription(movement).map((line, index) => (
+                        <p key={index}>{line}</p>
+                      ))}
+                    </div>
                     <p className="text-xs text-muted-foreground">
                       {formatDate(movement.date || '')}
                     </p>
@@ -71,6 +147,13 @@ const GoalMovementsHistory = ({ movements }: GoalMovementsHistoryProps) => {
                   >
                     {formatAmountCurrency(Math.abs(movement.amount || 0), movement.currency_code || 'IDR')}
                   </AmountText>
+                  <p>
+                    {movement.amount_unit && (
+                      <span className="text-sm text-muted-foreground">
+                        {movement.amount_unit.toLocaleString("id-ID")} {movement.unit_label || 'unit'}
+                      </span>
+                    )}
+                  </p>
                 </div>
               </div>
             ))}

@@ -914,6 +914,8 @@ export type Database = {
       money_movements: {
         Row: {
           amount: number | null
+          amount_unit: number | null
+          unit_label: string | null
           asset_id: number | null
           currency_code: string | null
           date: string | null
