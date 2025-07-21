@@ -18,6 +18,7 @@ import {
 import { TransferModel } from "@/models/transfer";
 import { formatAmountCurrency } from "@/lib/utils";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
+import { AmountText } from "@/components/ui/amount-text";
 
 const Transfer = () => {
   const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null)
@@ -79,12 +80,16 @@ const Transfer = () => {
         <div className="text-right">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-red-600">
-                -{formatAmountCurrency(transfer.from_amount, transfer.from_currency_detail?.symbol || transfer.from_currency)}
+              <Badge variant="outline">
+                <AmountText amount={-transfer.from_amount} showSign={true}>
+                  {formatAmountCurrency(transfer.from_amount, transfer.from_currency_detail?.symbol || transfer.from_currency)}
+                </AmountText>
               </Badge>
               <span className="text-muted-foreground">→</span>
-              <Badge variant="outline" className="text-green-600">
-                +{formatAmountCurrency(transfer.to_amount, transfer.to_currency_detail?.symbol || transfer.to_currency)}
+              <Badge variant="outline">
+                <AmountText amount={transfer.to_amount} showSign={true}>
+                  {formatAmountCurrency(transfer.to_amount, transfer.to_currency_detail?.symbol || transfer.to_currency)}
+                </AmountText>
               </Badge>
             </div>
             <div className="text-xs text-muted-foreground">

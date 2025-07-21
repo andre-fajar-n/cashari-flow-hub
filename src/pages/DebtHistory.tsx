@@ -14,6 +14,7 @@ import DebtHistoryDialog from "@/components/debt/DebtHistoryDialog";
 import { formatAmountCurrency } from "@/lib/utils";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useDeleteDebtHistory } from "@/hooks/queries/use-debt-histories";
+import { AmountText } from "@/components/ui/amount-text";
 
 const DebtHistory = () => {
   const [isMarkPaidModalOpen, setIsMarkPaidModalOpen] = useState(false);
@@ -78,9 +79,13 @@ const DebtHistory = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <span className={`font-semibold text-lg ${history.categories?.is_income ? 'text-green-600' : 'text-red-600'}`}>
-                {history.categories?.is_income ? '' : '-'}{formatAmountCurrency(Math.abs(history.amount))} {history.currency_code}
-              </span>
+              <AmountText
+                amount={history.categories?.is_income ? history.amount : -history.amount}
+                className="font-semibold text-lg"
+                showSign={!history.categories?.is_income}
+              >
+                {formatAmountCurrency(Math.abs(history.amount), history.currency_code)}
+              </AmountText>
               <Badge variant="outline">
                 {new Date(history.date).toLocaleDateString('id-ID')}
               </Badge>

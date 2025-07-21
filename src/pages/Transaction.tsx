@@ -20,6 +20,7 @@ import {
 import { formatAmountCurrency } from "@/lib/utils";
 import { TransactionFormData } from "@/form-dto/transactions";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
+import { AmountText } from "@/components/ui/amount-text";
 
 const Transaction = () => {
   const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
@@ -89,10 +90,15 @@ const Transaction = () => {
       </div>
       <div className="flex items-center gap-2">
         <div className="text-right">
-          <p className={`font-semibold ${(transaction.categories as any)?.is_income ? 'text-green-600' : 'text-red-600'}`}>
-            {(transaction.categories as any)?.is_income ? '+' : '-'}
-            {formatAmountCurrency(transaction.amount, transaction.currency_code)}
-          </p>
+          <div className="flex items-center gap-2">
+            <AmountText
+              amount={transaction.categories?.is_income ? transaction.amount : -transaction.amount}
+              className="font-semibold"
+              showSign={!transaction.categories?.is_income}
+            >
+              {formatAmountCurrency(transaction.amount, transaction.currency_code)}
+            </AmountText>
+          </div>
           <Badge variant="outline" className="mt-1">
             {transaction.currency_code}
           </Badge>

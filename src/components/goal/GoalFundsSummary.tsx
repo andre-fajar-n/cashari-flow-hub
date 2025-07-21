@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Wallet, TrendingUp, PieChart } from "lucide-react";
 import { useGoalFundsSummary } from "@/hooks/queries/use-goal-funds-summary";
 import { formatAmountCurrency } from "@/lib/utils";
+import { AmountText } from "@/components/ui/amount-text";
 
 interface GoalFundsSummaryProps {
   goalId: number;
@@ -71,9 +72,12 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className={`font-semibold text-${fund.total_amount < 0 ? 'red' : fund.total_amount > 0 ? 'green' : ''}-600`}>
+                  <AmountText
+                    amount={fund.total_amount}
+                    className="font-semibold"
+                  >
                     {formatAmountCurrency(fund.total_amount, fund.currency_code)}
-                  </p>
+                  </AmountText>
                   <p>
                     <span className="text-sm text-muted-foreground">
                       {fund.total_amount_unit.toLocaleString("id-ID")} {fund.unit_label || 'unit'}

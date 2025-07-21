@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowUpRight, ArrowDownLeft, Calendar } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/utils";
 import { Database } from "@/integrations/supabase/types";
+import { AmountText } from "@/components/ui/amount-text";
 
 interface GoalMovementsHistoryProps {
   movements: Database["public"]["Views"]["money_movements"]["Row"][];
@@ -63,12 +64,13 @@ const GoalMovementsHistory = ({ movements }: GoalMovementsHistoryProps) => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className={`font-semibold ${
-                    movement.amount && movement.amount > 0 ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {movement.amount && movement.amount > 0 ? '+' : '-'}
+                  <AmountText
+                    amount={movement.amount || 0}
+                    className="font-semibold"
+                    showSign={true}
+                  >
                     {formatAmountCurrency(Math.abs(movement.amount || 0), movement.currency_code || 'IDR')}
-                  </p>
+                  </AmountText>
                 </div>
               </div>
             ))}
