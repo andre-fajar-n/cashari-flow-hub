@@ -20,6 +20,8 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { Progress } from "@/components/ui/progress";
 import { GoalModel } from "@/models/goals";
 import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
+import { formatAmountCurrency } from "@/lib/utils";
+import AmountText from "@/components/ui/amount-text";
 
 const GoalDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -153,7 +155,9 @@ const GoalDetail = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Progress Amount</p>
-                  <p className={`text-xl font-semibold text-${progress.totalAmount < 0 ? 'red' : 'green'}-600`}>{progress.totalAmount.toLocaleString()} {goal.currency_code}</p>
+                  <AmountText amount={progress.totalAmount} showSign={true} className="text-xl font-semibold">
+                    {formatAmountCurrency(Math.abs(progress.totalAmount), goal.currency_code)}
+                  </AmountText>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Target Date</p>

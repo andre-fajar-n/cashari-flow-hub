@@ -12,14 +12,14 @@ export const calculateGoalProgress = (
   goalRecords?: any[]
 ): GoalProgressData => {
   // Calculate from transfers
-  const transfers = goalTransfers?.filter(t => t.to_goal_id === goalId || t.from_goal_id === goalId);
+  const transfers = goalTransfers?.filter(t => t.to_goal_id === goalId || t.from_goal_id === goalId) || [];
   const transferAmount = transfers.reduce((sum, transfer) => {
     const amount = transfer.to_goal_id === goalId ? transfer.to_amount : -transfer.from_amount;
     return sum + amount;
   }, 0);
 
   // Calculate from investment records
-  const records = goalRecords?.filter(r => r.goal_id === goalId);
+  const records = goalRecords?.filter(r => r.goal_id === goalId) || [];
   const recordAmount = records.reduce((sum, record) => {
     const amount = record.category?.is_income ? record.amount : -record.amount;
     return sum + amount;

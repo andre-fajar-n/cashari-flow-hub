@@ -94,7 +94,7 @@ const Transaction = () => {
             <AmountText
               amount={transaction.categories?.is_income ? transaction.amount : -transaction.amount}
               className="font-semibold"
-              showSign={!transaction.categories?.is_income}
+              showSign={true}
             >
               {formatAmountCurrency(transaction.amount, transaction.currency_code)}
             </AmountText>

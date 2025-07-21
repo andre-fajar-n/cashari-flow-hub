@@ -75,13 +75,16 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
                   <AmountText
                     amount={fund.total_amount}
                     className="font-semibold"
+                    showSign={true}
                   >
                     {formatAmountCurrency(fund.total_amount, fund.currency_code)}
                   </AmountText>
                   <p>
-                    <span className="text-sm text-muted-foreground">
-                      {fund.total_amount_unit.toLocaleString("id-ID")} {fund.unit_label || 'unit'}
-                    </span>
+                    {fund.total_amount_unit && (
+                      <span className="text-sm text-muted-foreground">
+                        {fund.total_amount_unit.toLocaleString("id-ID")} {fund.unit_label || 'unit'}
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
