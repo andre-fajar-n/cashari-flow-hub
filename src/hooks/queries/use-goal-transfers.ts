@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { TablesInsert } from "@/integrations/supabase/types";
+import { GoalTransferFormData } from "@/form-dto/goal-transfers";
 
 export const useGoalTransfers = () => {
   const { user } = useAuth();
@@ -83,6 +84,40 @@ export const useDeleteGoalTransfer = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
       queryClient.invalidateQueries({ queryKey: ["goals"] });
+    },
+  });
+};
+
+export const useUpdateGoalTransfer = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ id, ...transfer }: GoalTransferFormData & { id: number }) => {
+      const { data, error } = await supabase
+        .from("goal_transfers")
+        .update(transfer)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
+      queryClient.invalidateQueries({ queryKey: ["goals"] });
+      toast({
+        title: "Berhasil",
+        description: "Transfer berhasil diperbarui",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 };

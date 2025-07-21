@@ -103,7 +103,7 @@ const GoalTransferDialog = ({
     if (transfer) {
       updateTransfer.mutate({ id: transfer.id, ...transferData });
     } else {
-      createTransfer.mutate({ ...transferData });
+      createTransfer.mutate(transferData);
     }
   };
 
