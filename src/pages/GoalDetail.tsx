@@ -4,9 +4,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Edit, Trash2, Plus, Minus, ArrowRightLeft, BarChart3 } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Plus, Minus, ArrowRightLeft, BarChart3, Calculator } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import GoalDialog from "@/components/goal/GoalDialog";
@@ -16,10 +15,13 @@ import GoalMovementsHistory from "@/components/goal/GoalMovementsHistory";
 import GoalFundsSummary from "@/components/goal/GoalFundsSummary";
 import GoalOverview from "@/components/goal/GoalOverview";
 import { useGoalTransfers, useGoalInvestmentRecords, useGoals, useDeleteGoal } from "@/hooks/queries";
+import { useGoalFundsSummary } from "@/hooks/queries/use-goal-funds-summary";
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { GoalModel } from "@/models/goals";
 import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
+import { formatAmountCurrency } from "@/lib/utils";
+import AmountText from "@/components/ui/amount-text";
 
 const GoalDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -172,6 +174,40 @@ const GoalDetail = () => {
             </TabsContent>
             
             <TabsContent value="summary" className="space-y-4">
+              {/* Total Amount Summary */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calculator className="w-5 h-5" />
+                    Total Dana
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {(() => {
+                    const { data: fundsSummary } = useGoalFundsSummary(goal.id);
+                    if (!fundsSummary) return <p className="text-muted-foreground">Memuat total dana...</p>;
+
+                    const totalAmount = fundsSummary.reduce((sum, fund) => sum + fund.total_amount, 0);
+                    const currencyCode = fundsSummary[0]?.currency_code || goal.currency_code;
+
+                    return (
+                      <div className="text-center py-4">
+                        <AmountText
+                          amount={totalAmount}
+                          className="text-3xl font-bold"
+                          showSign={true}
+                        >
+                          {formatAmountCurrency(totalAmount, currencyCode)}
+                        </AmountText>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          Total dana dalam goal ini
+                        </p>
+                      </div>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
+
               <GoalFundsSummary goalId={goal.id} />
             </TabsContent>
             

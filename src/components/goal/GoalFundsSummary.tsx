@@ -51,12 +51,24 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
     );
   }
 
-  // Group funds by type (Cash/Wallet vs Investment)
-  const cashFunds = fundsSummary.filter(fund => !fund.instrument_name);
-  const investmentFunds = fundsSummary.filter(fund => fund.instrument_name);
+  // Group funds by instrument
+  const groupedFunds = fundsSummary.reduce((groups, fund) => {
+    const instrumentKey = fund.instrument_name || 'Cash & Wallet';
+    if (!groups[instrumentKey]) {
+      groups[instrumentKey] = [];
+    }
+    groups[instrumentKey].push(fund);
+    return groups;
+  }, {} as Record<string, any[]>);
 
-  const cashTotal = cashFunds.reduce((sum, fund) => sum + fund.total_amount, 0);
-  const investmentTotal = investmentFunds.reduce((sum, fund) => sum + fund.total_amount, 0);
+  // Calculate totals for each group
+  const groupTotals = Object.keys(groupedFunds).reduce((totals, instrumentKey) => {
+    totals[instrumentKey] = groupedFunds[instrumentKey].reduce((sum, fund) => sum + fund.total_amount, 0);
+    return totals;
+  }, {} as Record<string, number>);
+
+  // Sort groups by total amount (descending)
+  const sortedGroupKeys = Object.keys(groupedFunds).sort((a, b) => groupTotals[b] - groupTotals[a]);
 
   const toggleGroup = (groupName: string) => {
     setExpandedGroups(prev => 
@@ -110,16 +122,18 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
                 </div>
                 <div>
                   <p className="font-medium text-sm">
-                    {fund.instrument_name || 'Cash/Wallet'}
+                    {fund.asset_name || fund.instrument_name || 'Cash/Wallet'}
                   </p>
-                  {fund.asset_name && (
+                  {fund.asset_symbol && (
                     <p className="text-xs text-muted-foreground">
-                      {fund.asset_name} {fund.asset_symbol && `(${fund.asset_symbol})`}
+                      Symbol: {fund.asset_symbol}
                     </p>
                   )}
-                  <Badge variant="outline" className="text-xs mt-1">
-                    {fund.currency_code}
-                  </Badge>
+                  <div className="flex gap-1 mt-1">
+                    <Badge variant="outline" className="text-xs">
+                      {fund.currency_code}
+                    </Badge>
+                  </div>
                 </div>
               </div>
               <div className="text-right">
@@ -152,18 +166,19 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {renderFundGroup(
-          cashFunds, 
-          "Cash & Wallet", 
-          cashTotal, 
-          <Wallet className="w-5 h-5 text-green-600" />
-        )}
-        {renderFundGroup(
-          investmentFunds, 
-          "Investment", 
-          investmentTotal, 
-          <TrendingUp className="w-5 h-5 text-blue-600" />
-        )}
+        {sortedGroupKeys.map(instrumentKey => {
+          const funds = groupedFunds[instrumentKey];
+          const total = groupTotals[instrumentKey];
+          const icon = instrumentKey === 'Cash & Wallet'
+            ? <Wallet className="w-5 h-5 text-green-600" />
+            : <TrendingUp className="w-5 h-5 text-blue-600" />;
+
+          return (
+            <div key={instrumentKey}>
+              {renderFundGroup(funds, instrumentKey, total, icon)}
+            </div>
+          );
+        })}
       </CardContent>
     </Card>
   );

@@ -126,7 +126,7 @@ const GoalMovementsHistory = ({ movements, transfers, goalId }: GoalMovementsHis
     
     if (movement.resource_type === 'goal_transfers_in' || movement.resource_type === 'goal_transfers_out') {
       type = 'transfer';
-    } else if (movement.resource_type === 'goal_investment_records') {
+    } else if (movement.resource_type === 'investment_growth') {
       type = 'record';
     }
 
