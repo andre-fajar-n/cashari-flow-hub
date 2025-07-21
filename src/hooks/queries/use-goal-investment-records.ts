@@ -16,7 +16,7 @@ export const useGoalInvestmentRecords = (goalId?: number) => {
           *,
           goal:goals(name),
           wallet:wallets(name),
-          category:categories(name),
+          category:categories(name, is_income),
           instrument:investment_instruments(name),
           asset:investment_assets(name, symbol)
         `)
