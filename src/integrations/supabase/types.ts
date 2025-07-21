@@ -906,6 +906,8 @@ export type Database = {
           instrument_name: string | null
           total_amount: number | null
           user_id: string | null
+          unit_label: string | null
+          total_amount_unit: number | null
         }
         Relationships: []
       }

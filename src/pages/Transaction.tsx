@@ -17,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatAmount } from "@/lib/utils";
+import { formatAmountCurrency } from "@/lib/utils";
 import { TransactionFormData } from "@/form-dto/transactions";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 
@@ -91,7 +91,7 @@ const Transaction = () => {
         <div className="text-right">
           <p className={`font-semibold ${(transaction.categories as any)?.is_income ? 'text-green-600' : 'text-red-600'}`}>
             {(transaction.categories as any)?.is_income ? '+' : '-'}
-            {formatAmount(transaction.amount, transaction.currency_code)}
+            {formatAmountCurrency(transaction.amount, transaction.currency_code)}
           </p>
           <Badge variant="outline" className="mt-1">
             {transaction.currency_code}

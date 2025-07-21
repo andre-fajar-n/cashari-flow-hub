@@ -16,7 +16,9 @@ export const useGoalFundsSummary = (goalId: number) => {
           currency_code,
           instrument_name,
           asset_name,
-          asset_symbol
+          asset_symbol,
+          total_amount_unit,
+          unit_label
         `)
         .eq("user_id", user?.id)
         .eq("goal_id", goalId);

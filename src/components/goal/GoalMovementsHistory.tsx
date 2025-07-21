@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowUpRight, ArrowDownLeft, Calendar } from "lucide-react";
-import { formatAmount } from "@/lib/utils";
+import { formatAmountCurrency } from "@/lib/utils";
 import { Database } from "@/integrations/supabase/types";
 
 interface GoalMovementsHistoryProps {
@@ -67,7 +67,7 @@ const GoalMovementsHistory = ({ movements }: GoalMovementsHistoryProps) => {
                     movement.amount && movement.amount > 0 ? 'text-green-600' : 'text-red-600'
                   }`}>
                     {movement.amount && movement.amount > 0 ? '+' : '-'}
-                    {formatAmount(Math.abs(movement.amount || 0), movement.currency_code || 'IDR')}
+                    {formatAmountCurrency(Math.abs(movement.amount || 0), movement.currency_code || 'IDR')}
                   </p>
                 </div>
               </div>

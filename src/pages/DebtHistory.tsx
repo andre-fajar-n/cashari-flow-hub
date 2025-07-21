@@ -11,7 +11,7 @@ import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import DebtHistoryDialog from "@/components/debt/DebtHistoryDialog";
-import { formatAmount } from "@/lib/utils";
+import { formatAmountCurrency } from "@/lib/utils";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useDeleteDebtHistory } from "@/hooks/queries/use-debt-histories";
 
@@ -79,7 +79,7 @@ const DebtHistory = () => {
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <span className={`font-semibold text-lg ${history.categories?.is_income ? 'text-green-600' : 'text-red-600'}`}>
-                {history.categories?.is_income ? '' : '-'}{formatAmount(Math.abs(history.amount))} {history.currency_code}
+                {history.categories?.is_income ? '' : '-'}{formatAmountCurrency(Math.abs(history.amount))} {history.currency_code}
               </span>
               <Badge variant="outline">
                 {new Date(history.date).toLocaleDateString('id-ID')}
@@ -167,7 +167,7 @@ const DebtHistory = () => {
               <CardContent className="p-6">
                 <div className="text-center">
                   <div className="text-2xl font-bold">
-                    Total: {formatAmount(Math.abs(totalAmount))} {histories[0]?.currency_code}
+                    Total: {formatAmountCurrency(Math.abs(totalAmount))} {histories[0]?.currency_code}
                   </div>
                   <p className="text-muted-foreground">
                     Total pembayaran dari {histories.length} transaksi

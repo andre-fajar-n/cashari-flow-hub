@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, TrendingUp, PieChart } from "lucide-react";
 import { useGoalFundsSummary } from "@/hooks/queries/use-goal-funds-summary";
-import { formatAmount } from "@/lib/utils";
+import { formatAmountCurrency } from "@/lib/utils";
 
 interface GoalFundsSummaryProps {
   goalId: number;
@@ -71,8 +71,13 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className={`font-semibold text-${fund.total_amount < 0 ? 'red' : 'green'}-600`}>
-                    {formatAmount(fund.total_amount, fund.currency_code)}
+                  <p className={`font-semibold text-${fund.total_amount < 0 ? 'red' : fund.total_amount > 0 ? 'green' : ''}-600`}>
+                    {formatAmountCurrency(fund.total_amount, fund.currency_code)}
+                  </p>
+                  <p>
+                    <span className="text-sm text-muted-foreground">
+                      {fund.total_amount_unit.toLocaleString("id-ID")} {fund.unit_label || 'unit'}
+                    </span>
                   </p>
                 </div>
               </div>

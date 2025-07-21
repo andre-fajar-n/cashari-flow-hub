@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TransferModel } from "@/models/transfer";
-import { formatAmount } from "@/lib/utils";
+import { formatAmountCurrency } from "@/lib/utils";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 
 const Transfer = () => {
@@ -80,11 +80,11 @@ const Transfer = () => {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-red-600">
-                -{formatAmount(transfer.from_amount, transfer.from_currency_detail?.symbol || transfer.from_currency)}
+                -{formatAmountCurrency(transfer.from_amount, transfer.from_currency_detail?.symbol || transfer.from_currency)}
               </Badge>
               <span className="text-muted-foreground">→</span>
               <Badge variant="outline" className="text-green-600">
-                +{formatAmount(transfer.to_amount, transfer.to_currency_detail?.symbol || transfer.to_currency)}
+                +{formatAmountCurrency(transfer.to_amount, transfer.to_currency_detail?.symbol || transfer.to_currency)}
               </Badge>
             </div>
             <div className="text-xs text-muted-foreground">
