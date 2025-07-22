@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useCreateInvestmentAsset, useInvestmentInstruments, useUpdateInvestmentAsset } from "@/hooks/queries";
+import { useCreateInvestmentAsset, useInvestmentInstruments, useUpdateInvestmentAsset, useCurrencies } from "@/hooks/queries";
 import { AssetFormData, defaultAssetFormValues } from "@/form-dto/investment-assets";
 
 interface InvestmentAssetDialogProps {
@@ -27,6 +27,7 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
   });
 
   const { data: instruments } = useInvestmentInstruments();
+  const { data: currencies } = useCurrencies();
 
   const onSubmit = async (data: AssetFormData) => {
     if (!user) return;
@@ -47,6 +48,7 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
           name: asset.name || "",
           symbol: asset.symbol || "",
           instrument_id: asset.instrument_id || 0,
+          currency_code: asset.currency_code || "",
         });
       } else {
         form.reset(defaultAssetFormValues);
@@ -122,6 +124,30 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
                       {instruments?.map((instrument) => (
                         <option key={instrument.id} value={instrument.id}>
                           {instrument.name}
+                        </option>
+                      ))}
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="currency_code"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Currency (Opsional)</FormLabel>
+                  <FormControl>
+                    <select 
+                      {...field} 
+                      className="w-full p-2 border rounded-md"
+                    >
+                      <option value="">Pilih currency (default IDR)</option>
+                      {currencies?.map((currency) => (
+                        <option key={currency.code} value={currency.code}>
+                          {currency.code} - {currency.name}
                         </option>
                       ))}
                     </select>
