@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2, TrendingUp } from "lucide-react";
 import { useInvestmentAssetValues, useDeleteInvestmentAssetValue } from "@/hooks/queries/use-investment-asset-values";
-import { InvestmentAssetValueModel } from "@/models/investment-asset-values";
 import { InvestmentAssetModel } from "@/models/investment-assets";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import AssetValueDialog from "./AssetValueDialog";
@@ -19,12 +18,12 @@ const AssetValueHistory = ({ asset }: AssetValueHistoryProps) => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [assetValueToDelete, setAssetValueToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedAssetValue, setSelectedAssetValue] = useState<InvestmentAssetValueModel | undefined>(undefined);
+  const [selectedAssetValue, setSelectedAssetValue] = useState<any | undefined>(undefined);
   
   const { mutate: deleteAssetValue } = useDeleteInvestmentAssetValue();
   const { data: assetValues, isLoading } = useInvestmentAssetValues(asset.id);
 
-  const handleEdit = (assetValue: InvestmentAssetValueModel) => {
+  const handleEdit = (assetValue: any) => {
     setSelectedAssetValue(assetValue);
     setIsDialogOpen(true);
   };
@@ -45,7 +44,7 @@ const AssetValueHistory = ({ asset }: AssetValueHistoryProps) => {
     setIsDialogOpen(true);
   };
 
-  const renderAssetValueItem = (assetValue: InvestmentAssetValueModel) => (
+  const renderAssetValueItem = (assetValue: any) => (
     <Card key={assetValue.id} className="p-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <div className="flex-1">

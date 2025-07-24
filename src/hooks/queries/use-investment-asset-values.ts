@@ -14,7 +14,14 @@ export const useInvestmentAssetValues = (assetId?: number) => {
     queryFn: async () => {
       let query = supabase
         .from("investment_asset_values")
-        .select("*, investment_assets!inner(name, symbol, currency_code)")
+        .select(`
+          *,
+          investment_assets!inner(
+            name,
+            symbol,
+            currency_code
+          )
+        `)
         .eq("user_id", user?.id);
 
       if (assetId) {
@@ -24,7 +31,7 @@ export const useInvestmentAssetValues = (assetId?: number) => {
       const { data, error } = await query.order("date", { ascending: false });
 
       if (error) throw error;
-      return data as InvestmentAssetValueModel[];
+      return data as any[];
     },
     enabled: !!user,
   });

@@ -48,6 +48,13 @@ export type Database = {
             foreignKeyName: "budget_items_transaction_id_fkey"
             columns: ["transaction_id"]
             isOneToOne: false
+            referencedRelation: "transaction_associations"
+            referencedColumns: ["transaction_id"]
+          },
+          {
+            foreignKeyName: "budget_items_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
             referencedRelation: "transactions"
             referencedColumns: ["id"]
           },
@@ -126,6 +133,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "business_projects"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_project_transactions_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transaction_associations"
+            referencedColumns: ["transaction_id"]
           },
           {
             foreignKeyName: "business_project_transactions_transaction_id_fkey"
@@ -367,11 +381,13 @@ export type Database = {
       goal_investment_records: {
         Row: {
           amount: number
+          amount_unit: number | null
           asset_id: number | null
           category_id: number | null
           created_at: string | null
           currency_code: string
           date: string
+          description: string | null
           goal_id: number
           id: number
           instrument_id: number | null
@@ -382,11 +398,13 @@ export type Database = {
         }
         Insert: {
           amount: number
+          amount_unit?: number | null
           asset_id?: number | null
           category_id?: number | null
           created_at?: string | null
           currency_code: string
           date: string
+          description?: string | null
           goal_id: number
           id?: number
           instrument_id?: number | null
@@ -397,11 +415,13 @@ export type Database = {
         }
         Update: {
           amount?: number
+          amount_unit?: number | null
           asset_id?: number | null
           category_id?: number | null
           created_at?: string | null
           currency_code?: string
           date?: string
+          description?: string | null
           goal_id?: number
           id?: number
           instrument_id?: number | null
@@ -457,18 +477,20 @@ export type Database = {
       }
       goal_transfers: {
         Row: {
-          from_amount: number | null
-          to_amount: number | null
           created_at: string | null
-          from_currency: string | null
-          to_currency: string | null
           date: string
+          from_amount: number | null
+          from_amount_unit: number | null
           from_asset_id: number | null
+          from_currency: string | null
           from_goal_id: number | null
           from_instrument_id: number | null
           from_wallet_id: number | null
           id: number
+          to_amount: number | null
+          to_amount_unit: number | null
           to_asset_id: number | null
+          to_currency: string | null
           to_goal_id: number | null
           to_instrument_id: number | null
           to_wallet_id: number | null
@@ -476,18 +498,20 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          from_amount?: number | null
-          to_amount?: number | null
           created_at?: string | null
-          from_currency?: string | null
-          to_currency?: string | null
           date: string
+          from_amount?: number | null
+          from_amount_unit?: number | null
           from_asset_id?: number | null
+          from_currency?: string | null
           from_goal_id?: number | null
           from_instrument_id?: number | null
           from_wallet_id?: number | null
           id?: number
+          to_amount?: number | null
+          to_amount_unit?: number | null
           to_asset_id?: number | null
+          to_currency?: string | null
           to_goal_id?: number | null
           to_instrument_id?: number | null
           to_wallet_id?: number | null
@@ -495,18 +519,20 @@ export type Database = {
           user_id: string
         }
         Update: {
-          from_amount?: number | null
-          to_amount?: number | null
           created_at?: string | null
-          from_currency?: string | null
-          to_currency?: string | null
           date?: string
+          from_amount?: number | null
+          from_amount_unit?: number | null
           from_asset_id?: number | null
+          from_currency?: string | null
           from_goal_id?: number | null
           from_instrument_id?: number | null
           from_wallet_id?: number | null
           id?: number
+          to_amount?: number | null
+          to_amount_unit?: number | null
           to_asset_id?: number | null
+          to_currency?: string | null
           to_goal_id?: number | null
           to_instrument_id?: number | null
           to_wallet_id?: number | null
@@ -515,25 +541,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "goal_transfers_from_currency_fkey"
-            columns: ["from_currency"]
-            isOneToOne: false
-            referencedRelation: "currencies"
-            referencedColumns: ["code"]
-          },
-          {
-            foreignKeyName: "goal_transfers_to_currency_fkey"
-            columns: ["to_currency"]
-            isOneToOne: false
-            referencedRelation: "currencies"
-            referencedColumns: ["code"]
-          },
-          {
             foreignKeyName: "goal_transfers_from_asset_id_fkey"
             columns: ["from_asset_id"]
             isOneToOne: false
             referencedRelation: "investment_assets"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_transfers_from_currency_fkey"
+            columns: ["from_currency"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
           },
           {
             foreignKeyName: "goal_transfers_from_goal_id_fkey"
@@ -562,6 +581,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "investment_assets"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_transfers_to_currency_fkey"
+            columns: ["to_currency"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
           },
           {
             foreignKeyName: "goal_transfers_to_goal_id_fkey"
@@ -633,9 +659,48 @@ export type Database = {
           },
         ]
       }
+      investment_asset_values: {
+        Row: {
+          asset_id: number
+          created_at: string | null
+          date: string
+          id: number
+          updated_at: string | null
+          user_id: string
+          value: number
+        }
+        Insert: {
+          asset_id: number
+          created_at?: string | null
+          date: string
+          id?: number
+          updated_at?: string | null
+          user_id: string
+          value: number
+        }
+        Update: {
+          asset_id?: number
+          created_at?: string | null
+          date?: string
+          id?: number
+          updated_at?: string | null
+          user_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_investment_asset_values_asset"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "investment_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       investment_assets: {
         Row: {
           created_at: string | null
+          currency_code: string | null
           id: number
           instrument_id: number
           name: string
@@ -645,6 +710,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          currency_code?: string | null
           id?: number
           instrument_id: number
           name: string
@@ -654,6 +720,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          currency_code?: string | null
           id?: number
           instrument_id?: number
           name?: string
@@ -662,6 +729,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "investment_assets_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
           {
             foreignKeyName: "investment_assets_instrument_id_fkey"
             columns: ["instrument_id"]
@@ -788,40 +862,40 @@ export type Database = {
       }
       transfers: {
         Row: {
-          from_amount: number
-          to_amount: number
           created_at: string | null
-          from_currency: string
-          to_currency: string
           date: string
+          from_amount: number
+          from_currency: string
           from_wallet_id: number
           id: number
+          to_amount: number
+          to_currency: string
           to_wallet_id: number
           updated_at: string | null
           user_id: string
         }
         Insert: {
-          from_amount: number
-          to_amount: number
           created_at?: string | null
-          from_currency: string
-          to_currency: string
           date: string
+          from_amount: number
+          from_currency: string
           from_wallet_id: number
           id?: number
+          to_amount: number
+          to_currency: string
           to_wallet_id: number
           updated_at?: string | null
           user_id: string
         }
         Update: {
-          from_amount?: number
-          to_amount?: number
           created_at?: string | null
-          from_currency?: string
-          to_currency?: string
           date?: string
+          from_amount?: number
+          from_currency?: string
           from_wallet_id?: number
           id?: number
+          to_amount?: number
+          to_currency?: string
           to_wallet_id?: number
           updated_at?: string | null
           user_id?: string
@@ -835,18 +909,18 @@ export type Database = {
             referencedColumns: ["code"]
           },
           {
-            foreignKeyName: "transfers_to_currency_fkey"
-            columns: ["to_currency"]
-            isOneToOne: false
-            referencedRelation: "currencies"
-            referencedColumns: ["code"]
-          },
-          {
             foreignKeyName: "transfers_from_wallet_id_fkey"
             columns: ["from_wallet_id"]
             isOneToOne: false
             referencedRelation: "wallets"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfers_to_currency_fkey"
+            columns: ["to_currency"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
           },
           {
             foreignKeyName: "transfers_to_wallet_id_fkey"
@@ -903,11 +977,12 @@ export type Database = {
           asset_symbol: string | null
           currency_code: string | null
           goal_id: number | null
+          goal_name: string | null
           instrument_name: string | null
           total_amount: number | null
-          user_id: string | null
-          unit_label: string | null
           total_amount_unit: number | null
+          unit_label: string | null
+          user_id: string | null
         }
         Relationships: []
       }
@@ -915,17 +990,27 @@ export type Database = {
         Row: {
           amount: number | null
           amount_unit: number | null
-          unit_label: string | null
           asset_id: number | null
+          created_at: string | null
           currency_code: string | null
           date: string | null
+          description: string | null
           goal_id: number | null
           instrument_id: number | null
           resource_id: number | null
           resource_type: string | null
+          unit_label: string | null
           user_id: string | null
           wallet_id: number | null
-          description: string | null
+        }
+        Relationships: []
+      }
+      transaction_associations: {
+        Row: {
+          budgets: Json | null
+          business_projects: Json | null
+          transaction_id: number | null
+          user_id: string | null
         }
         Relationships: []
       }
