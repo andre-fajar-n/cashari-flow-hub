@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { AssetValueFormData } from "@/form-dto/investment-asset-values";
+import { InvestmentAssetValueModel } from "@/models/investment-asset-values";
 
 export const useInvestmentAssetValues = (assetId?: number) => {
   const { user } = useAuth();
@@ -13,7 +14,7 @@ export const useInvestmentAssetValues = (assetId?: number) => {
     queryFn: async () => {
       let query = supabase
         .from("investment_asset_values")
-        .select(`*, investment_assets(name, symbol, currency_code)`)
+        .select("*, investment_assets!inner(name, symbol, currency_code)")
         .eq("user_id", user?.id);
 
       if (assetId) {
@@ -23,7 +24,7 @@ export const useInvestmentAssetValues = (assetId?: number) => {
       const { data, error } = await query.order("date", { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as InvestmentAssetValueModel[];
     },
     enabled: !!user,
   });

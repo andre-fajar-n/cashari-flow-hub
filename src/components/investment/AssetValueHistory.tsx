@@ -7,7 +7,6 @@ import { InvestmentAssetValueModel } from "@/models/investment-asset-values";
 import { InvestmentAssetModel } from "@/models/investment-assets";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import AssetValueDialog from "./AssetValueDialog";
-import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format } from "date-fns";
@@ -89,6 +88,8 @@ const AssetValueHistory = ({ asset }: AssetValueHistoryProps) => {
     fullDate: value.date
   })).reverse() || [];
 
+  const safeAssetValues = assetValues || [];
+
   return (
     <div className="space-y-6">
       <ConfirmationModal
@@ -139,34 +140,44 @@ const AssetValueHistory = ({ asset }: AssetValueHistoryProps) => {
         </Card>
       )}
 
-      {/* Data Table */}
-      <DataTable
-        data={assetValues || []}
-        isLoading={isLoading}
-        searchPlaceholder="Cari nilai aset..."
-        searchFields={["date"]}
-        renderItem={renderAssetValueItem}
-        emptyStateMessage="Belum ada history nilai aset"
-        title={`History Nilai - ${asset.name}`}
-        description={`Kelola history nilai untuk aset ${asset.name} ${asset.symbol ? `(${asset.symbol})` : ''}`}
-        headerActions={
-          assetValues && assetValues.length > 0 && (
-            <Button onClick={handleAddNew} className="w-full sm:w-auto">
-              <Plus className="w-4 h-4 mr-2" />
-              Tambah Nilai
-            </Button>
-          )
-        }
-      />
-
-      {(!assetValues || assetValues.length === 0) && !isLoading && (
-        <div className="text-center py-8">
-          <Button onClick={handleAddNew} className="mt-4">
-            <Plus className="w-4 h-4 mr-2" />
-            Tambah Nilai Pertama
-          </Button>
-        </div>
-      )}
+      {/* Asset Values List */}
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <CardTitle>History Nilai - {asset.name}</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Kelola history nilai untuk aset {asset.name} {asset.symbol ? `(${asset.symbol})` : ''}
+              </p>
+            </div>
+            {safeAssetValues.length > 0 && (
+              <Button onClick={handleAddNew} className="w-full sm:w-auto">
+                <Plus className="w-4 h-4 mr-2" />
+                Tambah Nilai
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="text-center py-8">
+              <p>Memuat data...</p>
+            </div>
+          ) : safeAssetValues.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground mb-4">Belum ada history nilai aset</p>
+              <Button onClick={handleAddNew}>
+                <Plus className="w-4 h-4 mr-2" />
+                Tambah Nilai Pertama
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {safeAssetValues.map(renderAssetValueItem)}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <AssetValueDialog
         open={isDialogOpen}
