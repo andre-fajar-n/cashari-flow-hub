@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { InputNumber } from "@/components/ui/input-number";
+import { InputDecimal } from "@/components/ui/input-decimal";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -241,7 +241,7 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, onSuccess }: G
                   <FormItem>
                     <FormLabel>Amount</FormLabel>
                     <FormControl>
-                      <InputNumber {...field} />
+                      <InputDecimal {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -255,7 +255,7 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, onSuccess }: G
                   <FormItem>
                     <FormLabel>Unit</FormLabel>
                     <FormControl>
-                      <InputNumber {...field} />
+                      <InputDecimal {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

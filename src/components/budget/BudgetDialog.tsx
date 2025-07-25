@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { InputNumber } from "@/components/ui/input-number";
+import { InputDecimal } from "@/components/ui/input-decimal";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useCreateBudget, useCurrencies, useDefaultCurrency, useUpdateBudget } from "@/hooks/queries";
 import { BudgetFormData, defaultBudgetFormValues } from "@/form-dto/budget";
@@ -99,7 +99,7 @@ const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogPro
                 <FormItem>
                   <FormLabel>Jumlah</FormLabel>
                   <FormControl>
-                    <InputNumber {...field} />
+                    <InputDecimal {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

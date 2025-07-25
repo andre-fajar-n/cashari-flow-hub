@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { InputNumber } from "@/components/ui/input-number";
+import { InputDecimal } from "@/components/ui/input-decimal";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -180,7 +180,7 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
                   <FormItem>
                     <FormLabel>Jumlah Keluar</FormLabel>
                     <FormControl>
-                      <InputNumber {...field} onChange={field.onChange} value={field.value} />
+                      <InputDecimal {...field} onChange={field.onChange} value={field.value} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -195,7 +195,7 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
                   <FormItem>
                     <FormLabel>Jumlah Masuk</FormLabel>
                     <FormControl>
-                      <InputNumber
+                      <InputDecimal
                         {...field}
                         onChange={field.onChange}
                         value={field.value}

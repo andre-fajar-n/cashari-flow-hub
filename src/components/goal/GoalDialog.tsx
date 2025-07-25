@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { InputNumber } from "@/components/ui/input-number";
+import { InputDecimal } from "@/components/ui/input-decimal";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useCreateGoal, useCurrencies, useDefaultCurrency, useUpdateGoal } from "@/hooks/queries";
 import { defaultGoalFormValues, GoalFormData } from "@/form-dto/goals";
@@ -97,7 +97,7 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
                 <FormItem>
                   <FormLabel>Jumlah Target</FormLabel>
                   <FormControl>
-                    <InputNumber {...field} />
+                    <InputDecimal {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
