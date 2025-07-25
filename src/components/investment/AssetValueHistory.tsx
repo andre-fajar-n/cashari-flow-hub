@@ -51,7 +51,7 @@ const AssetValueHistory = ({ asset }: AssetValueHistoryProps) => {
           <div className="flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-green-600" />
             <h3 className="font-semibold">
-              {assetValue.value.toLocaleString()} {asset.currency_code || 'IDR'}
+              {assetValue.value.toLocaleString('id-ID')} {asset.currency_code || 'IDR'}
             </h3>
           </div>
           <p className="text-sm text-muted-foreground mt-1">
@@ -119,7 +119,7 @@ const AssetValueHistory = ({ asset }: AssetValueHistoryProps) => {
                   <XAxis dataKey="date" />
                   <YAxis />
                   <Tooltip 
-                    formatter={(value) => [`${Number(value).toLocaleString()} ${asset.currency_code || 'IDR'}`, 'Nilai']}
+                    formatter={(value) => [`${Number(value).toLocaleString('id-ID')} ${asset.currency_code || 'IDR'}`, 'Nilai']}
                     labelFormatter={(label) => {
                       const item = chartData.find(d => d.date === label);
                       return item ? format(new Date(item.fullDate), 'dd MMMM yyyy') : label;

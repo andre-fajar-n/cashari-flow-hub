@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { InputDecimal } from "@/components/ui/input-decimal";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useCreateInvestmentAssetValue, useUpdateInvestmentAssetValue } from "@/hooks/queries/use-investment-asset-values";
 import { AssetValueFormData, defaultAssetValueFormValues } from "@/form-dto/investment-asset-values";
@@ -78,7 +79,7 @@ const AssetValueDialog = ({ open, onOpenChange, assetValue, assetId, onSuccess }
             <FormField
               control={form.control}
               name="value"
-              rules={{ 
+              rules={{
                 required: "Nilai aset harus diisi",
                 min: { value: 0, message: "Nilai tidak boleh negatif" }
               }}
@@ -86,12 +87,10 @@ const AssetValueDialog = ({ open, onOpenChange, assetValue, assetId, onSuccess }
                 <FormItem>
                   <FormLabel>Nilai Aset</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
-                      step="0.01" 
-                      placeholder="Masukkan nilai aset" 
-                      {...field} 
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                    <InputDecimal
+                      {...field}
+                      onChange={(value) => field.onChange(value)}
+                      value={field.value}
                     />
                   </FormControl>
                   <FormMessage />
