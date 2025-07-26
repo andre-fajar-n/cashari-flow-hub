@@ -200,11 +200,10 @@ const AssetDetail = () => {
 
           {/* Tabs */}
           <Tabs defaultValue="history" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="history">History Nilai</TabsTrigger>
               <TabsTrigger value="summary">Summary</TabsTrigger>
               <TabsTrigger value="movements">Riwayat</TabsTrigger>
-              <TabsTrigger value="modify">Modifikasi</TabsTrigger>
             </TabsList>
             
             <TabsContent value="history" className="space-y-4">
@@ -286,47 +285,6 @@ const AssetDetail = () => {
             
             <TabsContent value="movements" className="space-y-4">
               <AssetMovements assetId={asset.id} assetName={asset.name} />
-            </TabsContent>
-            
-            <TabsContent value="modify" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Edit className="w-5 h-5" />
-                    Modifikasi Aset
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="p-4 bg-muted rounded-lg">
-                    <p className="text-sm font-medium mb-2">Informasi Aset:</p>
-                    <p className="text-sm">
-                      <strong>Instrumen:</strong> {asset.investment_instruments?.name} (sudah terisi otomatis)
-                    </p>
-                    <p className="text-sm">
-                      <strong>Aset:</strong> {asset.name} {asset.symbol ? `(${asset.symbol})` : ''} (sudah terisi otomatis)
-                    </p>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Button onClick={handleAddValue} className="w-full">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Tambah Nilai Aset
-                    </Button>
-                    <Button onClick={handleAddRecord} variant="outline" className="w-full">
-                      <BarChart3 className="w-4 h-4 mr-2" />
-                      Tambah Record Investasi
-                    </Button>
-                  </div>
-                  
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="text-sm font-medium mb-2">Perbedaan:</h4>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• <strong>Tambah Nilai:</strong> Untuk mencatat nilai/harga aset saja</li>
-                      <li>• <strong>Tambah Record:</strong> Untuk mencatat transaksi investasi lengkap (goal, wallet, kategori)</li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
             </TabsContent>
           </Tabs>
 
