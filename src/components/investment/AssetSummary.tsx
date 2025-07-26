@@ -108,10 +108,6 @@ const AssetSummary = ({ assetId, assetName }: AssetSummaryProps) => {
     groupedRecords[b].totalAmount - groupedRecords[a].totalAmount
   );
 
-
-
-
-
   // Calculate total summary
   const totalAmount = Object.values(groupedRecords).reduce((sum, group) => sum + group.totalAmount, 0);
   const totalUnit = Object.values(groupedRecords).reduce((sum, group) => sum + group.totalUnit, 0);
@@ -188,23 +184,21 @@ const AssetSummary = ({ assetId, assetName }: AssetSummaryProps) => {
                               <Target className="w-4 h-4 text-blue-600" />
                               <span className="font-medium">{goal.goalName}</span>
                             </div>
-                            <AmountText
-                              amount={goal.totalAmount}
-                              className="font-semibold text-sm"
-                            >
-                              {formatAmountCurrency(goal.totalAmount, 'IDR')}
-                            </AmountText>
+                            <div className="text-right">
+                              <AmountText
+                                amount={goal.totalAmount}
+                                className="font-semibold text-sm"
+                              >
+                                {formatAmountCurrency(goal.totalAmount, 'IDR')}
+                              </AmountText>
+                              {goal.totalUnit > 0 && (
+                                <p className="text-xs text-muted-foreground">
+                                  {goal.totalUnit.toLocaleString("id-ID")} unit
+                                </p>
+                              )}
+                            </div>
                           </div>
 
-                          {goal.totalUnit > 0 && (
-                            <p className="text-xs text-muted-foreground">
-                              {goal.totalUnit.toLocaleString("id-ID")} unit
-                            </p>
-                          )}
-
-                          <p className="text-xs text-muted-foreground">
-                            {goal.records.length} transaksi
-                          </p>
                         </div>
                       );
                     })}
