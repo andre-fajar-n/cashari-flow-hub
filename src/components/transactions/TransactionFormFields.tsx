@@ -1,8 +1,8 @@
 import { Control } from "react-hook-form";
 import { Input } from "@/components/ui/input";
-import { InputDecimal } from "@/components/ui/input-decimal";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { InputNumber } from "../ui/input-number";
 
 interface TransactionFormFieldsProps {
   control: Control<any>;
@@ -21,7 +21,7 @@ const TransactionFormFields = ({ control, wallets, categories }: TransactionForm
           <FormItem>
             <FormLabel>Jumlah</FormLabel>
             <FormControl>
-              <InputDecimal
+              <InputNumber
                 {...field}
                 onChange={(value) => field.onChange(value)}
                 value={field.value}

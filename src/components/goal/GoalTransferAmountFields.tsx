@@ -2,7 +2,7 @@
 import { Control, UseFormWatch } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { InputDecimal } from "@/components/ui/input-decimal";
+import { InputNumber } from "@/components/ui/input-number";
 import { GoalTransferFormData } from "@/form-dto/goal-transfers";
 
 interface GoalTransferAmountFieldsProps {
@@ -30,7 +30,7 @@ const GoalTransferAmountFields = ({ control, watch, wallets }: GoalTransferAmoun
             <FormItem>
               <FormLabel>Jumlah Keluar</FormLabel>
               <FormControl>
-                <InputDecimal 
+                <InputNumber 
                   {...field} 
                   onChange={(value) => field.onChange(value)}
                   value={field.value}
@@ -49,7 +49,7 @@ const GoalTransferAmountFields = ({ control, watch, wallets }: GoalTransferAmoun
             <FormItem>
               <FormLabel>Jumlah Masuk</FormLabel>
               <FormControl>
-                <InputDecimal 
+                <InputNumber 
                   {...field} 
                   onChange={(value) => field.onChange(value)}
                   value={field.value}

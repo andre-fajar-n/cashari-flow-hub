@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { InputDecimal } from "@/components/ui/input-decimal";
+import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useCreateInvestmentAssetValue, useUpdateInvestmentAssetValue } from "@/hooks/queries/use-investment-asset-values";
 import { AssetValueFormData, defaultAssetValueFormValues } from "@/form-dto/investment-asset-values";
@@ -87,7 +87,7 @@ const AssetValueDialog = ({ open, onOpenChange, assetValue, assetId, onSuccess }
                 <FormItem>
                   <FormLabel>Nilai Aset</FormLabel>
                   <FormControl>
-                    <InputDecimal
+                    <InputNumber
                       {...field}
                       onChange={(value) => field.onChange(value)}
                       value={field.value}

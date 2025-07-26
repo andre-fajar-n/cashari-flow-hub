@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { InputDecimal } from "@/components/ui/input-decimal";
+import { InputNumber } from "@/components/ui/input-number";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -222,7 +222,7 @@ const AssetRecordDialog = ({ open, onOpenChange, asset, onSuccess }: AssetRecord
                 <FormItem>
                   <FormLabel>Amount</FormLabel>
                   <FormControl>
-                    <InputDecimal {...field} />
+                    <InputNumber {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -236,7 +236,7 @@ const AssetRecordDialog = ({ open, onOpenChange, asset, onSuccess }: AssetRecord
                 <FormItem>
                   <FormLabel>Unit</FormLabel>
                   <FormControl>
-                    <InputDecimal
+                    <InputNumber
                       {...field}
                       onChange={(value) => field.onChange(value)}
                       value={field.value}

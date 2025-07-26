@@ -11,22 +11,26 @@ export interface InputNumberProps extends Omit<React.ComponentProps<"input">, "o
 
 const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
   ({ className, onChange, value, autoComplete = "off", ...props }, ref) => {
-    const formatNumber = (num: string) => {
-      const isNegative = num.startsWith('-');
+    const formatNumber = (num: string | number): string => {
+      if (num === "" || num === null || num === undefined) return "";
 
-      // Remove any non-digit characters
-      const digitsOnly = num.replace(/\D/g, '');
+      const numValue = typeof num === 'string' ? parseFloat(num) : num;
+      if (isNaN(numValue)) return "";
 
-      if (digitsOnly === '') return isNegative ? '-' : '';
-
-      const formatted = parseInt(digitsOnly, 10).toLocaleString('id-ID');
-      return isNegative ? `-${formatted}` : formatted;
+      // Use Indonesian locale formatting
+      return numValue.toLocaleString('id-ID', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 10
+      });
     };
 
-    const parseNumber = (formattedNum: string) => {
-      const isNegative = formattedNum.trim().startsWith('-');
-      const numeric = parseInt(formattedNum.replace(/[^0-9]/g, ''), 10) || 0;
-      return isNegative ? -numeric : numeric;
+    const parseNumber = (formattedStr: string): number => {
+      if (!formattedStr || formattedStr === "" || formattedStr === "-") return 0;
+
+      // Remove thousand separators (dots) and replace comma with dot for decimal
+      const cleanStr = formattedStr.replace(/\./g, '').replace(',', '.');
+      const parsed = parseFloat(cleanStr);
+      return isNaN(parsed) ? 0 : parsed;
     };
     
     const [displayValue, setDisplayValue] = React.useState<string>(
@@ -38,28 +42,46 @@ const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
     }, [value]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newValue = e.target.value;
+      const inputValue = e.target.value;
 
-      // Allow empty string or just "-"
-      if (newValue === "" || newValue === "-") {
-        setDisplayValue(newValue);
+      // Allow empty string
+      if (inputValue === "") {
+        setDisplayValue("");
         if (onChange) {
-          onChange(0); // optional: you can return NaN or null if "-" only
+          onChange(0);
         }
         return;
       }
 
-      const isNegative = newValue.startsWith('-');
-      const digitsOnly = newValue.replace(/\D/g, '');
+      // Allow only numbers, dots, commas, and minus sign
+      const validPattern = /^-?[\d.,]*$/;
+      if (!validPattern.test(inputValue)) {
+        return; // Reject invalid characters
+      }
 
-      if (digitsOnly !== '') {
-        const raw = isNegative ? `-${digitsOnly}` : digitsOnly;
-        const formatted = formatNumber(raw);
-        setDisplayValue(formatted);
+      // Prevent multiple commas (decimal separators)
+      const commaCount = (inputValue.match(/,/g) || []).length;
+      if (commaCount > 1) {
+        return;
+      }
 
-        if (onChange) {
-          const numericValue = parseNumber(formatted);
-          onChange(numericValue);
+      // Set display value as user types
+      setDisplayValue(inputValue);
+
+      // Parse and send numeric value to parent
+      if (onChange) {
+        const numericValue = parseNumber(inputValue);
+        onChange(numericValue);
+      }
+    };
+
+    const handleBlur = () => {
+      // Format the number when user finishes typing
+      if (displayValue && displayValue !== "" && displayValue !== "-") {
+        const numericValue = parseNumber(displayValue);
+        if (!isNaN(numericValue)) {
+          const formatted = formatNumber(numericValue);
+          setDisplayValue(formatted);
         }
       }
     };
@@ -74,8 +96,9 @@ const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
           className
         )}
         onChange={handleChange}
+        onBlur={handleBlur}
         placeholder="0"
-        inputMode="numeric"
+        inputMode="decimal"
         ref={ref}
         {...props}
       />

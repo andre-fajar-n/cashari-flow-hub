@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { InputDecimal } from "@/components/ui/input-decimal";
+import { InputNumber } from "@/components/ui/input-number";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
@@ -174,7 +174,7 @@ const WalletManagement = () => {
                       <FormItem>
                         <FormLabel>Saldo Awal</FormLabel>
                         <FormControl>
-                          <InputDecimal {...field} />
+                          <InputNumber {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
