@@ -1,27 +1,27 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Plus, Coins, Edit, Trash2, History, TrendingUp } from "lucide-react";
+import { Plus, Coins, Edit, Trash2, TrendingUp } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import InvestmentAssetDialog from "@/components/investment/InvestmentAssetDialog";
-import AssetValueHistory from "@/components/investment/AssetValueHistory";
+
 import { useDeleteInvestmentAsset, useInvestmentAssets, useInvestmentInstruments } from "@/hooks/queries";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { InvestmentAssetModel } from "@/models/investment-assets";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
 
 const InvestmentAsset = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [investmentAssetToDelete, setInvestmentAssetToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<InvestmentAssetModel | undefined>(undefined);
-  const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
-  const [assetForHistory, setAssetForHistory] = useState<InvestmentAssetModel | undefined>(undefined);
   
   const { mutate: deleteInvestmentAsset } = useDeleteInvestmentAsset();
   const { data: assets, isLoading } = useInvestmentAssets();
@@ -49,8 +49,7 @@ const InvestmentAsset = () => {
   };
 
   const handleViewHistory = (asset: InvestmentAssetModel) => {
-    setAssetForHistory(asset);
-    setIsHistoryDialogOpen(true);
+    navigate(`/investment-asset/${asset.id}`);
   };
 
   const renderAssetItem = (asset: InvestmentAssetModel) => (
@@ -168,20 +167,6 @@ const InvestmentAsset = () => {
             queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
           }}
         />
-
-        <Dialog open={isHistoryDialogOpen} onOpenChange={setIsHistoryDialogOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <History className="w-5 h-5" />
-                History Nilai Aset
-              </DialogTitle>
-            </DialogHeader>
-            {assetForHistory && (
-              <AssetValueHistory asset={assetForHistory} />
-            )}
-          </DialogContent>
-        </Dialog>
       </Layout>
     </ProtectedRoute>
   );

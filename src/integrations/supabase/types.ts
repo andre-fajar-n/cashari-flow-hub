@@ -983,6 +983,10 @@ export type Database = {
           total_amount_unit: number | null
           unit_label: string | null
           user_id: string | null
+          asset_id: number | null
+          instrument_id: number | null
+          wallet_id: number | null
+          wallet_name: string | null
         }
         Relationships: []
       }

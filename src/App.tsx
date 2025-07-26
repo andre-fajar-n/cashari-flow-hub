@@ -17,6 +17,7 @@ import Goal from "@/pages/Goal";
 import GoalDetail from "@/pages/GoalDetail";
 import InvestmentInstrument from "@/pages/InvestmentInstrument";
 import InvestmentAsset from "@/pages/InvestmentAsset";
+import AssetDetail from "@/pages/AssetDetail";
 import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
 import { AuthProvider } from "@/hooks/use-auth";
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/goal/:id" element={<GoalDetail />} />
             <Route path="/investment-instrument" element={<InvestmentInstrument />} />
             <Route path="/investment-asset" element={<InvestmentAsset />} />
+            <Route path="/investment-asset/:id" element={<AssetDetail />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
