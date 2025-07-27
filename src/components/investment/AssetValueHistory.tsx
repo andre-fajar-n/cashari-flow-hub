@@ -5,7 +5,7 @@ import { Plus, Edit, Trash2, TrendingUp } from "lucide-react";
 import { useInvestmentAssetValues, useDeleteInvestmentAssetValue } from "@/hooks/queries/use-investment-asset-values";
 import { InvestmentAssetModel } from "@/models/investment-assets";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import AssetValueDialog from "./AssetValueDialog";
+import AssetValueDialog from "@/components/investment/AssetValueDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format } from "date-fns";

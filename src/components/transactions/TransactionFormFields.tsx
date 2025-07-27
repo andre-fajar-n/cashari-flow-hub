@@ -2,7 +2,7 @@ import { Control } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { InputNumber } from "../ui/input-number";
+import { InputNumber } from "@/components/ui/input-number";
 
 interface TransactionFormFieldsProps {
   control: Control<any>;
