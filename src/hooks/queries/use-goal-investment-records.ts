@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -106,6 +105,7 @@ export const useUpdateGoalInvestmentRecord = () => {
 
 export const useDeleteGoalInvestmentRecord = () => {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   return useMutation({
     mutationFn: async (id: number) => {
@@ -119,6 +119,17 @@ export const useDeleteGoalInvestmentRecord = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
       queryClient.invalidateQueries({ queryKey: ["goals"] });
+      toast({
+        title: "Berhasil",
+        description: "Record berhasil dihapus",
+      });
     },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   });
 };

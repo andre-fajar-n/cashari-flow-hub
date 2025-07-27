@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -15,13 +14,13 @@ import GoalMovementsHistory from "@/components/goal/GoalMovementsHistory";
 import GoalFundsSummary from "@/components/goal/GoalFundsSummary";
 import GoalOverview from "@/components/goal/GoalOverview";
 import { useGoalTransfers, useGoalInvestmentRecords, useGoals, useDeleteGoal } from "@/hooks/queries";
-import { useGoalFundsSummary } from "@/hooks/queries/use-goal-funds-summary";
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { GoalModel } from "@/models/goals";
 import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
 import { formatAmountCurrency } from "@/lib/utils";
 import AmountText from "@/components/ui/amount-text";
+import { calculateGoalProgress } from "@/components/goal/GoalProgressCalculator";
 
 const GoalDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -34,19 +33,20 @@ const GoalDetail = () => {
   const [transferConfig, setTransferConfig] = useState<GoalTransferConfig | undefined>(undefined);
 
   const { mutate: deleteGoal } = useDeleteGoal();
-  const { data: goals } = useGoals();
-  const { data: goalTransfers } = useGoalTransfers();
-  const { data: goalRecords } = useGoalInvestmentRecords();
-  const { data: goalMovements } = useMoneyMovements({ goalId: parseInt(id!) });
+  const { data: goals, isLoading } = useGoals();
+  const { data: goalTransfers, isLoading: isTransfersLoading } = useGoalTransfers();
+  const { data: goalRecords, isLoading: isRecordsLoading } = useGoalInvestmentRecords();
+  const { data: goalMovements, isLoading: isMovementsLoading } = useMoneyMovements({ goalId: parseInt(id!) });
 
   const goal = goals?.find(g => g.id === parseInt(id!)) as GoalModel;
 
-  if (!goal) {
+  // Check loading states and goal existence before accessing goal properties
+  if (!goal || isLoading || isTransfersLoading || isRecordsLoading || isMovementsLoading) {
     return (
       <ProtectedRoute>
         <Layout>
           <div className="text-center py-8">
-            <p className="text-muted-foreground">Goal tidak ditemukan</p>
+            <p className="text-muted-foreground">Memuat data...</p>
             <Button onClick={() => navigate('/goal')} className="mt-4">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Kembali ke Daftar Goal
@@ -56,6 +56,9 @@ const GoalDetail = () => {
       </ProtectedRoute>
     );
   }
+
+  // Calculate progress after ensuring goal exists
+  const progress = calculateGoalProgress(goal.id, goal.target_amount, goalTransfers, goalRecords);
 
   const handleEdit = () => {
     setIsDialogOpen(true);
@@ -183,28 +186,18 @@ const GoalDetail = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {(() => {
-                    const { data: fundsSummary } = useGoalFundsSummary(goal.id);
-                    if (!fundsSummary) return <p className="text-muted-foreground">Memuat total dana...</p>;
-
-                    const totalAmount = fundsSummary.reduce((sum, fund) => sum + fund.total_amount, 0);
-                    const currencyCode = fundsSummary[0]?.currency_code || goal.currency_code;
-
-                    return (
-                      <div className="text-center py-4">
-                        <AmountText
-                          amount={totalAmount}
-                          className="text-3xl font-bold"
-                          showSign={true}
-                        >
-                          {formatAmountCurrency(totalAmount, currencyCode)}
-                        </AmountText>
-                        <p className="text-sm text-muted-foreground mt-2">
-                          Total dana dalam goal ini
-                        </p>
-                      </div>
-                    );
-                  })()}
+                  <div className="text-center py-4">
+                    <AmountText
+                      amount={progress.totalAmount}
+                      className="text-3xl font-bold"
+                      showSign={true}
+                    >
+                      {formatAmountCurrency(progress.totalAmount, goal.currency_code)}
+                    </AmountText>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Total dana dalam goal ini
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -212,10 +205,9 @@ const GoalDetail = () => {
             </TabsContent>
             
             <TabsContent value="history" className="space-y-4">
-              <GoalMovementsHistory 
-                movements={goalMovements || []} 
-                transfers={goalTransfers || []} 
-                goalId={goal.id}
+              <GoalMovementsHistory
+                movements={goalMovements || []}
+                transfers={goalTransfers || []}
               />
             </TabsContent>
           </Tabs>

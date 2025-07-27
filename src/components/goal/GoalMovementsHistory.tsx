@@ -1,25 +1,22 @@
-
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ActionDropdown } from "@/components/ui/action-dropdown";
-import { ArrowUpRight, ArrowDownLeft, Calendar, MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { DataTable, ColumnFilter } from "@/components/ui/data-table";
+import { ArrowUpRight, ArrowDownLeft, MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/utils";
 import { Database } from "@/integrations/supabase/types";
 import { AmountText } from "@/components/ui/amount-text";
-import { useDeleteGoalInvestmentRecord, useDeleteGoalTransfer } from "@/hooks/queries";
-import { useQueryClient } from "@tanstack/react-query";
+import { useCurrencies, useDeleteGoalInvestmentRecord, useDeleteGoalTransfer } from "@/hooks/queries";
 import { useToast } from "@/hooks/use-toast";
 import ConfirmationModal from "@/components/ConfirmationModal";
 
 interface GoalMovementsHistoryProps {
   movements: Database["public"]["Views"]["money_movements"]["Row"][];
   transfers: Database["public"]["Tables"]["goal_transfers"]["Row"][];
-  goalId: number;
 }
 
-const GoalMovementsHistory = ({ movements, transfers, goalId }: GoalMovementsHistoryProps) => {
+const GoalMovementsHistory = ({ movements, transfers }: GoalMovementsHistoryProps) => {
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [deleteModal, setDeleteModal] = useState<{
     open: boolean;
@@ -27,10 +24,11 @@ const GoalMovementsHistory = ({ movements, transfers, goalId }: GoalMovementsHis
     id: number | null;
   }>({ open: false, type: null, id: null });
 
-  const queryClient = useQueryClient();
+  const { data: currencies } = useCurrencies();
+
   const { toast } = useToast();
-  const { mutate: deleteRecord } = useDeleteGoalInvestmentRecord();
-  const { mutate: deleteTransfer } = useDeleteGoalTransfer();
+  const deleteRecord = useDeleteGoalInvestmentRecord();
+  const deleteTransfer = useDeleteGoalTransfer();
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
@@ -105,12 +103,12 @@ const GoalMovementsHistory = ({ movements, transfers, goalId }: GoalMovementsHis
           lines.push(`Ke Aset: ${transfer.to_asset?.name || 'Unknown'}${transfer.to_asset?.symbol ? ` (${transfer.to_asset?.symbol})` : ''}`);
         }
 
-        return lines;
+        return lines.join(' • ');
       }
     }
 
     // Fallback to original description
-    return [movement.description || 'Money movement'];
+    return movement.description || 'Unknown';
   };
 
   const handleEdit = (movement: any) => {
@@ -137,141 +135,134 @@ const GoalMovementsHistory = ({ movements, transfers, goalId }: GoalMovementsHis
 
   const handleConfirmDelete = () => {
     if (deleteModal.type === 'transfer' && deleteModal.id) {
-      deleteTransfer(deleteModal.id, {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
-          queryClient.invalidateQueries({ queryKey: ["goal_movements"] });
-          queryClient.invalidateQueries({ queryKey: ["goals"] });
-          setDeleteModal({ open: false, type: null, id: null });
-          toast({
-            title: "Berhasil",
-            description: "Transfer berhasil dihapus",
-          });
-        },
-        onError: (error: any) => {
-          toast({
-            title: "Error",
-            description: error.message,
-            variant: "destructive",
-          });
-        }
-      });
+      deleteTransfer.mutate(deleteModal.id);
     } else if (deleteModal.type === 'record' && deleteModal.id) {
-      deleteRecord(deleteModal.id, {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
-          queryClient.invalidateQueries({ queryKey: ["goal_movements"] });
-          queryClient.invalidateQueries({ queryKey: ["goals"] });
-          setDeleteModal({ open: false, type: null, id: null });
-          toast({
-            title: "Berhasil",
-            description: "Record berhasil dihapus",
-          });
-        },
-        onError: (error: any) => {
-          toast({
-            title: "Error",
-            description: error.message,
-            variant: "destructive",
-          });
-        }
-      });
+      deleteRecord.mutate(deleteModal.id);
     }
+  };
+
+  useEffect(() => {
+    if (deleteTransfer.isSuccess || deleteRecord.isSuccess) {
+      setDeleteModal({ open: false, type: null, id: null });
+    }
+  })
+
+  // Define column filters for the data table
+  const columnFilters: ColumnFilter[] = [
+    {
+      field: 'resource_type',
+      label: 'Tipe',
+      type: 'select',
+      options: [
+        { label: 'Transfer Masuk', value: 'goal_transfers_in' },
+        { label: 'Transfer Keluar', value: 'goal_transfers_out' },
+        { label: 'Pertumbuhan Investasi', value: 'investment_growth' },
+      ]
+    },
+    {
+      field: 'currency_code',
+      label: 'Mata Uang',
+      type: 'select',
+      options: currencies?.map(currency => ({
+        label: `${currency.code} (${currency.symbol})`,
+        value: currency.code
+      })) || []
+    },
+    {
+      field: 'date',
+      label: 'Tanggal',
+      type: 'daterange'
+    },
+  ];
+
+  // Render function for each movement item
+  const renderMovementItem = (movement: any) => {
+    // Generate a unique index for dropdown based on movement properties
+    const index = movement.resource_id || Math.random();
+
+    return (
+    <div className="flex items-center justify-between p-4 border rounded-lg">
+      <div className="flex items-center gap-3">
+        <div className="flex-shrink-0">
+          {movement.amount && movement.amount > 0 ? (
+            <ArrowDownLeft className="w-5 h-5 text-green-600" />
+          ) : (
+            <ArrowUpRight className="w-5 h-5 text-red-600" />
+          )}
+        </div>
+        <div>
+          <div className="flex items-center gap-2">
+            <p className="font-medium">
+              {movement.amount && movement.amount > 0 ? 'Dana Masuk' : 'Dana Keluar'}
+            </p>
+            <Badge variant="outline" className="text-xs">
+              {movement.resource_type}
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {getTransferDescription(movement)}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {formatDate(movement.date || '')}
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="text-right">
+          <AmountText
+            amount={movement.amount || 0}
+            className="font-semibold"
+            showSign={true}
+          >
+            {formatAmountCurrency(Math.abs(movement.amount || 0), movement.currency_code || 'IDR')}
+          </AmountText>
+          {movement.amount_unit && (
+            <p className="text-sm text-muted-foreground">
+              {movement.amount_unit.toLocaleString("id-ID")} {movement.unit_label || 'unit'}
+            </p>
+          )}
+        </div>
+        <ActionDropdown
+          dropdownId={index}
+          openDropdownId={openDropdownId}
+          setOpenDropdownId={setOpenDropdownId}
+          triggerContent={
+            <Button variant="ghost" size="sm">
+              <MoreHorizontal className="w-4 h-4" />
+            </Button>
+          }
+          menuItems={[
+            {
+              label: "Edit",
+              icon: <Edit className="w-4 h-4" />,
+              onClick: () => handleEdit(movement),
+            },
+            {
+              label: "Hapus",
+              icon: <Trash2 className="w-4 h-4" />,
+              onClick: () => handleDelete(movement),
+              className: "text-destructive",
+            },
+          ]}
+        />
+      </div>
+    </div>
+    );
   };
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="w-5 h-5" />
-            Riwayat Pergerakan Dana
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {movements.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">Belum ada riwayat pergerakan dana</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {movements.map((movement, index) => (
-                <div
-                  key={`${movement.resource_type}-${movement.resource_id}-${index}`}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0">
-                      {movement.amount && movement.amount > 0 ? (
-                        <ArrowDownLeft className="w-5 h-5 text-green-600" />
-                      ) : (
-                        <ArrowUpRight className="w-5 h-5 text-red-600" />
-                      )}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium">
-                          {movement.amount && movement.amount > 0 ? 'Dana Masuk' : 'Dana Keluar'}
-                        </p>
-                        <Badge variant="outline" className="text-xs">
-                          {movement.resource_type}
-                        </Badge>
-                      </div>
-                      <div className="text-sm text-muted-foreground space-y-1">
-                        {getTransferDescription(movement).map((line, index) => (
-                          <p key={index}>{line}</p>
-                        ))}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDate(movement.date || '')}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="text-right">
-                      <AmountText
-                        amount={movement.amount || 0}
-                        className="font-semibold"
-                        showSign={true}
-                      >
-                        {formatAmountCurrency(Math.abs(movement.amount || 0), movement.currency_code || 'IDR')}
-                      </AmountText>
-                      {movement.amount_unit && (
-                        <p className="text-sm text-muted-foreground">
-                          {movement.amount_unit.toLocaleString("id-ID")} {movement.unit_label || 'unit'}
-                        </p>
-                      )}
-                    </div>
-                    <ActionDropdown
-                      dropdownId={index}
-                      openDropdownId={openDropdownId}
-                      setOpenDropdownId={setOpenDropdownId}
-                      triggerContent={
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      }
-                      menuItems={[
-                        {
-                          label: "Edit",
-                          icon: <Edit className="w-4 h-4" />,
-                          onClick: () => handleEdit(movement),
-                        },
-                        {
-                          label: "Hapus",
-                          icon: <Trash2 className="w-4 h-4" />,
-                          onClick: () => handleDelete(movement),
-                          className: "text-destructive",
-                        },
-                      ]}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <DataTable
+        data={movements}
+        isLoading={false}
+        searchPlaceholder="Cari riwayat pergerakan dana..."
+        searchFields={["description", "resource_type"]}
+        columnFilters={columnFilters}
+        renderItem={renderMovementItem}
+        emptyStateMessage="Belum ada riwayat pergerakan dana"
+        title="Riwayat Pergerakan Dana"
+        description="Kelola dan pantau semua pergerakan dana dalam goal ini"
+      />
 
       <ConfirmationModal
         open={deleteModal.open}
