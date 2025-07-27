@@ -1,15 +1,14 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Edit, Trash2, Plus, Minus, TrendingUp, BarChart3, PieChart } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Plus, TrendingUp, BarChart3, PieChart } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import AssetValueDialog from "@/components/investment/AssetValueDialog";
-import { useInvestmentAssets, useDeleteInvestmentAsset } from "@/hooks/queries";
+import { useInvestmentAssets, useDeleteInvestmentAsset } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentAssetValues, useDeleteInvestmentAssetValue } from "@/hooks/queries/use-investment-asset-values";
 import InvestmentAssetDialog from "@/components/investment/InvestmentAssetDialog";
 import { InvestmentAssetModel } from "@/models/investment-assets";
@@ -19,13 +18,14 @@ import { DataTable } from "@/components/ui/data-table";
 import AmountText from "@/components/ui/amount-text";
 import { formatAmountCurrency } from "@/lib/utils";
 import AssetSummary from "@/components/investment/AssetSummary";
-import AssetMovements from "@/components/investment/AssetMovements";
 import AssetRecordDialog from "@/components/investment/AssetRecordDialog";
+import MovementsDataTable from "@/components/shared/MovementsDataTable";
+import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
+import { useGoalTransfers } from "@/hooks/queries";
 
 const AssetDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -41,6 +41,8 @@ const AssetDetail = () => {
   const { mutate: deleteAssetValue } = useDeleteInvestmentAssetValue();
   const { data: assets } = useInvestmentAssets();
   const { data: assetValues, isLoading: isValuesLoading } = useInvestmentAssetValues(parseInt(id!));
+  const { data: movements, isLoading: isMovementsLoading } = useMoneyMovements({ assetId: parseInt(id!) });
+  const { data: transfers, isLoading: isTransfersLoading } = useGoalTransfers();
 
   const asset = assets?.find(a => a.id === parseInt(id!)) as InvestmentAssetModel;
 
@@ -284,7 +286,21 @@ const AssetDetail = () => {
             </TabsContent>
             
             <TabsContent value="movements" className="space-y-4">
-              <AssetMovements assetId={asset.id} assetName={asset.name} />
+              {isMovementsLoading || isTransfersLoading ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Memuat riwayat pergerakan dana...</p>
+                </div>
+              ) : (
+                <MovementsDataTable
+                  movements={movements || []}
+                  transfers={transfers || []}
+                  filterType="asset"
+                  filterId={asset.id}
+                  title={`Riwayat Aset - ${asset.name}`}
+                  description="Kelola dan pantau semua pergerakan dana untuk aset ini"
+                  emptyMessage={`Belum ada riwayat pergerakan dana untuk aset ${asset.name}`}
+                />
+              )}
             </TabsContent>
           </Tabs>
 
@@ -314,9 +330,6 @@ const AssetDetail = () => {
             open={isEditDialogOpen}
             onOpenChange={setIsEditDialogOpen}
             asset={asset}
-            onSuccess={() => {
-              queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
-            }}
           />
 
           <AssetValueDialog
@@ -324,18 +337,11 @@ const AssetDetail = () => {
             onOpenChange={setIsValueDialogOpen}
             assetValue={selectedAssetValue}
             assetId={asset.id}
-            onSuccess={() => {
-              queryClient.invalidateQueries({ queryKey: ["investment_asset_values"] });
-            }}
           />
           <AssetRecordDialog
             open={isRecordDialogOpen}
             onOpenChange={setIsRecordDialogOpen}
             asset={asset}
-            onSuccess={() => {
-              queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
-              queryClient.invalidateQueries({ queryKey: ["goals"] });
-            }}
           />
         </div>
       </Layout>

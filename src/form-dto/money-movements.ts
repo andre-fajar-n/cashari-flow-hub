@@ -5,4 +5,5 @@ export interface MoneyMovementFilter {
   categoryId?: number;
   startDate?: string;
   endDate?: string;
+  assetId?: number;
 }

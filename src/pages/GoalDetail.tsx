@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,7 +9,6 @@ import Layout from "@/components/Layout";
 import GoalDialog from "@/components/goal/GoalDialog";
 import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
-import GoalMovementsHistory from "@/components/goal/GoalMovementsHistory";
 import GoalFundsSummary from "@/components/goal/GoalFundsSummary";
 import GoalOverview from "@/components/goal/GoalOverview";
 import { useGoalTransfers, useGoalInvestmentRecords, useGoals, useDeleteGoal } from "@/hooks/queries";
@@ -21,11 +19,11 @@ import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
 import { formatAmountCurrency } from "@/lib/utils";
 import AmountText from "@/components/ui/amount-text";
 import { calculateGoalProgress } from "@/components/goal/GoalProgressCalculator";
+import MovementsDataTable from "@/components/shared/MovementsDataTable";
 
 const GoalDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
@@ -205,9 +203,14 @@ const GoalDetail = () => {
             </TabsContent>
             
             <TabsContent value="history" className="space-y-4">
-              <GoalMovementsHistory
+              <MovementsDataTable
                 movements={goalMovements || []}
                 transfers={goalTransfers || []}
+                filterType="goal"
+                filterId={goal.id}
+                title="Riwayat Pergerakan Dana"
+                description="Kelola dan pantau semua pergerakan dana dalam goal ini"
+                emptyMessage="Belum ada riwayat pergerakan dana"
               />
             </TabsContent>
           </Tabs>
@@ -228,9 +231,6 @@ const GoalDetail = () => {
             open={isDialogOpen}
             onOpenChange={setIsDialogOpen}
             goal={goal}
-            onSuccess={() => {
-              queryClient.invalidateQueries({ queryKey: ["goals"] });
-            }}
           />
 
           <GoalTransferDialog
@@ -242,22 +242,12 @@ const GoalDetail = () => {
               }
             }}
             transferConfig={transferConfig}
-            onSuccess={() => {
-              queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
-              queryClient.invalidateQueries({ queryKey: ["goal_movements"] });
-              queryClient.invalidateQueries({ queryKey: ["goals"] });
-            }}
           />
 
           <GoalInvestmentRecordDialog
             open={isRecordDialogOpen}
             onOpenChange={setIsRecordDialogOpen}
             goalId={goal.id}
-            onSuccess={() => {
-              queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
-              queryClient.invalidateQueries({ queryKey: ["goal_movements"] });
-              queryClient.invalidateQueries({ queryKey: ["goals"] });
-            }}
           />
         </div>
       </Layout>
