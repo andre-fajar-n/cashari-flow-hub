@@ -81,7 +81,7 @@ const GoalTransferDialog = ({
 
   const onSubmit = async (data: GoalTransferFormData) => {
     if (!user) return;
-    
+
     setIsLoading(true);
     const transferData = {
       user_id: user.id,
@@ -100,19 +100,29 @@ const GoalTransferDialog = ({
       date: data.date,
     };
 
-    if (transfer) {
-      updateTransfer.mutate({ id: transfer.id, ...transferData });
-    } else {
-      createTransfer.mutate(transferData);
-    }
-  };
-
-  useEffect(() => {
-    if (open && !transfer && !transferConfig) {
+    const handleSuccess = () => {
+      setIsLoading(false);
       onOpenChange(false);
       onSuccess?.();
+      form.reset();
+    };
+
+    const handleError = () => {
+      setIsLoading(false);
+    };
+
+    if (transfer) {
+      updateTransfer.mutate({ id: transfer.id, ...transferData }, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
+    } else {
+      createTransfer.mutate(transferData, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
     }
-  }, [open, transfer, transferConfig]);
+  };
 
   const modeConfig = transferConfig ? getTransferModeConfig(transferConfig.mode) : null;
   const dialogTitle = transfer 
