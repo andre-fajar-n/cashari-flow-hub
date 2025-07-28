@@ -146,7 +146,7 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
                 </AmountText>
                 {fund.total_amount_unit && (
                   <p className="text-xs text-muted-foreground">
-                    {fund.total_amount_unit.toLocaleString("id-ID")} {fund.unit_label || 'unit'}
+                    {fund.total_amount_unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })} {fund.unit_label || 'unit'}
                   </p>
                 )}
               </div>

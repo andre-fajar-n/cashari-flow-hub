@@ -236,11 +236,11 @@ const MovementsDataTable = ({
               className="font-semibold"
               showSign={true}
             >
-              {formatAmountCurrency(Math.abs(movement.amount || 0), movement.currency_code || 'IDR')}
+              {formatAmountCurrency(Math.abs(movement.amount || 0), movement.currency_code || 'unknown currency')}
             </AmountText>
             {movement.amount_unit && (
               <p className="text-sm text-muted-foreground">
-                {movement.amount_unit.toLocaleString("id-ID")} {movement.unit_label || 'unit'}
+                {movement.amount_unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })} {movement.unit_label || 'unknown unit'}
               </p>
             )}
           </div>
