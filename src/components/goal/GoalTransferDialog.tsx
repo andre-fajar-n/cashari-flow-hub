@@ -10,6 +10,7 @@ import GoalTransferFormFields from "@/components/goal/GoalTransferFormFields";
 import GoalTransferAmountFields from "@/components/goal/GoalTransferAmountFields";
 import { GoalTransferConfig, getTransferModeConfig } from "@/components/goal/GoalTransferModes";
 import { defaultGoalTransferFormData, GoalTransferFormData } from "@/form-dto/goal-transfers";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface GoalTransferDialogProps {
   open: boolean;
@@ -19,15 +20,16 @@ interface GoalTransferDialogProps {
   transferConfig?: GoalTransferConfig;
 }
 
-const GoalTransferDialog = ({ 
-  open, 
-  onOpenChange, 
-  transfer, 
+const GoalTransferDialog = ({
+  open,
+  onOpenChange,
+  transfer,
   onSuccess,
-  transferConfig 
+  transferConfig
 }: GoalTransferDialogProps) => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
   const createTransfer = useCreateGoalTransfer();
   const updateTransfer = useUpdateGoalTransfer();
 
@@ -105,6 +107,12 @@ const GoalTransferDialog = ({
       onOpenChange(false);
       onSuccess?.();
       form.reset();
+
+      // Invalidate relevant queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
+      queryClient.invalidateQueries({ queryKey: ["goals"] });
+      queryClient.invalidateQueries({ queryKey: ["goal_movements"] });
+      queryClient.invalidateQueries({ queryKey: ["wallets"] });
     };
 
     const handleError = () => {
