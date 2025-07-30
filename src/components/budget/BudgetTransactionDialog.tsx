@@ -111,7 +111,7 @@ const BudgetTransactionDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col bg-background">
         <DialogHeader>
           <DialogTitle>
             Tambah Transaksi ke Budget: {budget.name}
@@ -217,18 +217,20 @@ const BudgetTransactionDialog = ({
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex justify-end gap-2 pt-4 border-t">
+        {/* Action Buttons - Fixed with proper background and z-index */}
+        <div className="flex justify-end gap-2 pt-4 border-t bg-background relative z-10">
           <Button
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
+            className="bg-background hover:bg-accent hover:text-accent-foreground border-input"
           >
             Batal
           </Button>
           <Button
             onClick={handleAddTransactions}
             disabled={selectedTransactionIds.length === 0 || isLoading}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             {isLoading 
               ? "Menambahkan..." 
