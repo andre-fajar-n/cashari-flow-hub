@@ -12,7 +12,7 @@ import TransactionAssociationFields from "@/components/transactions/TransactionA
 import { defaultTransactionFormValues, TransactionFormData } from "@/form-dto/transactions";
 import { useInsertTransactionWithRelations, useUpdateTransactionWithRelations } from "@/hooks/queries/use-transaction-with-relations";
 import { useForm } from "react-hook-form";
-import { useMutationCallbacks, QUERY_KEY_SETS } from "@/utils/mutation-handlers";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 
 interface TransactionDialogProps {
   open: boolean;

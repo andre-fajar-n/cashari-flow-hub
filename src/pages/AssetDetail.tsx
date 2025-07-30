@@ -16,7 +16,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { format } from "date-fns";
 import { DataTable } from "@/components/ui/data-table";
 import AmountText from "@/components/ui/amount-text";
-import { formatAmountCurrency } from "@/lib/utils";
+import { formatAmountCurrency } from "@/lib/currency";
 import AssetSummary from "@/components/investment/AssetSummary";
 import AssetRecordDialog from "@/components/investment/AssetRecordDialog";
 import MovementsDataTable from "@/components/shared/MovementsDataTable";

@@ -10,7 +10,7 @@ import GoalTransferFormFields from "@/components/goal/GoalTransferFormFields";
 import GoalTransferAmountFields from "@/components/goal/GoalTransferAmountFields";
 import { GoalTransferConfig, getTransferModeConfig } from "@/components/goal/GoalTransferModes";
 import { defaultGoalTransferFormData, GoalTransferFormData } from "@/form-dto/goal-transfers";
-import { useMutationCallbacks, QUERY_KEY_SETS } from "@/utils/mutation-handlers";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 
 interface GoalTransferDialogProps {
   open: boolean;

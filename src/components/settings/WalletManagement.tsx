@@ -11,7 +11,7 @@ import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { useCreateWallet, useDeleteWallet, useUpdateWallet, useWallets } from "@/hooks/queries/use-wallets";
 import { defaultWalletFormValues, WalletFormData } from "@/form-dto/wallets";
 import { WalletModel } from "@/models/wallets";
-import { useMutationCallbacks, QUERY_KEY_SETS } from "@/utils/mutation-handlers";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 
 const WalletManagement = () => {
   const [isAdding, setIsAdding] = useState(false);

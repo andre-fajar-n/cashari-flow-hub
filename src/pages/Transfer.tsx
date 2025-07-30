@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TransferModel } from "@/models/transfer";
-import { formatAmountCurrency } from "@/lib/utils";
+import { formatAmountCurrency } from "@/lib/currency";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { AmountText } from "@/components/ui/amount-text";
 

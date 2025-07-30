@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ActionDropdown } from "@/components/ui/action-dropdown";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { ArrowUpRight, ArrowDownLeft, MoreHorizontal, Edit, Trash2 } from "lucide-react";
-import { formatAmountCurrency } from "@/lib/utils";
+import { formatAmountCurrency } from "@/lib/currency";
 import { Database } from "@/integrations/supabase/types";
 import { AmountText } from "@/components/ui/amount-text";
 import { useDeleteGoalInvestmentRecord, useDeleteGoalTransfer } from "@/hooks/queries";

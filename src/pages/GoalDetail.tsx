@@ -16,7 +16,7 @@ import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { GoalModel } from "@/models/goals";
 import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
-import { formatAmountCurrency } from "@/lib/utils";
+import { formatAmountCurrency } from "@/lib/currency";
 import AmountText from "@/components/ui/amount-text";
 import { calculateGoalProgress } from "@/components/goal/GoalProgressCalculator";
 import MovementsDataTable from "@/components/shared/MovementsDataTable";

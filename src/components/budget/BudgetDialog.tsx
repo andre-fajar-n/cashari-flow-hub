@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useCreateBudget, useCurrencies, useDefaultCurrency, useUpdateBudget } from "@/hooks/queries";
 import { BudgetFormData, defaultBudgetFormValues } from "@/form-dto/budget";
 import { InputNumber } from "@/components/ui/input-number";
-import { useMutationCallbacks, QUERY_KEY_SETS } from "@/utils/mutation-handlers";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 
 interface BudgetDialogProps {
   open: boolean;

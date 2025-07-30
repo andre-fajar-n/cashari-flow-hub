@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { calculateGoalProgress } from "@/components/goal/GoalProgressCalculator";
-import { formatAmountCurrency } from "@/lib/utils";
+import { formatAmountCurrency } from "@/lib/currency";
 import { GoalModel } from "@/models/goals";
 import { Database } from "@/integrations/supabase/types";
 import AmountText from "@/components/ui/amount-text";

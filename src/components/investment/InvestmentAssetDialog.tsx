@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useCreateInvestmentAsset, useInvestmentInstruments, useUpdateInvestmentAsset, useCurrencies } from "@/hooks/queries";
 import { AssetFormData, defaultAssetFormValues } from "@/form-dto/investment-assets";
-import { useMutationCallbacks, QUERY_KEY_SETS } from "@/utils/mutation-handlers";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 
 interface InvestmentAssetDialogProps {
   open: boolean;

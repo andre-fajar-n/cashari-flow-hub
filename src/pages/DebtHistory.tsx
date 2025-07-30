@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,7 @@ import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import DebtHistoryDialog from "@/components/debt/DebtHistoryDialog";
-import { formatAmountCurrency } from "@/lib/utils";
+import { formatAmountCurrency } from "@/lib/currency";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useDeleteDebtHistory } from "@/hooks/queries/use-debt-histories";
 import { AmountText } from "@/components/ui/amount-text";

@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { DEBT_TYPES } from "@/constants/enums";
 import { useCreateDebt, useCurrencies, useDefaultCurrency, useUpdateDebt } from "@/hooks/queries";
 import { DebtFormData, defaultDebtFormValues } from "@/form-dto/debts";
-import { useMutationCallbacks, QUERY_KEY_SETS } from "@/utils/mutation-handlers";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 
 interface DebtDialogProps {
   open: boolean;

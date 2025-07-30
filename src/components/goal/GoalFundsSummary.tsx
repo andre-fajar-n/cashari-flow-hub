@@ -6,7 +6,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Button } from "@/components/ui/button";
 import { Wallet, TrendingUp, PieChart, ChevronDown, ChevronUp } from "lucide-react";
 import { useGoalFundsSummary } from "@/hooks/queries/use-goal-funds-summary";
-import { formatAmountCurrency } from "@/lib/utils";
+import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
 
 interface GoalFundsSummaryProps {

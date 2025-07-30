@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Button } from "@/components/ui/button";
 import { Wallet, Target, PieChart, ChevronDown, ChevronUp } from "lucide-react";
 import { useGoalFundsSummary } from "@/hooks/queries/use-goal-funds-summary";
-import { formatAmountCurrency } from "@/lib/utils";
+import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
 
 interface AssetSummaryProps {

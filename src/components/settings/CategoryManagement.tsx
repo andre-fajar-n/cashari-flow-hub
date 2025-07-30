@@ -11,7 +11,7 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { useCategories, useCreateCategory, useDeleteCategory, useUpdateCategory } from "@/hooks/queries";
 import { CategoryModel } from "@/models/categories";
 import { CategoryFormData, defaultCategoryFormValues } from "@/form-dto/categories";
-import { useMutationCallbacks, QUERY_KEY_SETS } from "@/utils/mutation-handlers";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 
 const CategoryManagement = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);

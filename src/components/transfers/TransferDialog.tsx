@@ -10,7 +10,7 @@ import { useWallets } from "@/hooks/queries/use-wallets";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { defaultTransferFormData, TransferFormData } from "@/form-dto/transfer";
 import { useCreateTransfer, useUpdateTransfer } from "@/hooks/queries/use-transfers";
-import { useMutationCallbacks, QUERY_KEY_SETS } from "@/utils/mutation-handlers";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 
 interface TransferDialogProps {
   open: boolean;
