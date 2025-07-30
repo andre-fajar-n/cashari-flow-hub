@@ -1,7 +1,8 @@
+
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar, Edit, Trash2 } from "lucide-react";
+import { Plus, Calendar, Edit, Trash2, Eye } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import BusinessProjectDialog from "@/components/business-project/BusinessProjectDialog";
@@ -10,8 +11,10 @@ import { useBusinessProjects, useDeleteBusinessProject } from "@/hooks/queries";
 import { BusinessProjectModel } from "@/models/business-projects";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 
 const BusinessProject = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [businessProjectToDelete, setBusinessProjectToDelete] = useState<number | null>(null);
@@ -19,6 +22,10 @@ const BusinessProject = () => {
   const [selectedProject, setSelectedProject] = useState<BusinessProjectModel | undefined>(undefined);
   const { mutate: deleteBusinessProject } = useDeleteBusinessProject();
   const { data: projects, isLoading } = useBusinessProjects();
+
+  const handleView = (project: BusinessProjectModel) => {
+    navigate(`/business-project/${project.id}`);
+  };
 
   const handleEdit = (project: BusinessProjectModel) => {
     setSelectedProject(project);
@@ -63,6 +70,14 @@ const BusinessProject = () => {
           </div>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => handleView(project)}
+          >
+            <Eye className="w-3 h-3 mr-1" />
+            Detail
+          </Button>
           <Button 
             variant="outline" 
             size="sm"
