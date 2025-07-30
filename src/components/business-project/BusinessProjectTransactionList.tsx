@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,7 +7,7 @@ import { useBusinessProjectTransactions } from "@/hooks/queries/use-business-pro
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
 import { BusinessProjectModel } from "@/models/business-projects";
-import BusinessProjectTransactionDialog from "./BusinessProjectTransactionDialog";
+import BusinessProjectTransactionDialog from "@/components/business-project/BusinessProjectTransactionDialog";
 
 interface BusinessProjectTransactionListProps {
   project: BusinessProjectModel;

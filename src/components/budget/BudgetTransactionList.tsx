@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +7,7 @@ import { useBudgetTransactions } from "@/hooks/queries/use-budget-transactions";
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
 import { BudgetModel } from "@/models/budgets";
-import BudgetTransactionDialog from "./BudgetTransactionDialog";
+import BudgetTransactionDialog from "@/components/budget/BudgetTransactionDialog";
 import { useToast } from "@/hooks/use-toast";
 
 interface BudgetTransactionListProps {
