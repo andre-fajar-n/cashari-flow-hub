@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useCreateInvestmentAsset, useInvestmentInstruments, useUpdateInvestmentAsset, useCurrencies } from "@/hooks/queries";
 import { AssetFormData, defaultAssetFormValues } from "@/form-dto/investment-assets";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/utils/mutation-handlers";
 
 interface InvestmentAssetDialogProps {
   open: boolean;
@@ -29,14 +30,30 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
   const { data: instruments } = useInvestmentInstruments();
   const { data: currencies } = useCurrencies();
 
+  // Use mutation callbacks utility
+  const { handleSuccess, handleError } = useMutationCallbacks({
+    setIsLoading,
+    onOpenChange,
+    onSuccess,
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_ASSETS
+  });
+
   const onSubmit = async (data: AssetFormData) => {
     if (!user) return;
-    
+
     setIsLoading(true);
+
     if (asset) {
-      updateAsset.mutate({ id: asset.id, ...data });
+      updateAsset.mutate({ id: asset.id, ...data }, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
     } else {
-      createAsset.mutate(data);
+      createAsset.mutate(data, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
     }
   };
 

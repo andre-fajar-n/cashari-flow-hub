@@ -8,6 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { DEBT_TYPES } from "@/constants/enums";
 import { useCreateDebt, useCurrencies, useDefaultCurrency, useUpdateDebt } from "@/hooks/queries";
 import { DebtFormData, defaultDebtFormValues } from "@/form-dto/debts";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/utils/mutation-handlers";
 
 interface DebtDialogProps {
   open: boolean;
@@ -44,24 +45,32 @@ const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) =>
     }
   }, [debt, open, form, defaultCurrency]);
 
+  // Use mutation callbacks utility
+  const { handleSuccess, handleError } = useMutationCallbacks({
+    setIsLoading,
+    onOpenChange,
+    onSuccess,
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.DEBTS
+  });
+
   const onSubmit = async (data: DebtFormData) => {
     if (!user) return;
 
     setIsLoading(true);
+
     if (debt) {
-      updateDebt.mutate({ id: debt.id, ...data });
+      updateDebt.mutate({ id: debt.id, ...data }, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
     } else {
-      createDebt.mutate(data);
+      createDebt.mutate(data, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
     }
   };
-
-  useEffect(() => {
-    if (createDebt.isSuccess || updateDebt.isSuccess) {
-      onOpenChange(false);
-      setIsLoading(false);
-      onSuccess?.();
-    }
-  }, [createDebt.isSuccess, updateDebt.isSuccess]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

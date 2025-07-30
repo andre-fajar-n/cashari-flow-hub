@@ -10,6 +10,7 @@ import { useWallets } from "@/hooks/queries/use-wallets";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { defaultTransferFormData, TransferFormData } from "@/form-dto/transfer";
 import { useCreateTransfer, useUpdateTransfer } from "@/hooks/queries/use-transfers";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/utils/mutation-handlers";
 
 interface TransferDialogProps {
   open: boolean;
@@ -20,7 +21,7 @@ interface TransferDialogProps {
 
 const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDialogProps) => {
   const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const { data: wallets } = useWallets();
   const updateTransfer = useUpdateTransfer();
   const createTransfer = useCreateTransfer();
@@ -67,8 +68,19 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
     }
   }, [isSameCurrency, watchAmountFrom, form]);
 
+  // Use mutation callbacks utility
+  const { handleSuccess, handleError } = useMutationCallbacks({
+    setIsLoading,
+    onOpenChange,
+    onSuccess,
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.TRANSFERS
+  });
+
   const onSubmit = async (data: TransferFormData) => {
     if (!user) return;
+
+    setIsLoading(true);
 
     const transferData = {
       from_wallet_id: parseInt(data.from_wallet_id),
@@ -80,21 +92,18 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
       date: data.date,
     };
 
-    setIsLoading(true);
     if (transfer) {
-      updateTransfer.mutate({ id: transfer.id, ...transferData });
+      updateTransfer.mutate({ id: transfer.id, ...transferData }, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
     } else {
-      createTransfer.mutate(transferData);
+      createTransfer.mutate(transferData, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
     }
   };
-
-  useEffect(() => {
-    if (createTransfer.isSuccess || updateTransfer.isSuccess) {
-      onOpenChange(false);
-      onSuccess?.();
-      setIsLoading(false);
-    }
-  }, [createTransfer.isSuccess, updateTransfer.isSuccess]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

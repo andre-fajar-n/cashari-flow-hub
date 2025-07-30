@@ -11,6 +11,7 @@ import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { useCreateWallet, useDeleteWallet, useUpdateWallet, useWallets } from "@/hooks/queries/use-wallets";
 import { defaultWalletFormValues, WalletFormData } from "@/form-dto/wallets";
 import { WalletModel } from "@/models/wallets";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/utils/mutation-handlers";
 
 const WalletManagement = () => {
   const [isAdding, setIsAdding] = useState(false);
@@ -42,19 +43,27 @@ const WalletManagement = () => {
     }
   }, [editingWallet, form]);
 
-  useEffect(() => {
-    if (createMutation.isSuccess || updateMutation.isSuccess) {
+  // Use mutation callbacks utility
+  const { handleSuccess } = useMutationCallbacks({
+    setIsLoading: () => {}, // Not used in this component
+    onOpenChange: () => {
       setIsAdding(false);
       setEditingWallet(null);
-      form.reset(defaultWalletFormValues);
-    }
-  }, [createMutation.isSuccess, updateMutation.isSuccess, form]);
+    },
+    onSuccess: () => {},
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.WALLETS
+  });
 
   const onSubmit = (data: WalletFormData) => {
     if (editingWallet) {
-      updateMutation.mutate({ id: editingWallet.id, ...data });
+      updateMutation.mutate({ id: editingWallet.id, ...data }, {
+        onSuccess: handleSuccess
+      });
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate(data, {
+        onSuccess: handleSuccess
+      });
     }
   };
 

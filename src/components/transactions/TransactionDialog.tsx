@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useTransactionCategories } from "@/hooks/queries/use-categories";
 import { useBudgets } from "@/hooks/queries/use-budgets";
@@ -12,6 +12,7 @@ import TransactionAssociationFields from "@/components/transactions/TransactionA
 import { defaultTransactionFormValues, TransactionFormData } from "@/form-dto/transactions";
 import { useInsertTransactionWithRelations, useUpdateTransactionWithRelations } from "@/hooks/queries/use-transaction-with-relations";
 import { useForm } from "react-hook-form";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/utils/mutation-handlers";
 
 interface TransactionDialogProps {
   open: boolean;
@@ -21,14 +22,13 @@ interface TransactionDialogProps {
 }
 
 const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: TransactionDialogProps) => {
+  const [isLoading, setIsLoading] = useState(false);
   const { data: wallets } = useWallets();
   const { data: categories } = useTransactionCategories();
   const { data: budgets } = useBudgets();
   const { data: businessProjects } = useBusinessProjects();
   const insertTransactionWithRelations = useInsertTransactionWithRelations();
   const updateTransactionWithRelations = useUpdateTransactionWithRelations();
-
-  const isLoading = insertTransactionWithRelations.isPending || updateTransactionWithRelations.isPending;
 
   const form = useForm<TransactionFormData>({
     defaultValues: defaultTransactionFormValues,
@@ -61,7 +61,18 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
   const selectedWalletId = form.watch("wallet_id");
   const selectedWallet = wallets?.find(w => w.id.toString() === selectedWalletId);
 
+  // Use mutation callbacks utility
+  const { handleSuccess, handleError } = useMutationCallbacks({
+    setIsLoading,
+    onOpenChange,
+    onSuccess,
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.TRANSACTIONS
+  });
+
   const onSubmit = (data: TransactionFormData) => {
+    setIsLoading(true);
+
     const transactionData = {
       amount: data.amount,
       category_id: parseInt(data.category_id),
@@ -72,10 +83,17 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
       budget_ids: data.budget_ids,
       business_project_ids: data.business_project_ids,
     };
+
     if (transaction) {
-      updateTransactionWithRelations.mutate({ id: transaction.id, ...transactionData } as any);
+      updateTransactionWithRelations.mutate({ id: transaction.id, ...transactionData } as any, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
     } else {
-      insertTransactionWithRelations.mutate(transactionData as any);
+      insertTransactionWithRelations.mutate(transactionData as any, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
     }
   };
 

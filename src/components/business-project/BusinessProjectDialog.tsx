@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { defaultProjectFormValues, ProjectFormData } from "@/form-dto/business-projects";
 import { useCreateProject, useUpdateProject } from "@/hooks/queries";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/utils/mutation-handlers";
 
 interface BusinessProjectDialogProps {
   open: boolean;
@@ -43,25 +44,32 @@ const BusinessProjectDialog = ({ open, onOpenChange, project, onSuccess }: Busin
     }
   }, [project, open, form]);
 
+  // Use mutation callbacks utility
+  const { handleSuccess, handleError } = useMutationCallbacks({
+    setIsLoading,
+    onOpenChange,
+    onSuccess,
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.BUSINESS_PROJECTS
+  });
+
   const onSubmit = async (data: ProjectFormData) => {
     if (!user) return;
-    
+
     setIsLoading(true);
+
     if (project) {
-      updateProject.mutate({ id: project.id, ...data });
+      updateProject.mutate({ id: project.id, ...data }, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
     } else {
-      createProject.mutate(data);
+      createProject.mutate(data, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
     }
   };
-
-  useEffect(() => {
-    if (createProject.isSuccess || updateProject.isSuccess) {
-      onOpenChange(false);
-      form.reset();
-      setIsLoading(false);
-      onSuccess?.();
-    }
-  }, [createProject.isSuccess, updateProject.isSuccess]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

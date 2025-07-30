@@ -10,7 +10,7 @@ import GoalTransferFormFields from "@/components/goal/GoalTransferFormFields";
 import GoalTransferAmountFields from "@/components/goal/GoalTransferAmountFields";
 import { GoalTransferConfig, getTransferModeConfig } from "@/components/goal/GoalTransferModes";
 import { defaultGoalTransferFormData, GoalTransferFormData } from "@/form-dto/goal-transfers";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/utils/mutation-handlers";
 
 interface GoalTransferDialogProps {
   open: boolean;
@@ -29,7 +29,6 @@ const GoalTransferDialog = ({
 }: GoalTransferDialogProps) => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const queryClient = useQueryClient();
   const createTransfer = useCreateGoalTransfer();
   const updateTransfer = useUpdateGoalTransfer();
 
@@ -102,22 +101,14 @@ const GoalTransferDialog = ({
       date: data.date,
     };
 
-    const handleSuccess = () => {
-      setIsLoading(false);
-      onOpenChange(false);
-      onSuccess?.();
-      form.reset();
-
-      // Invalidate relevant queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
-      queryClient.invalidateQueries({ queryKey: ["goals"] });
-      queryClient.invalidateQueries({ queryKey: ["goal_movements"] });
-      queryClient.invalidateQueries({ queryKey: ["wallets"] });
-    };
-
-    const handleError = () => {
-      setIsLoading(false);
-    };
+    // Use mutation callbacks utility
+    const { handleSuccess, handleError } = useMutationCallbacks({
+      setIsLoading,
+      onOpenChange,
+      onSuccess,
+      form,
+      queryKeysToInvalidate: QUERY_KEY_SETS.GOAL_TRANSFERS
+    });
 
     if (transfer) {
       updateTransfer.mutate({ id: transfer.id, ...transferData }, {

@@ -8,6 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useCreateBudget, useCurrencies, useDefaultCurrency, useUpdateBudget } from "@/hooks/queries";
 import { BudgetFormData, defaultBudgetFormValues } from "@/form-dto/budget";
 import { InputNumber } from "@/components/ui/input-number";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/utils/mutation-handlers";
 
 interface BudgetDialogProps {
   open: boolean;
@@ -28,13 +29,29 @@ const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogPro
     defaultValues: defaultBudgetFormValues,
   });
 
+  // Use mutation callbacks utility
+  const { handleSuccess, handleError } = useMutationCallbacks({
+    setIsLoading,
+    onOpenChange,
+    onSuccess,
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.BUDGETS
+  });
+
   const onSubmit = async (data: BudgetFormData) => {
     if (!user) return;
     setIsLoading(true);
+
     if (budget) {
-      updateBudget.mutate({ id: budget.id, ...data });
+      updateBudget.mutate({ id: budget.id, ...data }, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
     } else {
-      createBudget.mutate(data);
+      createBudget.mutate(data, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
     }
   };
 

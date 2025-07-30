@@ -11,6 +11,7 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { useCategories, useCreateCategory, useDeleteCategory, useUpdateCategory } from "@/hooks/queries";
 import { CategoryModel } from "@/models/categories";
 import { CategoryFormData, defaultCategoryFormValues } from "@/form-dto/categories";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/utils/mutation-handlers";
 
 const CategoryManagement = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -56,11 +57,27 @@ const CategoryManagement = () => {
     }
   };
 
+  // Use mutation callbacks utility
+  const { handleSuccess } = useMutationCallbacks({
+    setIsLoading: () => {}, // Not used in this component
+    onOpenChange: () => {
+      setIsAdding(false);
+      setEditingCategory(null);
+    },
+    onSuccess: () => {},
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.CATEGORIES
+  });
+
   const onSubmit = (data: CategoryFormData) => {
     if (editingCategory) {
-      updateCategory.mutate({ id: editingCategory.id, ...data });
+      updateCategory.mutate({ id: editingCategory.id, ...data }, {
+        onSuccess: handleSuccess
+      });
     } else {
-      createCategory.mutate(data);
+      createCategory.mutate(data, {
+        onSuccess: handleSuccess
+      });
     }
   };
 
@@ -73,13 +90,6 @@ const CategoryManagement = () => {
     setEditingCategory(null);
     setIsAdding(false);
   };
-
-  useEffect(() => {
-    if (createCategory.isSuccess || updateCategory.isSuccess) {
-      setIsAdding(false);
-      setEditingCategory(null);
-    }
-  }, [createCategory.isSuccess, updateCategory.isSuccess]);
 
   const columnFilters: ColumnFilter[] = [
     {
