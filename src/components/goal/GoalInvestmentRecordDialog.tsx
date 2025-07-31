@@ -57,6 +57,9 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, onSuccess }: G
       cleanData.asset_id = null;
     }
 
+    // Keep amount_unit as is (can be 0 or null)
+    cleanData.amount_unit = data.amount_unit;
+
     createRecord.mutate(cleanData);
   };
 
@@ -240,7 +243,11 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, onSuccess }: G
                   <FormItem>
                     <FormLabel>Amount</FormLabel>
                     <FormControl>
-                      <InputNumber {...field} />
+                      <InputNumber 
+                        {...field}
+                        onChange={(value) => field.onChange(value || 0)}
+                        value={field.value}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -254,8 +261,16 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, onSuccess }: G
                   <FormItem>
                     <FormLabel>Unit</FormLabel>
                     <FormControl>
-                      <InputNumber {...field} />
+                      <InputNumber 
+                        {...field}
+                        onChange={(value) => field.onChange(value)}
+                        value={field.value}
+                        allowNull={true}
+                      />
                     </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      Kosong = null, 0 = nol
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}
