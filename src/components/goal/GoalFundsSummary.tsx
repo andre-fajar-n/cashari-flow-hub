@@ -143,11 +143,11 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
                 >
                   {formatAmountCurrency(fund.total_amount, fund.currency_code)}
                 </AmountText>
-                {fund.total_amount_unit && (
+                {fund.total_amount_unit !== null ? (
                   <p className="text-xs text-muted-foreground">
                     {fund.total_amount_unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })} {fund.unit_label || 'unit'}
                   </p>
-                )}
+                ): null}
               </div>
             </div>
           ))}
