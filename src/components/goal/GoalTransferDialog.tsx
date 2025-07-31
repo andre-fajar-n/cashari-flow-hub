@@ -96,6 +96,8 @@ const GoalTransferDialog = ({
       to_asset_id: data.to_asset_id > 0 ? data.to_asset_id : null,
       from_amount: data.from_amount,
       to_amount: data.to_amount,
+      from_amount_unit: data.from_amount_unit || null,
+      to_amount_unit: data.to_amount_unit || null,
       from_currency: 'IDR',
       to_currency: 'IDR',
       date: data.date,

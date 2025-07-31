@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -104,10 +105,26 @@ export const useUpdateGoalTransfer = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...transfer }: GoalTransferFormData & { id: number }) => {
+    mutationFn: async ({ id, ...transfer }: Partial<GoalTransferFormData> & { id: number }) => {
       const { data, error } = await supabase
         .from("goal_transfers")
-        .update(transfer)
+        .update({
+          from_wallet_id: transfer.from_wallet_id,
+          from_goal_id: transfer.from_goal_id,
+          from_instrument_id: transfer.from_instrument_id,
+          from_asset_id: transfer.from_asset_id,
+          to_wallet_id: transfer.to_wallet_id,
+          to_goal_id: transfer.to_goal_id,
+          to_instrument_id: transfer.to_instrument_id,
+          to_asset_id: transfer.to_asset_id,
+          from_amount: transfer.from_amount,
+          to_amount: transfer.to_amount,
+          from_amount_unit: transfer.from_amount_unit || null,
+          to_amount_unit: transfer.to_amount_unit || null,
+          from_currency: transfer.from_currency,
+          to_currency: transfer.to_currency,
+          date: transfer.date,
+        })
         .eq("id", id)
         .select()
         .single();

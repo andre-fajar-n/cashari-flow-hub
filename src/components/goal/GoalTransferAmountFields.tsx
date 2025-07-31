@@ -67,6 +67,46 @@ const GoalTransferAmountFields = ({ control, watch, wallets }: GoalTransferAmoun
         />
       </div>
 
+      <div className="grid grid-cols-2 gap-4">
+        <FormField
+          control={control}
+          name="from_amount_unit"
+          rules={{ min: { value: 0, message: "Jumlah unit tidak boleh negatif" } }}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Jumlah Unit Keluar</FormLabel>
+              <FormControl>
+                <InputNumber 
+                  {...field} 
+                  onChange={(value) => field.onChange(value)}
+                  value={field.value}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="to_amount_unit"
+          rules={{ min: { value: 0, message: "Jumlah unit tidak boleh negatif" } }}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Jumlah Unit Masuk</FormLabel>
+              <FormControl>
+                <InputNumber 
+                  {...field} 
+                  onChange={(value) => field.onChange(value)}
+                  value={field.value}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+
       {fromWallet && toWallet && (
         <div className="text-sm text-muted-foreground bg-muted p-3 rounded">
           Transfer dari {fromWallet.name} ({fromWallet.currency_code}) ke {toWallet.name} ({toWallet.currency_code})
