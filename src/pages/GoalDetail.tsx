@@ -12,7 +12,7 @@ import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
 import GoalFundsSummary from "@/components/goal/GoalFundsSummary";
 import GoalOverview from "@/components/goal/GoalOverview";
-import { useGoalTransfers, useGoalInvestmentRecords, useGoals, useDeleteGoal, useDeleteGoalInvestmentRecord } from "@/hooks/queries";
+import { useGoalTransfers, useGoalInvestmentRecords, useGoals, useDeleteGoal, useDeleteGoalInvestmentRecord, useDeleteGoalTransfer } from "@/hooks/queries";
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { GoalModel } from "@/models/goals";
@@ -31,14 +31,20 @@ const GoalDetail = () => {
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
   const [isRecordDialogOpen, setIsRecordDialogOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<any | undefined>(undefined);
+  const [selectedTransfer, setSelectedTransfer] = useState<any | undefined>(undefined);
   const [transferConfig, setTransferConfig] = useState<GoalTransferConfig | undefined>(undefined);
   const [deleteRecordModal, setDeleteRecordModal] = useState<{
+    open: boolean;
+    id: number | null;
+  }>({ open: false, id: null });
+  const [deleteTransferModal, setDeleteTransferModal] = useState<{
     open: boolean;
     id: number | null;
   }>({ open: false, id: null });
 
   const { mutate: deleteGoal } = useDeleteGoal();
   const { mutate: deleteRecord } = useDeleteGoalInvestmentRecord();
+  const { mutate: deleteTransfer } = useDeleteGoalTransfer();
   const { data: goals, isLoading } = useGoals();
   const { data: goalTransfers, isLoading: isTransfersLoading } = useGoalTransfers();
   const { data: goalRecords, isLoading: isRecordsLoading } = useGoalInvestmentRecords();
@@ -92,8 +98,18 @@ const GoalDetail = () => {
     setIsRecordDialogOpen(true);
   };
 
+  const handleEditTransfer = (transfer: any) => {
+    setSelectedTransfer(transfer);
+    setTransferConfig(undefined);
+    setIsTransferDialogOpen(true);
+  };
+
   const handleDeleteRecordClick = (id: number) => {
     setDeleteRecordModal({ open: true, id });
+  };
+
+  const handleDeleteTransferClick = (id: number) => {
+    setDeleteTransferModal({ open: true, id });
   };
 
   const handleConfirmDeleteRecord = () => {
@@ -103,7 +119,15 @@ const GoalDetail = () => {
     }
   };
 
+  const handleConfirmDeleteTransfer = () => {
+    if (deleteTransferModal.id) {
+      deleteTransfer(deleteTransferModal.id);
+      setDeleteTransferModal({ open: false, id: null });
+    }
+  };
+
   const handleAddToGoal = () => {
+    setSelectedTransfer(undefined);
     setTransferConfig({
       mode: 'add_to_goal',
       goalId: goal.id,
@@ -113,6 +137,7 @@ const GoalDetail = () => {
   };
 
   const handleTakeFromGoal = () => {
+    setSelectedTransfer(undefined);
     setTransferConfig({
       mode: 'take_from_goal',
       goalId: goal.id,
@@ -122,6 +147,7 @@ const GoalDetail = () => {
   };
 
   const handleTransferBetweenGoals = () => {
+    setSelectedTransfer(undefined);
     setTransferConfig({
       mode: 'transfer_between_goals',
       goalId: goal.id,
@@ -319,6 +345,8 @@ const GoalDetail = () => {
                 title="Riwayat Pergerakan Dana"
                 description="Kelola dan pantau semua pergerakan dana dalam goal ini"
                 emptyMessage="Belum ada riwayat pergerakan dana"
+                onEditTransfer={handleEditTransfer}
+                onDeleteTransfer={handleDeleteTransferClick}
               />
             </TabsContent>
           </Tabs>
@@ -346,6 +374,17 @@ const GoalDetail = () => {
             variant="destructive"
           />
 
+          <ConfirmationModal
+            open={deleteTransferModal.open}
+            onOpenChange={(open) => setDeleteTransferModal({ ...deleteTransferModal, open })}
+            onConfirm={handleConfirmDeleteTransfer}
+            title="Hapus Transfer"
+            description="Apakah Anda yakin ingin menghapus transfer ini? Tindakan ini tidak dapat dibatalkan."
+            confirmText="Ya, Hapus"
+            cancelText="Batal"
+            variant="destructive"
+          />
+
           <GoalDialog
             open={isDialogOpen}
             onOpenChange={setIsDialogOpen}
@@ -358,9 +397,11 @@ const GoalDetail = () => {
               setIsTransferDialogOpen(open);
               if (!open) {
                 setTransferConfig(undefined);
+                setSelectedTransfer(undefined);
               }
             }}
             transferConfig={transferConfig}
+            transfer={selectedTransfer}
           />
 
           <GoalInvestmentRecordDialog
