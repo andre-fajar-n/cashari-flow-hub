@@ -82,7 +82,7 @@ const Budget = () => {
         <div>
           <h3 className="font-semibold">{budget.name}</h3>
           <p className="text-sm text-muted-foreground">
-            {budget.currency_code} {budget.amount.toLocaleString()}
+            {budget.currency_code} {budget.amount.toLocaleString('id-ID')}
           </p>
           <p className="text-xs text-muted-foreground">
             {new Date(budget.start_date).toLocaleDateString()} - {new Date(budget.end_date).toLocaleDateString()}

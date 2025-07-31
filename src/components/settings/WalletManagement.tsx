@@ -107,7 +107,7 @@ const WalletManagement = () => {
           <p className="text-sm text-muted-foreground">Mata Uang</p>
         </div>
         <div>
-          <p className="font-medium">{wallet.initial_amount.toLocaleString()}</p>
+          <p className="font-medium">{wallet.initial_amount.toLocaleString('id-ID')}</p>
           <p className="text-sm text-muted-foreground">Saldo Awal</p>
         </div>
       </div>

@@ -36,7 +36,7 @@ export const AmountText = ({
     <span className={cn(getAmountColor(amount), className)}>
       {prefix}
       {formatSign(amount)}
-      {children || displayAmount.toLocaleString()}
+      {children || displayAmount.toLocaleString('id-ID')}
       {suffix}
     </span>
   );

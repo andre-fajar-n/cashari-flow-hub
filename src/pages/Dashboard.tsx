@@ -74,7 +74,7 @@ const Dashboard = () => {
                     <div key={wallet.id} className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-2 border rounded gap-2">
                       <span className="font-medium">{wallet.name}</span>
                       <span className="text-sm text-gray-600">
-                        {wallet.currency_code} {wallet.initial_amount?.toLocaleString()}
+                        {wallet.currency_code} {wallet.initial_amount?.toLocaleString('id-ID')}
                       </span>
                     </div>
                   ))}

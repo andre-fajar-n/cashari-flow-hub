@@ -31,7 +31,7 @@ const GoalOverview = ({ goal, goalTransfers, goalRecords }: GoalOverviewProps) =
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <p className="text-sm text-muted-foreground">Target Amount</p>
-            <p className="text-xl font-semibold">{goal.target_amount.toLocaleString()} {goal.currency_code}</p>
+            <p className="text-xl font-semibold">{goal.target_amount.toLocaleString('id-ID')} {goal.currency_code}</p>
           </div>
           <div>
             <p className="text-sm text-muted-foreground">Progress Amount</p>
@@ -56,8 +56,8 @@ const GoalOverview = ({ goal, goalTransfers, goalRecords }: GoalOverviewProps) =
           </div>
           <Progress value={progress.percentage} className="h-3" />
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Transfer: {progress.transferAmount.toLocaleString()}</span>
-            <span>Records: {progress.recordAmount.toLocaleString()}</span>
+            <span>Transfer: {progress.transferAmount.toLocaleString('id-ID')}</span>
+            <span>Records: {progress.recordAmount.toLocaleString('id-ID')}</span>
           </div>
         </div>
       </CardContent>

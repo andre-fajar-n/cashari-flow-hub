@@ -71,7 +71,7 @@ const GoalCard = ({ goal, progress, onEdit, onDelete, onAddRecord, onTransferToG
             <h3 className="font-semibold">{goal.name}</h3>
             <div className="flex items-center gap-4 mt-1">
               <span className="text-sm font-medium text-blue-600">
-                Target: {goal.target_amount.toLocaleString()} {goal.currency_code}
+                Target: {goal.target_amount.toLocaleString('id-ID')} {goal.currency_code}
               </span>
               <span className={`text-xs px-2 py-1 rounded ${
                 goal.is_achieved 
@@ -168,7 +168,7 @@ const GoalCard = ({ goal, progress, onEdit, onDelete, onAddRecord, onTransferToG
               <span className="text-sm font-medium">Progress</span>
             </div>
             <span className="text-sm text-gray-600">
-              {progress.totalAmount.toLocaleString()} / {goal.target_amount.toLocaleString()} {goal.currency_code} ({progress.percentage.toFixed(1)}% tercapai)
+              {progress.totalAmount.toLocaleString('id-ID')} / {goal.target_amount.toLocaleString('id-ID')} {goal.currency_code} ({progress.percentage.toFixed(1)}% tercapai)
             </span>
           </div>
           <Progress value={progress.percentage} className="h-2" />
