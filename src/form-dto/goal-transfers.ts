@@ -5,6 +5,8 @@ export interface GoalTransferFormData {
   from_instrument_id: number;
   from_asset_id: number;
   to_wallet_id: number;
+  from_currency: string;
+  to_currency: string;
   to_goal_id: number;
   to_instrument_id: number;
   to_asset_id: number;
@@ -21,6 +23,8 @@ export const defaultGoalTransferFormData: GoalTransferFormData = {
   from_instrument_id: 0,
   from_asset_id: 0,
   to_wallet_id: 0,
+  from_currency: "IDR",
+  to_currency: "IDR",
   to_goal_id: 0,
   to_instrument_id: 0,
   to_asset_id: 0,
