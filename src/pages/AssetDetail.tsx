@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -87,9 +88,11 @@ const AssetDetail = () => {
     setSelectedAssetValue(assetValue);
     setIsValueDialogOpen(true);
   };
+  
   const handleAddRecord = () => {
     setIsRecordDialogOpen(true);
   };
+  
   const handleDeleteValueClick = (id: number) => {
     setDeleteValueModal({ open: true, id });
   };
