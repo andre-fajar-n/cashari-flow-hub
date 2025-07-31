@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +11,7 @@ import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
 import GoalFundsSummary from "@/components/goal/GoalFundsSummary";
 import GoalOverview from "@/components/goal/GoalOverview";
-import { useGoalTransfers, useGoalInvestmentRecords, useGoals, useDeleteGoal, useDeleteGoalInvestmentRecord } from "@/hooks/queries";
+import { useGoalTransfers, useGoalInvestmentRecords, useGoals, useDeleteGoal } from "@/hooks/queries";
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { GoalModel } from "@/models/goals";
@@ -21,7 +20,6 @@ import { formatAmountCurrency } from "@/lib/currency";
 import AmountText from "@/components/ui/amount-text";
 import { calculateGoalProgress } from "@/components/goal/GoalProgressCalculator";
 import MovementsDataTable from "@/components/shared/MovementsDataTable";
-import { format } from "date-fns";
 
 const GoalDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -30,15 +28,9 @@ const GoalDetail = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
   const [isRecordDialogOpen, setIsRecordDialogOpen] = useState(false);
-  const [selectedRecord, setSelectedRecord] = useState<any | undefined>(undefined);
   const [transferConfig, setTransferConfig] = useState<GoalTransferConfig | undefined>(undefined);
-  const [deleteRecordModal, setDeleteRecordModal] = useState<{
-    open: boolean;
-    id: number | null;
-  }>({ open: false, id: null });
 
   const { mutate: deleteGoal } = useDeleteGoal();
-  const { mutate: deleteRecord } = useDeleteGoalInvestmentRecord();
   const { data: goals, isLoading } = useGoals();
   const { data: goalTransfers, isLoading: isTransfersLoading } = useGoalTransfers();
   const { data: goalRecords, isLoading: isRecordsLoading } = useGoalInvestmentRecords();
@@ -83,24 +75,7 @@ const GoalDetail = () => {
   };
 
   const handleAddRecord = () => {
-    setSelectedRecord(undefined);
     setIsRecordDialogOpen(true);
-  };
-
-  const handleEditRecord = (record: any) => {
-    setSelectedRecord(record);
-    setIsRecordDialogOpen(true);
-  };
-
-  const handleDeleteRecordClick = (id: number) => {
-    setDeleteRecordModal({ open: true, id });
-  };
-
-  const handleConfirmDeleteRecord = () => {
-    if (deleteRecordModal.id) {
-      deleteRecord(deleteRecordModal.id);
-      setDeleteRecordModal({ open: false, id: null });
-    }
   };
 
   const handleAddToGoal = () => {
@@ -129,56 +104,6 @@ const GoalDetail = () => {
     });
     setIsTransferDialogOpen(true);
   };
-
-  // Custom render function for investment records
-  const renderInvestmentRecord = (record: any) => (
-    <div key={record.id} className="flex items-center justify-between p-4 border rounded-lg">
-      <div className="flex-1">
-        <div className="flex items-center gap-4">
-          <div>
-            <p className="font-medium">{format(new Date(record.date), 'dd/MM/yyyy')}</p>
-            <p className="text-sm text-muted-foreground">
-              {record.instrument?.name} - {record.asset?.name}
-            </p>
-          </div>
-          <div>
-            <AmountText amount={record.amount} showSign={true}>
-              {formatAmountCurrency(record.amount, record.currency_code)}
-            </AmountText>
-            <p className="text-sm text-muted-foreground">
-              {record.amount_unit && `${record.amount_unit} unit`}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm font-medium">
-              {record.is_valuation ? "Valuation" : "Transaksi"}
-            </p>
-            {record.description && (
-              <p className="text-sm text-muted-foreground">{record.description}</p>
-            )}
-          </div>
-        </div>
-      </div>
-      <div className="flex gap-2">
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => handleEditRecord(record)}
-        >
-          <Edit className="w-3 h-3 mr-1" />
-          Edit
-        </Button>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => handleDeleteRecordClick(record.id)}
-        >
-          <Trash2 className="w-3 h-3 mr-1" />
-          Hapus
-        </Button>
-      </div>
-    </div>
-  );
 
   return (
     <ProtectedRoute>
@@ -235,10 +160,9 @@ const GoalDetail = () => {
 
           {/* Tabs */}
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="summary">Summary</TabsTrigger>
-              <TabsTrigger value="records">Investment Records</TabsTrigger>
               <TabsTrigger value="history">History</TabsTrigger>
             </TabsList>
             
@@ -277,38 +201,6 @@ const GoalDetail = () => {
 
               <GoalFundsSummary goalId={goal.id} />
             </TabsContent>
-
-            <TabsContent value="records" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5" />
-                    Investment Records
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isRecordsLoading ? (
-                    <div className="text-center py-8">
-                      <p>Memuat data...</p>
-                    </div>
-                  ) : (goalRecords || []).length === 0 ? (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground mb-4">Belum ada investment records</p>
-                      <Button onClick={handleAddRecord}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Tambah Record Pertama
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {(goalRecords || [])
-                        .filter(record => record.goal_id === goal.id)
-                        .map(renderInvestmentRecord)}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
             
             <TabsContent value="history" className="space-y-4">
               <MovementsDataTable
@@ -335,17 +227,6 @@ const GoalDetail = () => {
             variant="destructive"
           />
 
-          <ConfirmationModal
-            open={deleteRecordModal.open}
-            onOpenChange={(open) => setDeleteRecordModal({ ...deleteRecordModal, open })}
-            onConfirm={handleConfirmDeleteRecord}
-            title="Hapus Investment Record"
-            description="Apakah Anda yakin ingin menghapus record ini? Tindakan ini tidak dapat dibatalkan."
-            confirmText="Ya, Hapus"
-            cancelText="Batal"
-            variant="destructive"
-          />
-
           <GoalDialog
             open={isDialogOpen}
             onOpenChange={setIsDialogOpen}
@@ -367,7 +248,6 @@ const GoalDetail = () => {
             open={isRecordDialogOpen}
             onOpenChange={setIsRecordDialogOpen}
             goalId={goal.id}
-            record={selectedRecord}
           />
         </div>
       </Layout>

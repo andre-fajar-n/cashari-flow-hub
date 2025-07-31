@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -8,21 +7,19 @@ import { InputNumber } from "@/components/ui/input-number";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useCreateGoalInvestmentRecord, useUpdateGoalInvestmentRecord, useInvestmentInstruments, useInvestmentAssets, useWallets, useCategories, useCurrencies } from "@/hooks/queries";
+import { useCreateGoalInvestmentRecord, useInvestmentInstruments, useInvestmentAssets, useWallets, useCategories, useCurrencies } from "@/hooks/queries";
 import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData } from "@/form-dto/goal-investment-records";
 
 interface GoalInvestmentRecordDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   goalId: number;
-  record?: any;
   onSuccess?: () => void;
 }
 
-const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSuccess }: GoalInvestmentRecordDialogProps) => {
+const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, onSuccess }: GoalInvestmentRecordDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const createRecord = useCreateGoalInvestmentRecord();
-  const updateRecord = useUpdateGoalInvestmentRecord();
   const { data: instruments } = useInvestmentInstruments();
   const { data: assets } = useInvestmentAssets();
   const { data: wallets } = useWallets();
@@ -60,51 +57,29 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
       cleanData.asset_id = null;
     }
 
-    if (record) {
-      updateRecord.mutate({ id: record.id, ...cleanData });
-    } else {
-      createRecord.mutate(cleanData);
-    }
+    createRecord.mutate(cleanData);
   };
 
   useEffect(() => {
-    if (createRecord.isSuccess || updateRecord.isSuccess) {
+    if (createRecord.isSuccess) {
       onOpenChange(false);
       setIsLoading(false);
       form.reset({ ...defaultGoalInvestmentRecordFormData, goal_id: goalId });
       onSuccess?.();
     }
-  }, [createRecord.isSuccess, updateRecord.isSuccess, onOpenChange, form, goalId, onSuccess]);
+  }, [createRecord.isSuccess, onOpenChange, form, goalId, onSuccess]);
 
   useEffect(() => {
     if (open) {
-      if (record) {
-        form.reset({
-          goal_id: record.goal_id,
-          instrument_id: record.instrument_id,
-          asset_id: record.asset_id,
-          wallet_id: record.wallet_id,
-          category_id: record.category_id,
-          amount: record.amount,
-          amount_unit: record.amount_unit,
-          currency_code: record.currency_code,
-          date: record.date,
-          description: record.description || "",
-          is_valuation: record.is_valuation || false,
-        });
-      } else {
-        form.reset({ ...defaultGoalInvestmentRecordFormData, goal_id: goalId });
-      }
+      form.reset({ ...defaultGoalInvestmentRecordFormData, goal_id: goalId });
     }
-  }, [open, record, form, goalId]);
+  }, [open, form, goalId]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
-            {record ? "Edit Progress Investasi" : "Update Progress Investasi"}
-          </DialogTitle>
+          <DialogTitle>Update Progress Investasi</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -351,7 +326,7 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
                 Batal
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Menyimpan..." : record ? "Update" : "Simpan"}
+                {isLoading ? "Menyimpan..." : "Simpan"}
               </Button>
             </div>
           </form>
