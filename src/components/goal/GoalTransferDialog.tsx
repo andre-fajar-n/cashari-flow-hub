@@ -80,27 +80,6 @@ const GoalTransferDialog = ({
     }
   }, [transferConfig, open, form]);
 
-  // Set values for editing existing transfer
-  useEffect(() => {
-    if (transfer && open) {
-      form.reset({
-        from_wallet_id: transfer.from_wallet_id || 0,
-        from_goal_id: transfer.from_goal_id || 0,
-        from_instrument_id: transfer.from_instrument_id || 0,
-        from_asset_id: transfer.from_asset_id || 0,
-        to_wallet_id: transfer.to_wallet_id || 0,
-        to_goal_id: transfer.to_goal_id || 0,
-        to_instrument_id: transfer.to_instrument_id || 0,
-        to_asset_id: transfer.to_asset_id || 0,
-        from_amount: transfer.from_amount,
-        to_amount: transfer.to_amount,
-        date: transfer.date,
-      });
-    } else if (open && !transferConfig) {
-      form.reset(defaultGoalTransferFormData);
-    }
-  }, [transfer, open, form, transferConfig]);
-
   const onSubmit = async (data: GoalTransferFormData) => {
     if (!user) return;
 
