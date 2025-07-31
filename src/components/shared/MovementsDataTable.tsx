@@ -238,11 +238,11 @@ const MovementsDataTable = ({
             >
               {formatAmountCurrency(Math.abs(movement.amount || 0), movement.currency_code || 'unknown currency')}
             </AmountText>
-            {movement.amount_unit && (
+            {movement.amount_unit !== null ? (
               <p className="text-sm text-muted-foreground">
                 {movement.amount_unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })} {movement.unit_label || 'unknown unit'}
               </p>
-            )}
+            ): null}
           </div>
           <ActionDropdown
             dropdownId={index}
