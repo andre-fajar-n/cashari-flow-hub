@@ -32,7 +32,7 @@ const GoalTransferAmountFields = ({ control, watch, wallets }: GoalTransferAmoun
               <FormControl>
                 <InputNumber 
                   {...field} 
-                  onChange={(value) => field.onChange(value)}
+                  onChange={(value) => field.onChange(value || 0)}
                   value={field.value}
                 />
               </FormControl>
@@ -51,7 +51,7 @@ const GoalTransferAmountFields = ({ control, watch, wallets }: GoalTransferAmoun
               <FormControl>
                 <InputNumber 
                   {...field} 
-                  onChange={(value) => field.onChange(value)}
+                  onChange={(value) => field.onChange(value || 0)}
                   value={field.value}
                   disabled={isSameCurrency}
                 />
@@ -71,7 +71,6 @@ const GoalTransferAmountFields = ({ control, watch, wallets }: GoalTransferAmoun
         <FormField
           control={control}
           name="from_amount_unit"
-          rules={{ min: { value: 0, message: "Jumlah unit tidak boleh negatif" } }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Jumlah Unit Keluar</FormLabel>
@@ -80,8 +79,12 @@ const GoalTransferAmountFields = ({ control, watch, wallets }: GoalTransferAmoun
                   {...field} 
                   onChange={(value) => field.onChange(value)}
                   value={field.value}
+                  allowNull={true}
                 />
               </FormControl>
+              <p className="text-xs text-muted-foreground">
+                Kosong = null, 0 = nol
+              </p>
               <FormMessage />
             </FormItem>
           )}
@@ -90,7 +93,6 @@ const GoalTransferAmountFields = ({ control, watch, wallets }: GoalTransferAmoun
         <FormField
           control={control}
           name="to_amount_unit"
-          rules={{ min: { value: 0, message: "Jumlah unit tidak boleh negatif" } }}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Jumlah Unit Masuk</FormLabel>
@@ -99,8 +101,12 @@ const GoalTransferAmountFields = ({ control, watch, wallets }: GoalTransferAmoun
                   {...field} 
                   onChange={(value) => field.onChange(value)}
                   value={field.value}
+                  allowNull={true}
                 />
               </FormControl>
+              <p className="text-xs text-muted-foreground">
+                Kosong = null, 0 = nol
+              </p>
               <FormMessage />
             </FormItem>
           )}

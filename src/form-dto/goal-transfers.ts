@@ -12,8 +12,8 @@ export interface GoalTransferFormData {
   to_asset_id: number;
   from_amount: number;
   to_amount: number;
-  from_amount_unit: number;
-  to_amount_unit: number;
+  from_amount_unit: number | null;
+  to_amount_unit: number | null;
   date: string;
 }
 
@@ -30,7 +30,7 @@ export const defaultGoalTransferFormData: GoalTransferFormData = {
   to_asset_id: 0,
   from_amount: 0,
   to_amount: 0,
-  from_amount_unit: 0,
-  to_amount_unit: 0,
+  from_amount_unit: null,
+  to_amount_unit: null,
   date: new Date().toISOString().split("T")[0],
 };

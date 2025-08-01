@@ -5,13 +5,14 @@ import { forwardRef } from "react";
 import { cn } from "@/lib/utils/cn"
 
 export interface InputNumberProps extends Omit<React.ComponentProps<"input">, "onChange" | "value"> {
-  value?: number | string;
-  onChange?: (value: number) => void;
+  value?: number | string | null;
+  onChange?: (value: number | null) => void;
+  allowNull?: boolean;
 }
 
 const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
-  ({ className, onChange, value, autoComplete = "off", ...props }, ref) => {
-    const formatNumber = (num: string | number): string => {
+  ({ className, onChange, value, allowNull = false, autoComplete = "off", ...props }, ref) => {
+    const formatNumber = (num: string | number | null): string => {
       if (num === "" || num === null || num === undefined) return "";
 
       const numValue = typeof num === 'string' ? parseFloat(num) : num;
@@ -24,21 +25,32 @@ const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
       });
     };
 
-    const parseNumber = (formattedStr: string): number => {
-      if (!formattedStr || formattedStr === "" || formattedStr === "-") return 0;
+    const parseNumber = (formattedStr: string): number | null => {
+      if (!formattedStr || formattedStr === "") {
+        return allowNull ? null : 0;
+      }
+      
+      if (formattedStr === "-") return allowNull ? null : 0;
 
       // Remove thousand separators (dots) and replace comma with dot for decimal
       const cleanStr = formattedStr.replace(/\./g, '').replace(',', '.');
       const parsed = parseFloat(cleanStr);
-      return isNaN(parsed) ? 0 : parsed;
+      
+      if (isNaN(parsed)) {
+        return allowNull ? null : 0;
+      }
+      
+      return parsed;
     };
     
     const [displayValue, setDisplayValue] = React.useState<string>(
-      value ? formatNumber(String(value)) : ""
+      value !== null && value !== undefined ? formatNumber(String(value)) : ""
     );
 
     React.useEffect(() => {
-      setDisplayValue(value ? formatNumber(String(value)) : "");
+      setDisplayValue(
+        value !== null && value !== undefined ? formatNumber(String(value)) : ""
+      );
     }, [value]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,7 +60,7 @@ const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
       if (inputValue === "") {
         setDisplayValue("");
         if (onChange) {
-          onChange(0);
+          onChange(allowNull ? null : 0);
         }
         return;
       }
@@ -79,7 +91,7 @@ const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
       // Format the number when user finishes typing
       if (displayValue && displayValue !== "" && displayValue !== "-") {
         const numericValue = parseNumber(displayValue);
-        if (!isNaN(numericValue)) {
+        if (numericValue !== null && !isNaN(numericValue)) {
           const formatted = formatNumber(numericValue);
           setDisplayValue(formatted);
         }
