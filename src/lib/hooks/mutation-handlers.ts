@@ -103,6 +103,13 @@ export const useMutationCallbacks = (config: MutationCallbacksConfig) => {
     config.queryKeysToInvalidate.forEach(queryKey => {
       queryClient.invalidateQueries({ queryKey: [queryKey] });
     });
+
+    // Special handling for money_movements - invalidate all variations
+    if (config.queryKeysToInvalidate.includes("money_movements")) {
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] === "money_movements"
+      });
+    }
   };
 
   const handleError = () => {
@@ -127,10 +134,10 @@ export const QUERY_KEY_SETS = {
   BUSINESS_PROJECTS: ["business_projects", "transactions"],
   DEBTS: ["debts", "debt_histories"],
   TRANSFERS: ["transfers", "wallets"],
-  GOAL_TRANSFERS: ["goal_transfers", "goals", "goal_movements", "wallets"],
+  GOAL_TRANSFERS: ["goal_transfers", "goals", "goal_movements", "wallets", "money_movements", "goal_investment_records"],
   INVESTMENT_ASSETS: ["investment_assets", "investment_asset_values", "goal_investment_records"],
   GOALS: ["goals", "goal_transfers", "goal_movements"],
-  INVESTMENT_RECORDS: ["goal_investment_records", "goals", "investment_assets"],
+  INVESTMENT_RECORDS: ["goal_investment_records", "goals", "investment_assets", "money_movements"],
 } as const;
 
 /**
