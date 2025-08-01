@@ -7,19 +7,28 @@ import { InputNumber } from "@/components/ui/input-number";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useCreateGoalInvestmentRecord, useInvestmentInstruments, useInvestmentAssets, useWallets, useCategories, useCurrencies } from "@/hooks/queries";
 import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData } from "@/form-dto/goal-investment-records";
+import { Database } from "@/integrations/supabase/types";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { useCreateGoalInvestmentRecord, useUpdateGoalInvestmentRecord } from "@/hooks/queries/use-goal-investment-records";
+import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
+import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
+import { useWallets } from "@/hooks/queries/use-wallets";
+import { useCategories } from "@/hooks/queries/use-categories";
+import { useCurrencies } from "@/hooks/queries/use-currencies";
 
 interface GoalInvestmentRecordDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  goalId: number;
+  goalId?: number;
+  record?: Database["public"]["Tables"]["goal_investment_records"]["Row"] | null;
   onSuccess?: () => void;
 }
 
-const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, onSuccess }: GoalInvestmentRecordDialogProps) => {
+const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSuccess }: GoalInvestmentRecordDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const createRecord = useCreateGoalInvestmentRecord();
+  const updateRecord = useUpdateGoalInvestmentRecord();
   const { data: instruments } = useInvestmentInstruments();
   const { data: assets } = useInvestmentAssets();
   const { data: wallets } = useWallets();
@@ -27,13 +36,42 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, onSuccess }: G
   const { data: currencies } = useCurrencies();
 
   const form = useForm<GoalInvestmentRecordFormData>({
-    defaultValues: { ...defaultGoalInvestmentRecordFormData, goal_id: goalId },
+    defaultValues: { ...defaultGoalInvestmentRecordFormData, goal_id: goalId || record?.goal_id },
+  });
+
+  // Use mutation callbacks utility
+  const { handleSuccess, handleError } = useMutationCallbacks({
+    setIsLoading,
+    onOpenChange,
+    onSuccess,
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_RECORDS
   });
 
   const selectedInstrument = form.watch("instrument_id");
   const isValuation = form.watch("is_valuation");
 
   const filteredAssets = assets?.filter(asset => asset.instrument_id === selectedInstrument) || [];
+
+  // Fill form when editing existing record
+  useEffect(() => {
+    if (record && open) {
+      form.setValue("goal_id", record.goal_id);
+      form.setValue("instrument_id", record.instrument_id || 0);
+      form.setValue("asset_id", record.asset_id || 0);
+      form.setValue("wallet_id", record.wallet_id || 0);
+      form.setValue("category_id", record.category_id || 0);
+      form.setValue("amount", record.amount);
+      form.setValue("amount_unit", record.amount_unit || 0);
+      form.setValue("currency_code", record.currency_code || "IDR");
+      form.setValue("date", record.date);
+      form.setValue("description", record.description || "");
+      form.setValue("is_valuation", record.is_valuation || false);
+    } else if (!record && open) {
+      // Reset form when creating new record
+      form.reset({ ...defaultGoalInvestmentRecordFormData, goal_id: goalId || 0 });
+    }
+  }, [record, open, form, goalId]);
 
   const onSubmit = async (data: GoalInvestmentRecordFormData) => {
     setIsLoading(true);
@@ -52,34 +90,31 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, onSuccess }: G
     if (!data.instrument_id) {
       cleanData.instrument_id = null;
     }
-    
+
     if (!data.asset_id) {
       cleanData.asset_id = null;
     }
 
-    createRecord.mutate(cleanData);
+    if (record) {
+      updateRecord.mutate({ id: record.id, ...cleanData }, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
+    } else {
+      createRecord.mutate(cleanData, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
+    }
   };
-
-  useEffect(() => {
-    if (createRecord.isSuccess) {
-      onOpenChange(false);
-      setIsLoading(false);
-      form.reset({ ...defaultGoalInvestmentRecordFormData, goal_id: goalId });
-      onSuccess?.();
-    }
-  }, [createRecord.isSuccess, onOpenChange, form, goalId, onSuccess]);
-
-  useEffect(() => {
-    if (open) {
-      form.reset({ ...defaultGoalInvestmentRecordFormData, goal_id: goalId });
-    }
-  }, [open, form, goalId]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Update Progress Investasi</DialogTitle>
+          <DialogTitle>
+            {record ? "Edit Investment Record" : "Update Progress Investasi"}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -326,7 +361,7 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, onSuccess }: G
                 Batal
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Menyimpan..." : "Simpan"}
+                {isLoading ? "Menyimpan..." : record ? "Update" : "Simpan"}
               </Button>
             </div>
           </form>

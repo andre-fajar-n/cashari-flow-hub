@@ -162,8 +162,8 @@ const GoalDetail = () => {
           <Tabs defaultValue="overview" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="summary">Summary</TabsTrigger>
-              <TabsTrigger value="history">History</TabsTrigger>
+              <TabsTrigger value="summary">Ringkasan</TabsTrigger>
+              <TabsTrigger value="history">Riwayat</TabsTrigger>
             </TabsList>
             
             <TabsContent value="overview" className="space-y-4">

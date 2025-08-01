@@ -203,8 +203,8 @@ const AssetDetail = () => {
           {/* Tabs */}
           <Tabs defaultValue="history" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="history">History Nilai</TabsTrigger>
-              <TabsTrigger value="summary">Summary</TabsTrigger>
+              <TabsTrigger value="history">Riwayat Nilai</TabsTrigger>
+              <TabsTrigger value="summary">Ringkasan</TabsTrigger>
               <TabsTrigger value="movements">Riwayat</TabsTrigger>
             </TabsList>
             

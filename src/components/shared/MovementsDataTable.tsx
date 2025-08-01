@@ -7,9 +7,11 @@ import { ArrowUpRight, ArrowDownLeft, MoreHorizontal, Edit, Trash2 } from "lucid
 import { formatAmountCurrency } from "@/lib/currency";
 import { Database } from "@/integrations/supabase/types";
 import { AmountText } from "@/components/ui/amount-text";
-import { useDeleteGoalInvestmentRecord, useDeleteGoalTransfer } from "@/hooks/queries";
+import { useDeleteGoalInvestmentRecord, useDeleteGoalTransfer, useGoalTransfers, useGoalInvestmentRecords } from "@/hooks/queries";
 import { useToast } from "@/hooks/use-toast";
 import ConfirmationModal from "@/components/ConfirmationModal";
+import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
+import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
 
 export interface MovementsDataTableProps {
   movements: Database["public"]["Views"]["money_movements"]["Row"][];
@@ -21,12 +23,12 @@ export interface MovementsDataTableProps {
   emptyMessage?: string;
 }
 
-const MovementsDataTable = ({ 
-  movements, 
-  transfers, 
-  filterType, 
-  filterId, 
-  title, 
+const MovementsDataTable = ({
+  movements,
+  transfers,
+  filterType,
+  filterId,
+  title,
   description,
   emptyMessage = "Belum ada riwayat pergerakan dana"
 }: MovementsDataTableProps) => {
@@ -37,9 +39,23 @@ const MovementsDataTable = ({
     id: number | null;
   }>({ open: false, type: null, id: null });
 
+  // Edit dialog states
+  const [editTransferDialog, setEditTransferDialog] = useState<{
+    open: boolean;
+    transfer: Database["public"]["Tables"]["goal_transfers"]["Row"] | null;
+  }>({ open: false, transfer: null });
+
+  const [editRecordDialog, setEditRecordDialog] = useState<{
+    open: boolean;
+    record: Database["public"]["Tables"]["goal_investment_records"]["Row"] | null;
+  }>({ open: false, record: null });
+
   const { toast } = useToast();
   const deleteRecord = useDeleteGoalInvestmentRecord();
   const deleteTransfer = useDeleteGoalTransfer();
+
+  // Fetch data for editing
+  const { data: allRecords } = useGoalInvestmentRecords();
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
@@ -137,11 +153,36 @@ const MovementsDataTable = ({
   };
 
   const handleEdit = (movement: any) => {
-    // TODO: Implement edit functionality
-    toast({
-      title: "Info",
-      description: "Fitur edit akan segera hadir",
-    });
+    if (movement.resource_type === 'goal_transfers_in' || movement.resource_type === 'goal_transfers_out') {
+      // Find the transfer data
+      const transfer = transfers?.find(t => t.id === movement.resource_id);
+      if (transfer) {
+        setEditTransferDialog({ open: true, transfer });
+      } else {
+        toast({
+          title: "Error",
+          description: "Data transfer tidak ditemukan",
+          variant: "destructive",
+        });
+      }
+    } else if (movement.resource_type === 'investment_growth') {
+      // Find the investment record data
+      const record = allRecords?.find(r => r.id === movement.resource_id);
+      if (record) {
+        setEditRecordDialog({ open: true, record });
+      } else {
+        toast({
+          title: "Error",
+          description: "Data investment record tidak ditemukan",
+          variant: "destructive",
+        });
+      }
+    } else {
+      toast({
+        title: "Info",
+        description: "Tipe movement ini belum dapat diedit",
+      });
+    }
   };
 
   const handleDelete = (movement: any) => {
@@ -295,6 +336,32 @@ const MovementsDataTable = ({
         confirmText="Ya, Hapus"
         cancelText="Batal"
         variant="destructive"
+      />
+
+      {/* Edit Transfer Dialog */}
+      <GoalTransferDialog
+        open={editTransferDialog.open}
+        onOpenChange={(open) => setEditTransferDialog({ open, transfer: null })}
+        transfer={editTransferDialog.transfer}
+        onSuccess={() => {
+          toast({
+            title: "Berhasil",
+            description: "Transfer berhasil diupdate",
+          });
+        }}
+      />
+
+      {/* Edit Investment Record Dialog */}
+      <GoalInvestmentRecordDialog
+        open={editRecordDialog.open}
+        onOpenChange={(open) => setEditRecordDialog({ open, record: null })}
+        record={editRecordDialog.record}
+        onSuccess={() => {
+          toast({
+            title: "Berhasil",
+            description: "Investment record berhasil diupdate",
+          });
+        }}
       />
     </>
   );

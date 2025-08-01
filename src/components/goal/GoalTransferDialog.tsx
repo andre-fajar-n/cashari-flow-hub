@@ -1,16 +1,19 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useAuth } from "@/hooks/use-auth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { useWallets, useGoals, useInvestmentInstruments, useInvestmentAssets, useCreateGoalTransfer, useUpdateGoalTransfer } from "@/hooks/queries";
 import GoalTransferFormFields from "@/components/goal/GoalTransferFormFields";
 import GoalTransferAmountFields from "@/components/goal/GoalTransferAmountFields";
 import { GoalTransferConfig, getTransferModeConfig } from "@/components/goal/GoalTransferModes";
 import { defaultGoalTransferFormData, GoalTransferFormData } from "@/form-dto/goal-transfers";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { useCreateGoalTransfer, useUpdateGoalTransfer } from "@/hooks/queries/use-goal-transfers";
+import { useGoals } from "@/hooks/queries/use-goals";
+import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
+import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
+import { useWallets } from "@/hooks/queries/use-wallets";
 
 interface GoalTransferDialogProps {
   open: boolean;
@@ -34,6 +37,15 @@ const GoalTransferDialog = ({
 
   const form = useForm<GoalTransferFormData>({
     defaultValues: defaultGoalTransferFormData,
+  });
+
+  // Use mutation callbacks utility
+  const { handleSuccess, handleError } = useMutationCallbacks({
+    setIsLoading,
+    onOpenChange,
+    onSuccess,
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.GOAL_TRANSFERS
   });
 
   const { data: wallets } = useWallets();
@@ -71,7 +83,7 @@ const GoalTransferDialog = ({
     if (transferConfig && open) {
       const modeConfig = getTransferModeConfig(transferConfig.mode);
       const goalId = transferConfig.goalId;
-      
+
       if (modeConfig.prefilledField === 'to_goal_id') {
         form.setValue("to_goal_id", goalId);
       } else if (modeConfig.prefilledField === 'from_goal_id') {
@@ -80,12 +92,34 @@ const GoalTransferDialog = ({
     }
   }, [transferConfig, open, form]);
 
+  // Fill form when editing existing transfer
+  useEffect(() => {
+    if (transfer && open) {
+      form.setValue("from_wallet_id", transfer.from_wallet_id || 0);
+      form.setValue("from_goal_id", transfer.from_goal_id || 0);
+      form.setValue("from_instrument_id", transfer.from_instrument_id || 0);
+      form.setValue("from_asset_id", transfer.from_asset_id || 0);
+      form.setValue("to_wallet_id", transfer.to_wallet_id || 0);
+      form.setValue("to_goal_id", transfer.to_goal_id || 0);
+      form.setValue("to_instrument_id", transfer.to_instrument_id || 0);
+      form.setValue("to_asset_id", transfer.to_asset_id || 0);
+      form.setValue("from_amount", transfer.from_amount);
+      form.setValue("to_amount", transfer.to_amount);
+      form.setValue("from_amount_unit", transfer.from_amount_unit || 0);
+      form.setValue("to_amount_unit", transfer.to_amount_unit || 0);
+      form.setValue("date", transfer.date);
+    } else if (!transfer && !transferConfig && open) {
+      // Reset form when creating new transfer
+      form.reset(defaultGoalTransferFormData);
+    }
+  }, [transfer, transferConfig, open, form]);
+
   const onSubmit = async (data: GoalTransferFormData) => {
     if (!user) return;
 
     setIsLoading(true);
+
     const transferData = {
-      user_id: user.id,
       from_wallet_id: data.from_wallet_id > 0 ? data.from_wallet_id : null,
       from_goal_id: data.from_goal_id > 0 ? data.from_goal_id : null,
       from_instrument_id: data.from_instrument_id > 0 ? data.from_instrument_id : null,
@@ -102,15 +136,6 @@ const GoalTransferDialog = ({
       to_currency: 'IDR',
       date: data.date,
     };
-
-    // Use mutation callbacks utility
-    const { handleSuccess, handleError } = useMutationCallbacks({
-      setIsLoading,
-      onOpenChange,
-      onSuccess,
-      form,
-      queryKeysToInvalidate: QUERY_KEY_SETS.GOAL_TRANSFERS
-    });
 
     if (transfer) {
       updateTransfer.mutate({ id: transfer.id, ...transferData }, {
