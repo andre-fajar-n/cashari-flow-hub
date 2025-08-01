@@ -296,16 +296,50 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
                   <FormItem>
                     <FormLabel>Unit</FormLabel>
                     <FormControl>
-                      <InputNumber 
-                        {...field}
-                        onChange={(value) => field.onChange(value)}
-                        value={field.value}
-                        allowNull={true}
-                      />
+                      <div className="relative">
+                        <InputNumber
+                          {...field}
+                          onChange={(value) => field.onChange(value)}
+                          value={field.value}
+                          allowNull={true}
+                          placeholder="Kosong untuk null"
+                          className={`${
+                            field.value === null
+                              ? "bg-blue-50 border-blue-200 text-blue-700"
+                              : field.value === 0
+                                ? "bg-orange-50 border-orange-200 text-orange-700"
+                                : ""
+                          }`}
+                        />
+                        {field.value === null && (
+                          <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                            <span className="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded">
+                              NULL
+                            </span>
+                          </div>
+                        )}
+                        {field.value === 0 && (
+                          <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                            <span className="text-xs bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded">
+                              ZERO
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
-                    <p className="text-xs text-muted-foreground">
-                      Kosong = null, 0 = nol
-                    </p>
+                    <div className="text-xs space-y-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-blue-100 border border-blue-200 rounded"></div>
+                        <span className="text-blue-600">Kosong (null) = Tidak ada unit</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-orange-100 border border-orange-200 rounded"></div>
+                        <span className="text-orange-600">0 (zero) = Nol unit</span>
+                      </div>
+                      <p className="text-muted-foreground">
+                        Contoh: Saham (unit), Emas (gram), Crypto (koin)
+                      </p>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
