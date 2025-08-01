@@ -200,10 +200,18 @@ const MovementsDataTable = ({
   };
 
   const handleConfirmDelete = () => {
+    const handleDeleteSuccess = () => {
+      setDeleteModal({ open: false, type: null, id: null });
+    };
+
     if (deleteModal.type === 'transfer' && deleteModal.id) {
-      deleteTransfer.mutate(deleteModal.id);
+      deleteTransfer.mutate(deleteModal.id, {
+        onSuccess: handleDeleteSuccess
+      });
     } else if (deleteModal.type === 'record' && deleteModal.id) {
-      deleteRecord.mutate(deleteModal.id);
+      deleteRecord.mutate(deleteModal.id, {
+        onSuccess: handleDeleteSuccess
+      });
     }
   };
 

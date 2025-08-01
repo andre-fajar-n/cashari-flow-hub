@@ -119,6 +119,11 @@ export const useDeleteGoalInvestmentRecord = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
       queryClient.invalidateQueries({ queryKey: ["goals"] });
+      queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
+      // Invalidate all money_movements variations
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] === "money_movements"
+      });
       toast({
         title: "Berhasil",
         description: "Record berhasil dihapus",

@@ -84,6 +84,13 @@ export const useDeleteGoalTransfer = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
       queryClient.invalidateQueries({ queryKey: ["goals"] });
+      queryClient.invalidateQueries({ queryKey: ["goal_movements"] });
+      queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
+      // Invalidate all money_movements variations
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] === "money_movements"
+      });
       toast({
         title: "Berhasil",
         description: "Transfer berhasil dihapus",
