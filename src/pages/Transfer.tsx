@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowRightLeft, Edit, Trash2 } from "lucide-react";
 import { useTransfers, useDeleteTransfer } from "@/hooks/queries/use-transfers";
-import { useWallets, useCurrencies } from "@/hooks/queries";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import TransferDialog from "@/components/transfers/TransferDialog";
 import { useQueryClient } from "@tanstack/react-query";
@@ -19,6 +18,8 @@ import { TransferModel } from "@/models/transfer";
 import { formatAmountCurrency } from "@/lib/currency";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { AmountText } from "@/components/ui/amount-text";
+import { useCurrencies } from "@/hooks/queries/use-currencies";
+import { useWallets } from "@/hooks/queries/use-wallets";
 
 const Transfer = () => {
   const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null)

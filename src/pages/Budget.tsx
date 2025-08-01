@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import BudgetDialog from "@/components/budget/BudgetDialog";
 import Layout from "@/components/Layout";
 import { useBudgets, useDeleteBudget } from "@/hooks/queries/use-budgets";
-import { useCurrencies } from "@/hooks/queries";
+import { useCurrencies } from "@/hooks/queries/use-currencies";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { BudgetModel } from "@/models/budgets";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";

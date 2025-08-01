@@ -1,4 +1,3 @@
-
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Edit, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import BusinessProjectTransactionList from "@/components/business-project/BusinessProjectTransactionList";
-import { useBusinessProjects } from "@/hooks/queries";
+import { useBusinessProjects } from "@/hooks/queries/use-business-projects";
 import { useState } from "react";
 import BusinessProjectDialog from "@/components/business-project/BusinessProjectDialog";
 

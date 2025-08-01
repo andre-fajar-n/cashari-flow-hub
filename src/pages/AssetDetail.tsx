@@ -21,7 +21,7 @@ import AssetSummary from "@/components/investment/AssetSummary";
 import AssetRecordDialog from "@/components/investment/AssetRecordDialog";
 import MovementsDataTable from "@/components/shared/MovementsDataTable";
 import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
-import { useGoalTransfers } from "@/hooks/queries";
+import { useGoalTransfers } from "@/hooks/queries/use-goal-transfers";
 
 const AssetDetail = () => {
   const { id } = useParams<{ id: string }>();

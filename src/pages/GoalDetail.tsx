@@ -11,7 +11,6 @@ import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
 import GoalFundsSummary from "@/components/goal/GoalFundsSummary";
 import GoalOverview from "@/components/goal/GoalOverview";
-import { useGoalTransfers, useGoalInvestmentRecords, useGoals, useDeleteGoal } from "@/hooks/queries";
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { GoalModel } from "@/models/goals";
@@ -20,6 +19,9 @@ import { formatAmountCurrency } from "@/lib/currency";
 import AmountText from "@/components/ui/amount-text";
 import { calculateGoalProgress } from "@/components/goal/GoalProgressCalculator";
 import MovementsDataTable from "@/components/shared/MovementsDataTable";
+import { useDeleteGoal, useGoals } from "@/hooks/queries/use-goals";
+import { useGoalTransfers } from "@/hooks/queries/use-goal-transfers";
+import { useGoalInvestmentRecords } from "@/hooks/queries/use-goal-investment-records";
 
 const GoalDetail = () => {
   const { id } = useParams<{ id: string }>();

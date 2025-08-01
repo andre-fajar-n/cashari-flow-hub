@@ -1,9 +1,10 @@
-
 import { useAuth } from "@/hooks/use-auth";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useWallets, useCategories, useCurrencies } from "@/hooks/queries";
+import { useWallets } from "@/hooks/queries/use-wallets";
+import { useCategories } from "@/hooks/queries/use-categories";
+import { useCurrencies } from "@/hooks/queries/use-currencies";
 
 const Dashboard = () => {
   const { user } = useAuth();

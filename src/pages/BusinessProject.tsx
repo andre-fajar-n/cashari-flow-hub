@@ -6,7 +6,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import BusinessProjectDialog from "@/components/business-project/BusinessProjectDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { useBusinessProjects, useDeleteBusinessProject } from "@/hooks/queries";
+import { useBusinessProjects, useDeleteBusinessProject } from "@/hooks/queries/use-business-projects";
 import { BusinessProjectModel } from "@/models/business-projects";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";

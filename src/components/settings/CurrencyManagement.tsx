@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +5,7 @@ import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Plus, Edit, Star, Trash } from "lucide-react";
 import CurrencyForm from "@/components/settings/CurrencyForm";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { useCreateCurrency, useCurrencies, useDeleteCurrency, useSetDefaultCurrency, useUpdateCurrency } from "@/hooks/queries";
+import { useCreateCurrency, useCurrencies, useDeleteCurrency, useSetDefaultCurrency, useUpdateCurrency } from "@/hooks/queries/use-currencies";
 import { CurrencyModel } from "@/models/currencies";
 import { CurrencyFormData, defaultCurrencyFormValues } from "@/form-dto/currencies";
 import { useForm } from "react-hook-form";

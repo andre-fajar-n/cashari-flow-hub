@@ -6,7 +6,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import InvestmentInstrumentDialog from "@/components/investment/InvestmentInstrumentDialog";
 import Layout from "@/components/Layout";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { useDeleteInvestmentInstrument, useInvestmentInstruments } from "@/hooks/queries";
+import { useDeleteInvestmentInstrument, useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
 import { InvestmentInstrumentModel } from "@/models/investment-instruments";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";

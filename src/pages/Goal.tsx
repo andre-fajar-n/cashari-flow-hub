@@ -7,13 +7,16 @@ import Layout from "@/components/Layout";
 import GoalDialog from "@/components/goal/GoalDialog";
 import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
-import { useGoalTransfers, useGoalInvestmentRecords, useGoals, useDeleteGoal, useCurrencies } from "@/hooks/queries";
 import { calculateGoalProgress } from "@/components/goal/GoalProgressCalculator";
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { GoalModel } from "@/models/goals";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import GoalCard from "@/components/goal/GoalCard";
+import { useDeleteGoal, useGoals } from "@/hooks/queries/use-goals";
+import { useGoalTransfers } from "@/hooks/queries/use-goal-transfers";
+import { useGoalInvestmentRecords } from "@/hooks/queries/use-goal-investment-records";
+import { useCurrencies } from "@/hooks/queries/use-currencies";
 
 const Goal = () => {
   const queryClient = useQueryClient();

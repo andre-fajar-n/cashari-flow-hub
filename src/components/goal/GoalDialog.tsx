@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useCreateGoal, useCurrencies, useDefaultCurrency, useUpdateGoal } from "@/hooks/queries";
 import { defaultGoalFormValues, GoalFormData } from "@/form-dto/goals";
+import { useCreateGoal, useUpdateGoal } from "@/hooks/queries/use-goals";
+import { useCurrencies, useDefaultCurrency } from "@/hooks/queries/use-currencies";
 
 interface GoalDialogProps {
   open: boolean;

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useAuth } from "@/hooks/use-auth";
@@ -6,9 +5,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useCreateInvestmentAsset, useInvestmentInstruments, useUpdateInvestmentAsset, useCurrencies } from "@/hooks/queries";
 import { AssetFormData, defaultAssetFormValues } from "@/form-dto/investment-assets";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { useCreateInvestmentAsset, useUpdateInvestmentAsset } from "@/hooks/queries/use-investment-assets";
+import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
+import { useCurrencies } from "@/hooks/queries/use-currencies";
 
 interface InvestmentAssetDialogProps {
   open: boolean;

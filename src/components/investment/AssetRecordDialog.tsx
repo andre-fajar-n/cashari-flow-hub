@@ -8,9 +8,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useCreateGoalInvestmentRecord, useWallets, useCategories, useCurrencies, useGoals } from "@/hooks/queries";
 import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData } from "@/form-dto/goal-investment-records";
 import { InvestmentAssetModel } from "@/models/investment-assets";
+import { useCreateGoalInvestmentRecord } from "@/hooks/queries/use-goal-investment-records";
+import { useWallets } from "@/hooks/queries/use-wallets";
+import { useCategories } from "@/hooks/queries/use-categories";
+import { useCurrencies } from "@/hooks/queries/use-currencies";
+import { useGoals } from "@/hooks/queries/use-goals";
 
 interface AssetRecordDialogProps {
   open: boolean;

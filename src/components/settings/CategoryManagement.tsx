@@ -8,7 +8,7 @@ import { CATEGORY_APPLICATIONS } from "@/constants/enums";
 import { useForm } from "react-hook-form";
 import { Plus, Trash, Pen } from "lucide-react";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { useCategories, useCreateCategory, useDeleteCategory, useUpdateCategory } from "@/hooks/queries";
+import { useCategories, useCreateCategory, useDeleteCategory, useUpdateCategory } from "@/hooks/queries/use-categories";
 import { CategoryModel } from "@/models/categories";
 import { CategoryFormData, defaultCategoryFormValues } from "@/form-dto/categories";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";

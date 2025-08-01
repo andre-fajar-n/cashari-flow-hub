@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
@@ -7,13 +6,12 @@ import { Plus, Coins, Edit, Trash2, TrendingUp } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import InvestmentAssetDialog from "@/components/investment/InvestmentAssetDialog";
-
-import { useDeleteInvestmentAsset, useInvestmentAssets, useInvestmentInstruments } from "@/hooks/queries";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { InvestmentAssetModel } from "@/models/investment-assets";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
-
+import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
+import { useDeleteInvestmentAsset, useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
 
 const InvestmentAsset = () => {
   const queryClient = useQueryClient();

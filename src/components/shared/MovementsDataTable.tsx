@@ -7,11 +7,12 @@ import { ArrowUpRight, ArrowDownLeft, MoreHorizontal, Edit, Trash2 } from "lucid
 import { formatAmountCurrency } from "@/lib/currency";
 import { Database } from "@/integrations/supabase/types";
 import { AmountText } from "@/components/ui/amount-text";
-import { useDeleteGoalInvestmentRecord, useDeleteGoalTransfer, useGoalTransfers, useGoalInvestmentRecords } from "@/hooks/queries";
+import { useDeleteGoalInvestmentRecord, useGoalInvestmentRecords } from "@/hooks/queries/use-goal-investment-records";
 import { useToast } from "@/hooks/use-toast";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
+import { useDeleteGoalTransfer } from "@/hooks/queries/use-goal-transfers";
 
 export interface MovementsDataTableProps {
   movements: Database["public"]["Views"]["money_movements"]["Row"][];

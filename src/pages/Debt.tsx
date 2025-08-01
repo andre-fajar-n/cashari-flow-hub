@@ -8,11 +8,12 @@ import Layout from "@/components/Layout";
 import DebtDialog from "@/components/debt/DebtDialog";
 import { DEBT_TYPES } from "@/constants/enums";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { useDebts, useDeleteDebt, useCurrencies } from "@/hooks/queries";
+import { useDebts, useDeleteDebt } from "@/hooks/queries/use-debts";
 import { DebtModel } from "@/models/debts";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useCurrencies } from "@/hooks/queries/use-currencies";
 
 const Debt = () => {
   const queryClient = useQueryClient();

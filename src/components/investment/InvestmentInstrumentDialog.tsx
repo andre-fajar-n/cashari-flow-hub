@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { defaultInstrumentFormValues, InstrumentFormData } from "@/form-dto/investment-instruments";
-import { useCreateInvestmentInstrument, useUpdateInvestmentInstrument } from "@/hooks/queries";
+import { useCreateInvestmentInstrument, useUpdateInvestmentInstrument } from "@/hooks/queries/use-investment-instruments";
 
 interface InvestmentInstrumentDialogProps {
   open: boolean;

@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { DEBT_TYPES } from "@/constants/enums";
-import { useCreateDebt, useCurrencies, useDefaultCurrency, useUpdateDebt } from "@/hooks/queries";
 import { DebtFormData, defaultDebtFormValues } from "@/form-dto/debts";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { useCreateDebt, useUpdateDebt } from "@/hooks/queries/use-debts";
+import { useCurrencies, useDefaultCurrency } from "@/hooks/queries/use-currencies";
 
 interface DebtDialogProps {
   open: boolean;

@@ -5,7 +5,7 @@ import { ArrowLeft, CheckCircle, Edit, Plus, RotateCcw, Trash2 } from "lucide-re
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import { useDebtHistories } from "@/hooks/queries/use-debt-histories";
-import { useDebts, useMarkDebtAsActive, useMarkDebtAsPaid } from "@/hooks/queries";
+import { useDebts, useMarkDebtAsActive, useMarkDebtAsPaid } from "@/hooks/queries/use-debts";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
