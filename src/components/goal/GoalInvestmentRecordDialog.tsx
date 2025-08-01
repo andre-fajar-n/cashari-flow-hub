@@ -95,6 +95,9 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
       cleanData.asset_id = null;
     }
 
+    // Keep amount_unit as is (can be 0 or null)
+    cleanData.amount_unit = data.amount_unit;
+
     if (record) {
       updateRecord.mutate({ id: record.id, ...cleanData }, {
         onSuccess: handleSuccess,
@@ -106,11 +109,6 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
         onError: handleError
       });
     }
-
-    // Keep amount_unit as is (can be 0 or null)
-    cleanData.amount_unit = data.amount_unit;
-
-    createRecord.mutate(cleanData);
   };
 
   return (
