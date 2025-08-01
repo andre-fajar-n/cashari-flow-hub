@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData } from "@/form-dto/goal-investment-records";
 import { Database } from "@/integrations/supabase/types";
@@ -16,6 +17,7 @@ import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useCategories } from "@/hooks/queries/use-categories";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
+import { useGoals } from "@/hooks/queries/use-goals";
 
 interface GoalInvestmentRecordDialogProps {
   open: boolean;
@@ -34,6 +36,7 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
   const { data: wallets } = useWallets();
   const { data: categories } = useCategories();
   const { data: currencies } = useCurrencies();
+  const { data: goals } = useGoals();
 
   const form = useForm<GoalInvestmentRecordFormData>({
     defaultValues: { ...defaultGoalInvestmentRecordFormData, goal_id: goalId || record?.goal_id },
@@ -141,6 +144,34 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
                 </FormItem>
               )}
             />
+
+            {/* Goal Selector - Only show in edit mode */}
+            {record && (
+              <FormField
+                control={form.control}
+                name="goal_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Goal</FormLabel>
+                    <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih goal" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {goals?.map((goal) => (
+                          <SelectItem key={goal.id} value={goal.id.toString()}>
+                            {goal.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
