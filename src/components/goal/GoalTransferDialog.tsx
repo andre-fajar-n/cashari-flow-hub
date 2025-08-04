@@ -105,8 +105,8 @@ const GoalTransferDialog = ({
       form.setValue("to_asset_id", transfer.to_asset_id || 0);
       form.setValue("from_amount", transfer.from_amount);
       form.setValue("to_amount", transfer.to_amount);
-      form.setValue("from_amount_unit", transfer.from_amount_unit || 0);
-      form.setValue("to_amount_unit", transfer.to_amount_unit || 0);
+      form.setValue("from_amount_unit", transfer.from_amount_unit);
+      form.setValue("to_amount_unit", transfer.to_amount_unit);
       form.setValue("date", transfer.date);
     } else if (!transfer && !transferConfig && open) {
       // Reset form when creating new transfer

@@ -65,7 +65,7 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
       form.setValue("wallet_id", record.wallet_id || 0);
       form.setValue("category_id", record.category_id || 0);
       form.setValue("amount", record.amount);
-      form.setValue("amount_unit", record.amount_unit || 0);
+      form.setValue("amount_unit", record.amount_unit);
       form.setValue("currency_code", record.currency_code || "IDR");
       form.setValue("date", record.date);
       form.setValue("description", record.description || "");
