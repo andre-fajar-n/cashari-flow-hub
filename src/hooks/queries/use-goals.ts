@@ -1,4 +1,3 @@
-
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -112,5 +111,25 @@ export const useCreateGoal = () => {
         variant: "destructive",
       });
     },
+  });
+};
+
+export const useGoalDetail = (id: number) => {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["goals", user?.id, id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("goals")
+        .select("*")
+        .eq("user_id", user?.id)
+        .eq("id", id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user && !!id,
   });
 };

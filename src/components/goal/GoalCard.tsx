@@ -4,36 +4,27 @@ import { Progress } from "@/components/ui/progress";
 import {
   ArrowRightLeft, BarChart3, Eye, Minus, Plus, Settings2, TrendingUp, Trash2, Calendar, Edit,
 } from "lucide-react";
-import { GoalProgressData } from "@/components/goal/GoalProgressCalculator";
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ActionDropdown } from "@/components/ui/action-dropdown";
-
-interface Goal {
-  id: number;
-  name: string;
-  target_amount: number;
-  currency_code: string;
-  target_date: string;
-  is_achieved: boolean;
-  is_active: boolean;
-  created_at: string;
-}
+import { GoalModel } from "@/models/goals";
 
 interface GoalCardProps {
-  goal: Goal;
-  progress: GoalProgressData;
-  onEdit: (goal: Goal) => void;
+  goal: GoalModel;
+  totalAmount: number;
+  onEdit: (goal: GoalModel) => void;
   onDelete: (goalId: number) => void;
   onAddRecord: (goalId: number) => void;
   onTransferToGoal?: (config: GoalTransferConfig) => void;
 }
 
-const GoalCard = ({ goal, progress, onEdit, onDelete, onAddRecord, onTransferToGoal }: GoalCardProps) => {
+const GoalCard = ({ goal, totalAmount, onEdit, onDelete, onAddRecord, onTransferToGoal }: GoalCardProps) => {
   const [settingsDropdownOpenId, setSettingsDropdownOpenId] = useState<number | null>(null);
   const [optionsDropdownOpenId, setOptionsDropdownOpenId] = useState<number | null>(null);
   const navigate = useNavigate();
+
+  const percentage = Math.min(totalAmount / goal.target_amount * 100, 100);
 
   const handleAddToGoal = () => {
     onTransferToGoal?.({
@@ -168,10 +159,10 @@ const GoalCard = ({ goal, progress, onEdit, onDelete, onAddRecord, onTransferToG
               <span className="text-sm font-medium">Progress</span>
             </div>
             <span className="text-sm text-gray-600">
-              {progress.totalAmount.toLocaleString('id-ID')} / {goal.target_amount.toLocaleString('id-ID')} {goal.currency_code} ({progress.percentage.toFixed(1)}% tercapai)
+              {totalAmount.toLocaleString('id-ID')} / {goal.target_amount.toLocaleString('id-ID')} {goal.currency_code} ({percentage.toFixed(1)}% tercapai)
             </span>
           </div>
-          <Progress value={progress.percentage} className="h-2" />
+          <Progress value={percentage} className="h-2" />
         </div>
       </div>
     </Card>

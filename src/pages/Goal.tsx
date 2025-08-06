@@ -7,16 +7,14 @@ import Layout from "@/components/Layout";
 import GoalDialog from "@/components/goal/GoalDialog";
 import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
-import { calculateGoalProgress } from "@/components/goal/GoalProgressCalculator";
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { GoalModel } from "@/models/goals";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import GoalCard from "@/components/goal/GoalCard";
 import { useDeleteGoal, useGoals } from "@/hooks/queries/use-goals";
-import { useGoalTransfers } from "@/hooks/queries/use-goal-transfers";
-import { useGoalInvestmentRecords } from "@/hooks/queries/use-goal-investment-records";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
+import { useGoalFundsSummary } from "@/hooks/queries/use-goal-funds-summary";
 
 const Goal = () => {
   const queryClient = useQueryClient();
@@ -31,14 +29,22 @@ const Goal = () => {
 
   const { mutate: deleteGoal } = useDeleteGoal();
 
-  const { data: goals, isLoading } = useGoals();
-  const { data: goalTransfers } = useGoalTransfers();
-  const { data: goalRecords } = useGoalInvestmentRecords();
-  const { data: currencies } = useCurrencies();
+  const { data: goals, isLoading: isGoalsLoading } = useGoals();
+  const { data: currencies, isLoading: isCurrencyLoading } = useCurrencies();
+  const { data: goalFundsSummary, isLoading: isFundsSummaryLoading } = useGoalFundsSummary();
 
-  const handleGoalProgressCalculation = (goalId: number, targetAmount: number) => {
-    return calculateGoalProgress(goalId, targetAmount, goalTransfers, goalRecords);
-  };
+  const isLoading = isGoalsLoading || isCurrencyLoading || isFundsSummaryLoading;
+
+  const groupedByGoalId = (goalFundsSummary ?? []).reduce((acc, item) => {
+    if (!acc[item.goal_id]) {
+      acc[item.goal_id] = {
+        goal_id: item.goal_id,
+        total_amount: 0,
+      };
+    }
+    acc[item.goal_id].total_amount += item.total_amount || 0;
+    return acc;
+  }, {} as Record<number, { goal_id: number; total_amount: number }>);
 
   const handleEdit = (goal: GoalModel) => {
     setSelectedGoal(goal);
@@ -71,14 +77,12 @@ const Goal = () => {
     setIsTransferDialogOpen(true);
   };
 
-  const renderGoalItem = (goal: GoalModel) => {
-    const progress = handleGoalProgressCalculation(goal.id, goal.target_amount);
-    
+  const renderGoalItem = (goal: GoalModel) => {    
     return (
       <GoalCard
         key={goal.id}
         goal={goal}
-        progress={progress}
+        totalAmount={groupedByGoalId[goal.id]?.total_amount || 0}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
         onAddRecord={handleAddRecord}

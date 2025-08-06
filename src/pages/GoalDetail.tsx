@@ -1,27 +1,21 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Edit, Trash2, Plus, Minus, ArrowRightLeft, BarChart3, Calculator } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Plus, Minus, ArrowRightLeft, BarChart3 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import GoalDialog from "@/components/goal/GoalDialog";
 import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
-import GoalFundsSummary from "@/components/goal/GoalFundsSummary";
 import GoalOverview from "@/components/goal/GoalOverview";
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { GoalModel } from "@/models/goals";
 import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
-import { formatAmountCurrency } from "@/lib/currency";
-import AmountText from "@/components/ui/amount-text";
-import { calculateGoalProgress } from "@/components/goal/GoalProgressCalculator";
 import MovementsDataTable from "@/components/shared/MovementsDataTable";
-import { useDeleteGoal, useGoals } from "@/hooks/queries/use-goals";
+import { useDeleteGoal, useGoalDetail } from "@/hooks/queries/use-goals";
 import { useGoalTransfers } from "@/hooks/queries/use-goal-transfers";
-import { useGoalInvestmentRecords } from "@/hooks/queries/use-goal-investment-records";
+import { useGoalFundsSummary } from "@/hooks/queries";
 
 const GoalDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,20 +27,21 @@ const GoalDetail = () => {
   const [transferConfig, setTransferConfig] = useState<GoalTransferConfig | undefined>(undefined);
 
   const { mutate: deleteGoal } = useDeleteGoal();
-  const { data: goals, isLoading } = useGoals();
+  const { data: goal, isLoading: isGoalLoading } = useGoalDetail(parseInt(id!));
   const { data: goalTransfers, isLoading: isTransfersLoading } = useGoalTransfers();
-  const { data: goalRecords, isLoading: isRecordsLoading } = useGoalInvestmentRecords();
   const { data: goalMovements, isLoading: isMovementsLoading } = useMoneyMovements({ goalId: parseInt(id!) });
+  const { data: goalFundsSummary, isLoading: isFundsSummaryLoading } = useGoalFundsSummary(parseInt(id!));
 
-  const goal = goals?.find(g => g.id === parseInt(id!)) as GoalModel;
+  const isLoading = isGoalLoading || isTransfersLoading || isMovementsLoading || isFundsSummaryLoading
 
   // Check loading states and goal existence before accessing goal properties
-  if (!goal || isLoading || isTransfersLoading || isRecordsLoading || isMovementsLoading) {
+  if (!goal || isLoading) {
+    const message = !goal ? "Data tidak ditemukan" : "Memuat data..."
     return (
       <ProtectedRoute>
         <Layout>
           <div className="text-center py-8">
-            <p className="text-muted-foreground">Memuat data...</p>
+            <p className="text-muted-foreground">{message}</p>
             <Button onClick={() => navigate('/goal')} className="mt-4">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Kembali ke Daftar Goal
@@ -57,8 +52,23 @@ const GoalDetail = () => {
     );
   }
 
-  // Calculate progress after ensuring goal exists
-  const progress = calculateGoalProgress(goal.id, goal.target_amount, goalTransfers, goalRecords);
+  const totalAmount = goalFundsSummary?.reduce((sum, fund) => sum + fund.total_amount, 0) || 0;
+  const percentage = Math.min(totalAmount / goal.target_amount * 100, 100);
+
+  let totalAmountRecord = 0;
+  let totalAmountTransfer = 0;
+
+  for (const movement of goalMovements || []) {
+    if (movement.resource_type === "investment_growth") {
+      totalAmountRecord += movement.amount;
+    } else if (
+      movement.resource_type === "goal_transfers_in" ||
+      movement.resource_type === "goal_transfers_out"
+    ) {
+      totalAmountTransfer += movement.amount;
+    }
+  }
+
 
   const handleEdit = () => {
     setIsDialogOpen(true);
@@ -162,48 +172,21 @@ const GoalDetail = () => {
 
           {/* Tabs */}
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="summary">Ringkasan</TabsTrigger>
               <TabsTrigger value="history">Riwayat</TabsTrigger>
             </TabsList>
             
             <TabsContent value="overview" className="space-y-4">
-              <GoalOverview 
-                goal={goal} 
-                goalTransfers={goalTransfers || []} 
-                goalRecords={goalRecords || []} 
+              <GoalOverview
+                goal={goal}
+                totalAmount={totalAmount}
+                percentage={percentage}
+                totalAmountRecord={totalAmountRecord}
+                totalAmountTransfer={totalAmountTransfer}
               />
             </TabsContent>
-            
-            <TabsContent value="summary" className="space-y-4">
-              {/* Total Amount Summary */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calculator className="w-5 h-5" />
-                    Total Dana
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-4">
-                    <AmountText
-                      amount={progress.totalAmount}
-                      className="text-3xl font-bold"
-                      showSign={true}
-                    >
-                      {formatAmountCurrency(progress.totalAmount, goal.currency_code)}
-                    </AmountText>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Total dana dalam goal ini
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
 
-              <GoalFundsSummary goalId={goal.id} />
-            </TabsContent>
-            
             <TabsContent value="history" className="space-y-4">
               <MovementsDataTable
                 movements={goalMovements || []}
