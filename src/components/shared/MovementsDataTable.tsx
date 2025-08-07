@@ -33,12 +33,13 @@ const MovementsDataTable = ({
   description,
   emptyMessage = "Belum ada riwayat pergerakan dana"
 }: MovementsDataTableProps) => {
-  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+  const [openDropdownId, setOpenDropdownId] = useState<string | number | null>(null);
   const [deleteModal, setDeleteModal] = useState<{
     open: boolean;
     type: 'transfer' | 'record' | null;
     id: number | null;
-  }>({ open: false, type: null, id: null });
+    movementId?: string | null;
+  }>({ open: false, type: null, id: null, movementId: null });
 
   // Edit dialog states
   const [editTransferDialog, setEditTransferDialog] = useState<{
@@ -155,26 +156,26 @@ const MovementsDataTable = ({
 
   const handleEdit = (movement: any) => {
     if (movement.resource_type === 'goal_transfers_in' || movement.resource_type === 'goal_transfers_out') {
-      // Find the transfer data
+      // Find the transfer data using movement.id as unique identifier
       const transfer = transfers?.find(t => t.id === movement.resource_id);
       if (transfer) {
         setEditTransferDialog({ open: true, transfer });
       } else {
         toast({
           title: "Error",
-          description: "Data transfer tidak ditemukan",
+          description: `Data transfer tidak ditemukan (Movement ID: ${movement.id})`,
           variant: "destructive",
         });
       }
     } else if (movement.resource_type === 'investment_growth') {
-      // Find the investment record data
+      // Find the investment record data using movement.id as unique identifier
       const record = allRecords?.find(r => r.id === movement.resource_id);
       if (record) {
         setEditRecordDialog({ open: true, record });
       } else {
         toast({
           title: "Error",
-          description: "Data investment record tidak ditemukan",
+          description: `Data investment record tidak ditemukan (Movement ID: ${movement.id})`,
           variant: "destructive",
         });
       }
@@ -188,7 +189,7 @@ const MovementsDataTable = ({
 
   const handleDelete = (movement: any) => {
     let type: 'transfer' | 'record' | null = null;
-    
+
     if (movement.resource_type === 'goal_transfers_in' || movement.resource_type === 'goal_transfers_out') {
       type = 'transfer';
     } else if (movement.resource_type === 'investment_growth') {
@@ -196,7 +197,12 @@ const MovementsDataTable = ({
     }
 
     if (type && movement.resource_id) {
-      setDeleteModal({ open: true, type, id: movement.resource_id });
+      setDeleteModal({
+        open: true,
+        type,
+        id: movement.resource_id,
+        movementId: movement.id // Store movement ID for reference
+      });
     }
   };
 
@@ -248,8 +254,8 @@ const MovementsDataTable = ({
 
   // Render function for each movement item
   const renderMovementItem = (movement: any) => {
-    // Generate a unique index for dropdown based on movement properties
-    const index = movement.resource_id || Math.random();
+    // Create unique identifier using movement.id (from money_movements table)
+    const uniqueId = `movement-${movement.id}`;
     const descriptionLines = getTransferDescription(movement);
     
     return (
@@ -295,7 +301,7 @@ const MovementsDataTable = ({
             ): null}
           </div>
           <ActionDropdown
-            dropdownId={index}
+            dropdownId={uniqueId}
             openDropdownId={openDropdownId}
             setOpenDropdownId={setOpenDropdownId}
             triggerContent={
@@ -341,7 +347,7 @@ const MovementsDataTable = ({
         onOpenChange={(open) => setDeleteModal({ ...deleteModal, open })}
         onConfirm={handleConfirmDelete}
         title="Hapus Item"
-        description={`Apakah Anda yakin ingin menghapus ${deleteModal.type === 'transfer' ? 'transfer' : 'record'} ini? Tindakan ini tidak dapat dibatalkan.`}
+        description={`Apakah Anda yakin ingin menghapus ${deleteModal.type === 'transfer' ? 'transfer' : 'record'} ini? Tindakan ini tidak dapat dibatalkan.${deleteModal.movementId ? ` (Movement ID: ${deleteModal.movementId})` : ''}`}
         confirmText="Ya, Hapus"
         cancelText="Batal"
         variant="destructive"

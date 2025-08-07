@@ -7,9 +7,9 @@ import {
 import { ReactNode } from "react";
 
 interface ActionDropdownProps {
-  dropdownId: number;
-  openDropdownId: number | null;
-  setOpenDropdownId: (id: number | null) => void;
+  dropdownId: string | number;
+  openDropdownId: string | number | null;
+  setOpenDropdownId: (id: string | number | null) => void;
   triggerContent: ReactNode;
   menuItems: {
     label: string;
