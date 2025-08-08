@@ -54,6 +54,7 @@ export const useCreateGoalInvestmentRecord = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
       queryClient.invalidateQueries({ queryKey: ["goals"] });
+      queryClient.invalidateQueries({ queryKey: ["goal_funds_summary"] });
       toast({
         title: "Berhasil",
         description: "Investment record berhasil ditambahkan",
@@ -88,6 +89,7 @@ export const useUpdateGoalInvestmentRecord = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
       queryClient.invalidateQueries({ queryKey: ["goals"] });
+      queryClient.invalidateQueries({ queryKey: ["goal_funds_summary"] });
       toast({
         title: "Berhasil",
         description: "Investment record berhasil diperbarui",
@@ -120,6 +122,7 @@ export const useDeleteGoalInvestmentRecord = () => {
       queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
       queryClient.invalidateQueries({ queryKey: ["goals"] });
       queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
+      queryClient.invalidateQueries({ queryKey: ["goal_funds_summary"] });
       // Invalidate all money_movements variations
       queryClient.invalidateQueries({
         predicate: (query) => query.queryKey[0] === "money_movements"
