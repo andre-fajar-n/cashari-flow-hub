@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ActionDropdown } from "@/components/ui/action-dropdown";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
-import { ArrowUpRight, ArrowDownLeft, MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { ArrowUpRight, ArrowDownLeft, MoreHorizontal, Edit, Trash2, ArrowLeftRight } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { Database } from "@/integrations/supabase/types";
 import { AmountText } from "@/components/ui/amount-text";
@@ -92,25 +92,25 @@ const MovementsDataTable = ({
 
         // Handle wallet transfers
         if (transfer.from_wallet_id && transfer.to_wallet_id) {
+          let desc = `${transfer.from_wallet?.name || 'Unknown'} → ${transfer.to_wallet?.name || 'Unknown'}`;
           if (transfer.from_wallet_id === transfer.to_wallet_id) {
-            lines.push(`Wallet: ${transfer.from_wallet?.name || 'Unknown'}`);
-          } else {
-            lines.push(`${transfer.from_wallet?.name || 'Unknown'} → ${transfer.to_wallet?.name || 'Unknown'}`);
+            desc = `${transfer.from_wallet?.name || 'Unknown'}`;
           }
+          lines.push(`Dompet: ${desc}`);
         } else if (transfer.from_wallet_id) {
-          lines.push(`Dari Wallet: ${transfer.from_wallet?.name || 'Unknown'}`);
+          lines.push(`Dari Dompet: ${transfer.from_wallet?.name || 'Unknown'}`);
         } else if (transfer.to_wallet_id) {
-          lines.push(`Ke Wallet: ${transfer.to_wallet?.name || 'Unknown'}`);
+          lines.push(`Ke Dompet: ${transfer.to_wallet?.name || 'Unknown'}`);
         }
 
         // Handle goal transfers (only show if filterType is not 'goal')
         if (filterType !== 'goal') {
           if (transfer.from_goal_id && transfer.to_goal_id) {
+            let desc = `${transfer.from_goal?.name || 'Unknown'} → ${transfer.to_goal?.name || 'Unknown'}`;
             if (transfer.from_goal_id === transfer.to_goal_id) {
-              lines.push(`Goal: ${transfer.from_goal?.name || 'Unknown'}`);
-            } else {
-              lines.push(`${transfer.from_goal?.name || 'Unknown'} → ${transfer.to_goal?.name || 'Unknown'}`);
+              desc = `${transfer.from_goal?.name || 'Unknown'}`;
             }
+            lines.push(`Goal: ${desc}`);
           } else if (transfer.from_goal_id) {
             lines.push(`Dari Goal: ${transfer.from_goal?.name || 'Unknown'}`);
           } else if (transfer.to_goal_id) {
@@ -120,11 +120,11 @@ const MovementsDataTable = ({
 
         // Handle instrument transfers
         if (transfer.from_instrument_id && transfer.to_instrument_id) {
+          let desc = `${transfer.from_instrument?.name || 'Unknown'} → ${transfer.to_instrument?.name || 'Unknown'}`;
           if (transfer.from_instrument_id === transfer.to_instrument_id) {
-            lines.push(`Instrumen: ${transfer.from_instrument?.name || 'Unknown'}`);
-          } else {
-            lines.push(`${transfer.from_instrument?.name || 'Unknown'} → ${transfer.to_instrument?.name || 'Unknown'}`);
+            desc = `${transfer.from_instrument?.name || 'Unknown'}`;
           }
+          lines.push(`Instrumen: ${desc}`);
         } else if (transfer.from_instrument_id) {
           lines.push(`Dari Instrumen: ${transfer.from_instrument?.name || 'Unknown'}`);
         } else if (transfer.to_instrument_id) {
@@ -134,11 +134,11 @@ const MovementsDataTable = ({
         // Handle asset transfers (only show if filterType is not 'asset')
         if (filterType !== 'asset') {
           if (transfer.from_asset_id && transfer.to_asset_id) {
+            let desc = `${transfer.from_asset?.name || 'Unknown'}${transfer.from_asset?.symbol ? ` (${transfer.from_asset?.symbol})` : ''} → ${transfer.to_asset?.name || 'Unknown'}${transfer.to_asset?.symbol ? ` (${transfer.to_asset?.symbol})` : ''}`;
             if (transfer.from_asset_id === transfer.to_asset_id) {
-              lines.push(`Aset: ${transfer.from_asset?.name || 'Unknown'}${transfer.from_asset?.symbol ? ` (${transfer.from_asset?.symbol})` : ''}`);
-            } else {
-              lines.push(`${transfer.from_asset?.name || 'Unknown'}${transfer.from_asset?.symbol ? ` (${transfer.from_asset?.symbol})` : ''} → ${transfer.to_asset?.name || 'Unknown'}${transfer.to_asset?.symbol ? ` (${transfer.to_asset?.symbol})` : ''}`);
+              desc = `${transfer.from_asset?.name || 'Unknown'}${transfer.from_asset?.symbol ? ` (${transfer.from_asset?.symbol})` : ''}`;
             }
+            lines.push(`Aset: ${desc}`);
           } else if (transfer.from_asset_id) {
             lines.push(`Dari Aset: ${transfer.from_asset?.name || 'Unknown'}${transfer.from_asset?.symbol ? ` (${transfer.from_asset?.symbol})` : ''}`);
           } else if (transfer.to_asset_id) {
@@ -146,12 +146,12 @@ const MovementsDataTable = ({
           }
         }
 
-        return lines.join(' • ');
+        return lines;
       }
     }
 
     // Fallback to original description
-    return movement.description || 'Money movement';
+    return [movement.description || 'Deskripsi kosong'];
   };
 
   const handleEdit = (movement: any) => {
@@ -229,7 +229,6 @@ const MovementsDataTable = ({
       label: 'Tipe',
       type: 'select',
       options: [
-        { label: 'Semua', value: 'all' },
         { label: 'Transfer Masuk', value: 'goal_transfers_in' },
         { label: 'Transfer Keluar', value: 'goal_transfers_out' },
         { label: 'Pertumbuhan Investasi', value: 'investment_growth' },
@@ -240,7 +239,6 @@ const MovementsDataTable = ({
       label: 'Mata Uang',
       type: 'select',
       options: [
-        { label: 'Semua', value: 'all' },
         { label: 'IDR', value: 'IDR' },
         { label: 'USD', value: 'USD' },
       ]
@@ -256,29 +254,39 @@ const MovementsDataTable = ({
   const renderMovementItem = (movement: any) => {
     // Create unique identifier using movement.id (from money_movements table)
     const uniqueId = `movement-${movement.id}`;
-    const descriptionLines = getTransferDescription(movement);
     
     return (
       <div className="flex items-center justify-between p-4 border rounded-lg">
         <div className="flex items-center gap-3">
           <div className="flex-shrink-0">
-            {movement.amount && movement.amount > 0 ? (
-              <ArrowDownLeft className="w-5 h-5 text-green-600" />
-            ) : (
-              <ArrowUpRight className="w-5 h-5 text-red-600" />
-            )}
+            {movement.amount !== null && movement.amount !== undefined ? (
+              movement.amount === 0 ? (
+                <ArrowLeftRight className="w-5 h-5 text-blue-600" />
+              ) : (
+                movement.amount > 0 ? (
+                  <ArrowDownLeft className="w-5 h-5 text-green-600" />
+                ) : (
+                  <ArrowUpRight className="w-5 h-5 text-red-600" />
+                )
+              )
+            ) : null}
           </div>
           <div>
             <div className="flex items-center gap-2">
               <p className="font-medium">
-                {movement.amount && movement.amount > 0 ? 'Dana Masuk' : 'Dana Keluar'}
+                {movement.amount !== null && movement.amount !== undefined ? (
+                  movement.amount === 0 ? 'Transfer' :
+                  movement.amount > 0 ? 'Dana Masuk' : 'Dana Keluar'
+                ) : 'Transfer'}
               </p>
               <Badge variant="outline" className="text-xs">
                 {movement.resource_type}
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
-              {descriptionLines}
+              {getTransferDescription(movement).map((line, index) => (
+                <p key={index}>{line}</p>
+              ))}
             </p>
             <p className="text-xs text-muted-foreground">
               {formatDate(movement.date || '')}
