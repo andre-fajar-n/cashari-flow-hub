@@ -246,10 +246,10 @@ export function DataTable<T extends Record<string, any>>({
           {/* Collapsible Filter Fields */}
           {columnFilters.length > 0 && (
             <Collapsible open={isFiltersOpen} onOpenChange={setIsFiltersOpen}>
-              <CollapsibleContent className="space-y-0">
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 pt-3 border-t">
+              <CollapsibleContent className="space-y-0 max-h-72 overflow-y-auto pr-1 pb-2 scroll-pb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 pt-3 pb-3 border-t">
                   {columnFilters.map((filter) => (
-                    <div key={filter.field} className="space-y-1">
+                    <div key={filter.field} className="space-y-1 min-w-0">
                       <label className="text-xs font-medium text-muted-foreground">
                         {filter.label}
                       </label>
@@ -264,7 +264,7 @@ export function DataTable<T extends Record<string, any>>({
                             setCurrentPage(1);
                           }}
                         >
-                          <SelectTrigger className="h-8 text-xs">
+                          <SelectTrigger className="h-8 text-xs w-full">
                             <SelectValue placeholder="Semua" />
                           </SelectTrigger>
                           <SelectContent>
@@ -278,7 +278,7 @@ export function DataTable<T extends Record<string, any>>({
                         </Select>
                       ) : filter.type === 'daterange' ? (
                         <div className="space-y-1">
-                          <div className="flex gap-1">
+                          <div className="grid grid-cols-2 gap-2">
                             <Input
                               placeholder="Dari"
                               type="date"
@@ -293,7 +293,7 @@ export function DataTable<T extends Record<string, any>>({
                                 }));
                                 setCurrentPage(1);
                               }}
-                              className="h-8 text-xs"
+                              className="h-8 text-xs w-full"
                             />
                             <Input
                               placeholder="Sampai"
@@ -309,7 +309,7 @@ export function DataTable<T extends Record<string, any>>({
                                 }));
                                 setCurrentPage(1);
                               }}
-                              className="h-8 text-xs"
+                              className="h-8 text-xs w-full"
                             />
                           </div>
                         </div>
@@ -325,7 +325,7 @@ export function DataTable<T extends Record<string, any>>({
                             setCurrentPage(1);
                           }}
                           type={filter.type === 'number' ? 'number' : filter.type === 'date' ? 'date' : 'text'}
-                          className="h-8 text-xs"
+                          className="h-8 text-xs w-full"
                         />
                       )}
                     </div>
