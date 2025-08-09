@@ -103,19 +103,17 @@ const MovementsDataTable = ({
           lines.push(`Ke Dompet: ${transfer.to_wallet?.name || 'Unknown'}`);
         }
 
-        // Handle goal transfers (only show if filterType is not 'goal')
-        if (filterType !== 'goal') {
-          if (transfer.from_goal_id && transfer.to_goal_id) {
-            let desc = `${transfer.from_goal?.name || 'Unknown'} → ${transfer.to_goal?.name || 'Unknown'}`;
-            if (transfer.from_goal_id === transfer.to_goal_id) {
-              desc = `${transfer.from_goal?.name || 'Unknown'}`;
-            }
-            lines.push(`Goal: ${desc}`);
-          } else if (transfer.from_goal_id) {
-            lines.push(`Dari Goal: ${transfer.from_goal?.name || 'Unknown'}`);
-          } else if (transfer.to_goal_id) {
-            lines.push(`Ke Goal: ${transfer.to_goal?.name || 'Unknown'}`);
+        // Handle goal transfers
+        if (transfer.from_goal_id && transfer.to_goal_id) {
+          let desc = `${transfer.from_goal?.name || 'Unknown'} → ${transfer.to_goal?.name || 'Unknown'}`;
+          if (transfer.from_goal_id === transfer.to_goal_id) {
+            desc = `${transfer.from_goal?.name || 'Unknown'}`;
           }
+          lines.push(`Goal: ${desc}`);
+        } else if (transfer.from_goal_id) {
+          lines.push(`Dari Goal: ${transfer.from_goal?.name || 'Unknown'}`);
+        } else if (transfer.to_goal_id) {
+          lines.push(`Ke Goal: ${transfer.to_goal?.name || 'Unknown'}`);
         }
 
         // Handle instrument transfers
@@ -131,19 +129,17 @@ const MovementsDataTable = ({
           lines.push(`Ke Instrumen: ${transfer.to_instrument?.name || 'Unknown'}`);
         }
 
-        // Handle asset transfers (only show if filterType is not 'asset')
-        if (filterType !== 'asset') {
-          if (transfer.from_asset_id && transfer.to_asset_id) {
-            let desc = `${transfer.from_asset?.name || 'Unknown'}${transfer.from_asset?.symbol ? ` (${transfer.from_asset?.symbol})` : ''} → ${transfer.to_asset?.name || 'Unknown'}${transfer.to_asset?.symbol ? ` (${transfer.to_asset?.symbol})` : ''}`;
-            if (transfer.from_asset_id === transfer.to_asset_id) {
-              desc = `${transfer.from_asset?.name || 'Unknown'}${transfer.from_asset?.symbol ? ` (${transfer.from_asset?.symbol})` : ''}`;
-            }
-            lines.push(`Aset: ${desc}`);
-          } else if (transfer.from_asset_id) {
-            lines.push(`Dari Aset: ${transfer.from_asset?.name || 'Unknown'}${transfer.from_asset?.symbol ? ` (${transfer.from_asset?.symbol})` : ''}`);
-          } else if (transfer.to_asset_id) {
-            lines.push(`Ke Aset: ${transfer.to_asset?.name || 'Unknown'}${transfer.to_asset?.symbol ? ` (${transfer.to_asset?.symbol})` : ''}`);
+        // Handle asset transfers
+        if (transfer.from_asset_id && transfer.to_asset_id) {
+          let desc = `${transfer.from_asset?.name || 'Unknown'}${transfer.from_asset?.symbol ? ` (${transfer.from_asset?.symbol})` : ''} → ${transfer.to_asset?.name || 'Unknown'}${transfer.to_asset?.symbol ? ` (${transfer.to_asset?.symbol})` : ''}`;
+          if (transfer.from_asset_id === transfer.to_asset_id) {
+            desc = `${transfer.from_asset?.name || 'Unknown'}${transfer.from_asset?.symbol ? ` (${transfer.from_asset?.symbol})` : ''}`;
           }
+          lines.push(`Aset: ${desc}`);
+        } else if (transfer.from_asset_id) {
+          lines.push(`Dari Aset: ${transfer.from_asset?.name || 'Unknown'}${transfer.from_asset?.symbol ? ` (${transfer.from_asset?.symbol})` : ''}`);
+        } else if (transfer.to_asset_id) {
+          lines.push(`Ke Aset: ${transfer.to_asset?.name || 'Unknown'}${transfer.to_asset?.symbol ? ` (${transfer.to_asset?.symbol})` : ''}`);
         }
 
         return lines;
