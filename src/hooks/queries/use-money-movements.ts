@@ -28,6 +28,10 @@ export const useMoneyMovements = (filter?: MoneyMovementFilter) => {
         query = query.eq("instrument_id", filter.instrumentId);
       }
 
+      if (filter?.assetId) {
+        query = query.eq("asset_id", filter.assetId);
+      }
+
       if (filter?.startDate) {
         query = query.gte("date", filter.startDate);
       }

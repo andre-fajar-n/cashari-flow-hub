@@ -15,7 +15,10 @@ import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
 import MovementsDataTable from "@/components/shared/MovementsDataTable";
 import { useDeleteGoal, useGoalDetail } from "@/hooks/queries/use-goals";
 import { useGoalTransfers } from "@/hooks/queries/use-goal-transfers";
-import { useGoalFundsSummary } from "@/hooks/queries";
+import { useGoalFundsSummary } from "@/hooks/queries/use-goal-funds-summary";
+import { useWallets } from "@/hooks/queries/use-wallets";
+import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
+import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
 
 const GoalDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -31,8 +34,12 @@ const GoalDetail = () => {
   const { data: goalTransfers, isLoading: isTransfersLoading } = useGoalTransfers();
   const { data: goalMovements, isLoading: isMovementsLoading } = useMoneyMovements({ goalId: parseInt(id!) });
   const { data: goalFundsSummary, isLoading: isFundsSummaryLoading } = useGoalFundsSummary(parseInt(id!));
+  const { data: wallets, isLoading: isWalletsLoading } = useWallets();
+  const { data: assets, isLoading: isAssetsLoading } = useInvestmentAssets();
+  const { data: instruments, isLoading: isInstrumentsLoading } = useInvestmentInstruments();
 
-  const isLoading = isGoalLoading || isTransfersLoading || isMovementsLoading || isFundsSummaryLoading
+  const isLoading = isGoalLoading || isTransfersLoading || isMovementsLoading || isFundsSummaryLoading || isWalletsLoading ||
+                    isAssetsLoading || isInstrumentsLoading;
 
   // Check loading states and goal existence before accessing goal properties
   if (!goal || isLoading) {
@@ -191,6 +198,9 @@ const GoalDetail = () => {
               <MovementsDataTable
                 movements={goalMovements || []}
                 transfers={goalTransfers || []}
+                wallets={wallets || []}
+                instruments={instruments || []}
+                assets={assets || []}
                 filterType="goal"
                 filterId={goal.id}
                 title="Riwayat Pergerakan Dana"

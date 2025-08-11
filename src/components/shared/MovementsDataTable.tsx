@@ -17,7 +17,11 @@ import { useDeleteGoalTransfer } from "@/hooks/queries/use-goal-transfers";
 export interface MovementsDataTableProps {
   movements: Database["public"]["Views"]["money_movements"]["Row"][];
   transfers: Database["public"]["Tables"]["goal_transfers"]["Row"][];
-  filterType: 'goal' | 'asset';
+  wallets: Database["public"]["Tables"]["wallets"]["Row"][];
+  goals?: Database["public"]["Tables"]["goals"]["Row"][];
+  instruments?: Database["public"]["Tables"]["investment_instruments"]["Row"][];
+  assets?: Database["public"]["Tables"]["investment_assets"]["Row"][];
+  filterType: 'goal' | 'instrument' | 'asset';
   filterId: number;
   title: string;
   description: string;
@@ -27,6 +31,10 @@ export interface MovementsDataTableProps {
 const MovementsDataTable = ({
   movements,
   transfers,
+  wallets,
+  goals = [],
+  instruments = [],
+  assets = [],
   filterType,
   filterId,
   title,
@@ -73,6 +81,8 @@ const MovementsDataTable = ({
       return movement.goal_id === filterId;
     } else if (filterType === 'asset') {
       return movement.asset_id === filterId;
+    } else if (filterType === 'instrument') {
+      return movement.instrument_id === filterId;
     }
     return false;
   });
@@ -218,8 +228,8 @@ const MovementsDataTable = ({
     }
   };
 
-  // Define column filters for the data table
-  const columnFilters: ColumnFilter[] = [
+  // Define column filters for the data table, starting with resource_type
+  let columnFilters: ColumnFilter[] = [
     {
       field: 'resource_type',
       label: 'Tipe',
@@ -231,20 +241,60 @@ const MovementsDataTable = ({
       ]
     },
     {
-      field: 'currency_code',
-      label: 'Mata Uang',
-      type: 'select',
-      options: [
-        { label: 'IDR', value: 'IDR' },
-        { label: 'USD', value: 'USD' },
-      ]
-    },
-    {
-      field: 'date',
-      label: 'Tanggal',
-      type: 'daterange'
+      field: "wallet_id",
+      label: "Dompet",
+      type: "select",
+      options: wallets?.map(wallet => ({
+        label: wallet.name,
+        value: wallet.id.toString()
+      })) || []
     },
   ];
+
+  // if filterType is not goal, add goal_id filter
+  if (filterType !== 'goal') {
+    columnFilters.push({
+      field: "goal_id",
+      label: "Goal",
+      type: "select",
+      options: goals?.map(goal => ({
+        label: goal.name,
+        value: goal.id.toString()
+      })) || []
+    });
+  }
+
+  // if filterType is not instrument, add instrument_id filter
+  if (filterType !== 'instrument') {
+    columnFilters.push({
+      field: "instrument_id",
+      label: "Instrumen",
+      type: "select",
+      options: instruments?.map(instrument => ({
+        label: instrument.name,
+        value: instrument.id.toString()
+      })) || []
+    });
+  }
+
+  // if filterType is not asset, add asset_id filter
+  if (filterType !== 'asset') {
+    columnFilters.push({
+      field: "asset_id",
+      label: "Aset",
+      type: "select",
+      options: assets?.map(asset => ({
+        label: asset.name,
+        value: asset.id.toString()
+      })) || []
+    });
+  }
+
+  columnFilters.push({
+    field: 'date',
+    label: 'Tanggal',
+    type: 'daterange'
+  });
 
   // Render function for each movement item
   const renderMovementItem = (movement: any) => {

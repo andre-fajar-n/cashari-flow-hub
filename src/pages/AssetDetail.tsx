@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Edit, Trash2, Plus, TrendingUp, BarChart3, PieChart } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Plus, TrendingUp, BarChart3 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -22,6 +22,8 @@ import AssetRecordDialog from "@/components/investment/AssetRecordDialog";
 import MovementsDataTable from "@/components/shared/MovementsDataTable";
 import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
 import { useGoalTransfers } from "@/hooks/queries/use-goal-transfers";
+import { useWallets } from "@/hooks/queries/use-wallets";
+import { useGoals } from "@/hooks/queries/use-goals";
 
 const AssetDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -43,6 +45,10 @@ const AssetDetail = () => {
   const { data: assetValues, isLoading: isValuesLoading } = useInvestmentAssetValues(parseInt(id!));
   const { data: movements, isLoading: isMovementsLoading } = useMoneyMovements({ assetId: parseInt(id!) });
   const { data: transfers, isLoading: isTransfersLoading } = useGoalTransfers();
+  const { data: wallets, isLoading: isWalletsLoading } = useWallets();
+  const { data: goals, isLoading: isGoalsLoading } = useGoals();
+
+  const isLoadingHistoryTab = isMovementsLoading || isTransfersLoading || isWalletsLoading || isGoalsLoading;
 
   const asset = assets?.find(a => a.id === parseInt(id!)) as InvestmentAssetModel;
 
@@ -286,7 +292,7 @@ const AssetDetail = () => {
             </TabsContent>
             
             <TabsContent value="movements" className="space-y-4">
-              {isMovementsLoading || isTransfersLoading ? (
+              {isLoadingHistoryTab ? (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">Memuat riwayat pergerakan dana...</p>
                 </div>
@@ -294,6 +300,8 @@ const AssetDetail = () => {
                 <MovementsDataTable
                   movements={movements || []}
                   transfers={transfers || []}
+                  wallets={wallets || []}
+                  goals={goals || []}
                   filterType="asset"
                   filterId={asset.id}
                   title={`Riwayat Aset - ${asset.name}`}
