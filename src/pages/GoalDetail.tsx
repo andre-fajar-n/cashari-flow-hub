@@ -19,6 +19,7 @@ import { useGoalFundsSummary } from "@/hooks/queries/use-goal-funds-summary";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
+import { useGoalInvestmentRecords } from "@/hooks/queries";
 
 const GoalDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,9 +38,10 @@ const GoalDetail = () => {
   const { data: wallets, isLoading: isWalletsLoading } = useWallets();
   const { data: assets, isLoading: isAssetsLoading } = useInvestmentAssets();
   const { data: instruments, isLoading: isInstrumentsLoading } = useInvestmentInstruments();
+  const { data: goalRecords, isLoading: isRecordsLoading } = useGoalInvestmentRecords();
 
   const isLoading = isGoalLoading || isTransfersLoading || isMovementsLoading || isFundsSummaryLoading || isWalletsLoading ||
-                    isAssetsLoading || isInstrumentsLoading;
+                    isAssetsLoading || isInstrumentsLoading || isRecordsLoading;
 
   // Check loading states and goal existence before accessing goal properties
   if (!goal || isLoading) {
@@ -198,6 +200,7 @@ const GoalDetail = () => {
               <MovementsDataTable
                 movements={goalMovements || []}
                 transfers={goalTransfers || []}
+                records={goalRecords || []}
                 wallets={wallets || []}
                 instruments={instruments || []}
                 assets={assets || []}

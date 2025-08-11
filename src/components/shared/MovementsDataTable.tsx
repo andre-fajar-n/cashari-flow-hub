@@ -7,7 +7,7 @@ import { ArrowUpRight, ArrowDownLeft, MoreHorizontal, Edit, Trash2, ArrowLeftRig
 import { formatAmountCurrency } from "@/lib/currency";
 import { Database } from "@/integrations/supabase/types";
 import { AmountText } from "@/components/ui/amount-text";
-import { useDeleteGoalInvestmentRecord, useGoalInvestmentRecords } from "@/hooks/queries/use-goal-investment-records";
+import { useDeleteGoalInvestmentRecord } from "@/hooks/queries/use-goal-investment-records";
 import { useToast } from "@/hooks/use-toast";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
@@ -17,6 +17,7 @@ import { useDeleteGoalTransfer } from "@/hooks/queries/use-goal-transfers";
 export interface MovementsDataTableProps {
   movements: Database["public"]["Views"]["money_movements"]["Row"][];
   transfers: Database["public"]["Tables"]["goal_transfers"]["Row"][];
+  records: Database["public"]["Tables"]["goal_investment_records"]["Row"][];
   wallets: Database["public"]["Tables"]["wallets"]["Row"][];
   goals?: Database["public"]["Tables"]["goals"]["Row"][];
   instruments?: Database["public"]["Tables"]["investment_instruments"]["Row"][];
@@ -31,6 +32,7 @@ export interface MovementsDataTableProps {
 const MovementsDataTable = ({
   movements,
   transfers,
+  records,
   wallets,
   goals = [],
   instruments = [],
@@ -64,9 +66,6 @@ const MovementsDataTable = ({
   const deleteRecord = useDeleteGoalInvestmentRecord();
   const deleteTransfer = useDeleteGoalTransfer();
 
-  // Fetch data for editing
-  const { data: allRecords } = useGoalInvestmentRecords();
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
       day: '2-digit',
@@ -87,78 +86,57 @@ const MovementsDataTable = ({
     return false;
   });
 
-  // Create a mapping of goal transfers by ID for quick lookup
-  const transfersMap = new Map();
-  transfers.forEach(transfer => {
-    transfersMap.set(transfer.id, transfer);
-  });
-
-  // Function to get detailed description for goal transfers
-  const getTransferDescription = (movement: any) => {
-    if ((movement.resource_type === 'goal_transfers_in' || movement.resource_type === 'goal_transfers_out') && movement.resource_id) {
-      const transfer = transfersMap.get(movement.resource_id);
-      if (transfer) {
-        const lines = [];
-
-        // Handle wallet transfers
-        if (transfer.from_wallet_id && transfer.to_wallet_id) {
-          let desc = `${transfer.from_wallet?.name || 'Unknown'} → ${transfer.to_wallet?.name || 'Unknown'}`;
-          if (transfer.from_wallet_id === transfer.to_wallet_id) {
-            desc = `${transfer.from_wallet?.name || 'Unknown'}`;
-          }
-          lines.push(`Dompet: ${desc}`);
-        } else if (transfer.from_wallet_id) {
-          lines.push(`Dari Dompet: ${transfer.from_wallet?.name || 'Unknown'}`);
-        } else if (transfer.to_wallet_id) {
-          lines.push(`Ke Dompet: ${transfer.to_wallet?.name || 'Unknown'}`);
-        }
-
-        // Handle goal transfers
-        if (transfer.from_goal_id && transfer.to_goal_id) {
-          let desc = `${transfer.from_goal?.name || 'Unknown'} → ${transfer.to_goal?.name || 'Unknown'}`;
-          if (transfer.from_goal_id === transfer.to_goal_id) {
-            desc = `${transfer.from_goal?.name || 'Unknown'}`;
-          }
-          lines.push(`Goal: ${desc}`);
-        } else if (transfer.from_goal_id) {
-          lines.push(`Dari Goal: ${transfer.from_goal?.name || 'Unknown'}`);
-        } else if (transfer.to_goal_id) {
-          lines.push(`Ke Goal: ${transfer.to_goal?.name || 'Unknown'}`);
-        }
-
-        // Handle instrument transfers
-        if (transfer.from_instrument_id && transfer.to_instrument_id) {
-          let desc = `${transfer.from_instrument?.name || 'Unknown'} → ${transfer.to_instrument?.name || 'Unknown'}`;
-          if (transfer.from_instrument_id === transfer.to_instrument_id) {
-            desc = `${transfer.from_instrument?.name || 'Unknown'}`;
-          }
-          lines.push(`Instrumen: ${desc}`);
-        } else if (transfer.from_instrument_id) {
-          lines.push(`Dari Instrumen: ${transfer.from_instrument?.name || 'Unknown'}`);
-        } else if (transfer.to_instrument_id) {
-          lines.push(`Ke Instrumen: ${transfer.to_instrument?.name || 'Unknown'}`);
-        }
-
-        // Handle asset transfers
-        if (transfer.from_asset_id && transfer.to_asset_id) {
-          let desc = `${transfer.from_asset?.name || 'Unknown'}${transfer.from_asset?.symbol ? ` (${transfer.from_asset?.symbol})` : ''} → ${transfer.to_asset?.name || 'Unknown'}${transfer.to_asset?.symbol ? ` (${transfer.to_asset?.symbol})` : ''}`;
-          if (transfer.from_asset_id === transfer.to_asset_id) {
-            desc = `${transfer.from_asset?.name || 'Unknown'}${transfer.from_asset?.symbol ? ` (${transfer.from_asset?.symbol})` : ''}`;
-          }
-          lines.push(`Aset: ${desc}`);
-        } else if (transfer.from_asset_id) {
-          lines.push(`Dari Aset: ${transfer.from_asset?.name || 'Unknown'}${transfer.from_asset?.symbol ? ` (${transfer.from_asset?.symbol})` : ''}`);
-        } else if (transfer.to_asset_id) {
-          lines.push(`Ke Aset: ${transfer.to_asset?.name || 'Unknown'}${transfer.to_asset?.symbol ? ` (${transfer.to_asset?.symbol})` : ''}`);
-        }
-
-        return lines;
-      }
+  const getDescription = (movement: any) => {
+    const lines: string[] = []
+    if (movement.resource_type === 'investment_growth') {
+      lines.push(movement.description || 'Deskripsi kosong');
     }
 
-    // Fallback to original description
-    return [movement.description || 'Deskripsi kosong'];
-  };
+    let goalInfo = `Goal: <strong>${movement.goal_name}</strong>`;
+    if (movement.opposite_goal_name) {
+      const sourceGoal = `<strong>${movement.goal_name}</strong>`; // Use strong tag for bold text
+      if (movement.goal_id !== movement.opposite_goal_id) {
+        if (movement.resource_type === "goal_transfers_in") {
+          goalInfo = `Goal: ${movement.opposite_goal_name} → ${sourceGoal}`;
+        } else if (movement.resource_type === "goal_transfers_out") {
+          goalInfo = `Goal: ${sourceGoal} → ${movement.opposite_goal_name}`;
+        }
+      }
+    }
+    lines.push(goalInfo);
+
+    let instrumentInfo = `Instrumen: <strong>${movement.instrument_name}</strong>`;
+    if (movement.opposite_instrument_name) {
+      const sourceInstrument = `<strong>${movement.instrument_name}</strong>`; // Use strong tag for bold text
+      if (movement.instrument_id !== movement.opposite_instrument_id) {
+        if (movement.resource_type === "goal_transfers_in") {
+          instrumentInfo = `Instrumen: ${movement.opposite_instrument_name} → ${sourceInstrument}`;
+        } else if (movement.resource_type === "goal_transfers_out") {
+          instrumentInfo = `Instrumen: ${sourceInstrument} → ${movement.opposite_instrument_name}`;
+        }
+      }
+    }
+    lines.push(instrumentInfo);
+
+    let assetInfo = null;
+    if (!movement.asset_name && movement.opposite_asset_name) {
+      assetInfo = `Ke Aset: <strong>${movement.opposite_asset_name}</strong>`;
+    } else if (movement.asset_name && !movement.opposite_asset_name) {
+      assetInfo = `Dari Aset: <strong>${movement.asset_name}</strong>`;
+    } else if (movement.asset_name && movement.opposite_asset_name) {
+      const sourceAsset = `<strong>${movement.asset_name}</strong>`; // Use strong tag for bold text
+      if (movement.asset_id !== movement.opposite_asset_id) {
+        if (movement.resource_type === "goal_transfers_in") {
+          assetInfo = `Aset: ${movement.opposite_asset_name} → ${sourceAsset}`;
+        } else if (movement.resource_type === "goal_transfers_out") {
+          assetInfo = `Aset: ${sourceAsset} → ${movement.opposite_asset_name}`;
+        }
+      }
+    }
+    lines.push(assetInfo);
+
+    return lines;
+  }
 
   const handleEdit = (movement: any) => {
     if (movement.resource_type === 'goal_transfers_in' || movement.resource_type === 'goal_transfers_out') {
@@ -175,7 +153,7 @@ const MovementsDataTable = ({
       }
     } else if (movement.resource_type === 'investment_growth') {
       // Find the investment record data using movement.id as unique identifier
-      const record = allRecords?.find(r => r.id === movement.resource_id);
+      const record = records?.find(r => r.id === movement.resource_id);
       if (record) {
         setEditRecordDialog({ open: true, record });
       } else {
@@ -330,8 +308,8 @@ const MovementsDataTable = ({
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
-              {getTransferDescription(movement).map((line, index) => (
-                <p key={index}>{line}</p>
+              {getDescription(movement).map((line, index) => (
+                <p key={index} dangerouslySetInnerHTML={{ __html: line }} />
               ))}
             </p>
             <p className="text-xs text-muted-foreground">

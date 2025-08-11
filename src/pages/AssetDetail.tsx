@@ -24,6 +24,7 @@ import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
 import { useGoalTransfers } from "@/hooks/queries/use-goal-transfers";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useGoals } from "@/hooks/queries/use-goals";
+import { useGoalInvestmentRecords } from "@/hooks/queries/use-goal-investment-records";
 
 const AssetDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -47,8 +48,10 @@ const AssetDetail = () => {
   const { data: transfers, isLoading: isTransfersLoading } = useGoalTransfers();
   const { data: wallets, isLoading: isWalletsLoading } = useWallets();
   const { data: goals, isLoading: isGoalsLoading } = useGoals();
+  const { data: records, isLoading: isRecordsLoading } = useGoalInvestmentRecords();
 
-  const isLoadingHistoryTab = isMovementsLoading || isTransfersLoading || isWalletsLoading || isGoalsLoading;
+  const isLoadingHistoryTab = isMovementsLoading || isTransfersLoading || isWalletsLoading || isGoalsLoading ||
+                              isRecordsLoading;
 
   const asset = assets?.find(a => a.id === parseInt(id!)) as InvestmentAssetModel;
 
@@ -300,6 +303,7 @@ const AssetDetail = () => {
                 <MovementsDataTable
                   movements={movements || []}
                   transfers={transfers || []}
+                  records={records || []}
                   wallets={wallets || []}
                   goals={goals || []}
                   filterType="asset"

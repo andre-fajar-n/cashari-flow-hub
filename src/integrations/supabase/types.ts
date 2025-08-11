@@ -993,20 +993,34 @@ export type Database = {
       money_movements: {
         Row: {
           id: number
-          amount: number | null
-          amount_unit: number | null
-          asset_id: number | null
-          created_at: string | null
-          currency_code: string | null
-          date: string | null
-          description: string | null
-          goal_id: number | null
-          instrument_id: number | null
           resource_id: number | null
           resource_type: string | null
-          unit_label: string | null
           user_id: string | null
           wallet_id: number | null
+          amount: number | null
+          currency_code: string | null
+          date: string | null
+          goal_id: number | null
+          instrument_id: number | null
+          asset_id: number | null
+          description: string | null
+          created_at: string | null
+          amount_unit: number | null
+          unit_label: string | null
+          wallet_name: string | null
+          opposite_wallet_id: number | null
+          opposite_wallet_name: string | null
+          category_id: number | null
+          category_name: string | null
+          goal_name: string | null
+          opposite_goal_id: number | null
+          opposite_goal_name: string | null
+          instrument_name: string | null
+          opposite_instrument_id: number | null
+          opposite_instrument_name: string | null
+          asset_name: string | null
+          opposite_asset_id: number | null
+          opposite_asset_name: string | null
         }
         Relationships: []
       }
