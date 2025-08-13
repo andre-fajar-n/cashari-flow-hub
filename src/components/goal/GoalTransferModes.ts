@@ -1,16 +1,15 @@
-
-export type GoalTransferMode = 'add_to_goal' | 'take_from_goal' | 'transfer_between_goals';
+export type GoalTransferMode = 'add_to_goal' | 'take_from_goal' | 'transfer_between_goals' | 'transfer_with_same_goals';
 
 export interface GoalTransferConfig {
   mode: GoalTransferMode;
   goalId: number;
-  goalName: string;
 }
 
 export const getTransferModeConfig = (mode: GoalTransferMode) => {
   switch (mode) {
     case 'add_to_goal':
       return {
+        mode: mode,
         title: 'Tambah ke Goal',
         description: 'Transfer dana ke goal ini',
         showFromGoal: false,
@@ -19,22 +18,22 @@ export const getTransferModeConfig = (mode: GoalTransferMode) => {
         showToGoal: false,
         showToInstrument: true,
         showToAsset: true,
-        prefilledField: 'to_goal_id' as const,
       };
     case 'take_from_goal':
       return {
+        mode: mode,
         title: 'Ambil dari Goal',
-        description: 'Transfer dana dari goal ini',
+        description: 'Ambil dana dari goal ini',
         showFromGoal: false,
         showFromInstrument: true,
         showFromAsset: true,
         showToGoal: false,
         showToInstrument: false,
         showToAsset: false,
-        prefilledField: 'from_goal_id' as const,
       };
     case 'transfer_between_goals':
       return {
+        mode: mode,
         title: 'Pindahkan ke Goal Lain',
         description: 'Transfer dana antar goal',
         showFromGoal: false,
@@ -43,7 +42,18 @@ export const getTransferModeConfig = (mode: GoalTransferMode) => {
         showToGoal: true,
         showToInstrument: true,
         showToAsset: true,
-        prefilledField: 'from_goal_id' as const,
+      };
+    case 'transfer_with_same_goals':
+      return {
+        mode: mode,
+        title: 'Pindahkan ke Instrumen/Aset Lain',
+        description: 'Transfer dana antar instrumen/aset',
+        showFromGoal: false,
+        showFromInstrument: true,
+        showFromAsset: true,
+        showToGoal: false,
+        showToInstrument: true,
+        showToAsset: true,
       };
   }
 };

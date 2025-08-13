@@ -81,13 +81,17 @@ const GoalTransferDialog = ({
   // Set prefilled values based on transfer config
   useEffect(() => {
     if (transferConfig && open) {
-      const modeConfig = getTransferModeConfig(transferConfig.mode);
       const goalId = transferConfig.goalId;
 
-      if (modeConfig.prefilledField === 'to_goal_id') {
+      if (transferConfig.mode === 'add_to_goal') {
         form.setValue("to_goal_id", goalId);
-      } else if (modeConfig.prefilledField === 'from_goal_id') {
+      } else if (transferConfig.mode === 'take_from_goal') {
         form.setValue("from_goal_id", goalId);
+      } else if (transferConfig.mode === 'transfer_between_goals') {
+        form.setValue("from_goal_id", goalId);
+      } else if (transferConfig.mode === 'transfer_with_same_goals') {
+        form.setValue("from_goal_id", goalId);
+        form.setValue("to_goal_id", goalId);
       }
     }
   }, [transferConfig, open, form]);

@@ -15,7 +15,7 @@ import { useCreateGoalInvestmentRecord, useUpdateGoalInvestmentRecord } from "@/
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
 import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
 import { useWallets } from "@/hooks/queries/use-wallets";
-import { useCategories } from "@/hooks/queries/use-categories";
+import { useInvestmentCategories } from "@/hooks/queries/use-categories";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { useGoals } from "@/hooks/queries/use-goals";
 
@@ -34,7 +34,7 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
   const { data: instruments } = useInvestmentInstruments();
   const { data: assets } = useInvestmentAssets();
   const { data: wallets } = useWallets();
-  const { data: categories } = useCategories();
+  const { data: categories } = useInvestmentCategories();
   const { data: currencies } = useCurrencies();
   const { data: goals } = useGoals();
 
@@ -173,68 +173,6 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
               />
             )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="instrument_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Instrumen Investasi</FormLabel>
-                    <FormControl>
-                      <select 
-                        {...field}
-                        value={field.value || ""}
-                        onChange={(e) => {
-                          const value = e.target.value ? parseInt(e.target.value) : null;
-                          field.onChange(value);
-                          form.setValue("asset_id", null);
-                        }}
-                        className="w-full p-2 border rounded-md"
-                      >
-                        <option value="">Pilih Instrumen</option>
-                        {instruments?.map((instrument) => (
-                          <option key={instrument.id} value={instrument.id}>
-                            {instrument.name}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="asset_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Aset Investasi</FormLabel>
-                    <FormControl>
-                      <select 
-                        {...field}
-                        value={field.value || ""}
-                        onChange={(e) => {
-                          const value = e.target.value ? parseInt(e.target.value) : null;
-                          field.onChange(value);
-                        }}
-                        className="w-full p-2 border rounded-md"
-                        disabled={!selectedInstrument}
-                      >
-                        <option value="">Pilih Aset</option>
-                        {filteredAssets.map((asset) => (
-                          <option key={asset.id} value={asset.id}>
-                            {asset.name} {asset.symbol && `(${asset.symbol})`}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
             {!isValuation && (
               <div className="grid grid-cols-2 gap-4">
                 <FormField
@@ -296,6 +234,68 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
                 />
               </div>
             )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="instrument_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Instrumen Investasi</FormLabel>
+                    <FormControl>
+                      <select 
+                        {...field}
+                        value={field.value || ""}
+                        onChange={(e) => {
+                          const value = e.target.value ? parseInt(e.target.value) : null;
+                          field.onChange(value);
+                          form.setValue("asset_id", null);
+                        }}
+                        className="w-full p-2 border rounded-md"
+                      >
+                        <option value="">Pilih Instrumen</option>
+                        {instruments?.map((instrument) => (
+                          <option key={instrument.id} value={instrument.id}>
+                            {instrument.name}
+                          </option>
+                        ))}
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="asset_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Aset Investasi</FormLabel>
+                    <FormControl>
+                      <select 
+                        {...field}
+                        value={field.value || ""}
+                        onChange={(e) => {
+                          const value = e.target.value ? parseInt(e.target.value) : null;
+                          field.onChange(value);
+                        }}
+                        className="w-full p-2 border rounded-md"
+                        disabled={!selectedInstrument}
+                      >
+                        <option value="">Pilih Aset</option>
+                        {filteredAssets.map((asset) => (
+                          <option key={asset.id} value={asset.id}>
+                            {asset.name} {asset.symbol && `(${asset.symbol})`}
+                          </option>
+                        ))}
+                      </select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
