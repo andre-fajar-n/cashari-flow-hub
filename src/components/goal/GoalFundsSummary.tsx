@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Wallet, TrendingUp, PieChart, ChevronDown, ChevronUp } from "lucide-react";
 import { useGoalFundsSummary } from "@/hooks/queries/use-goal-funds-summary";
 import { formatAmountCurrency } from "@/lib/currency";
@@ -14,7 +15,8 @@ interface GoalFundsSummaryProps {
 
 const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
   const { data: fundsSummary, isLoading } = useGoalFundsSummary(goalId);
-  const [expandedGroups, setExpandedGroups] = useState<string[]>([]);
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const [showZero, setShowZero] = useState(false);
 
   if (isLoading) {
     return (
@@ -50,41 +52,37 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
     );
   }
 
-  // Group funds hierarchically: Wallet → Instrument → Asset
-  const groupedFunds = fundsSummary.reduce((groups, fund) => {
-    const walletKey = fund.wallet_name || 'Unknown Wallet';
-    const instrumentKey = fund.instrument_name || 'Cash & Wallet';
+  // Helper to build grouped structure and totals per wallet
+  const buildGrouped = (list: any[]) => {
+    const grouped = list.reduce((groups, fund) => {
+      const walletKey = fund.wallet_name || 'Unknown Wallet';
+      const instrumentKey = fund.instrument_name || 'Cash & Wallet';
+      if (!groups[walletKey]) groups[walletKey] = {};
+      if (!groups[walletKey][instrumentKey]) groups[walletKey][instrumentKey] = [];
+      groups[walletKey][instrumentKey].push(fund);
+      return groups;
+    }, {} as Record<string, Record<string, any[]>>);
 
-    if (!groups[walletKey]) {
-      groups[walletKey] = {};
-    }
-    if (!groups[walletKey][instrumentKey]) {
-      groups[walletKey][instrumentKey] = [];
-    }
-    groups[walletKey][instrumentKey].push(fund);
-    return groups;
-  }, {} as Record<string, Record<string, any[]>>);
+    const walletTotals = Object.keys(grouped).reduce((totals: Record<string, number>, walletKey) => {
+      const total = (Object.values(grouped[walletKey]) as any[][])
+        .flat()
+        .reduce((sum: number, fund: any) => sum + (fund.total_amount ?? 0), 0);
+      totals[walletKey] = total;
+      return totals;
+    }, {} as Record<string, number>);
 
-  // Calculate totals for each level
-  const walletTotals = Object.keys(groupedFunds).reduce((totals, walletKey) => {
-    totals[walletKey] = Object.values(groupedFunds[walletKey])
-      .flat()
-      .reduce((sum, fund) => sum + fund.total_amount, 0);
-    return totals;
-  }, {} as Record<string, number>);
-
-  // Sort wallets by total amount (descending)
-  const sortedWalletKeys = Object.keys(groupedFunds).sort((a, b) => walletTotals[b] - walletTotals[a]);
-
-  const toggleGroup = (groupName: string) => {
-    setExpandedGroups(prev =>
-      prev.includes(groupName)
-        ? prev.filter(g => g !== groupName)
-        : [...prev, groupName]
-    );
+    const sortedWalletKeys = Object.keys(grouped).sort((a, b) => (walletTotals[b] ?? 0) - (walletTotals[a] ?? 0));
+    return { grouped, walletTotals, sortedWalletKeys };
   };
 
-  const isGroupExpanded = (groupName: string) => expandedGroups.includes(groupName);
+  // Split into active (amount > 0) and zero (amount === 0)
+  const activeList = fundsSummary.filter((f: any) => (f.total_amount ?? 0) > 0);
+  const zeroList = fundsSummary.filter((f: any) => (f.total_amount ?? 0) <= 0);
+
+  const { grouped: groupedActive, walletTotals: walletTotalsActive, sortedWalletKeys: sortedWalletKeysActive } = buildGrouped(activeList);
+  const { grouped: groupedZero, walletTotals: walletTotalsZero, sortedWalletKeys: sortedWalletKeysZero } = buildGrouped(zeroList);
+
+  const isGroupExpanded = (groupKey: string) => Boolean(expandedGroups[groupKey]);
 
   // Render individual asset item
   const renderAssetItem = (fund: any, index: number) => (
@@ -125,8 +123,8 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
   );
 
   // Render instrument group with assets
-  const renderInstrumentGroup = (funds: any[], instrumentName: string, instrumentTotal: number, walletKey: string) => {
-    const instrumentKey = `${walletKey}-${instrumentName}`;
+  const renderInstrumentGroup = (funds: any[], instrumentName: string, instrumentTotal: number, walletKey: string, ns: string = "") => {
+    const instrumentKey = `${ns}${walletKey}-${instrumentName}`;
     const isExpanded = isGroupExpanded(instrumentKey);
     const currencyCode = funds[0]?.currency_code || 'IDR';
 
@@ -180,16 +178,23 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
       if (fund.asset_name) {
         const assetKey = fund.asset_name;
         if (!map[assetKey]) {
-          map[assetKey] = [];
+          map[assetKey] = [] as any[];
         }
         map[assetKey].push(fund);
       }
       return map;
     }, {} as Record<string, any[]>);
 
+    // Sort assets by total amount (descending)
+    const assetTotals: Record<string, number> = Object.keys(assetsMap).reduce((acc, key) => {
+      acc[key] = (assetsMap[key] as any[]).reduce((sum, f: any) => sum + (f.total_amount ?? 0), 0);
+      return acc;
+    }, {} as Record<string, number>);
+    const sortedAssetKeys = Object.keys(assetsMap).sort((a, b) => (assetTotals[b] ?? 0) - (assetTotals[a] ?? 0));
+
     return (
       <div className="ml-6">
-        <Collapsible open={isExpanded} onOpenChange={() => toggleGroup(instrumentKey)}>
+        <Collapsible open={isExpanded} onOpenChange={(open) => setExpandedGroups(prev => ({ ...prev, [instrumentKey]: open }))}>
           <CollapsibleTrigger asChild>
             <Button variant="ghost" className="w-full justify-between p-3 h-auto">
               <div className="flex items-center gap-3">
@@ -197,7 +202,7 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
                 <div className="text-left">
                   <p className="font-medium text-sm">{instrumentName}</p>
                   <p className="text-xs text-muted-foreground">
-                    {Object.keys(assetsMap).length} asset(s)
+                    {sortedAssetKeys.length} asset(s)
                   </p>
                 </div>
               </div>
@@ -214,9 +219,9 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-2 px-3 pb-3">
-            {Object.entries(assetsMap).map(([, assetFunds]) => {
-              return (assetFunds as any[]).map((fund, index) => renderAssetItem(fund, index));
-            })}
+            {sortedAssetKeys.map((assetKey) => (
+              (assetsMap[assetKey] as any[]).map((fund, index) => renderAssetItem(fund, index))
+            ))}
           </CollapsibleContent>
         </Collapsible>
       </div>
@@ -224,20 +229,21 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
   };
 
   // Render wallet group with instruments
-  const renderWalletGroup = (walletKey: string, instruments: Record<string, any[]>, walletTotal: number) => {
-    const isExpanded = isGroupExpanded(walletKey);
-    const allFunds = Object.values(instruments).flat();
+  const renderWalletGroup = (walletKey: string, instruments: Record<string, any[]>, walletTotal: number, ns: string = "") => {
+    const walletKeyScoped = `${ns}${walletKey}`;
+    const isExpanded = isGroupExpanded(walletKeyScoped);
+    const allFunds = (Object.values(instruments) as any[][]).flat();
     const currencyCode = allFunds[0]?.currency_code || 'IDR';
 
     // Sort instruments by total amount
     const sortedInstruments = Object.keys(instruments).sort((a, b) => {
-      const totalA = instruments[a].reduce((sum, fund) => sum + fund.total_amount, 0);
-      const totalB = instruments[b].reduce((sum, fund) => sum + fund.total_amount, 0);
+      const totalA = instruments[a].reduce((sum, fund) => sum + (fund.total_amount ?? 0), 0);
+      const totalB = instruments[b].reduce((sum, fund) => sum + (fund.total_amount ?? 0), 0);
       return totalB - totalA;
     });
 
     return (
-      <Collapsible open={isExpanded} onOpenChange={() => toggleGroup(walletKey)}>
+      <Collapsible open={isExpanded} onOpenChange={(open) => setExpandedGroups(prev => ({ ...prev, [walletKeyScoped]: open }))}>
         <CollapsibleTrigger asChild>
           <Button variant="ghost" className="w-full justify-between p-4 h-auto">
             <div className="flex items-center gap-3">
@@ -265,7 +271,7 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
             const instrumentTotal = instrumentFunds.reduce((sum, fund) => sum + fund.total_amount, 0);
             return (
               <div key={instrumentKey}>
-                {renderInstrumentGroup(instrumentFunds, instrumentKey, instrumentTotal, walletKey)}
+                {renderInstrumentGroup(instrumentFunds, instrumentKey, instrumentTotal, walletKey, ns)}
               </div>
             );
           })}
@@ -277,22 +283,49 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <PieChart className="w-5 h-5" />
-          Ringkasan Dana
-        </CardTitle>
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="flex items-center gap-2">
+            <PieChart className="w-5 h-5" />
+            Ringkasan Dana
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Tampilkan dana kosong</span>
+            <Switch checked={showZero} onCheckedChange={setShowZero} />
+          </div>
+        </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {sortedWalletKeys.map(walletKey => {
-          const instruments = groupedFunds[walletKey];
-          const total = walletTotals[walletKey];
+      <CardContent className="space-y-6">
+        {/* Dana Aktif (amount > 0) */}
+        {sortedWalletKeysActive.length > 0 && (
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-foreground">Dana Aktif</p>
+            {sortedWalletKeysActive.map(walletKey => {
+              const instruments = groupedActive[walletKey];
+              const total = walletTotalsActive[walletKey];
+              return (
+                <div key={`active-${walletKey}`}>
+                  {renderWalletGroup(walletKey, instruments, total, "active-")}
+                </div>
+              );
+            })}
+          </div>
+        )}
 
-          return (
-            <div key={walletKey}>
-              {renderWalletGroup(walletKey, instruments, total)}
-            </div>
-          );
-        })}
+        {/* Dana Kosong (amount = 0) */}
+        {showZero && sortedWalletKeysZero.length > 0 && (
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-muted-foreground">Dana Kosong</p>
+            {sortedWalletKeysZero.map(walletKey => {
+              const instruments = groupedZero[walletKey];
+              const total = walletTotalsZero[walletKey];
+              return (
+                <div key={`zero-${walletKey}`}>
+                  {renderWalletGroup(walletKey, instruments, total, "zero-")}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
