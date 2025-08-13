@@ -89,8 +89,21 @@ const MovementsDataTable = ({
   const getDescription = (movement: any) => {
     const lines: string[] = []
     if (movement.resource_type === 'investment_growth') {
-      lines.push(movement.description || 'Deskripsi kosong');
+      lines.push(movement.description || null);
     }
+
+    let walletInfo = `Dompet: <strong>${movement.wallet_name}</strong>`;
+    if (movement.opposite_wallet_name) {
+      const sourceWallet = `<strong>${movement.wallet_name}</strong>`; // Use strong tag for bold text
+      if (movement.wallet_id !== movement.opposite_wallet_id) {
+        if (movement.resource_type === "goal_transfers_in") {
+          walletInfo = `Dompet: ${movement.opposite_wallet_name} → ${sourceWallet}`;
+        } else if (movement.resource_type === "goal_transfers_out") {
+          walletInfo = `Dompet: ${sourceWallet} → ${movement.opposite_wallet_name}`;
+        }
+      }
+    }
+    lines.push(walletInfo);
 
     let goalInfo = `Goal: <strong>${movement.goal_name}</strong>`;
     if (movement.opposite_goal_name) {
@@ -120,9 +133,10 @@ const MovementsDataTable = ({
 
     let assetInfo = null;
     if (!movement.asset_name && movement.opposite_asset_name) {
-      assetInfo = `Ke Aset: <strong>${movement.opposite_asset_name}</strong>`;
+      const direction = movement.resource_type === "goal_transfers_in" ? "Dari" : "Ke";
+      assetInfo = `${direction} Aset: ${movement.opposite_asset_name}`;
     } else if (movement.asset_name && !movement.opposite_asset_name) {
-      assetInfo = `Dari Aset: <strong>${movement.asset_name}</strong>`;
+      assetInfo = `Aset: <strong>${movement.asset_name}</strong>`;
     } else if (movement.asset_name && movement.opposite_asset_name) {
       const sourceAsset = `<strong>${movement.asset_name}</strong>`; // Use strong tag for bold text
       if (movement.asset_id !== movement.opposite_asset_id) {
