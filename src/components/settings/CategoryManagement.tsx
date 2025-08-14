@@ -41,7 +41,7 @@ const CategoryManagement = () => {
         name: editingCategory.name,
         is_income: editingCategory.is_income,
         parent_id: editingCategory.parent_id,
-        application: editingCategory.application,
+        application: editingCategory.application ?? null,
       });
     }
   }, [editingCategory, form]);
@@ -229,8 +229,12 @@ const CategoryManagement = () => {
                       <FormItem>
                         <FormLabel>Aplikasi</FormLabel>
                         <FormControl>
-                          <select className="w-full p-2 border rounded" {...field}>
-                            <option value="null">Tidak Ada</option>
+                          <select
+                            className="w-full p-2 border rounded"
+                            value={field.value ?? ''}
+                            onChange={(e) => field.onChange(e.target.value === '' ? null : e.target.value)}
+                          >
+                            <option value="">Tidak Ada</option>
                             <option value="transaction">Transaksi</option>
                             <option value="investment">Investasi</option>
                             <option value="debt">Hutang/Piutang</option>

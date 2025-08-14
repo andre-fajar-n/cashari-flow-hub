@@ -83,12 +83,12 @@ export const useCreateCategory = () => {
 
   return useMutation({
     mutationFn: async (newCategory: CategoryFormData) => {
+      const payload = { ...newCategory, user_id: user?.id } as any;
+      // Ensure null stored as null, not 'null' string
+      if (payload.application === undefined) payload.application = null;
       const { error } = await supabase
         .from("categories")
-        .insert({
-          ...newCategory,
-          user_id: user?.id,
-        });
+        .insert(payload);
 
       if (error) throw error;
     },
@@ -116,9 +116,11 @@ export const useUpdateCategory = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...category }: CategoryFormData & { id: number }) => {
+      const payload = { ...category } as any;
+      if (payload.application === undefined) payload.application = null;
       const { error } = await supabase
         .from("categories")
-        .update(category)
+        .update(payload)
         .eq("id", id)
         .eq("user_id", user?.id);
 
