@@ -94,7 +94,7 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
       </div>
 
       {/* Transaction List */}
-      <div className="space-y-3">
+      <div className="space-y-3 pb-6">
         {projectTransactions && projectTransactions.length > 0 ? (
           projectTransactions.map((item) => {
             const transaction = item.transactions;

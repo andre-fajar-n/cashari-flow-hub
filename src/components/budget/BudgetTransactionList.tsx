@@ -158,7 +158,7 @@ const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
             </Button>
           </Card>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 pb-6">
             {budgetTransactions.map((item) => {
               const transaction = item.transactions;
               return (

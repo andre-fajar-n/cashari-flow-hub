@@ -162,7 +162,7 @@ const BudgetTransactionDialog = ({
                   }
                 </div>
               ) : (
-                <div className="space-y-0">
+                <div className="space-y-0 pb-12">
                   {filteredTransactions.map((transaction) => (
                     <div
                       key={transaction.id}
