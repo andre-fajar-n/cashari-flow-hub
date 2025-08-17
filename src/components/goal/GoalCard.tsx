@@ -30,7 +30,6 @@ const GoalCard = ({ goal, totalAmount, onEdit, onDelete, onAddRecord, onTransfer
     onTransferToGoal?.({
       mode: 'add_to_goal',
       goalId: goal.id,
-      goalName: goal.name,
     });
   };
 
@@ -38,7 +37,6 @@ const GoalCard = ({ goal, totalAmount, onEdit, onDelete, onAddRecord, onTransfer
     onTransferToGoal?.({
       mode: 'take_from_goal',
       goalId: goal.id,
-      goalName: goal.name,
     });
   };
 
@@ -46,7 +44,6 @@ const GoalCard = ({ goal, totalAmount, onEdit, onDelete, onAddRecord, onTransfer
     onTransferToGoal?.({
       mode: 'transfer_between_goals',
       goalId: goal.id,
-      goalName: goal.name,
     });
   };
 
@@ -86,7 +83,7 @@ const GoalCard = ({ goal, totalAmount, onEdit, onDelete, onAddRecord, onTransfer
               dropdownId={goal.id}
               openDropdownId={optionsDropdownOpenId}
               setOpenDropdownId={(id) => {
-                setOptionsDropdownOpenId(id);
+                setOptionsDropdownOpenId(Number(id));
                 if (id !== null) setSettingsDropdownOpenId(null); // optional close other
               }}
               triggerContent={
@@ -122,7 +119,7 @@ const GoalCard = ({ goal, totalAmount, onEdit, onDelete, onAddRecord, onTransfer
             dropdownId={goal.id}
             openDropdownId={settingsDropdownOpenId}
             setOpenDropdownId={(id) => {
-              setSettingsDropdownOpenId(id);
+              setSettingsDropdownOpenId(Number(id));
               if (id !== null) setOptionsDropdownOpenId(null); // optional close other
             }}
             triggerContent={
