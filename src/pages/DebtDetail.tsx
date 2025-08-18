@@ -185,7 +185,7 @@ const DebtHistory = () => {
 
           {/* Data Table */}
           <DataTable
-            data={histories}
+            data={histories || []}
             isLoading={isLoading}
             searchPlaceholder="Cari history pembayaran..."
             searchFields={["description"] as (keyof DebtHistoryModel)[]}

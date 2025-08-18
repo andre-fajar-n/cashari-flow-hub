@@ -86,7 +86,7 @@ const Debt = () => {
             onClick={() => handleViewHistory(debt)}
           >
             <History className="w-3 h-3 mr-1" />
-            History
+            Detail
           </Button>
           <Button 
             variant="outline" 

@@ -46,6 +46,10 @@ export function DataTable<T extends Record<string, any>>({
   const [currentPage, setCurrentPage] = useState(1);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
+  // Guard against undefined data to avoid runtime errors when pages pass undefined during initial load
+  const safeData = (data ?? []) as T[];
+
+
   const resetFilters = () => {
     setSearchTerm("");
     setColumnFilterValues({});
@@ -55,7 +59,7 @@ export function DataTable<T extends Record<string, any>>({
   const hasActiveFilters = searchTerm !== "" || Object.keys(columnFilterValues).some(key => columnFilterValues[key] !== "");
 
   const filteredData = useMemo(() => {
-    let filtered = data;
+    let filtered = safeData;
 
     // Apply search filter
     if (searchTerm) {
@@ -131,7 +135,7 @@ export function DataTable<T extends Record<string, any>>({
     return filtered;
   }, [data, searchTerm, columnFilterValues, searchFields, columnFilters]);
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const totalPages = Math.ceil((filteredData?.length || 0) / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentData = filteredData.slice(startIndex, endIndex);
@@ -161,7 +165,7 @@ export function DataTable<T extends Record<string, any>>({
         <Pagination>
           <PaginationContent>
             <PaginationItem>
-              <PaginationPrevious 
+              <PaginationPrevious
                 onClick={() => handlePageChange(currentPage - 1)}
                 className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
               />
@@ -178,7 +182,7 @@ export function DataTable<T extends Record<string, any>>({
               </PaginationItem>
             ))}
             <PaginationItem>
-              <PaginationNext 
+              <PaginationNext
                 onClick={() => handlePageChange(currentPage + 1)}
                 className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
               />
@@ -204,7 +208,7 @@ export function DataTable<T extends Record<string, any>>({
             {headerActions}
           </CardHeader>
         )}
-        
+
         {/* Compact Search and Filter Controls */}
         <div className="px-6 pb-4 space-y-3">
           <div className="flex flex-col sm:flex-row gap-3">
