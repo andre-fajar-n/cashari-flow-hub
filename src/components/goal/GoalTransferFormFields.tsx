@@ -32,32 +32,6 @@ const GoalTransferFormFields = ({
       <div className="border-b pb-4">
         <h3 className="text-sm font-medium mb-3">Dari (Sumber)</h3>
         <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={control}
-            name="from_wallet_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Dompet Asal</FormLabel>
-                <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih dompet asal" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="0">Tidak ada</SelectItem>
-                    {wallets?.map((wallet) => (
-                      <SelectItem key={wallet.id} value={wallet.id.toString()}>
-                        {wallet.name} ({wallet.currency_code})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           {(!modeConfig || modeConfig.showFromGoal) && (
             <FormField
               control={control}
@@ -85,6 +59,32 @@ const GoalTransferFormFields = ({
               )}
             />
           )}
+
+          <FormField
+            control={control}
+            name="from_wallet_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Dompet Asal</FormLabel>
+                <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih dompet asal" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="0">Tidak ada</SelectItem>
+                    {wallets?.map((wallet) => (
+                      <SelectItem key={wallet.id} value={wallet.id.toString()}>
+                        {wallet.name} ({wallet.currency_code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {(!modeConfig || modeConfig.showFromInstrument) && (
             <FormField
@@ -148,32 +148,6 @@ const GoalTransferFormFields = ({
       <div className="border-b pb-4">
         <h3 className="text-sm font-medium mb-3">Ke (Tujuan)</h3>
         <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={control}
-            name="to_wallet_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Dompet Tujuan</FormLabel>
-                <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih dompet tujuan" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="0">Tidak ada</SelectItem>
-                    {wallets?.map((wallet) => (
-                      <SelectItem key={wallet.id} value={wallet.id.toString()}>
-                        {wallet.name} ({wallet.currency_code})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           {(!modeConfig || modeConfig.showToGoal) && (
             <FormField
               control={control}
@@ -201,6 +175,32 @@ const GoalTransferFormFields = ({
               )}
             />
           )}
+
+          <FormField
+            control={control}
+            name="to_wallet_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Dompet Tujuan</FormLabel>
+                <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih dompet tujuan" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="0">Tidak ada</SelectItem>
+                    {wallets?.map((wallet) => (
+                      <SelectItem key={wallet.id} value={wallet.id.toString()}>
+                        {wallet.name} ({wallet.currency_code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {(!modeConfig || modeConfig.showToInstrument) && (
             <FormField
@@ -259,15 +259,6 @@ const GoalTransferFormFields = ({
           )}
         </div>
       </div>
-
-      {/* Show goal info when prefilled */}
-      {transferConfig && (
-        <div className="text-sm text-muted-foreground bg-muted p-3 rounded">
-          <strong>{modeConfig?.title}:</strong> {transferConfig.goalName}
-          <br />
-          <span className="text-xs">{modeConfig?.description}</span>
-        </div>
-      )}
     </>
   );
 };

@@ -194,10 +194,10 @@ const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
                           className="font-semibold"
                           showSign={true}
                         >
-                          {formatAmountCurrency(transaction?.amount || 0, transaction?.currency_code || budget.currency_code)}
+                          {formatAmountCurrency(transaction?.amount || 0, transaction?.wallets?.currency_code || budget.currency_code)}
                         </AmountText>
                         <Badge variant="outline" className="mt-1">
-                          {transaction?.currency_code}
+                          {transaction?.wallets?.currency_code}
                         </Badge>
                       </div>
                       

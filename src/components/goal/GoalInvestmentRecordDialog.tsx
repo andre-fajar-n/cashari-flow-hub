@@ -16,7 +16,6 @@ import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instrum
 import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useInvestmentCategories } from "@/hooks/queries/use-categories";
-import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { useGoals } from "@/hooks/queries/use-goals";
 
 interface GoalInvestmentRecordDialogProps {
@@ -35,7 +34,6 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
   const { data: assets } = useInvestmentAssets();
   const { data: wallets } = useWallets();
   const { data: categories } = useInvestmentCategories();
-  const { data: currencies } = useCurrencies();
   const { data: goals } = useGoals();
 
   const form = useForm<GoalInvestmentRecordFormData>({
@@ -66,7 +64,6 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
       form.setValue("category_id", record.category_id || 0);
       form.setValue("amount", record.amount);
       form.setValue("amount_unit", record.amount_unit);
-      form.setValue("currency_code", record.currency_code || "IDR");
       form.setValue("date", record.date);
       form.setValue("description", record.description || "");
       form.setValue("is_valuation", record.is_valuation || false);
@@ -377,27 +374,7 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="currency_code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Mata Uang</FormLabel>
-                    <FormControl>
-                      <select {...field} className="w-full p-2 border rounded-md">
-                        {currencies?.map((currency) => (
-                          <option key={currency.code} value={currency.code}>
-                            {currency.code} - {currency.name}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
+            <div className="grid grid-cols-1 gap-4">
               <FormField
                 control={form.control}
                 name="date"

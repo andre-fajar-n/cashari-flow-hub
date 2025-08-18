@@ -33,6 +33,9 @@ const Transfer = () => {
   const { mutate: deleteTransfer } = useDeleteTransfer();
   const queryClient = useQueryClient();
 
+  // Ensure strong typing for DataTable generic inference
+  const transferData: TransferModel[] = (transfers as unknown as TransferModel[]) || [];
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
       day: '2-digit',
@@ -83,18 +86,18 @@ const Transfer = () => {
             <div className="flex items-center gap-2">
               <Badge variant="outline">
                 <AmountText amount={-transfer.from_amount} showSign={true}>
-                  {formatAmountCurrency(transfer.from_amount, transfer.from_currency_detail?.symbol || transfer.from_currency)}
+                  {formatAmountCurrency(transfer.from_amount, transfer.from_wallet?.currency?.symbol || transfer.from_wallet?.currency_code)}
                 </AmountText>
               </Badge>
               <span className="text-muted-foreground">→</span>
               <Badge variant="outline">
                 <AmountText amount={transfer.to_amount} showSign={true}>
-                  {formatAmountCurrency(transfer.to_amount, transfer.to_currency_detail?.symbol || transfer.to_currency)}
+                  {formatAmountCurrency(transfer.to_amount, transfer.to_wallet?.currency?.symbol || transfer.to_wallet?.currency_code)}
                 </AmountText>
               </Badge>
             </div>
             <div className="text-xs text-muted-foreground">
-              {transfer.from_currency} → {transfer.to_currency}
+              {transfer.from_wallet?.currency_code} → {transfer.to_wallet?.currency_code}
             </div>
           </div>
         </div>
@@ -147,7 +150,7 @@ const Transfer = () => {
       })) || []
     },
     {
-      field: "from_currency",
+      field: "from_wallet.currency_code",
       label: "Mata Uang Asal",
       type: "select",
       options: currencies?.map(currency => ({
@@ -156,7 +159,7 @@ const Transfer = () => {
       })) || []
     },
     {
-      field: "to_currency",
+      field: "to_wallet.currency_code",
       label: "Mata Uang Tujuan",
       type: "select",
       options: currencies?.map(currency => ({
@@ -201,10 +204,10 @@ const Transfer = () => {
             />
 
           <DataTable
-            data={transfers || []}
+            data={transferData}
             isLoading={isLoading}
             searchPlaceholder="Cari transfer..."
-            searchFields={["from_amount", "to_amount"]}
+            searchFields={['from_amount', 'to_amount'] as (keyof TransferModel)[]}
             columnFilters={columnFilters}
             renderItem={renderTransferItem}
             emptyStateMessage="Belum ada transfer"

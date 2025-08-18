@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -203,10 +202,10 @@ const BusinessProjectTransactionDialog = ({
                           className="font-semibold text-sm"
                           showSign={true}
                         >
-                          {formatAmountCurrency(transaction.amount, transaction.currency_code)}
+                          {formatAmountCurrency(transaction.amount, transaction.wallets?.currency_code)}
                         </AmountText>
                         <Badge variant="outline" className="mt-1 text-xs">
-                          {transaction.currency_code}
+                          {transaction.wallets?.currency_code}
                         </Badge>
                       </div>
                     </div>

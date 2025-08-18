@@ -9,7 +9,6 @@ import { useCreateDebtHistory, useUpdateDebtHistory } from "@/hooks/queries/use-
 import { DebtHistoryFormData, defaultDebtHistoryFormValues } from "@/form-dto/debt-histories";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useDebtCategories } from "@/hooks/queries/use-categories";
-import { useCurrencies } from "@/hooks/queries/use-currencies";
 
 interface DebtHistoryDialogProps {
   open: boolean;
@@ -25,7 +24,6 @@ const DebtHistoryDialog = ({ open, onOpenChange, debtId, onSuccess, history }: D
   const updateDebtHistory = useUpdateDebtHistory();
   const { data: wallets } = useWallets();
   const { data: categories } = useDebtCategories();
-  const { data: currencies } = useCurrencies();
 
   const form = useForm<DebtHistoryFormData>({
     defaultValues: defaultDebtHistoryFormValues,
@@ -54,10 +52,8 @@ const DebtHistoryDialog = ({ open, onOpenChange, debtId, onSuccess, history }: D
           wallet_id: history.wallet_id ? history.wallet_id.toString() : "",
           category_id: history.category_id ? history.category_id.toString() : "",
           amount: history.amount || 0,
-          currency_code: history.currency_code || "IDR",
           date: history.date || new Date().toISOString().split("T")[0],
           description: history.description || "",
-          exchange_rate: history.exchange_rate || 1,
         });
       } else {
         form.reset({
@@ -99,26 +95,6 @@ const DebtHistoryDialog = ({ open, onOpenChange, debtId, onSuccess, history }: D
                       {...field}
                       onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="currency_code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Mata Uang</FormLabel>
-                  <FormControl>
-                    <select {...field} className="w-full p-2 border rounded-md">
-                      {currencies?.map((currency) => (
-                        <option key={currency.code} value={currency.code}>
-                          {currency.code} - {currency.name}
-                        </option>
-                      ))}
-                    </select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

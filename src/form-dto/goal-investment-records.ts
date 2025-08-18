@@ -7,7 +7,6 @@ export interface GoalInvestmentRecordFormData {
   category_id: number;
   amount: number;
   amount_unit: number | null;
-  currency_code: string;
   date: string;
   description: string;
   is_valuation: boolean;
@@ -21,7 +20,6 @@ export const defaultGoalInvestmentRecordFormData: GoalInvestmentRecordFormData =
   category_id: 0,
   amount: 0,
   amount_unit: null,
-  currency_code: "IDR",
   date: new Date().toISOString().split("T")[0],
   description: "",
   is_valuation: false,

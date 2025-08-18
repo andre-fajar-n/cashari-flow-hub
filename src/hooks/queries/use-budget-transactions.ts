@@ -21,7 +21,7 @@ export const useBudgetTransactions = (budgetId?: number) => {
           transactions!inner(
             *,
             categories(name, is_income),
-            wallets(name)
+            wallets(name, currency_code)
           )
         `)
         .eq("budget_id", budgetId);

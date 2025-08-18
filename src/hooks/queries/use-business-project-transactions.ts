@@ -21,7 +21,7 @@ export const useBusinessProjectTransactions = (projectId?: number) => {
           transactions!inner(
             *,
             categories(name, is_income),
-            wallets(name)
+            wallets(name, currency_code)
           )
         `)
         .eq("project_id", projectId);

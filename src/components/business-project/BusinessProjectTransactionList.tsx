@@ -137,10 +137,10 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
                         className="font-semibold"
                         showSign={true}
                       >
-                        {formatAmountCurrency(transaction.amount, transaction.currency_code)}
+                        {formatAmountCurrency(transaction.amount, transaction.wallets?.currency_code)}
                       </AmountText>
                       <Badge variant="outline" className="mt-1 text-xs">
-                        {transaction.currency_code}
+                        {transaction.wallets?.currency_code}
                       </Badge>
                     </div>
                     
