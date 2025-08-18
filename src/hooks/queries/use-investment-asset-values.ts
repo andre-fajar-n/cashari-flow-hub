@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { AssetValueFormData } from "@/form-dto/investment-asset-values";
-import { InvestmentAssetValueModel } from "@/models/investment-asset-values";
 
 export const useInvestmentAssetValues = (assetId?: number) => {
   const { user } = useAuth();
