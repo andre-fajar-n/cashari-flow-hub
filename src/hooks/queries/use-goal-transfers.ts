@@ -129,8 +129,6 @@ export const useUpdateGoalTransfer = () => {
           to_amount: transfer.to_amount,
           from_amount_unit: transfer.from_amount_unit || null,
           to_amount_unit: transfer.to_amount_unit || null,
-          from_currency: transfer.from_currency,
-          to_currency: transfer.to_currency,
           date: transfer.date,
         })
         .eq("id", id)

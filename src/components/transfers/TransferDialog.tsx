@@ -87,8 +87,6 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
       to_wallet_id: parseInt(data.to_wallet_id),
       from_amount: data.from_amount,
       to_amount: isSameCurrency ? data.from_amount : data.to_amount,
-      from_currency: fromWallet?.currency_code,
-      to_currency: toWallet?.currency_code,
       date: data.date,
     };
 
