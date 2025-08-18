@@ -1,4 +1,3 @@
-
 export const DEBT_TYPES = {
   LOAN: 'loan' as const,
   BORROWED: 'borrowed' as const,

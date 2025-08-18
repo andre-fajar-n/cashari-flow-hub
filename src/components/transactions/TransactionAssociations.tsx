@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Building2, Target } from "lucide-react";
 

@@ -36,7 +36,6 @@ const AssetRecordDialog = ({ open, onOpenChange, asset, onSuccess }: AssetRecord
       ...defaultGoalInvestmentRecordFormData,
       instrument_id: asset.instrument_id,
       asset_id: asset.id,
-      currency_code: asset.currency_code || 'IDR'
     },
   });
 
@@ -72,7 +71,6 @@ const AssetRecordDialog = ({ open, onOpenChange, asset, onSuccess }: AssetRecord
         ...defaultGoalInvestmentRecordFormData,
         instrument_id: asset.instrument_id,
         asset_id: asset.id,
-        currency_code: asset.currency_code || 'IDR'
       });
       onSuccess?.();
     }
@@ -84,7 +82,6 @@ const AssetRecordDialog = ({ open, onOpenChange, asset, onSuccess }: AssetRecord
         ...defaultGoalInvestmentRecordFormData,
         instrument_id: asset.instrument_id,
         asset_id: asset.id,
-        currency_code: asset.currency_code || 'IDR'
       });
     }
   }, [open, form, asset]);
@@ -246,31 +243,6 @@ const AssetRecordDialog = ({ open, onOpenChange, asset, onSuccess }: AssetRecord
                       value={field.value}
                     />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="currency_code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Mata Uang</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih mata uang" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {currencies?.map((currency) => (
-                        <SelectItem key={currency.code} value={currency.code}>
-                          {currency.code} - {currency.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

@@ -1,4 +1,3 @@
-
 // Export all query hooks for easy importing
 export * from '@/hooks/queries/use-currencies';
 export * from '@/hooks/queries/use-wallets';
