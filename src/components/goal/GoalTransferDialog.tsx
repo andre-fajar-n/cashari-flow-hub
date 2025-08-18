@@ -136,8 +136,6 @@ const GoalTransferDialog = ({
       to_amount: data.to_amount,
       from_amount_unit: data.from_amount_unit || null,
       to_amount_unit: data.to_amount_unit || null,
-      from_currency: 'IDR',
-      to_currency: 'IDR',
       date: data.date,
     };
 
