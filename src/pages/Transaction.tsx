@@ -21,6 +21,7 @@ import { formatAmountCurrency } from "@/lib/currency";
 import { TransactionFormData } from "@/form-dto/transactions";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { AmountText } from "@/components/ui/amount-text";
+import { TransactionModel } from "@/models/transactions";
 
 const Transaction = () => {
   const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
@@ -60,23 +61,23 @@ const Transaction = () => {
     }
   };
 
-  const renderTransactionItem = (transaction: any) => (
+  const renderTransactionItem = (transaction: TransactionModel) => (
     <div
       key={transaction.id}
       className="flex items-center justify-between p-4 border rounded-lg"
     >
       <div className="flex items-center gap-3 flex-1">
         <div className="flex-shrink-0">
-          {(transaction.categories as any)?.is_income ? (
+          {transaction.categories?.is_income ? (
             <ArrowUpCircle className="w-5 h-5 text-green-600" />
           ) : (
             <ArrowDownCircle className="w-5 h-5 text-red-600" />
           )}
         </div>
         <div className="flex-1">
-          <p className="font-medium">{(transaction.categories as any)?.name}</p>
+          <p className="font-medium">{transaction.categories?.name}</p>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>{(transaction.wallets as any)?.name}</span>
+            <span>{transaction.wallets?.name}</span>
             <span>•</span>
             <span>{formatDate(transaction.date)}</span>
           </div>
@@ -96,11 +97,11 @@ const Transaction = () => {
               className="font-semibold"
               showSign={true}
             >
-              {formatAmountCurrency(transaction.amount, transaction.currency_code)}
+              {formatAmountCurrency(transaction.amount, transaction.wallets.currency_code)}
             </AmountText>
           </div>
           <Badge variant="outline" className="mt-1">
-            {transaction.currency_code}
+            {transaction.wallets.currency_code}
           </Badge>
         </div>
         <DropdownMenu

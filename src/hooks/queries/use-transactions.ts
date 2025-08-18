@@ -14,8 +14,8 @@ export const useTransactions = () => {
         .from("transactions")
         .select(`
           *,
-          categories(name, is_income),
-          wallets(name, currency_code),
+          categories(id, name, is_income, parent_id, application),
+          wallets(id, name, currency_code, initial_amount),
           budget_items(
             budget_id,
             budgets(name)
