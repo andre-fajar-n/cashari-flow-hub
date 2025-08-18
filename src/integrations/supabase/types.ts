@@ -976,7 +976,6 @@ export type Database = {
           _amount: number
           _budget_ids?: number[]
           _category_id: number
-          _currency_code: string
           _description: string
           _project_ids?: number[]
           _trx_date: string
@@ -990,7 +989,6 @@ export type Database = {
           _amount: number
           _budget_ids?: number[]
           _category_id: number
-          _currency_code: string
           _description: string
           _project_ids?: number[]
           _transaction_id: number

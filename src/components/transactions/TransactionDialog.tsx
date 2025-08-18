@@ -76,7 +76,6 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
       amount: data.amount,
       category_id: parseInt(data.category_id),
       wallet_id: parseInt(data.wallet_id),
-      currency_code: selectedWallet?.currency_code,
       date: data.date,
       description: data.description || null,
       budget_ids: data.budget_ids,
