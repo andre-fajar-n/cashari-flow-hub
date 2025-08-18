@@ -33,9 +33,6 @@ const DebtHistory = () => {
   const deleteDebtHistory = useDeleteDebtHistory();
   const debt = debts?.find(d => d.id === debtId);
 
-  // Strongly type data for DataTable generic inference
-  const historyData: DebtHistoryModel[] = (histories as unknown as DebtHistoryModel[]) || [];
-
   const handleMarkAsPaid = () => {
     markAsPaid.mutate(debt.id);
   };
@@ -188,7 +185,7 @@ const DebtHistory = () => {
 
           {/* Data Table */}
           <DataTable
-            data={historyData}
+            data={histories}
             isLoading={isLoading}
             searchPlaceholder="Cari history pembayaran..."
             searchFields={["description"] as (keyof DebtHistoryModel)[]}

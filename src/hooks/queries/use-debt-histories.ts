@@ -14,8 +14,8 @@ export const useDebtHistories = (debtId?: number) => {
         .from("debt_histories")
         .select(`
           *,
-          wallets (name, currency_code),
-          categories (name, is_income)
+          wallets (id, name, currency_code, initial_amount),
+          categories (id, name, is_income, application, parent_id)
         `)
         .eq("user_id", user?.id)
         .order("date", { ascending: false });

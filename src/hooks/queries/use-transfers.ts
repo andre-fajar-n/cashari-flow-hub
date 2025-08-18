@@ -14,8 +14,8 @@ export const useTransfers = () => {
         .from("transfers")
         .select(`
           *,
-          from_wallet:wallets!transfers_from_wallet_id_fkey(name, currency_code),
-          to_wallet:wallets!transfers_to_wallet_id_fkey(name, currency_code)
+          from_wallet:wallets!transfers_from_wallet_id_fkey(id, name, currency_code, initial_amount),
+          to_wallet:wallets!transfers_to_wallet_id_fkey(id, name, currency_code, initial_amount)
         `)
         .eq("user_id", user?.id)
         .order("date", { ascending: false });

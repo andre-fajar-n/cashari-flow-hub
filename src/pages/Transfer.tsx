@@ -33,9 +33,6 @@ const Transfer = () => {
   const { mutate: deleteTransfer } = useDeleteTransfer();
   const queryClient = useQueryClient();
 
-  // Ensure strong typing for DataTable generic inference
-  const transferData: TransferModel[] = (transfers as unknown as TransferModel[]) || [];
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
       day: '2-digit',
@@ -204,7 +201,7 @@ const Transfer = () => {
             />
 
           <DataTable
-            data={transferData}
+            data={transfers}
             isLoading={isLoading}
             searchPlaceholder="Cari transfer..."
             searchFields={['from_amount', 'to_amount'] as (keyof TransferModel)[]}
