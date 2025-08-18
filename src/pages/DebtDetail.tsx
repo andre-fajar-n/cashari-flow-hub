@@ -14,14 +14,15 @@ import { formatAmountCurrency } from "@/lib/currency";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useDeleteDebtHistory } from "@/hooks/queries/use-debt-histories";
 import { AmountText } from "@/components/ui/amount-text";
+import { DebtHistoryModel } from "@/models/debt-histories";
 
 const DebtHistory = () => {
   const [isMarkPaidModalOpen, setIsMarkPaidModalOpen] = useState(false);
   const [isMarkActiveModalOpen, setIsMarkActiveModalOpen] = useState(false);
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [historyToDelete, setHistoryToDelete] = useState<any>(null);
-  const [historyToEdit, setHistoryToEdit] = useState<any>(null);
+  const [historyToDelete, setHistoryToDelete] = useState<DebtHistoryModel | null>(null);
+  const [historyToEdit, setHistoryToEdit] = useState<DebtHistoryModel | null>(null);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const debtId = id ? parseInt(id) : 0;
@@ -32,6 +33,9 @@ const DebtHistory = () => {
   const deleteDebtHistory = useDeleteDebtHistory();
   const debt = debts?.find(d => d.id === debtId);
 
+  // Strongly type data for DataTable generic inference
+  const historyData: DebtHistoryModel[] = (histories as unknown as DebtHistoryModel[]) || [];
+
   const handleMarkAsPaid = () => {
     markAsPaid.mutate(debt.id);
   };
@@ -40,12 +44,12 @@ const DebtHistory = () => {
     markAsActive.mutate(debt.id);
   };
 
-  const handleEdit = (history: any) => {
+  const handleEdit = (history: DebtHistoryModel) => {
     setIsHistoryDialogOpen(true);
     setHistoryToEdit(history);
   };
 
-  const handleDeleteClick = (history: any) => {
+  const handleDeleteClick = (history: DebtHistoryModel) => {
     setHistoryToDelete(history);
     setIsDeleteModalOpen(true);
   };
@@ -72,7 +76,7 @@ const DebtHistory = () => {
     );
   }
 
-  const renderHistoryItem = (history: any) => (
+  const renderHistoryItem = (history: DebtHistoryModel) => (
     <Card key={history.id}>
       <CardContent className="p-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
@@ -83,7 +87,7 @@ const DebtHistory = () => {
                 className="font-semibold text-lg"
                 showSign={!history.categories?.is_income}
               >
-                {formatAmountCurrency(Math.abs(history.amount), history.currency_code)}
+                {formatAmountCurrency(Math.abs(history.amount), history.wallets?.currency_code)}
               </AmountText>
               <Badge variant="outline">
                 {new Date(history.date).toLocaleDateString('id-ID')}
@@ -96,16 +100,13 @@ const DebtHistory = () => {
               {history.description && (
                 <div>Deskripsi: {history.description}</div>
               )}
-              {history.exchange_rate && history.exchange_rate !== 1 && (
-                <div>Kurs: {history.exchange_rate}</div>
-              )}
             </div>
           </div>
           <div className="flex gap-2">
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => handleEdit(debt)}
+              onClick={() => handleEdit(history)}
             >
               <Edit className="w-3 h-3 mr-1" />
               Edit
@@ -113,7 +114,7 @@ const DebtHistory = () => {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => handleDeleteClick(debt)}
+              onClick={() => handleDeleteClick(history)}
             >
               <Trash2 className="w-3 h-3 mr-1" />
               Hapus
@@ -126,19 +127,23 @@ const DebtHistory = () => {
 
   const columnFilters: ColumnFilter[] = [
     {
+      field: "wallet_id",
+      label: "Dompet",
+      type: "select",
+      options: Array.from(
+        new Map(
+          histories?.map((h) => [h.wallet_id, {
+            label: h.wallets?.name,
+            value: h.wallet_id.toString()
+          }]) || []
+        ).values()
+      )
+    },
+    {
       field: "date",
       label: "Tanggal",
       type: "daterange"
     },
-    {
-      field: "currency_code",
-      label: "Mata Uang",
-      type: "select",
-      options: Array.from(new Set(histories?.map(h => h.currency_code) || [])).map(code => ({
-        label: code,
-        value: code
-      }))
-    }
   ];
 
   const totalAmount = histories?.reduce((sum, history) => sum + (history.categories?.is_income ? history.amount : -history.amount), 0) || 0;
@@ -171,7 +176,7 @@ const DebtHistory = () => {
               <CardContent className="p-6">
                 <div className="text-center">
                   <div className="text-2xl font-bold">
-                    Total: {formatAmountCurrency(Math.abs(totalAmount))} {histories[0]?.currency_code}
+                    Total: {formatAmountCurrency(Math.abs(totalAmount))} {histories[0]?.wallets?.currency_code}
                   </div>
                   <p className="text-muted-foreground">
                     Total pembayaran dari {histories.length} transaksi
@@ -183,10 +188,10 @@ const DebtHistory = () => {
 
           {/* Data Table */}
           <DataTable
-            data={histories || []}
+            data={historyData}
             isLoading={isLoading}
             searchPlaceholder="Cari history pembayaran..."
-            searchFields={["wallets.name", "categories.name", "description"]}
+            searchFields={["description"] as (keyof DebtHistoryModel)[]}
             columnFilters={columnFilters}
             renderItem={renderHistoryItem}
             emptyStateMessage="Belum ada history pembayaran"

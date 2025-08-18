@@ -10,7 +10,7 @@ import Transaction from "@/pages/Transaction";
 import Transfer from "@/pages/Transfer";
 import Budget from "@/pages/Budget";
 import Debt from "@/pages/Debt";
-import DebtHistory from "@/pages/DebtHistory";
+import DebtDetail from "@/pages/DebtDetail";
 import BusinessProject from "@/pages/BusinessProject";
 import Goal from "@/pages/Goal";
 import GoalDetail from "@/pages/GoalDetail";
@@ -39,7 +39,7 @@ const App = () => (
             <Route path="/transfer" element={<Transfer />} />
             <Route path="/budget" element={<Budget />} />
             <Route path="/debt" element={<Debt />} />
-            <Route path="/debt/:id/history" element={<DebtHistory />} />
+            <Route path="/debt/:id/history" element={<DebtDetail />} />
             <Route path="/business-project" element={<BusinessProject />} />
             <Route path="/business-project/:id" element={<BusinessProjectDetail />} />
             <Route path="/goal" element={<Goal />} />
