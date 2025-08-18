@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -887,56 +887,74 @@ export type Database = {
     Views: {
       fund_summary: {
         Row: {
+          asset_id: number | null
           asset_name: string | null
           asset_symbol: string | null
           currency_code: string | null
           goal_id: number | null
           goal_name: string | null
+          instrument_id: number | null
           instrument_name: string | null
           total_amount: number | null
           total_amount_unit: number | null
           unit_label: string | null
           user_id: string | null
-          asset_id: number | null
-          instrument_id: number | null
           wallet_id: number | null
           wallet_name: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wallets_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       money_movements: {
         Row: {
-          id: number
-          resource_id: number | null
-          resource_type: string | null
-          user_id: string | null
-          wallet_id: number | null
           amount: number | null
-          currency_code: string | null
-          date: string | null
-          goal_id: number | null
-          instrument_id: number | null
-          asset_id: number | null
-          description: string | null
-          created_at: string | null
           amount_unit: number | null
-          unit_label: string | null
-          wallet_name: string | null
-          opposite_wallet_id: number | null
-          opposite_wallet_name: string | null
+          asset_id: number | null
+          asset_name: string | null
+          asset_symbol: string | null
           category_id: number | null
           category_name: string | null
+          created_at: string | null
+          currency_code: string | null
+          date: string | null
+          description: string | null
+          goal_id: number | null
           goal_name: string | null
-          opposite_goal_id: number | null
-          opposite_goal_name: string | null
+          id: number | null
+          instrument_id: number | null
           instrument_name: string | null
-          opposite_instrument_id: number | null
-          opposite_instrument_name: string | null
-          asset_name: string | null
           opposite_asset_id: number | null
           opposite_asset_name: string | null
+          opposite_asset_symbol: string | null
+          opposite_goal_id: number | null
+          opposite_goal_name: string | null
+          opposite_instrument_id: number | null
+          opposite_instrument_name: string | null
+          opposite_wallet_id: number | null
+          opposite_wallet_name: string | null
+          resource_id: number | null
+          resource_type: string | null
+          unit_label: string | null
+          user_id: string | null
+          wallet_id: number | null
+          wallet_name: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wallets_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       transaction_associations: {
         Row: {
@@ -955,30 +973,30 @@ export type Database = {
       }
       insert_transaction_with_relations: {
         Args: {
+          _amount: number
+          _budget_ids?: number[]
+          _category_id: number
+          _currency_code: string
+          _description: string
+          _project_ids?: number[]
+          _trx_date: string
           _user_id: string
           _wallet_id: number
-          _category_id: number
-          _amount: number
-          _currency_code: string
-          _trx_date: string
-          _description: string
-          _budget_ids?: number[]
-          _project_ids?: number[]
         }
         Returns: undefined
       }
       update_transaction_with_relations: {
         Args: {
+          _amount: number
+          _budget_ids?: number[]
+          _category_id: number
+          _currency_code: string
+          _description: string
+          _project_ids?: number[]
           _transaction_id: number
+          _trx_date: string
           _user_id: string
           _wallet_id: number
-          _category_id: number
-          _amount: number
-          _currency_code: string
-          _trx_date: string
-          _description: string
-          _budget_ids?: number[]
-          _project_ids?: number[]
         }
         Returns: undefined
       }

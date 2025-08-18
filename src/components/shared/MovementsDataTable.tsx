@@ -87,70 +87,107 @@ const MovementsDataTable = ({
   });
 
   const getDescription = (movement: any) => {
-    const lines: string[] = []
+    const lines: Array<{ text: string; highlightedParts?: string[] }> = []
     if (movement.resource_type === 'investment_growth') {
-      lines.push(movement.description || null);
+      lines.push({ text: movement.description || '' });
     }
 
-    let walletInfo = `Dompet: <strong>${movement.wallet_name}</strong>`;
+    let walletInfo = `Dompet: ${movement.wallet_name}`;
+    let walletHighlights = [movement.wallet_name];
     if (movement.opposite_wallet_name) {
-      const sourceWallet = `<strong>${movement.wallet_name}</strong>`; // Use strong tag for bold text
       if (movement.wallet_id !== movement.opposite_wallet_id) {
         if (movement.resource_type === "goal_transfers_in") {
-          walletInfo = `Dompet: ${movement.opposite_wallet_name} → ${sourceWallet}`;
+          walletInfo = `Dompet: ${movement.opposite_wallet_name} → ${movement.wallet_name}`;
         } else if (movement.resource_type === "goal_transfers_out") {
-          walletInfo = `Dompet: ${sourceWallet} → ${movement.opposite_wallet_name}`;
+          walletInfo = `Dompet: ${movement.wallet_name} → ${movement.opposite_wallet_name}`;
         }
+        walletHighlights = [movement.wallet_name, movement.opposite_wallet_name];
       }
     }
-    lines.push(walletInfo);
+    lines.push({ text: walletInfo, highlightedParts: walletHighlights });
 
-    let goalInfo = `Goal: <strong>${movement.goal_name}</strong>`;
+    let goalInfo = `Goal: ${movement.goal_name}`;
+    let goalHighlights = [movement.goal_name];
     if (movement.opposite_goal_name) {
-      const sourceGoal = `<strong>${movement.goal_name}</strong>`; // Use strong tag for bold text
       if (movement.goal_id !== movement.opposite_goal_id) {
         if (movement.resource_type === "goal_transfers_in") {
-          goalInfo = `Goal: ${movement.opposite_goal_name} → ${sourceGoal}`;
+          goalInfo = `Goal: ${movement.opposite_goal_name} → ${movement.goal_name}`;
         } else if (movement.resource_type === "goal_transfers_out") {
-          goalInfo = `Goal: ${sourceGoal} → ${movement.opposite_goal_name}`;
+          goalInfo = `Goal: ${movement.goal_name} → ${movement.opposite_goal_name}`;
         }
+        goalHighlights = [movement.goal_name, movement.opposite_goal_name];
       }
     }
-    lines.push(goalInfo);
+    lines.push({ text: goalInfo, highlightedParts: goalHighlights });
 
-    let instrumentInfo = `Instrumen: <strong>${movement.instrument_name}</strong>`;
+    let instrumentInfo = `Instrumen: ${movement.instrument_name}`;
+    let instrumentHighlights = [movement.instrument_name];
     if (movement.opposite_instrument_name) {
-      const sourceInstrument = `<strong>${movement.instrument_name}</strong>`; // Use strong tag for bold text
       if (movement.instrument_id !== movement.opposite_instrument_id) {
         if (movement.resource_type === "goal_transfers_in") {
-          instrumentInfo = `Instrumen: ${movement.opposite_instrument_name} → ${sourceInstrument}`;
+          instrumentInfo = `Instrumen: ${movement.opposite_instrument_name} → ${movement.instrument_name}`;
         } else if (movement.resource_type === "goal_transfers_out") {
-          instrumentInfo = `Instrumen: ${sourceInstrument} → ${movement.opposite_instrument_name}`;
+          instrumentInfo = `Instrumen: ${movement.instrument_name} → ${movement.opposite_instrument_name}`;
         }
+        instrumentHighlights = [movement.instrument_name, movement.opposite_instrument_name];
       }
     }
-    lines.push(instrumentInfo);
+    lines.push({ text: instrumentInfo, highlightedParts: instrumentHighlights });
 
     let assetInfo = null;
+    let assetHighlights: string[] = [];
     if (!movement.asset_name && movement.opposite_asset_name) {
       const direction = movement.resource_type === "goal_transfers_in" ? "Dari" : "Ke";
       assetInfo = `${direction} Aset: ${movement.opposite_asset_name}`;
+      assetHighlights = [movement.opposite_asset_name];
     } else if (movement.asset_name && !movement.opposite_asset_name) {
-      assetInfo = `Aset: <strong>${movement.asset_name}</strong>`;
+      assetInfo = `Aset: ${movement.asset_name}`;
+      assetHighlights = [movement.asset_name];
     } else if (movement.asset_name && movement.opposite_asset_name) {
-      const sourceAsset = `<strong>${movement.asset_name}</strong>`; // Use strong tag for bold text
       if (movement.asset_id !== movement.opposite_asset_id) {
         if (movement.resource_type === "goal_transfers_in") {
-          assetInfo = `Aset: ${movement.opposite_asset_name} → ${sourceAsset}`;
+          assetInfo = `Aset: ${movement.opposite_asset_name} → ${movement.asset_name}`;
         } else if (movement.resource_type === "goal_transfers_out") {
-          assetInfo = `Aset: ${sourceAsset} → ${movement.opposite_asset_name}`;
+          assetInfo = `Aset: ${movement.asset_name} → ${movement.opposite_asset_name}`;
         }
+        assetHighlights = [movement.asset_name, movement.opposite_asset_name];
       }
     }
-    lines.push(assetInfo);
+    if (assetInfo) {
+      lines.push({ text: assetInfo, highlightedParts: assetHighlights });
+    }
 
     return lines;
   }
+
+  const renderDescriptionLine = (line: { text: string; highlightedParts?: string[] }, index: number) => {
+    if (!line.highlightedParts || line.highlightedParts.length === 0) {
+      return <p key={index}>{line.text}</p>;
+    }
+
+    let parts = [line.text];
+    line.highlightedParts.forEach(highlight => {
+      if (highlight) {
+        parts = parts.flatMap(part => 
+          part.split(highlight).flatMap((subPart, i, arr) => 
+            i < arr.length - 1 ? [subPart, highlight] : [subPart]
+          )
+        );
+      }
+    });
+
+    return (
+      <p key={index}>
+        {parts.map((part, i) => 
+          line.highlightedParts?.includes(part) ? (
+            <span key={i} className="font-semibold">{part}</span>
+          ) : (
+            part
+          )
+        )}
+      </p>
+    );
+  };
 
   const handleEdit = (movement: any) => {
     if (movement.resource_type === 'goal_transfers_in' || movement.resource_type === 'goal_transfers_out') {
@@ -321,11 +358,11 @@ const MovementsDataTable = ({
                 {movement.resource_type}
               </Badge>
             </div>
-            <p className="text-sm text-muted-foreground">
-              {getDescription(movement).map((line, index) => (
-                <p key={index} dangerouslySetInnerHTML={{ __html: line }} />
-              ))}
-            </p>
+            <div className="text-sm text-muted-foreground">
+              {getDescription(movement).map((line, index) => 
+                renderDescriptionLine(line, index)
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">
               {formatDate(movement.date || '')}
             </p>
