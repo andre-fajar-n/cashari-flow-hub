@@ -188,7 +188,7 @@ const DebtHistory = () => {
             data={histories || []}
             isLoading={isLoading}
             searchPlaceholder="Cari history pembayaran..."
-            searchFields={["description"] as (keyof DebtHistoryModel)[]}
+            searchFields={["description", "categories.name"]}
             columnFilters={columnFilters}
             renderItem={renderHistoryItem}
             emptyStateMessage="Belum ada history pembayaran"

@@ -18,7 +18,8 @@ export interface DataTableProps<T> {
   data: T[];
   isLoading: boolean;
   searchPlaceholder?: string;
-  searchFields: (keyof T)[];
+  // Allow simple keys or nested paths using dot notation
+  searchFields: (keyof T | string)[];
   columnFilters?: ColumnFilter[];
   itemsPerPage?: number;
   renderItem: (item: T) => React.ReactNode;
@@ -63,11 +64,21 @@ export function DataTable<T extends Record<string, any>>({
 
     // Apply search filter
     if (searchTerm) {
+      // Helper to get nested value using dot notation (e.g., "categories.name")
+      const getNestedValue = (obj: any, path: string | number | symbol) => {
+        if (typeof path === 'string' && path.includes('.')) {
+          return path.split('.').reduce((acc: any, key: string) => (acc ? acc[key] : undefined), obj);
+        }
+        return obj[path as keyof typeof obj];
+      };
+
+      const termLower = searchTerm.toLowerCase();
+
       filtered = filtered.filter((item) =>
         searchFields.some((field) => {
-          const value = item[field];
+          const value = getNestedValue(item, field as any);
           if (typeof value === 'string') {
-            return value.toLowerCase().includes(searchTerm.toLowerCase());
+            return value.toLowerCase().includes(termLower);
           }
           if (typeof value === 'number') {
             return value.toString().includes(searchTerm);
