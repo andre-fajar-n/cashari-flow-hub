@@ -162,7 +162,7 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
                       {...field} 
                       className="w-full p-2 border rounded-md"
                     >
-                      <option value="">Pilih currency (default IDR)</option>
+                      <option value="">Pilih currency</option>
                       {currencies?.map((currency) => (
                         <option key={currency.code} value={currency.code}>
                           {currency.code} - {currency.name}
