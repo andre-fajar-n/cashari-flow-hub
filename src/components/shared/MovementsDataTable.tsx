@@ -93,6 +93,7 @@ const MovementsDataTable = ({
     }
 
     let walletInfo = `Dompet: ${movement.wallet_name}`;
+    // Bold only the primary entity, never the opposite
     let walletHighlights = [movement.wallet_name];
     if (movement.opposite_wallet_name) {
       if (movement.wallet_id !== movement.opposite_wallet_id) {
@@ -101,12 +102,14 @@ const MovementsDataTable = ({
         } else if (movement.resource_type === "goal_transfers_out") {
           walletInfo = `Dompet: ${movement.wallet_name} → ${movement.opposite_wallet_name}`;
         }
-        walletHighlights = [movement.wallet_name, movement.opposite_wallet_name];
+        // keep highlights to primary only
+        walletHighlights = [movement.wallet_name];
       }
     }
     lines.push({ text: walletInfo, highlightedParts: walletHighlights });
 
     let goalInfo = `Goal: ${movement.goal_name}`;
+    // Bold only primary goal
     let goalHighlights = [movement.goal_name];
     if (movement.opposite_goal_name) {
       if (movement.goal_id !== movement.opposite_goal_id) {
@@ -115,12 +118,13 @@ const MovementsDataTable = ({
         } else if (movement.resource_type === "goal_transfers_out") {
           goalInfo = `Goal: ${movement.goal_name} → ${movement.opposite_goal_name}`;
         }
-        goalHighlights = [movement.goal_name, movement.opposite_goal_name];
+        goalHighlights = [movement.goal_name];
       }
     }
     lines.push({ text: goalInfo, highlightedParts: goalHighlights });
 
     let instrumentInfo = `Instrumen: ${movement.instrument_name}`;
+    // Bold only primary instrument
     let instrumentHighlights = [movement.instrument_name];
     if (movement.opposite_instrument_name) {
       if (movement.instrument_id !== movement.opposite_instrument_id) {
@@ -129,7 +133,7 @@ const MovementsDataTable = ({
         } else if (movement.resource_type === "goal_transfers_out") {
           instrumentInfo = `Instrumen: ${movement.instrument_name} → ${movement.opposite_instrument_name}`;
         }
-        instrumentHighlights = [movement.instrument_name, movement.opposite_instrument_name];
+        instrumentHighlights = [movement.instrument_name];
       }
     }
     lines.push({ text: instrumentInfo, highlightedParts: instrumentHighlights });
@@ -139,7 +143,8 @@ const MovementsDataTable = ({
     if (!movement.asset_name && movement.opposite_asset_name) {
       const direction = movement.resource_type === "goal_transfers_in" ? "Dari" : "Ke";
       assetInfo = `${direction} Aset: ${movement.opposite_asset_name}`;
-      assetHighlights = [movement.opposite_asset_name];
+      // Do not highlight opposite-only
+      assetHighlights = [];
     } else if (movement.asset_name && !movement.opposite_asset_name) {
       assetInfo = `Aset: ${movement.asset_name}`;
       assetHighlights = [movement.asset_name];
@@ -150,7 +155,8 @@ const MovementsDataTable = ({
         } else if (movement.resource_type === "goal_transfers_out") {
           assetInfo = `Aset: ${movement.asset_name} → ${movement.opposite_asset_name}`;
         }
-        assetHighlights = [movement.asset_name, movement.opposite_asset_name];
+        // Highlight only primary asset
+        assetHighlights = [movement.asset_name];
       }
     }
     if (assetInfo) {
