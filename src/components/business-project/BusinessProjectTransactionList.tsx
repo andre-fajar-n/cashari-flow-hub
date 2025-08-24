@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,18 +6,17 @@ import { useBusinessProjectTransactions } from "@/hooks/queries/use-business-pro
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
 import { BusinessProjectModel } from "@/models/business-projects";
-import BusinessProjectTransactionDialog from "@/components/business-project/BusinessProjectTransactionDialog";
 
 interface BusinessProjectTransactionListProps {
   project: BusinessProjectModel;
+  onAddTransaction?: () => void;
 }
 
-const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionListProps) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { 
-    data: projectTransactions, 
+const BusinessProjectTransactionList = ({ project, onAddTransaction }: BusinessProjectTransactionListProps) => {
+  const {
+    data: projectTransactions,
     removeTransactionFromProject,
-    refetch 
+    refetch
   } = useBusinessProjectTransactions(project.id);
 
   const handleRemoveTransaction = (transactionId: number) => {
@@ -48,6 +46,12 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
   }, 0) || 0;
 
   const netAmount = totalIncome - totalExpense;
+
+  // Sort transactions by date descending
+  const getTime = (d?: string) => (d ? new Date(d).getTime() : 0);
+  const sorted = [...(projectTransactions || [])].sort(
+    (a, b) => getTime(b.transactions?.date) - getTime(a.transactions?.date)
+  );
 
   return (
     <div className="space-y-4">
@@ -87,16 +91,18 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
       {/* Add Transaction Button */}
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Transaksi Proyek</h3>
-        <Button onClick={() => setIsDialogOpen(true)} size="sm">
-          <Plus className="w-4 h-4 mr-2" />
-          Tambah Transaksi
-        </Button>
+        {onAddTransaction && (
+          <Button onClick={onAddTransaction} size="sm">
+            <Plus className="w-4 h-4 mr-2" />
+            Tambah Transaksi
+          </Button>
+        )}
       </div>
 
       {/* Transaction List */}
       <div className="space-y-3 pb-6">
-        {projectTransactions && projectTransactions.length > 0 ? (
-          projectTransactions.map((item) => {
+        {sorted && sorted.length > 0 ? (
+          sorted.map((item) => {
             const transaction = item.transactions;
             return (
               <Card key={item.id} className="p-4">
@@ -161,23 +167,18 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
           <Card className="p-8 text-center text-muted-foreground">
             <div className="space-y-2">
               <p>Belum ada transaksi di proyek ini</p>
-              <Button onClick={() => setIsDialogOpen(true)} variant="outline" size="sm">
-                <Plus className="w-4 h-4 mr-2" />
-                Tambah Transaksi Pertama
-              </Button>
+              {onAddTransaction && (
+                <Button onClick={onAddTransaction} variant="outline" size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Tambah Transaksi Pertama
+                </Button>
+              )}
             </div>
           </Card>
         )}
       </div>
 
-      <BusinessProjectTransactionDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        project={project}
-        onSuccess={() => {
-          refetch();
-        }}
-      />
+      {/* Dialog is now controlled by parent page */}
     </div>
   );
 };
