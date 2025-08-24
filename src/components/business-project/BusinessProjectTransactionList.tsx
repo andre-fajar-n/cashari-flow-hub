@@ -88,17 +88,6 @@ const BusinessProjectTransactionList = ({ project, onAddTransaction }: BusinessP
         </Card>
       </div>
 
-      {/* Add Transaction Button */}
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Transaksi Proyek</h3>
-        {onAddTransaction && (
-          <Button onClick={onAddTransaction} size="sm">
-            <Plus className="w-4 h-4 mr-2" />
-            Tambah Transaksi
-          </Button>
-        )}
-      </div>
-
       {/* Transaction List */}
       <div className="space-y-3 pb-6">
         {sorted && sorted.length > 0 ? (
@@ -177,8 +166,6 @@ const BusinessProjectTransactionList = ({ project, onAddTransaction }: BusinessP
           </Card>
         )}
       </div>
-
-      {/* Dialog is now controlled by parent page */}
     </div>
   );
 };
