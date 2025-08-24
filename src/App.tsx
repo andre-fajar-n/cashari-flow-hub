@@ -9,6 +9,7 @@ import Dashboard from "@/pages/Dashboard";
 import Transaction from "@/pages/Transaction";
 import Transfer from "@/pages/Transfer";
 import Budget from "@/pages/Budget";
+import BudgetDetail from "@/pages/BudgetDetail";
 import Debt from "@/pages/Debt";
 import DebtDetail from "@/pages/DebtDetail";
 import BusinessProject from "@/pages/BusinessProject";
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/transaction" element={<Transaction />} />
             <Route path="/transfer" element={<Transfer />} />
             <Route path="/budget" element={<Budget />} />
+            <Route path="/budget/:id" element={<BudgetDetail />} />
             <Route path="/debt" element={<Debt />} />
             <Route path="/debt/:id/history" element={<DebtDetail />} />
             <Route path="/business-project" element={<BusinessProject />} />

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2, Eye } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import BudgetDialog from "@/components/budget/BudgetDialog";
 import Layout from "@/components/Layout";
@@ -11,7 +12,7 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { BudgetModel } from "@/models/budgets";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
-import BudgetTransactionList from "@/components/budget/BudgetTransactionList";
+
 
 const Budget = () => {
   const queryClient = useQueryClient();
@@ -19,7 +20,7 @@ const Budget = () => {
   const [budgetToDelete, setBudgetToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<BudgetModel | undefined>(undefined);
-  const [viewingBudget, setViewingBudget] = useState<BudgetModel | null>(null);
+  const navigate = useNavigate();
   const { mutate: deleteBudget } = useDeleteBudget();
   const { data: budgets, isLoading } = useBudgets();
   const { data: currencies } = useCurrencies();
@@ -30,7 +31,7 @@ const Budget = () => {
   };
 
   const handleView = (budget: BudgetModel) => {
-    setViewingBudget(budget);
+    navigate(`/budget/${budget.id}`);
   };
 
   const handleDeleteClick = (budgetId: number) => {
@@ -49,31 +50,9 @@ const Budget = () => {
     setIsDialogOpen(true);
   };
 
-  const handleBackToList = () => {
-    setViewingBudget(null);
-  };
 
-  // If viewing a specific budget, show the transaction list
-  if (viewingBudget) {
-    return (
-      <ProtectedRoute>
-        <Layout>
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                onClick={handleBackToList}
-                size="sm"
-              >
-                ← Kembali ke Daftar Budget
-              </Button>
-            </div>
-            <BudgetTransactionList budget={viewingBudget} />
-          </div>
-        </Layout>
-      </ProtectedRoute>
-    );
-  }
+
+
 
   const renderBudgetItem = (budget: BudgetModel) => (
     <Card key={budget.id} className="p-4">
