@@ -9,6 +9,7 @@ import DebtDialog from "@/components/debt/DebtDialog";
 import { DEBT_TYPES } from "@/constants/enums";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useDebts, useDeleteDebt } from "@/hooks/queries/use-debts";
+import { useDebtsPaginated } from "@/hooks/queries/paginated/use-debts-paginated";
 import { DebtModel } from "@/models/debts";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
@@ -24,7 +25,12 @@ const Debt = () => {
   const [selectedDebt, setSelectedDebt] = useState<DebtModel | undefined>(undefined);
 
   const { mutate: deleteDebt } = useDeleteDebt();
-  const { data: debts, isLoading } = useDebts();
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
+  const [serverSearch, setServerSearch] = useState("");
+  const [serverFilters, setServerFilters] = useState<Record<string, any>>({});
+  const { data: paged, isLoading } = useDebtsPaginated({ page, itemsPerPage, searchTerm: serverSearch, filters: serverFilters });
+  const debts = paged?.data || [];
   const { data: currencies } = useCurrencies();
 
   const handleEdit = (debt: DebtModel) => {
@@ -159,11 +165,20 @@ const Debt = () => {
         />
         
         <DataTable
-          data={debts || []}
+          data={debts}
           isLoading={isLoading}
           searchPlaceholder="Cari hutang/piutang..."
           searchFields={["name", "currency_code"]}
           columnFilters={columnFilters}
+          itemsPerPage={itemsPerPage}
+          serverMode
+          totalCount={paged?.count}
+          page={page}
+          onServerParamsChange={({ searchTerm, filters, page: nextPage }) => {
+            setServerSearch(searchTerm);
+            setServerFilters(filters);
+            setPage(nextPage);
+          }}
           renderItem={renderDebtItem}
           emptyStateMessage="Belum ada data hutang/piutang"
           title="Manajemen Hutang/Piutang"

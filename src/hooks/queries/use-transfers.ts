@@ -49,6 +49,7 @@ export const useCreateTransfer = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transfers"] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("transfers_paginated") });
       toast({
         title: "Berhasil",
         description: "Transfer berhasil ditambahkan",
@@ -84,6 +85,7 @@ export const useUpdateTransfer = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transfers"] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("transfers_paginated") });
       toast({
         title: "Berhasil",
         description: "Transfer berhasil diperbarui",
@@ -120,6 +122,7 @@ export const useDeleteTransfer = () => {
       });
       queryClient.invalidateQueries({ queryKey: ["transfers"] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("transfers_paginated") });
       toast({
         title: "Berhasil",
         description: "Transfer berhasil dihapus",

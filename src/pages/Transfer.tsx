@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowRightLeft, Edit, Trash2 } from "lucide-react";
 import { useTransfers, useDeleteTransfer } from "@/hooks/queries/use-transfers";
+import { useTransfersPaginated } from "@/hooks/queries/paginated/use-transfers-paginated";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import TransferDialog from "@/components/transfers/TransferDialog";
 import { useQueryClient } from "@tanstack/react-query";
@@ -27,7 +28,12 @@ const Transfer = () => {
   const [transferToDelete, setTransferToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedTransfer, setSelectedTransfer] = useState<TransferModel | undefined>(undefined);
-  const { data: transfers, isLoading } = useTransfers();
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
+  const [serverSearch, setServerSearch] = useState("");
+  const [serverFilters, setServerFilters] = useState<Record<string, any>>({});
+  const { data: paged, isLoading } = useTransfersPaginated({ page, itemsPerPage, searchTerm: serverSearch, filters: serverFilters });
+  const transfers = paged?.data || [];
   const { data: wallets } = useWallets();
   const { data: currencies } = useCurrencies();
   const { mutate: deleteTransfer } = useDeleteTransfer();
@@ -206,6 +212,15 @@ const Transfer = () => {
             searchPlaceholder="Cari transfer..."
             searchFields={['from_amount', 'to_amount'] as (keyof TransferModel)[]}
             columnFilters={columnFilters}
+            itemsPerPage={itemsPerPage}
+            serverMode
+            totalCount={paged?.count}
+            page={page}
+            onServerParamsChange={({ searchTerm, filters, page: nextPage }) => {
+              setServerSearch(searchTerm);
+              setServerFilters(filters);
+              setPage(nextPage);
+            }}
             renderItem={renderTransferItem}
             emptyStateMessage="Belum ada transfer"
             title="Manajemen Transfer"

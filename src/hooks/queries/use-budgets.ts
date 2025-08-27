@@ -40,6 +40,7 @@ export const useDeleteBudget = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("budgets_paginated") });
       toast({
         title: "Berhasil",
         description: "Budget berhasil dihapus",
@@ -73,6 +74,7 @@ export const useCreateBudget = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("budgets_paginated") });
       toast({
         title: "Berhasil",
         description: "Budget berhasil ditambahkan",
@@ -105,6 +107,7 @@ export const useUpdateBudget = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("budgets_paginated") });
       toast({
         title: "Berhasil",
         description: "Budget berhasil diperbarui",

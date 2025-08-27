@@ -45,6 +45,7 @@ export const useDeleteInvestmentAsset = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("investment_assets_paginated") });
       toast({
         title: "Berhasil",
         description: "Aset berhasil dihapus",
@@ -75,6 +76,7 @@ export const useCreateInvestmentAsset = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("investment_assets_paginated") });
       toast({
         title: "Berhasil",
         description: "Aset berhasil ditambahkan",
@@ -107,6 +109,7 @@ export const useUpdateInvestmentAsset = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("investment_assets_paginated") });
       toast({
         title: "Berhasil",
         description: "Aset berhasil diperbarui",

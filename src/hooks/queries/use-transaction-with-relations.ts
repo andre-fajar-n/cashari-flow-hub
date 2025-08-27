@@ -33,6 +33,7 @@ export const useInsertTransactionWithRelations = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions_paginated"] });
       toast({
         title: "Berhasil",
         description: "Transaksi berhasil ditambahkan",
@@ -78,6 +79,7 @@ export const useUpdateTransactionWithRelations = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions_paginated"] });
       toast({
         title: "Berhasil",
         description: "Transaksi berhasil diperbarui",

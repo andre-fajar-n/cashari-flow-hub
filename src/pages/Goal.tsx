@@ -13,6 +13,7 @@ import { GoalModel } from "@/models/goals";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import GoalCard from "@/components/goal/GoalCard";
 import { useDeleteGoal, useGoals } from "@/hooks/queries/use-goals";
+import { useGoalsPaginated } from "@/hooks/queries/paginated/use-goals-paginated";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { useGoalFundsSummary } from "@/hooks/queries/use-goal-funds-summary";
 
@@ -29,7 +30,12 @@ const Goal = () => {
 
   const { mutate: deleteGoal } = useDeleteGoal();
 
-  const { data: goals, isLoading: isGoalsLoading } = useGoals();
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
+  const [serverSearch, setServerSearch] = useState("");
+  const [serverFilters, setServerFilters] = useState<Record<string, any>>({});
+  const { data: paged, isLoading: isGoalsLoading } = useGoalsPaginated({ page, itemsPerPage, searchTerm: serverSearch, filters: serverFilters });
+  const goals = paged?.data || [];
   const { data: currencies, isLoading: isCurrencyLoading } = useCurrencies();
   const { data: goalFundsSummary, isLoading: isFundsSummaryLoading } = useGoalFundsSummary();
 
@@ -146,11 +152,20 @@ const Goal = () => {
         />
         
         <DataTable
-          data={goals || []}
+          data={goals}
           isLoading={isLoading}
           searchPlaceholder="Cari target..."
           searchFields={["name", "currency_code"]}
           columnFilters={columnFilters}
+          itemsPerPage={itemsPerPage}
+          serverMode
+          totalCount={paged?.count}
+          page={page}
+          onServerParamsChange={({ searchTerm, filters, page: nextPage }) => {
+            setServerSearch(searchTerm);
+            setServerFilters(filters);
+            setPage(nextPage);
+          }}
           renderItem={renderGoalItem}
           emptyStateMessage="Belum ada target yang dibuat"
           title="Manajemen Target"

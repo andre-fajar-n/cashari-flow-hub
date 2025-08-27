@@ -40,6 +40,7 @@ export const useDeleteBusinessProject = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["business_projects"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("business_projects_paginated") });
       toast({
         title: "Berhasil",
         description: "Proyek berhasil dihapus",
@@ -73,6 +74,7 @@ export const useCreateProject = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["business_projects"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("business_projects_paginated") });
       toast({
         title: "Berhasil",
         description: "Proyek berhasil ditambahkan",
@@ -105,6 +107,7 @@ export const useUpdateProject = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["business_projects"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("business_projects_paginated") });
       toast({
         title: "Berhasil",
         description: "Proyek berhasil diperbarui",

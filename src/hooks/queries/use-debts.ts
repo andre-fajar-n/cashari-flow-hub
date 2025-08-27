@@ -41,6 +41,7 @@ export const useDeleteDebt = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["debts"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("debts_paginated") });
       toast({
         title: "Berhasil",
         description: "Hutang/piutang berhasil dihapus",
@@ -73,6 +74,7 @@ export const useUpdateDebt = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["debts"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("debts_paginated") });
       toast({
         title: "Berhasil",
         description: "Hutang/piutang berhasil diperbarui",
@@ -89,9 +91,9 @@ export const useUpdateDebt = () => {
 };
 
 export const useCreateDebt = () => {
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const { user } = useAuth();
-  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (debt: DebtFormData) => {
@@ -106,6 +108,7 @@ export const useCreateDebt = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["debts"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("debts_paginated") });
       toast({
         title: "Berhasil",
         description: "Hutang/piutang berhasil ditambahkan",
@@ -138,6 +141,7 @@ const useDebtChangeStatus = (status: Database["public"]["Enums"]["debt_statuses"
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["debts"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("debts_paginated") });
       toast({
         title: "Berhasil",
         description: "Hutang/piutang berhasil ditandai sebagai " + status,

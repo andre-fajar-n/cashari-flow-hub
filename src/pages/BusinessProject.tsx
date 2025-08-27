@@ -7,6 +7,7 @@ import Layout from "@/components/Layout";
 import BusinessProjectDialog from "@/components/business-project/BusinessProjectDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useBusinessProjects, useDeleteBusinessProject } from "@/hooks/queries/use-business-projects";
+import { useBusinessProjectsPaginated } from "@/hooks/queries/paginated/use-business-projects-paginated";
 import { BusinessProjectModel } from "@/models/business-projects";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
@@ -20,7 +21,12 @@ const BusinessProject = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<BusinessProjectModel | undefined>(undefined);
   const { mutate: deleteBusinessProject } = useDeleteBusinessProject();
-  const { data: projects, isLoading } = useBusinessProjects();
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
+  const [serverSearch, setServerSearch] = useState("");
+  const [serverFilters, setServerFilters] = useState<Record<string, any>>({});
+  const { data: paged, isLoading } = useBusinessProjectsPaginated({ page, itemsPerPage, searchTerm: serverSearch, filters: serverFilters });
+  const projects = paged?.data || [];
 
   const handleView = (project: BusinessProjectModel) => {
     navigate(`/business-project/${project.id}`);
@@ -131,11 +137,20 @@ const BusinessProject = () => {
         />
         
         <DataTable
-          data={projects || []}
+          data={projects}
           isLoading={isLoading}
           searchPlaceholder="Cari proyek..."
           searchFields={["name", "description"]}
           columnFilters={columnFilters}
+          itemsPerPage={itemsPerPage}
+          serverMode
+          totalCount={paged?.count}
+          page={page}
+          onServerParamsChange={({ searchTerm, filters, page: nextPage }) => {
+            setServerSearch(searchTerm);
+            setServerFilters(filters);
+            setPage(nextPage);
+          }}
           renderItem={renderProjectItem}
           emptyStateMessage="Belum ada proyek bisnis yang dibuat"
           title="Proyek Bisnis"

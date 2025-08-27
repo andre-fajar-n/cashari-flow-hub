@@ -12,6 +12,7 @@ import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
 import { useDeleteInvestmentAsset, useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
+import { useInvestmentAssetsPaginated } from "@/hooks/queries/paginated/use-investment-assets-paginated";
 
 const InvestmentAsset = () => {
   const queryClient = useQueryClient();
@@ -22,7 +23,12 @@ const InvestmentAsset = () => {
   const [selectedAsset, setSelectedAsset] = useState<InvestmentAssetModel | undefined>(undefined);
   
   const { mutate: deleteInvestmentAsset } = useDeleteInvestmentAsset();
-  const { data: assets, isLoading } = useInvestmentAssets();
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
+  const [serverSearch, setServerSearch] = useState("");
+  const [serverFilters, setServerFilters] = useState<Record<string, any>>({});
+  const { data: paged, isLoading } = useInvestmentAssetsPaginated({ page, itemsPerPage, searchTerm: serverSearch, filters: serverFilters });
+  const assets = paged?.data || [];
   const { data: instruments } = useInvestmentInstruments();
 
   const handleEdit = (asset: InvestmentAssetModel) => {
@@ -129,11 +135,20 @@ const InvestmentAsset = () => {
         />
 
         <DataTable
-          data={assets || []}
+          data={assets}
           isLoading={isLoading}
           searchPlaceholder="Cari aset investasi..."
           searchFields={["name", "symbol"]}
           columnFilters={columnFilters}
+          itemsPerPage={itemsPerPage}
+          serverMode
+          totalCount={paged?.count}
+          page={page}
+          onServerParamsChange={({ searchTerm, filters, page: nextPage }) => {
+            setServerSearch(searchTerm);
+            setServerFilters(filters);
+            setPage(nextPage);
+          }}
           renderItem={renderAssetItem}
           emptyStateMessage="Belum ada aset investasi yang dibuat"
           title="Aset Investasi"

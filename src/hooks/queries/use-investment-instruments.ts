@@ -40,6 +40,7 @@ export const useDeleteInvestmentInstrument = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("investment_instruments_paginated") });
       toast({
         title: "Berhasil",
         description: "Instrumen investasi berhasil dihapus",
@@ -70,6 +71,7 @@ export const useCreateInvestmentInstrument = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("investment_instruments_paginated") });
       toast({
         title: "Berhasil",
         description: "Instrumen investasi berhasil ditambahkan",
@@ -102,6 +104,7 @@ export const useUpdateInvestmentInstrument = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("investment_instruments_paginated") });
       toast({
         title: "Berhasil",
         description: "Instrumen investasi berhasil diperbarui",

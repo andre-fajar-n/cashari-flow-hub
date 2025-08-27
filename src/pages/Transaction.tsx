@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowUpCircle, ArrowDownCircle, Edit, Trash2 } from "lucide-react";
 import { useTransactions, useDeleteTransaction } from "@/hooks/queries/use-transactions";
+import { useTransactionsPaginated } from "@/hooks/queries/paginated/use-transactions-paginated";
 import { useCategories } from "@/hooks/queries/use-categories";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import TransactionDialog from "@/components/transactions/TransactionDialog";
@@ -30,7 +31,13 @@ const Transaction = () => {
   const [transactionToDelete, setTransactionToDelete] = useState<number | null>(null);
   const queryClient = useQueryClient();
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionFormData | undefined>(undefined);
-  const { data: transactions, isLoading } = useTransactions();
+  // Server-side pagination state
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
+  const [serverSearch, setServerSearch] = useState("");
+  const [serverFilters, setServerFilters] = useState<Record<string, any>>({});
+  const { data: paged, isLoading } = useTransactionsPaginated({ page, itemsPerPage, searchTerm: serverSearch, filters: serverFilters });
+  const transactions = paged?.data || [];
   const { data: categories } = useCategories();
   const { data: wallets } = useWallets();
   const { mutate: deleteTransaction } = useDeleteTransaction();
@@ -174,6 +181,7 @@ const Transaction = () => {
             transaction={selectedTransaction}
             onSuccess={() => {
               queryClient.invalidateQueries({ queryKey: ["transactions"] });
+              queryClient.invalidateQueries({ queryKey: ["transactions_paginated"] });
             }}
           />
 
@@ -189,11 +197,20 @@ const Transaction = () => {
           />
 
           <DataTable
-            data={transactions || []}
+            data={transactions}
             isLoading={isLoading}
             searchPlaceholder="Cari transaksi..."
             searchFields={["description", "amount"]}
             columnFilters={columnFilters}
+            itemsPerPage={itemsPerPage}
+            serverMode
+            totalCount={paged?.count}
+            page={page}
+            onServerParamsChange={({ searchTerm, filters, page: nextPage }) => {
+              setServerSearch(searchTerm);
+              setServerFilters(filters);
+              setPage(nextPage);
+            }}
             renderItem={renderTransactionItem}
             emptyStateMessage="Belum ada transaksi"
             title="Manajemen Transaksi"

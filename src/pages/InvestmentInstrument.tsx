@@ -7,6 +7,7 @@ import InvestmentInstrumentDialog from "@/components/investment/InvestmentInstru
 import Layout from "@/components/Layout";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useDeleteInvestmentInstrument, useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
+import { useInvestmentInstrumentsPaginated } from "@/hooks/queries/paginated/use-investment-instruments-paginated";
 import { InvestmentInstrumentModel } from "@/models/investment-instruments";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
@@ -19,7 +20,12 @@ const InvestmentInstrument = () => {
   const [selectedInstrument, setSelectedInstrument] = useState<InvestmentInstrumentModel | undefined>(undefined);
   const { mutate: deleteInstrument } = useDeleteInvestmentInstrument();
 
-  const { data: instruments, isLoading } = useInvestmentInstruments();
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
+  const [serverSearch, setServerSearch] = useState("");
+  const [serverFilters, setServerFilters] = useState<Record<string, any>>({});
+  const { data: paged, isLoading } = useInvestmentInstrumentsPaginated({ page, itemsPerPage, searchTerm: serverSearch, filters: serverFilters });
+  const instruments = paged?.data || [];
 
   const handleEdit = (instrument: InvestmentInstrumentModel) => {
     setSelectedInstrument(instrument);
@@ -120,11 +126,20 @@ const InvestmentInstrument = () => {
         />
 
         <DataTable
-          data={instruments || []}
+          data={instruments}
           isLoading={isLoading}
           searchPlaceholder="Cari instrumen investasi..."
           searchFields={["name", "unit_label"]}
           columnFilters={columnFilters}
+          itemsPerPage={itemsPerPage}
+          serverMode
+          totalCount={paged?.count}
+          page={page}
+          onServerParamsChange={({ searchTerm, filters, page: nextPage }) => {
+            setServerSearch(searchTerm);
+            setServerFilters(filters);
+            setPage(nextPage);
+          }}
           renderItem={renderInstrumentItem}
           emptyStateMessage="Belum ada instrumen investasi yang dibuat"
           title="Instrumen Investasi"

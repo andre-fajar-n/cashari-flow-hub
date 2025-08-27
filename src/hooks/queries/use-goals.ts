@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +26,7 @@ export const useGoals = () => {
 export const useDeleteGoal = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: number) => {
@@ -38,6 +39,8 @@ export const useDeleteGoal = () => {
       if (error) throw error;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["goals"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("goals_paginated") });
       toast({
         title: "Berhasil",
         description: "Goal berhasil dihapus",
@@ -56,6 +59,7 @@ export const useDeleteGoal = () => {
 export const useUpdateGoal = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ id, ...goal }: GoalFormData & { id: number }) => {
@@ -68,6 +72,8 @@ export const useUpdateGoal = () => {
       if (error) throw error;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["goals"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("goals_paginated") });
       toast({
         title: "Berhasil",
         description: "Goal berhasil diperbarui",
@@ -86,6 +92,7 @@ export const useUpdateGoal = () => {
 export const useCreateGoal = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (goal: GoalFormData) => {
@@ -99,6 +106,8 @@ export const useCreateGoal = () => {
       if (error) throw error;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["goals"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("goals_paginated") });
       toast({
         title: "Berhasil",
         description: "Goal berhasil ditambahkan",

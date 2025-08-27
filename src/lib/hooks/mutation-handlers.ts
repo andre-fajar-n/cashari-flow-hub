@@ -127,7 +127,7 @@ export const useMutationCallbacks = (config: MutationCallbacksConfig) => {
  * Predefined query key sets for common scenarios
  */
 export const QUERY_KEY_SETS = {
-  TRANSACTIONS: ["transactions", "wallets", "budgets", "business_projects"],
+  TRANSACTIONS: ["transactions", "transactions_paginated", "wallets", "budgets", "business_projects"],
   WALLETS: ["wallets", "transactions", "transfers"],
   CATEGORIES: ["categories", "transactions"],
   BUDGETS: ["budgets", "transactions"],

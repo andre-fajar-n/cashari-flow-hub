@@ -60,6 +60,9 @@ export const useCreateTransaction = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      // Invalidate and refetch paginated transactions queries
+      queryClient.invalidateQueries({ queryKey: ["transactions_paginated"] });
+      queryClient.refetchQueries({ queryKey: ["transactions_paginated"] });
       toast({
         title: "Berhasil",
         description: "Transaksi berhasil ditambahkan",
@@ -96,6 +99,9 @@ export const useUpdateTransaction = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      // Invalidate and refetch paginated transactions queries
+      queryClient.invalidateQueries({ queryKey: ["transactions_paginated"] });
+      queryClient.refetchQueries({ queryKey: ["transactions_paginated"] });
       toast({
         title: "Berhasil",
         description: "Transaksi berhasil diperbarui",
@@ -129,6 +135,9 @@ export const useDeleteTransaction = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      // Invalidate and refetch paginated transactions queries
+      queryClient.invalidateQueries({ queryKey: ["transactions_paginated"] });
+      queryClient.refetchQueries({ queryKey: ["transactions_paginated"] });
       toast({
         title: "Berhasil",
         description: "Transaksi berhasil dihapus",

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -27,6 +27,11 @@ export interface DataTableProps<T> {
   title?: string;
   description?: string;
   headerActions?: React.ReactNode;
+  // Server-side pagination mode
+  serverMode?: boolean;
+  totalCount?: number;
+  page?: number;
+  onServerParamsChange?: (params: { searchTerm: string; filters: Record<string, any>; page: number; itemsPerPage: number; }) => void;
 }
 
 export function DataTable<T extends Record<string, any>>({
@@ -41,11 +46,24 @@ export function DataTable<T extends Record<string, any>>({
   title,
   description,
   headerActions,
+  serverMode = false,
+  totalCount,
+  page,
+  onServerParamsChange,
 }: DataTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState("");
   const [columnFilterValues, setColumnFilterValues] = useState<Record<string, any>>({});
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(page ?? 1);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+
+  // Sync internal page with controlled prop in server mode
+  useEffect(() => {
+    if (serverMode && typeof page === 'number') {
+      setCurrentPage(page);
+    }
+  }, [page, serverMode]);
+
+
 
   // Guard against undefined data to avoid runtime errors when pages pass undefined during initial load
   const safeData = (data ?? []) as T[];
@@ -55,6 +73,9 @@ export function DataTable<T extends Record<string, any>>({
     setSearchTerm("");
     setColumnFilterValues({});
     setCurrentPage(1);
+    if (serverMode && onServerParamsChange) {
+      onServerParamsChange({ searchTerm: "", filters: {}, page: 1, itemsPerPage });
+    }
   };
 
   const hasActiveFilters = searchTerm !== "" || Object.keys(columnFilterValues).some(key => columnFilterValues[key] !== "");
@@ -143,16 +164,22 @@ export function DataTable<T extends Record<string, any>>({
       }
     });
 
+
     return filtered;
   }, [data, searchTerm, columnFilterValues, searchFields, columnFilters]);
 
-  const totalPages = Math.ceil((filteredData?.length || 0) / itemsPerPage);
+  const effectiveTotal = serverMode ? (totalCount ?? 0) : (filteredData?.length || 0);
+  const totalPages = Math.ceil(effectiveTotal / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentData = filteredData.slice(startIndex, endIndex);
+  const currentData = serverMode ? safeData : filteredData.slice(startIndex, endIndex);
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  const handlePageChange = (pageNum: number) => {
+    const next = Math.max(1, Math.min(pageNum, totalPages));
+    setCurrentPage(next);
+    if (serverMode && onServerParamsChange) {
+      onServerParamsChange({ searchTerm, filters: columnFilterValues, page: next, itemsPerPage });
+    }
   };
 
   const renderPagination = () => {
@@ -229,10 +256,19 @@ export function DataTable<T extends Record<string, any>>({
                 placeholder={searchPlaceholder}
                 value={searchTerm}
                 onChange={(e) => {
-                  setSearchTerm(e.target.value);
+                  const nextTerm = e.target.value;
+                  setSearchTerm(nextTerm);
                   setCurrentPage(1);
                 }}
                 className="pl-10 h-9"
+
+	                onKeyDown={(e) => {
+	                  if (serverMode && e.key === 'Enter') {
+	                    e.preventDefault();
+	                    setCurrentPage(1);
+	                    onServerParamsChange?.({ searchTerm, filters: columnFilterValues, page: 1, itemsPerPage });
+	                  }
+	                }}
               />
             </div>
             <div className="flex gap-2 items-center">
@@ -248,6 +284,31 @@ export function DataTable<T extends Record<string, any>>({
                     </Button>
                   </CollapsibleTrigger>
                 </Collapsible>
+              )}
+              {serverMode && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="h-9"
+                  onClick={() => {
+                    setCurrentPage(1);
+                    onServerParamsChange?.({ searchTerm, filters: columnFilterValues, page: 1, itemsPerPage });
+                  }}
+                >
+                  Cari
+                </Button>
+              )}
+              {!serverMode && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="h-9"
+                  onClick={() => {
+                    setCurrentPage(1);
+                  }}
+                >
+                  Cari
+                </Button>
               )}
               {hasActiveFilters && (
                 <Button variant="outline" size="sm" onClick={resetFilters} className="h-9">
@@ -272,11 +333,15 @@ export function DataTable<T extends Record<string, any>>({
                         <Select
                           value={columnFilterValues[filter.field] || ""}
                           onValueChange={(value) => {
-                            setColumnFilterValues(prev => ({
-                              ...prev,
+                            const nextFilters = {
+                              ...columnFilterValues,
                               [filter.field]: value === "all" ? "" : value
-                            }));
+                            };
+                            setColumnFilterValues(nextFilters);
                             setCurrentPage(1);
+                            if (serverMode && onServerParamsChange) {
+                              onServerParamsChange({ searchTerm, filters: nextFilters, page: 1, itemsPerPage });
+                            }
                           }}
                         >
                           <SelectTrigger className="h-8 text-xs w-full">
@@ -302,11 +367,12 @@ export function DataTable<T extends Record<string, any>>({
                                 const currentValue = columnFilterValues[filter.field] || "";
                                 const endDate = currentValue.includes(',') ? currentValue.split(',')[1] : "";
                                 const newValue = endDate ? `${e.target.value},${endDate}` : e.target.value;
-                                setColumnFilterValues(prev => ({
-                                  ...prev,
-                                  [filter.field]: newValue
-                                }));
+                                const nextFilters = { ...columnFilterValues, [filter.field]: newValue };
+                                setColumnFilterValues(nextFilters);
                                 setCurrentPage(1);
+                                if (serverMode && onServerParamsChange) {
+                                  onServerParamsChange({ searchTerm, filters: nextFilters, page: 1, itemsPerPage });
+                                }
                               }}
                               className="h-8 text-xs w-full"
                             />
@@ -318,11 +384,12 @@ export function DataTable<T extends Record<string, any>>({
                                 const currentValue = columnFilterValues[filter.field] || "";
                                 const startDate = currentValue.includes(',') ? currentValue.split(',')[0] : currentValue;
                                 const newValue = startDate ? `${startDate},${e.target.value}` : `,${e.target.value}`;
-                                setColumnFilterValues(prev => ({
-                                  ...prev,
-                                  [filter.field]: newValue
-                                }));
+                                const nextFilters = { ...columnFilterValues, [filter.field]: newValue };
+                                setColumnFilterValues(nextFilters);
                                 setCurrentPage(1);
+                                if (serverMode && onServerParamsChange) {
+                                  onServerParamsChange({ searchTerm, filters: nextFilters, page: 1, itemsPerPage });
+                                }
                               }}
                               className="h-8 text-xs w-full"
                             />
@@ -333,11 +400,12 @@ export function DataTable<T extends Record<string, any>>({
                           placeholder={`Filter...`}
                           value={columnFilterValues[filter.field] || ""}
                           onChange={(e) => {
-                            setColumnFilterValues(prev => ({
-                              ...prev,
-                              [filter.field]: e.target.value
-                            }));
+                            const nextFilters = { ...columnFilterValues, [filter.field]: e.target.value };
+                            setColumnFilterValues(nextFilters);
                             setCurrentPage(1);
+                            if (serverMode && onServerParamsChange) {
+                              onServerParamsChange({ searchTerm, filters: nextFilters, page: 1, itemsPerPage });
+                            }
                           }}
                           type={filter.type === 'number' ? 'number' : filter.type === 'date' ? 'date' : 'text'}
                           className="h-8 text-xs w-full"
@@ -358,25 +426,25 @@ export function DataTable<T extends Record<string, any>>({
           <div className="text-center py-8">
             <p className="text-muted-foreground">Memuat data...</p>
           </div>
-        ) : filteredData.length === 0 ? (
+        ) : (serverMode ? safeData.length === 0 : filteredData.length === 0) ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground">
-              {data.length === 0 ? emptyStateMessage : "Tidak ada data yang sesuai dengan pencarian"}
+              {safeData.length === 0 ? emptyStateMessage : "Tidak ada data yang sesuai dengan pencarian"}
             </p>
           </div>
         ) : (
           <>
             <div className="space-y-4">
-              {currentData.map((item, index) => (
+              {(serverMode ? safeData : currentData).map((item, index) => (
                 <div key={index}>
                   {renderItem(item)}
                 </div>
               ))}
             </div>
             {renderPagination()}
-            {filteredData.length > 0 && (
+            {(serverMode ? effectiveTotal : filteredData.length) > 0 && (
               <div className="text-center text-sm text-muted-foreground mt-4">
-                Menampilkan {startIndex + 1}-{Math.min(endIndex, filteredData.length)} dari {filteredData.length} data
+                Menampilkan {startIndex + 1}-{serverMode ? Math.min(endIndex, effectiveTotal) : Math.min(endIndex, filteredData.length)} dari {serverMode ? effectiveTotal : filteredData.length} data
               </div>
             )}
           </>

@@ -6,7 +6,8 @@ import { useNavigate } from "react-router-dom";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import BudgetDialog from "@/components/budget/BudgetDialog";
 import Layout from "@/components/Layout";
-import { useBudgets, useDeleteBudget } from "@/hooks/queries/use-budgets";
+import { useDeleteBudget } from "@/hooks/queries/use-budgets";
+import { useBudgetsPaginated } from "@/hooks/queries/paginated/use-budgets-paginated";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { BudgetModel } from "@/models/budgets";
@@ -22,7 +23,12 @@ const Budget = () => {
   const [selectedBudget, setSelectedBudget] = useState<BudgetModel | undefined>(undefined);
   const navigate = useNavigate();
   const { mutate: deleteBudget } = useDeleteBudget();
-  const { data: budgets, isLoading } = useBudgets();
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
+  const [serverSearch, setServerSearch] = useState("");
+  const [serverFilters, setServerFilters] = useState<Record<string, any>>({});
+  const { data: paged, isLoading } = useBudgetsPaginated({ page, itemsPerPage, searchTerm: serverSearch, filters: serverFilters });
+  const budgets = paged?.data || [];
   const { data: currencies } = useCurrencies();
 
   const handleEdit = (budget: BudgetModel) => {
@@ -138,11 +144,20 @@ const Budget = () => {
         />
 
         <DataTable
-          data={budgets || []}
+          data={budgets}
           isLoading={isLoading}
           searchPlaceholder="Cari budget..."
           searchFields={["name", "currency_code"]}
           columnFilters={columnFilters}
+          itemsPerPage={itemsPerPage}
+          serverMode
+          totalCount={paged?.count}
+          page={page}
+          onServerParamsChange={({ searchTerm, filters, page: nextPage }) => {
+            setServerSearch(searchTerm);
+            setServerFilters(filters);
+            setPage(nextPage);
+          }}
           renderItem={renderBudgetItem}
           emptyStateMessage="Belum ada budget yang dibuat"
           title="Manajemen Budget"
