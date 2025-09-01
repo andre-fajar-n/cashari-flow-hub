@@ -57,9 +57,6 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
     }
   }, [transaction, open, form]);
 
-  const selectedWalletId = form.watch("wallet_id");
-  const selectedWallet = wallets?.find(w => w.id.toString() === selectedWalletId);
-
   // Use mutation callbacks utility
   const { handleSuccess, handleError } = useMutationCallbacks({
     setIsLoading,

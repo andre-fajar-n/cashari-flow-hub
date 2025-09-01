@@ -15,25 +15,6 @@ const TransactionFormFields = ({ control, wallets, categories }: TransactionForm
     <>
       <FormField
         control={control}
-        name="amount"
-        rules={{ required: "Jumlah harus diisi", min: { value: 1, message: "Jumlah harus lebih dari 0" } }}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Jumlah</FormLabel>
-            <FormControl>
-              <InputNumber
-                {...field}
-                onChange={(value) => field.onChange(value)}
-                value={field.value}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={control}
         name="wallet_id"
         rules={{ required: "Dompet harus dipilih" }}
         render={({ field }) => (
@@ -86,13 +67,17 @@ const TransactionFormFields = ({ control, wallets, categories }: TransactionForm
 
       <FormField
         control={control}
-        name="date"
-        rules={{ required: "Tanggal harus diisi" }}
+        name="amount"
+        rules={{ required: "Jumlah harus diisi", min: { value: 1, message: "Jumlah harus lebih dari 0" } }}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Tanggal</FormLabel>
+            <FormLabel>Jumlah</FormLabel>
             <FormControl>
-              <Input type="date" {...field} />
+              <InputNumber
+                {...field}
+                onChange={(value) => field.onChange(value)}
+                value={field.value}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -107,6 +92,21 @@ const TransactionFormFields = ({ control, wallets, categories }: TransactionForm
             <FormLabel>Deskripsi (Opsional)</FormLabel>
             <FormControl>
               <Input {...field} placeholder="Masukkan deskripsi" />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={control}
+        name="date"
+        rules={{ required: "Tanggal harus diisi" }}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Tanggal</FormLabel>
+            <FormControl>
+              <Input type="date" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
