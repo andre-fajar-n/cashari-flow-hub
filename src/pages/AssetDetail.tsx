@@ -117,7 +117,7 @@ const AssetDetail = () => {
 
   // Prepare chart data
   const chartData = assetValues?.map(value => ({
-    date: format(new Date(value.date), 'dd/MM'),
+    date: format(new Date(value.date), 'dd/MM/yyyy'),
     value: value.value,
     fullDate: value.date
   })).reverse() || [];
