@@ -29,7 +29,7 @@ import { useGoalInvestmentRecords } from "@/hooks/queries/use-goal-investment-re
 const AssetDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
+
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isValueDialogOpen, setIsValueDialogOpen] = useState(false);
@@ -48,7 +48,7 @@ const AssetDetail = () => {
   const { data: transfers, isLoading: isTransfersLoading } = useGoalTransfers();
   const { data: wallets, isLoading: isWalletsLoading } = useWallets();
   const { data: goals, isLoading: isGoalsLoading } = useGoals();
-  const { data: records, isLoading: isRecordsLoading } = useGoalInvestmentRecords();
+  const { data: records, isLoading: isRecordsLoading } = useGoalInvestmentRecords(undefined, parseInt(id!));
 
   const isLoadingHistoryTab = isMovementsLoading || isTransfersLoading || isWalletsLoading || isGoalsLoading ||
                               isRecordsLoading;
@@ -70,6 +70,11 @@ const AssetDetail = () => {
       </ProtectedRoute>
     );
   }
+
+  // Derive currency code from related wallet records (since assets no longer have currency_code)
+  const assetCurrencyCode = movements?.find((r: any) => (r.asset_id ?? r.asset?.id) === (asset?.id))?.currency_code
+    || (wallets && wallets.length > 0 ? wallets[0].currency_code : undefined)
+    || 'unknown currency';
 
   const handleEdit = () => {
     setIsEditDialogOpen(true);
@@ -130,23 +135,23 @@ const AssetDetail = () => {
           </div>
           <div>
             <AmountText amount={value.value} showSign={true}>
-              {formatAmountCurrency(value.value, asset.currency_code || 'IDR')}
+              {formatAmountCurrency(value.value, assetCurrencyCode)}
             </AmountText>
             <p className="text-sm text-muted-foreground">Nilai</p>
           </div>
         </div>
       </div>
       <div className="flex gap-2">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
           onClick={() => handleEditValue(value)}
         >
           <Edit className="w-3 h-3 mr-1" />
           Edit
         </Button>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
           onClick={() => handleDeleteValueClick(value.id)}
         >
@@ -164,8 +169,8 @@ const AssetDetail = () => {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => navigate('/investment-asset')}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -216,7 +221,7 @@ const AssetDetail = () => {
               <TabsTrigger value="summary">Ringkasan</TabsTrigger>
               <TabsTrigger value="movements">Riwayat</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="history" className="space-y-4">
               {/* Chart Section */}
               {chartData.length > 0 && (
@@ -234,17 +239,17 @@ const AssetDetail = () => {
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="date" />
                           <YAxis />
-                          <Tooltip 
-                            formatter={(value) => [`${Number(value).toLocaleString('id-ID')} ${asset.currency_code || 'IDR'}`, 'Nilai']}
+                          <Tooltip
+                            formatter={(value) => [`${Number(value).toLocaleString('id-ID')} ${assetCurrencyCode}`, 'Nilai']}
                             labelFormatter={(label) => {
                               const item = chartData.find(d => d.date === label);
                               return item ? format(new Date(item.fullDate), 'dd MMMM yyyy') : label;
                             }}
                           />
-                          <Line 
-                            type="monotone" 
-                            dataKey="value" 
-                            stroke="#8884d8" 
+                          <Line
+                            type="monotone"
+                            dataKey="value"
+                            stroke="#8884d8"
                             strokeWidth={2}
                             dot={{ r: 4 }}
                           />
@@ -289,11 +294,11 @@ const AssetDetail = () => {
                 </CardContent>
               </Card>
             </TabsContent>
-            
+
             <TabsContent value="summary" className="space-y-4">
               <AssetSummary assetId={asset.id} assetName={asset.name} />
             </TabsContent>
-            
+
             <TabsContent value="movements" className="space-y-4">
               {isLoadingHistoryTab ? (
                 <div className="text-center py-8">

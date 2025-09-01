@@ -16,8 +16,7 @@ export const useInvestmentAssetValues = (assetId?: number) => {
           *,
           investment_assets!inner(
             name,
-            symbol,
-            currency_code
+            symbol
           )
         `)
         .eq("user_id", user?.id);
@@ -28,7 +27,10 @@ export const useInvestmentAssetValues = (assetId?: number) => {
 
       const { data, error } = await query.order("date", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Failed to fetch investment asset values", error);
+        throw error
+      };
       return data as any[];
     },
     enabled: !!user,

@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
-export const useGoalInvestmentRecords = (goalId?: number) => {
+export const useGoalInvestmentRecords = (goalId?: number, assetId?: number) => {
   const { user } = useAuth();
 
   return useQuery({
@@ -15,7 +15,7 @@ export const useGoalInvestmentRecords = (goalId?: number) => {
         .select(`
           *,
           goal:goals(name),
-          wallet:wallets(name),
+          wallet:wallets(name, currency_code),
           category:categories(name, is_income),
           instrument:investment_instruments(name),
           asset:investment_assets(name, symbol)
@@ -24,6 +24,10 @@ export const useGoalInvestmentRecords = (goalId?: number) => {
       
       if (goalId) {
         query = query.eq("goal_id", goalId);
+      }
+
+      if (assetId) {
+        query = query.eq("asset_id", assetId);
       }
       
       const { data, error } = await query.order("date", { ascending: false });
