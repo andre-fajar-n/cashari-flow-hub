@@ -68,11 +68,7 @@ const InvestmentAsset = () => {
                 {asset.symbol}
               </span>
             )}
-            {asset.currency_code && (
-              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                {asset.currency_code}
-              </span>
-            )}
+
           </div>
           <p className="text-sm text-muted-foreground mt-1">
             Instrumen: {asset.investment_instruments?.name}

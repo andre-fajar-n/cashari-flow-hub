@@ -9,7 +9,6 @@ import { AssetFormData, defaultAssetFormValues } from "@/form-dto/investment-ass
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useCreateInvestmentAsset, useUpdateInvestmentAsset } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
-import { useCurrencies } from "@/hooks/queries/use-currencies";
 
 interface InvestmentAssetDialogProps {
   open: boolean;
@@ -29,7 +28,7 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
   });
 
   const { data: instruments } = useInvestmentInstruments();
-  const { data: currencies } = useCurrencies();
+
 
   // Use mutation callbacks utility
   const { handleSuccess, handleError } = useMutationCallbacks({
@@ -66,7 +65,7 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
           name: asset.name || "",
           symbol: asset.symbol || "",
           instrument_id: asset.instrument_id || 0,
-          currency_code: asset.currency_code || "",
+
         });
       } else {
         form.reset(defaultAssetFormValues);
@@ -125,7 +124,7 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
             <FormField
               control={form.control}
               name="instrument_id"
-              rules={{ 
+              rules={{
                 required: "Instrumen harus dipilih",
                 min: { value: 1, message: "Instrumen harus dipilih" }
               }}
@@ -133,8 +132,8 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
                 <FormItem>
                   <FormLabel>Instrumen Investasi</FormLabel>
                   <FormControl>
-                    <select 
-                      {...field} 
+                    <select
+                      {...field}
                       className="w-full p-2 border rounded-md"
                       onChange={(e) => field.onChange(parseInt(e.target.value))}
                     >
@@ -142,30 +141,6 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
                       {instruments?.map((instrument) => (
                         <option key={instrument.id} value={instrument.id}>
                           {instrument.name}
-                        </option>
-                      ))}
-                    </select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="currency_code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Currency (Opsional)</FormLabel>
-                  <FormControl>
-                    <select 
-                      {...field} 
-                      className="w-full p-2 border rounded-md"
-                    >
-                      <option value="">Pilih currency</option>
-                      {currencies?.map((currency) => (
-                        <option key={currency.code} value={currency.code}>
-                          {currency.code} - {currency.name}
                         </option>
                       ))}
                     </select>

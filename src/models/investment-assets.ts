@@ -4,7 +4,6 @@ export interface InvestmentAssetModel {
   name: string;
   symbol: string;
   instrument_id: number;
-  currency_code?: string;
   created_at: string;
   investment_instruments?: {
     name: string;
