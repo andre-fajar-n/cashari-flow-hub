@@ -70,7 +70,7 @@ export const useCreateInvestmentAsset = () => {
     mutationFn: async (asset: AssetFormData) => {
       const { error } = await supabase
         .from("investment_assets")
-        .insert({ ...asset, user_id: user?.id });
+        .insert({ ...asset, user_id: user?.id, updated_at: null });
 
       if (error) throw error;
     },
@@ -101,7 +101,10 @@ export const useUpdateInvestmentAsset = () => {
     mutationFn: async ({ id, ...asset }: AssetFormData & { id: number }) => {
       const { error } = await supabase
         .from("investment_assets")
-        .update(asset)
+        .update({
+          ...asset,
+          updated_at: new Date().toISOString(),
+        })
         .eq("user_id", user?.id)
         .eq("id", id);
 

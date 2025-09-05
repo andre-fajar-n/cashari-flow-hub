@@ -66,7 +66,10 @@ export const useUpdateDebt = () => {
     mutationFn: async ({ id, ...debt }: DebtFormData & { id: number }) => {
       const { error } = await supabase
         .from("debts")
-        .update(debt)
+        .update({
+          ...debt,
+          updated_at: new Date().toISOString(),
+        })
         .eq("id", id)
         .eq("user_id", user?.id);
 
@@ -102,6 +105,7 @@ export const useCreateDebt = () => {
         .insert({
           ...debt,
           user_id: user?.id,
+          updated_at: null,
         });
 
       if (error) throw error;

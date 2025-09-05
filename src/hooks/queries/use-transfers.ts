@@ -18,8 +18,9 @@ export const useTransfers = () => {
           to_wallet:wallets!transfers_to_wallet_id_fkey(id, name, currency_code, initial_amount)
         `)
         .eq("user_id", user?.id)
-        .order("date", { ascending: false });
-      
+        .order("date", { ascending: false })
+        .order("created_at", { ascending: false });
+
       if (error) {
         console.error("Failed to fetch transfers", error);
         throw error;
@@ -39,7 +40,7 @@ export const useCreateTransfer = () => {
     mutationFn: async (transfer: Omit<TablesInsert<"transfers">, "user_id">) => {
       const { data, error } = await supabase
         .from("transfers")
-        .insert({ ...transfer, user_id: user?.id })
+        .insert({ ...transfer, user_id: user?.id, updated_at: null })
         .select()
         .single();
 
@@ -74,7 +75,10 @@ export const useUpdateTransfer = () => {
     mutationFn: async ({ id, ...transfer }: TablesUpdate<"transfers"> & { id: number }) => {
       const { data, error } = await supabase
         .from("transfers")
-        .update(transfer)
+        .update({
+          ...transfer,
+          updated_at: new Date().toISOString(),
+        })
         .eq("id", id)
         .select()
         .single();

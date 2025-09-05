@@ -68,6 +68,7 @@ export const useCreateProject = () => {
         .insert({
           ...newProject,
           user_id: user.id,
+          updated_at: null,
         });
 
       if (error) throw error;
@@ -99,7 +100,10 @@ export const useUpdateProject = () => {
     mutationFn: async ({ id, ...project }: ProjectFormData & { id: number }) => {
       const { error } = await supabase
         .from("business_projects")
-        .update(project)
+        .update({
+          ...project,
+          updated_at: new Date().toISOString(),
+        })
         .eq("user_id", user?.id)
         .eq("id", id);
 

@@ -26,7 +26,8 @@ export const useTransactions = () => {
           )
         `)
         .eq("user_id", user?.id)
-        .order("date", { ascending: false });
+        .order("date", { ascending: false })
+        .order("created_at", { ascending: false });
 
       if (error) {
         console.error("Failed to fetch transactions", error);
@@ -50,6 +51,7 @@ export const useCreateTransaction = () => {
         .insert({
           user_id: user?.id,
           ...transaction as any,
+          updated_at: null,
         })
         .select()
         .single();
@@ -87,7 +89,10 @@ export const useUpdateTransaction = () => {
     mutationFn: async ({ id, ...transaction }: TransactionFormData & { id: number }) => {
       const { data, error } = await supabase
         .from("transactions")
-        .update(transaction as any)
+        .update({
+          ...(transaction as any),
+          updated_at: new Date().toISOString(),
+        })
         .eq("user_id", user?.id)
         .eq("id", id)
         .select()

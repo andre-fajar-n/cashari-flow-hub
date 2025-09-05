@@ -65,7 +65,10 @@ export const useUpdateGoal = () => {
     mutationFn: async ({ id, ...goal }: GoalFormData & { id: number }) => {
       const { error } = await supabase
         .from("goals")
-        .update(goal)
+        .update({
+          ...goal,
+          updated_at: new Date().toISOString(),
+        })
         .eq("user_id", user?.id)
         .eq("id", id);
 
@@ -101,6 +104,7 @@ export const useCreateGoal = () => {
         .insert({
           ...goal,
           user_id: user?.id,
+          updated_at: null,
         });
 
       if (error) throw error;

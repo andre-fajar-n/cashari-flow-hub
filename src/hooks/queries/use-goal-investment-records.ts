@@ -48,7 +48,7 @@ export const useCreateGoalInvestmentRecord = () => {
     mutationFn: async (record: Omit<TablesInsert<"goal_investment_records">, "user_id">) => {
       const { data, error } = await supabase
         .from("goal_investment_records")
-        .insert({ ...record, user_id: user?.id })
+        .insert({ ...record, user_id: user?.id, updated_at: null })
         .select()
         .single();
 
@@ -82,7 +82,10 @@ export const useUpdateGoalInvestmentRecord = () => {
     mutationFn: async ({ id, ...record }: TablesUpdate<"goal_investment_records"> & { id: number }) => {
       const { data, error } = await supabase
         .from("goal_investment_records")
-        .update(record)
+        .update({
+          ...record,
+          updated_at: new Date().toISOString(),
+        })
         .eq("id", id)
         .select()
         .single();

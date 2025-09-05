@@ -86,6 +86,7 @@ export const useCreateCategory = () => {
       const payload = { ...newCategory, user_id: user?.id } as any;
       // Ensure null stored as null, not 'null' string
       if (payload.application === undefined) payload.application = null;
+      payload.updated_at = null;
       const { error } = await supabase
         .from("categories")
         .insert(payload);
@@ -120,7 +121,10 @@ export const useUpdateCategory = () => {
       if (payload.application === undefined) payload.application = null;
       const { error } = await supabase
         .from("categories")
-        .update(payload)
+        .update({
+          ...payload,
+          updated_at: new Date().toISOString(),
+        })
         .eq("id", id)
         .eq("user_id", user?.id);
 

@@ -43,7 +43,7 @@ export const useCreateGoalTransfer = () => {
     mutationFn: async (transfer: Omit<TablesInsert<"goal_transfers">, "user_id">) => {
       const { data, error } = await supabase
         .from("goal_transfers")
-        .insert({ ...transfer, user_id: user?.id })
+        .insert({ ...transfer, user_id: user?.id, updated_at: null })
         .select()
         .single();
 
@@ -130,6 +130,7 @@ export const useUpdateGoalTransfer = () => {
           from_amount_unit: transfer.from_amount_unit || null,
           to_amount_unit: transfer.to_amount_unit || null,
           date: transfer.date,
+          updated_at: new Date().toISOString(),
         })
         .eq("id", id)
         .select()

@@ -35,6 +35,7 @@ export const useCreateWallet = () => {
         .insert({
           ...newWallet,
           user_id: user?.id,
+          updated_at: null,
         });
 
       if (error) throw error;
@@ -65,7 +66,10 @@ export const useUpdateWallet = () => {
     mutationFn: async ({ id, ...wallet }: WalletFormData & { id: number }) => {
       const { error } = await supabase
         .from("wallets")
-        .update(wallet)
+        .update({
+          ...wallet,
+          updated_at: new Date().toISOString(),
+        })
         .eq("user_id", user?.id)
         .eq("id", id);
 

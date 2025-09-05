@@ -68,6 +68,7 @@ export const useCreateBudget = () => {
         .insert({
           ...newBudget,
           user_id: user.id,
+          updated_at: null,
         });
 
       if (error) throw error;
@@ -99,7 +100,10 @@ export const useUpdateBudget = () => {
     mutationFn: async ({ id, ...budget }: BudgetFormData & { id: number }) => {
       const { error } = await supabase
         .from("budgets")
-        .update(budget)
+        .update({
+          ...budget,
+          updated_at: new Date().toISOString(),
+        })
         .eq("user_id", user?.id)
         .eq("id", id);
 

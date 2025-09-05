@@ -49,6 +49,7 @@ export const useCreateCurrency = () => {
           ...newCurrency,
           user_id: user?.id,
           is_default: false,
+          updated_at: null,
         });
 
       if (error) throw error;
@@ -83,6 +84,7 @@ export const useUpdateCurrency = () => {
           code: currency.code,
           name: currency.name,
           symbol: currency.symbol,
+          updated_at: new Date().toISOString(),
         })
         .eq("code", currency.originalCode)
         .eq("user_id", user?.id);

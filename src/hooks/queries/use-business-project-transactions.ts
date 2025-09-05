@@ -39,7 +39,8 @@ export const useBusinessProjectTransactions = (projectId?: number) => {
       const projectTransactions = transactionIds.map(transactionId => ({
         project_id: projectId,
         transaction_id: transactionId,
-        user_id: user?.id
+        user_id: user?.id,
+        updated_at: null
       }));
 
       const { error } = await supabase
