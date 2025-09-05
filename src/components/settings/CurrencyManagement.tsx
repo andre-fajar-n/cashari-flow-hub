@@ -155,7 +155,7 @@ const CurrencyManagement = () => {
         </Button>
         {!currency.is_default ? (
           <Button
-            variant="outline"
+            variant="destructive"
             size="sm"
             onClick={() => handleDeleteClick(currency.code)}
           >

@@ -45,7 +45,7 @@ const Index = () => {
                 <Button variant="ghost">Masuk</Button>
               </Link>
               <Link to="/auth">
-                <Button className="bg-blue-600 hover:bg-blue-700">Mulai Gratis</Button>
+                <Button>Mulai Gratis</Button>
               </Link>
             </div>
           </div>
@@ -65,12 +65,12 @@ const Index = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/auth">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3">
+              <Button size="lg">
                 Mulai Sekarang - Gratis
               </Button>
             </Link>
             <Link to="/dashboard">
-              <Button size="lg" variant="outline" className="text-lg px-8 py-3">
+              <Button size="lg" variant="outline">
                 Lihat Demo
               </Button>
             </Link>
@@ -120,7 +120,7 @@ const Index = () => {
             Bergabung dengan ribuan pengguna yang sudah merasakan kemudahan mengelola keuangan dengan Cashari
           </p>
           <Link to="/auth">
-            <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
+            <Button size="lg" variant="secondary">
               Daftar Sekarang - 100% Gratis
             </Button>
           </Link>

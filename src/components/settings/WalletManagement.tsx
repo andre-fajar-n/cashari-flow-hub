@@ -121,7 +121,7 @@ const WalletManagement = () => {
           <Pen className="w-4 h-4" />
         </Button>
         <Button
-          variant="outline"
+          variant="destructive"
           size="sm"
           onClick={() => deleteMutation.mutate(wallet.id)}
           disabled={deleteMutation.isPending}
@@ -196,7 +196,7 @@ const WalletManagement = () => {
                   </Button>
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="ghost"
                     onClick={handleCancel}
                   >
                     Batal

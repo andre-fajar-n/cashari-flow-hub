@@ -81,8 +81,8 @@ const InvestmentInstrument = () => {
             <Edit className="w-3 h-3 mr-1" />
             Edit
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="destructive"
             size="sm"
             onClick={() => handleDeleteClick(instrument.id)}
           >

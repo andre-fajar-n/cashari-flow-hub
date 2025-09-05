@@ -153,7 +153,7 @@ const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) =>
             <div className="flex justify-end gap-2 pt-4">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 onClick={() => onOpenChange(false)}
               >
                 Batal

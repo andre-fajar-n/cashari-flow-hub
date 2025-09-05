@@ -243,7 +243,7 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
             />
 
             <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                 Batal
               </Button>
               <Button type="submit" disabled={isLoading}>

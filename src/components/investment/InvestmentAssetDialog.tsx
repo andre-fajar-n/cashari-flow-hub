@@ -151,9 +151,9 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
             />
 
             <div className="flex justify-end gap-2 pt-4">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="ghost"
                 onClick={() => onOpenChange(false)}
               >
                 Batal

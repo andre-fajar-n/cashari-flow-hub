@@ -185,7 +185,7 @@ const DebtHistoryDialog = ({ open, onOpenChange, debtId, onSuccess, history }: D
             <div className="flex justify-end gap-2 pt-4">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 onClick={() => onOpenChange(false)}
               >
                 Batal

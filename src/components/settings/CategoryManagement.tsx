@@ -157,7 +157,7 @@ const CategoryManagement = () => {
           <Pen className="w-4 h-4" />
         </Button>
         <Button
-          variant="outline"
+          variant="destructive"
           size="sm"
           onClick={() => handleDeleteClick(category.id)}
         >

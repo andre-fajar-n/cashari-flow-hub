@@ -268,7 +268,7 @@ const AssetRecordDialog = ({ open, onOpenChange, asset, onSuccess }: AssetRecord
             />
 
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={isLoading}>
                 Batal
               </Button>
               <Button type="submit" disabled={isLoading}>

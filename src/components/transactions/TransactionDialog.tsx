@@ -124,7 +124,7 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
             <div className="flex justify-end gap-2 pt-4">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 onClick={() => onOpenChange(false)}
               >
                 Batal

@@ -110,9 +110,9 @@ const Auth = () => {
                     required
                   />
                 </div>
-                <Button 
-                  type="submit" 
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                <Button
+                  type="submit"
+                  className="w-full"
                   disabled={isLoading}
                 >
                   {isLoading ? "Memproses..." : "Masuk"}
@@ -152,9 +152,9 @@ const Auth = () => {
                     required
                   />
                 </div>
-                <Button 
-                  type="submit" 
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                <Button
+                  type="submit"
+                  className="w-full"
                   disabled={isLoading}
                 >
                   {isLoading ? "Memproses..." : "Daftar"}
