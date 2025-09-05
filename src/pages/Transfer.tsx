@@ -9,12 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import TransferDialog from "@/components/transfers/TransferDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import { TransferModel } from "@/models/transfer";
 import { formatAmountCurrency } from "@/lib/currency";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
@@ -23,7 +18,7 @@ import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { useWallets } from "@/hooks/queries/use-wallets";
 
 const Transfer = () => {
-  const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null)
+
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [transferToDelete, setTransferToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -49,13 +44,11 @@ const Transfer = () => {
 
   const openDialog = (transfer: TransferModel | undefined) => {
     setSelectedTransfer(transfer);
-    setActiveDropdownId(null);
     setTimeout(() => setIsDialogOpen(true), 50)
   };
 
   const handleDeleteClick = (transactionId: number) => {
     setTransferToDelete(transactionId);
-    setActiveDropdownId(null);
     setIsDeleteModalOpen(true);
   };
 
@@ -104,31 +97,24 @@ const Transfer = () => {
             </div>
           </div>
         </div>
-        <DropdownMenu
-          open={activeDropdownId === transfer.id}
-          onOpenChange={(open) =>
-            setActiveDropdownId(open ? transfer.id : null)
-          }
-        >
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
-              •••
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => openDialog(transfer)}>
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => handleDeleteClick(transfer.id)}
-              className="text-red-600"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Hapus
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => openDialog(transfer)}
+          >
+            <Edit className="w-3 h-3 mr-1" />
+            Edit
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => handleDeleteClick(transfer.id)}
+          >
+            <Trash2 className="w-3 h-3 mr-1" />
+            Hapus
+          </Button>
+        </div>
       </div>
     </div>
   );

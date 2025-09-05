@@ -71,7 +71,7 @@ const Index = () => {
             </Link>
             <Link to="/dashboard">
               <Button size="lg" variant="outline">
-                Lihat Demo
+                Detail Demo
               </Button>
             </Link>
           </div>

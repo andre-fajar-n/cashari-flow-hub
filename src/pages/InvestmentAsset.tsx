@@ -75,13 +75,13 @@ const InvestmentAsset = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => handleViewHistory(asset)}
           >
             <TrendingUp className="w-3 h-3 mr-1" />
-            History
+            Detail
           </Button>
           <Button 
             variant="outline" 

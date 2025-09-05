@@ -12,12 +12,7 @@ import TransactionAssociations from "@/components/transactions/TransactionAssoci
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useQueryClient } from "@tanstack/react-query";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 import { formatAmountCurrency } from "@/lib/currency";
 import { TransactionFormData } from "@/form-dto/transactions";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
@@ -25,7 +20,7 @@ import { AmountText } from "@/components/ui/amount-text";
 import { TransactionModel } from "@/models/transactions";
 
 const Transaction = () => {
-  const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<number | null>(null);
@@ -52,13 +47,11 @@ const Transaction = () => {
 
   const openDialog = (transaction: any) => {
     setSelectedTransaction(transaction);
-    setActiveDropdownId(null);
     setIsDialogOpen(true);
   };
 
   const handleDeleteClick = (transactionId: number) => {
     setTransactionToDelete(transactionId);
-    setActiveDropdownId(null);
     setIsDeleteModalOpen(true);
   };
 
@@ -111,31 +104,24 @@ const Transaction = () => {
             {transaction.wallets.currency_code}
           </Badge>
         </div>
-        <DropdownMenu
-          open={activeDropdownId === transaction.id}
-          onOpenChange={(open) =>
-            setActiveDropdownId(open ? transaction.id : null)
-          }
-        >
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
-              •••
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => openDialog(transaction)}>
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => handleDeleteClick(transaction.id)}
-              className="text-red-600"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Hapus
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => openDialog(transaction)}
+          >
+            <Edit className="w-3 h-3 mr-1" />
+            Edit
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => handleDeleteClick(transaction.id)}
+          >
+            <Trash2 className="w-3 h-3 mr-1" />
+            Hapus
+          </Button>
+        </div>
       </div>
     </div>
   );

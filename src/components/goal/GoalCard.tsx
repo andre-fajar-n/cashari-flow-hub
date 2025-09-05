@@ -7,7 +7,7 @@ import {
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ActionDropdown } from "@/components/ui/action-dropdown";
+
 import { GoalModel } from "@/models/goals";
 
 interface GoalCardProps {
@@ -20,8 +20,7 @@ interface GoalCardProps {
 }
 
 const GoalCard = ({ goal, totalAmount, onEdit, onDelete, onAddRecord, onTransferToGoal }: GoalCardProps) => {
-  const [settingsDropdownOpenId, setSettingsDropdownOpenId] = useState<number | null>(null);
-  const [optionsDropdownOpenId, setOptionsDropdownOpenId] = useState<number | null>(null);
+
   const navigate = useNavigate();
 
   const percentage = Math.min(totalAmount / goal.target_amount * 100, 100);
@@ -78,74 +77,33 @@ const GoalCard = ({ goal, totalAmount, onEdit, onDelete, onAddRecord, onTransfer
               </div>
             )}
           </div>
-          {goal.is_active && !goal.is_achieved && onTransferToGoal && (
-            <ActionDropdown
-              dropdownId={goal.id}
-              openDropdownId={optionsDropdownOpenId}
-              setOpenDropdownId={(id) => {
-                setOptionsDropdownOpenId(Number(id));
-                if (id !== null) setSettingsDropdownOpenId(null); // optional close other
-              }}
-              triggerContent={
-                <Button variant="ghost" size="sm">
-                  <Settings2 className="w-4 h-4 mr-2" />
-                </Button>
-              }
-              menuItems={[
-                {
-                  label: "Tambah",
-                  icon: <Plus className="w-3 h-3 mr-1" />,
-                  onClick: handleAddToGoal,
-                },
-                {
-                  label: "Ambil",
-                  icon: <Minus className="w-3 h-3 mr-1" />,
-                  onClick: handleTakeFromGoal,
-                },
-                {
-                  label: "Pindah",
-                  icon: <ArrowRightLeft className="w-3 h-3 mr-1" />,
-                  onClick: handleTransferBetweenGoals,
-                },
-                {
-                  label: "Update Progress",
-                  icon: <BarChart3 className="w-3 h-3 mr-1" />,
-                  onClick: () => onAddRecord(goal.id),
-                },
-              ]}
-            />
-          )}
-          <ActionDropdown
-            dropdownId={goal.id}
-            openDropdownId={settingsDropdownOpenId}
-            setOpenDropdownId={(id) => {
-              setSettingsDropdownOpenId(Number(id));
-              if (id !== null) setOptionsDropdownOpenId(null); // optional close other
-            }}
-            triggerContent={
-              <Button variant="ghost" size="sm">
-                •••
-              </Button>
-            }
-            menuItems={[
-              {
-                label: "Detail",
-                icon: <Eye className="w-3 h-3" />,
-                onClick: handleViewDetail,
-              },
-              {
-                label: "Edit",
-                icon: <Edit className="w-3 h-3" />,
-                onClick: () => onEdit(goal),
-              },
-              {
-                label: "Hapus",
-                icon: <Trash2 className="w-3 h-3" />,
-                onClick: () => onDelete(goal.id),
-                className: "text-red-600",
-              },
-            ]}
-          />
+
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleViewDetail}
+            >
+              <Eye className="w-3 h-3 mr-1" />
+              Detail
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onEdit(goal)}
+            >
+              <Edit className="w-3 h-3 mr-1" />
+              Edit
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => onDelete(goal.id)}
+            >
+              <Trash2 className="w-3 h-3 mr-1" />
+              Hapus
+            </Button>
+          </div>
         </div>
         
         {/* Progress Section */}

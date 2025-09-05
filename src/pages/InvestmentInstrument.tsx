@@ -72,7 +72,7 @@ const InvestmentInstrument = () => {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">Assets</Button>
+          <Button variant="outline" size="sm">Detail</Button>
           <Button 
             variant="outline" 
             size="sm"
