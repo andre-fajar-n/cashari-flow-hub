@@ -6,7 +6,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import BusinessProjectDialog from "@/components/business-project/BusinessProjectDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { useBusinessProjects, useDeleteBusinessProject } from "@/hooks/queries/use-business-projects";
+import { useDeleteBusinessProject } from "@/hooks/queries/use-business-projects";
 import { useBusinessProjectsPaginated } from "@/hooks/queries/paginated/use-business-projects-paginated";
 import { BusinessProjectModel } from "@/models/business-projects";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
@@ -54,50 +54,71 @@ const BusinessProject = () => {
   };
 
   const renderProjectItem = (project: BusinessProjectModel) => (
-    <Card key={project.id} className="p-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-        <div className="flex-1">
-          <h3 className="font-semibold">{project.name}</h3>
-          {project.description && (
-            <p className="text-sm text-muted-foreground mt-1">{project.description}</p>
-          )}
-          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
-              Mulai: {project.start_date ? new Date(project.start_date).toLocaleDateString() : "Belum ditentukan"}
-            </div>
-            {project.end_date && (
-              <div className="flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                Selesai: {new Date(project.end_date).toLocaleDateString()}
-              </div>
+    <Card key={project.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+      <div className="space-y-3">
+        {/* Header Section */}
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-lg text-gray-900 truncate">{project.name}</h3>
+            {project.description && (
+              <p className="text-sm text-gray-600 mt-2 bg-gray-50 rounded-lg p-2">
+                {project.description}
+              </p>
             )}
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
+
+        {/* Date Information */}
+        <div className="bg-blue-50 rounded-lg p-3 space-y-2">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs">
+            <div className="flex items-center gap-1 text-blue-700">
+              <Calendar className="w-3 h-3" />
+              <span className="font-medium">
+                Mulai: {project.start_date ? new Date(project.start_date).toLocaleDateString() : "Belum ditentukan"}
+              </span>
+            </div>
+            {project.end_date && (
+              <>
+                <span className="hidden sm:inline text-blue-400">•</span>
+                <div className="flex items-center gap-1 text-blue-700">
+                  <Calendar className="w-3 h-3" />
+                  <span className="font-medium">
+                    Selesai: {new Date(project.end_date).toLocaleDateString()}
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Actions - Mobile responsive */}
+        <div className="flex gap-2 pt-2 border-t border-gray-100">
+          <Button
+            variant="outline"
             size="sm"
+            className="flex-1 sm:flex-none"
             onClick={() => handleView(project)}
           >
-            <Eye className="w-3 h-3 mr-1" />
-            Detail
+            <Eye className="w-3 h-3 sm:mr-1" />
+            <span className="hidden sm:inline">Detail</span>
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
+            className="flex-1 sm:flex-none"
             onClick={() => handleEdit(project)}
           >
-            <Edit className="w-3 h-3 mr-1" />
-            Edit
+            <Edit className="w-3 h-3 sm:mr-1" />
+            <span className="hidden sm:inline">Edit</span>
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="destructive"
             size="sm"
+            className="flex-1 sm:flex-none"
             onClick={() => handleDeleteClick(project.id)}
           >
-            <Trash2 className="w-3 h-3 mr-1" />
-            Hapus
+            <Trash2 className="w-3 h-3 sm:mr-1" />
+            <span className="hidden sm:inline">Hapus</span>
           </Button>
         </div>
       </div>

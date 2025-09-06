@@ -1,15 +1,13 @@
 import { useState } from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowRightLeft, Edit, Trash2 } from "lucide-react";
-import { useTransfers, useDeleteTransfer } from "@/hooks/queries/use-transfers";
+import { useDeleteTransfer } from "@/hooks/queries/use-transfers";
 import { useTransfersPaginated } from "@/hooks/queries/paginated/use-transfers-paginated";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import TransferDialog from "@/components/transfers/TransferDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import ConfirmationModal from "@/components/ConfirmationModal";
-
 import { TransferModel } from "@/models/transfer";
 import { formatAmountCurrency } from "@/lib/currency";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
@@ -61,57 +59,93 @@ const Transfer = () => {
   const renderTransferItem = (transfer: TransferModel) => (
     <div
       key={transfer.id}
-      className="flex items-center justify-between p-4 border rounded-lg"
+      className="bg-white border-2 sm:border border-gray-100 sm:border-gray-200 rounded-2xl sm:rounded-xl p-5 sm:p-4 shadow-sm hover:shadow-lg sm:hover:shadow-md hover:border-gray-200 transition-all duration-200 sm:duration-75"
     >
-      <div className="flex items-center gap-3">
-        <div className="flex-shrink-0">
-          <ArrowRightLeft className="w-5 h-5 text-blue-600" />
-        </div>
-        <div>
-          <p className="font-medium">
-            {transfer.from_wallet?.name || `Dompet ${transfer.from_wallet_id}`} → {transfer.to_wallet?.name || `Dompet ${transfer.to_wallet_id}`}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            {formatDate(transfer.date)}
-          </p>
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="text-right">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline">
-                <AmountText amount={-transfer.from_amount} showSign={true}>
-                  {formatAmountCurrency(transfer.from_amount, transfer.from_wallet?.currency?.symbol || transfer.from_wallet?.currency_code)}
-                </AmountText>
-              </Badge>
-              <span className="text-muted-foreground">→</span>
-              <Badge variant="outline">
-                <AmountText amount={transfer.to_amount} showSign={true}>
-                  {formatAmountCurrency(transfer.to_amount, transfer.to_wallet?.currency?.symbol || transfer.to_wallet?.currency_code)}
-                </AmountText>
-              </Badge>
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {transfer.from_wallet?.currency_code} → {transfer.to_wallet?.currency_code}
+      {/* Responsive layout */}
+      <div className="space-y-4 sm:space-y-3">
+        {/* Header with icon and transfer info */}
+        <div className="flex items-start gap-4 sm:gap-3">
+          <div className="flex-shrink-0 p-3 sm:p-2 rounded-2xl sm:rounded-full bg-gradient-to-br from-blue-50 to-indigo-100 sm:bg-blue-50 shadow-sm sm:shadow-none">
+            <ArrowRightLeft className="w-6 h-6 sm:w-5 sm:h-5 text-blue-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-lg sm:font-semibold sm:text-base text-gray-900 mb-1 sm:mb-0.5">
+              Transfer Antar Dompet
+            </h3>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-1 text-sm sm:text-xs text-gray-500">
+              <div className="flex items-center gap-2">
+                <span className="truncate font-medium sm:font-normal">
+                  {transfer.from_wallet?.name || `Dompet ${transfer.from_wallet_id}`}
+                </span>
+                <ArrowRightLeft className="w-4 h-4 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
+                <span className="truncate font-medium sm:font-normal">
+                  {transfer.to_wallet?.name || `Dompet ${transfer.to_wallet_id}`}
+                </span>
+              </div>
+              <span className="text-xs text-gray-400 sm:hidden">•</span>
+              <span className="text-xs text-gray-400 whitespace-nowrap">{formatDate(transfer.date)}</span>
             </div>
           </div>
         </div>
-        <div className="flex gap-2">
+
+        {/* Responsive Amount display */}
+        <div className="bg-gradient-to-r from-gray-50 to-blue-50 sm:bg-gray-50 rounded-2xl sm:rounded-lg p-4 sm:p-3 border border-gray-200 sm:border-transparent">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-2">
+            <div className="flex items-center justify-between sm:justify-center sm:gap-2">
+              <div className="text-center flex-1 sm:flex-initial">
+                <div className="text-sm font-semibold text-gray-600 mb-2 sm:mb-1 sm:text-xs">Dari</div>
+                <div className="bg-white rounded-xl sm:rounded-lg p-3 sm:p-2 border border-red-200 sm:border-red-100 shadow-sm sm:shadow-none">
+                  <AmountText amount={-transfer.from_amount} showSign={true} className="text-red-600 font-bold text-lg sm:text-sm">
+                    {formatAmountCurrency(transfer.from_amount, transfer.from_wallet?.currency?.symbol || transfer.from_wallet?.currency_code)}
+                  </AmountText>
+                </div>
+              </div>
+
+              <div className="flex-shrink-0 mx-4 sm:mx-2">
+                <div className="p-2 sm:p-1 rounded-full bg-white sm:bg-transparent shadow-sm sm:shadow-none border border-gray-200 sm:border-transparent">
+                  <ArrowRightLeft className="w-5 h-5 sm:w-4 sm:h-4 text-blue-600 sm:text-gray-400" />
+                </div>
+              </div>
+
+              <div className="text-center flex-1 sm:flex-initial">
+                <div className="text-sm font-semibold text-gray-600 mb-2 sm:mb-1 sm:text-xs">Ke</div>
+                <div className="bg-white rounded-xl sm:rounded-lg p-3 sm:p-2 border border-green-200 sm:border-green-100 shadow-sm sm:shadow-none">
+                  <AmountText amount={transfer.to_amount} showSign={true} className="text-green-600 font-bold text-lg sm:text-sm">
+                    {formatAmountCurrency(transfer.to_amount, transfer.to_wallet?.currency?.symbol || transfer.to_wallet?.currency_code)}
+                  </AmountText>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center sm:hidden">
+              <span className="text-sm text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">
+                {transfer.from_wallet?.currency_code} → {transfer.to_wallet?.currency_code}
+              </span>
+            </div>
+          </div>
+          <div className="text-center text-xs text-gray-500 mt-2 hidden sm:block">
+            {transfer.from_wallet?.currency_code} → {transfer.to_wallet?.currency_code}
+          </div>
+        </div>
+
+        {/* Responsive Actions */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 pt-4 sm:pt-2 border-t-2 sm:border-t border-gray-100">
           <Button
             variant="outline"
-            size="sm"
+            size="lg"
+            className="flex-1 sm:flex-none h-12 sm:h-auto sm:size-sm rounded-xl sm:rounded-md border-2 sm:border text-base sm:text-sm font-medium sm:font-normal hover:bg-gray-50 hover:border-gray-300 transition-all"
             onClick={() => openDialog(transfer)}
           >
-            <Edit className="w-3 h-3 mr-1" />
+            <Edit className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
             Edit
           </Button>
           <Button
             variant="destructive"
-            size="sm"
+            size="lg"
+            className="flex-1 sm:flex-none h-12 sm:h-auto sm:size-sm rounded-xl sm:rounded-md text-base sm:text-sm font-medium sm:font-normal hover:bg-red-600 transition-all"
             onClick={() => handleDeleteClick(transfer.id)}
           >
-            <Trash2 className="w-3 h-3 mr-1" />
+            <Trash2 className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
             Hapus
           </Button>
         </div>

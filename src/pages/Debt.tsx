@@ -8,7 +8,7 @@ import Layout from "@/components/Layout";
 import DebtDialog from "@/components/debt/DebtDialog";
 import { DEBT_TYPES } from "@/constants/enums";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { useDebts, useDeleteDebt } from "@/hooks/queries/use-debts";
+import { useDeleteDebt } from "@/hooks/queries/use-debts";
 import { useDebtsPaginated } from "@/hooks/queries/paginated/use-debts-paginated";
 import { DebtModel } from "@/models/debts";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
@@ -59,55 +59,96 @@ const Debt = () => {
   };
 
   const renderDebtItem = (debt: DebtModel) => (
-    <Card key={debt.id} className="p-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <h3 className="font-semibold">{debt.name}</h3>
-            <Badge variant={debt.status === 'active' ? 'default' : 'secondary'}>
-              {debt.status === 'active' ? 'Aktif' : 'Lunas'}
-            </Badge>
-          </div>
-          <div className="flex items-center gap-4 mt-1">
-            <span className={`text-xs px-2 py-1 rounded ${
-              debt.type === DEBT_TYPES.LOAN 
-                ? 'bg-red-100 text-red-800' 
-                : 'bg-green-100 text-green-800'
-            }`}>
-              {debt.type === DEBT_TYPES.LOAN ? 'Hutang' : 'Piutang'}
-            </span>
-            <span className="text-sm text-muted-foreground">{debt.currency_code}</span>
-          </div>
-          {debt.due_date && (
-            <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
-              <Calendar className="w-3 h-3" />
-              Jatuh tempo: {new Date(debt.due_date).toLocaleDateString()}
+    <Card key={debt.id} className="bg-white border-2 sm:border border-gray-100 sm:border-gray-200 rounded-2xl sm:rounded-xl p-5 sm:p-4 shadow-sm hover:shadow-lg sm:hover:shadow-md hover:border-gray-200 transition-all duration-200 sm:duration-75">
+      <div className="space-y-4 sm:space-y-3">
+        {/* Responsive Header Section */}
+        <div className="flex items-start justify-between gap-4 sm:gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col gap-3 sm:gap-2 mb-3 sm:mb-2">
+              <h3 className="font-bold text-xl sm:font-semibold sm:text-base text-gray-900 truncate">{debt.name}</h3>
+              <div className="flex justify-center sm:justify-start">
+                <Badge
+                  variant={debt.status === 'active' ? 'default' : 'secondary'}
+                  className="text-sm sm:text-xs px-4 sm:px-2 py-2 sm:py-1 rounded-full sm:rounded-md font-bold sm:font-medium shadow-sm sm:shadow-none"
+                >
+                  {debt.status === 'active' ? '🔄 Aktif' : '✅ Lunas'}
+                </Badge>
+              </div>
             </div>
-          )}
+
+            <div className="flex flex-col gap-3 sm:gap-2">
+              <div className={`rounded-xl sm:rounded-lg p-3 sm:p-2 border ${
+                debt.type === DEBT_TYPES.LOAN
+                  ? 'bg-gradient-to-r from-red-50 to-pink-50 sm:bg-red-50 border-red-100 sm:border-transparent'
+                  : 'bg-gradient-to-r from-green-50 to-emerald-50 sm:bg-green-50 border-green-100 sm:border-transparent'
+              }`}>
+                <span className={`text-base sm:text-sm font-bold sm:font-semibold ${
+                  debt.type === DEBT_TYPES.LOAN ? 'text-red-700' : 'text-green-700'
+                }`}>
+                  {debt.type === DEBT_TYPES.LOAN ? '💸 Hutang' : '💰 Piutang'}
+                </span>
+              </div>
+
+              {debt.due_date && (
+                <div className="bg-gradient-to-r from-orange-50 to-yellow-50 sm:bg-orange-50 rounded-xl sm:rounded-lg p-3 sm:p-2 border border-orange-100 sm:border-transparent">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 sm:w-3 sm:h-3 text-orange-600" />
+                    <span className="text-sm sm:text-xs font-semibold sm:font-medium text-orange-700">
+                      Jatuh tempo: {new Date(debt.due_date).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Responsive Amount display */}
+          <div className="text-center flex-shrink-0">
+            <div className={`rounded-2xl sm:rounded-lg p-4 sm:p-2 shadow-sm sm:shadow-none border-2 sm:border ${
+              debt.type === DEBT_TYPES.LOAN
+                ? 'bg-gradient-to-br from-red-50 to-red-100 sm:bg-red-50 border-red-200 sm:border-red-100'
+                : 'bg-gradient-to-br from-green-50 to-green-100 sm:bg-green-50 border-green-200 sm:border-green-100'
+            }`}>
+              <div className={`text-2xl sm:text-lg font-bold ${
+                debt.type === DEBT_TYPES.LOAN ? 'text-red-700' : 'text-green-700'
+              }`}>
+                {/* TODO: add total amount */}
+                {/* {debt.amount.toLocaleString('id-ID')} */}
+              </div>
+              <div className="text-sm sm:text-xs font-medium text-gray-600 mt-1 sm:mt-0">
+                {debt.currency_code}
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
+
+        {/* Responsive Actions */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 pt-4 sm:pt-2 border-t-2 sm:border-t border-gray-100">
+          <Button
+            variant="outline"
+            size="lg"
+            className="flex-1 sm:flex-none h-12 sm:h-auto sm:size-sm rounded-xl sm:rounded-md border-2 sm:border text-base sm:text-sm font-medium sm:font-normal hover:bg-gray-50 hover:border-gray-300 transition-all"
             onClick={() => handleViewHistory(debt)}
           >
-            <History className="w-3 h-3 mr-1" />
+            <History className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
             Detail
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
+          <Button
+            variant="outline"
+            size="lg"
+            className="flex-1 sm:flex-none h-12 sm:h-auto sm:size-sm rounded-xl sm:rounded-md border-2 sm:border text-base sm:text-sm font-medium sm:font-normal hover:bg-gray-50 hover:border-gray-300 transition-all"
             onClick={() => handleEdit(debt)}
           >
-            <Edit className="w-3 h-3 mr-1" />
+            <Edit className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
             Edit
           </Button>
           <Button
             variant="destructive"
-            size="sm"
+            size="lg"
+            className="flex-1 sm:flex-none h-12 sm:h-auto sm:size-sm rounded-xl sm:rounded-md text-base sm:text-sm font-medium sm:font-normal hover:bg-red-600 transition-all"
             onClick={() => handleDeleteClick(debt)}
           >
-            <Trash2 className="w-3 h-3 mr-1" />
+            <Trash2 className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
             Hapus
           </Button>
         </div>

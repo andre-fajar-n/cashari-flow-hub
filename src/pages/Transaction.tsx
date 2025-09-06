@@ -3,7 +3,7 @@ import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowUpCircle, ArrowDownCircle, Edit, Trash2 } from "lucide-react";
-import { useTransactions, useDeleteTransaction } from "@/hooks/queries/use-transactions";
+import { useDeleteTransaction } from "@/hooks/queries/use-transactions";
 import { useTransactionsPaginated } from "@/hooks/queries/paginated/use-transactions-paginated";
 import { useCategories } from "@/hooks/queries/use-categories";
 import { useWallets } from "@/hooks/queries/use-wallets";
@@ -12,7 +12,6 @@ import TransactionAssociations from "@/components/transactions/TransactionAssoci
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useQueryClient } from "@tanstack/react-query";
 import ProtectedRoute from "@/components/ProtectedRoute";
-
 import { formatAmountCurrency } from "@/lib/currency";
 import { TransactionFormData } from "@/form-dto/transactions";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
@@ -64,61 +63,75 @@ const Transaction = () => {
   const renderTransactionItem = (transaction: TransactionModel) => (
     <div
       key={transaction.id}
-      className="flex items-center justify-between p-4 border rounded-lg"
+      className="bg-white border-2 sm:border border-gray-100 sm:border-gray-200 rounded-2xl sm:rounded-xl p-5 sm:p-4 shadow-sm hover:shadow-lg sm:hover:shadow-md hover:border-gray-200 transition-all duration-200 sm:duration-75"
     >
-      <div className="flex items-center gap-3 flex-1">
-        <div className="flex-shrink-0">
-          {transaction.categories?.is_income ? (
-            <ArrowUpCircle className="w-5 h-5 text-green-600" />
-          ) : (
-            <ArrowDownCircle className="w-5 h-5 text-red-600" />
-          )}
-        </div>
-        <div className="flex-1">
-          <p className="font-medium">{transaction.categories?.name}</p>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>{transaction.wallets?.name}</span>
-            <span>•</span>
-            <span>{formatDate(transaction.date)}</span>
+      {/* Responsive layout */}
+      <div className="space-y-4 sm:space-y-3">
+        {/* Header with icon, category, and amount */}
+        <div className="flex items-start justify-between gap-4 sm:gap-3">
+          <div className="flex items-start sm:items-center gap-4 sm:gap-3 flex-1 min-w-0">
+            <div className="flex-shrink-0 p-3 sm:p-2 rounded-2xl sm:rounded-full bg-gradient-to-br from-gray-50 to-gray-100 sm:bg-gray-50 shadow-sm sm:shadow-none">
+              {transaction.categories?.is_income ? (
+                <ArrowUpCircle className="w-6 h-6 sm:w-5 sm:h-5 text-green-600" />
+              ) : (
+                <ArrowDownCircle className="w-6 h-6 sm:w-5 sm:h-5 text-red-600" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-lg sm:font-semibold sm:text-base text-gray-900 truncate mb-1 sm:mb-0">
+                {transaction.categories?.name}
+              </h3>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-1 text-sm sm:text-xs text-gray-500 mt-1 sm:mt-0.5">
+                <span className="truncate font-medium sm:font-normal">{transaction.wallets?.name}</span>
+                <span className="hidden sm:inline">•</span>
+                <span className="whitespace-nowrap">{formatDate(transaction.date)}</span>
+              </div>
+            </div>
           </div>
-          {transaction.description && (
-            <p className="text-sm text-muted-foreground mt-1">
-              {transaction.description}
-            </p>
-          )}
-          <TransactionAssociations transaction={transaction} />
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <div className="text-right">
-          <div className="flex items-center gap-2">
+          <div className="text-right flex-shrink-0 ml-3">
             <AmountText
               amount={transaction.categories?.is_income ? transaction.amount : -transaction.amount}
-              className="font-semibold"
+              className="font-bold text-xl sm:text-lg"
               showSign={true}
             >
               {formatAmountCurrency(transaction.amount, transaction.wallets.currency_code)}
             </AmountText>
+            <Badge variant="outline" className="text-sm sm:text-xs mt-2 sm:mt-1 px-3 sm:px-2 py-1 rounded-full sm:rounded-md font-medium sm:font-normal">
+              {transaction.wallets.currency_code}
+            </Badge>
           </div>
-          <Badge variant="outline" className="mt-1">
-            {transaction.wallets.currency_code}
-          </Badge>
         </div>
-        <div className="flex gap-2">
+
+        {/* Description */}
+        {transaction.description && (
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 sm:bg-gray-50 rounded-xl sm:rounded-lg p-4 sm:p-2 border border-blue-100 sm:border-transparent">
+            <p className="text-sm text-gray-700 sm:text-gray-600 leading-relaxed sm:leading-normal">
+              {transaction.description}
+            </p>
+          </div>
+        )}
+
+        {/* Associations */}
+        <TransactionAssociations transaction={transaction} />
+
+        {/* Responsive Actions */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 pt-4 sm:pt-2 border-t-2 sm:border-t border-gray-100">
           <Button
             variant="outline"
-            size="sm"
+            size="lg"
+            className="flex-1 sm:flex-none h-12 sm:h-auto sm:size-sm rounded-xl sm:rounded-md border-2 sm:border text-base sm:text-sm font-medium sm:font-normal hover:bg-gray-50 hover:border-gray-300 transition-all"
             onClick={() => openDialog(transaction)}
           >
-            <Edit className="w-3 h-3 mr-1" />
+            <Edit className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
             Edit
           </Button>
           <Button
             variant="destructive"
-            size="sm"
+            size="lg"
+            className="flex-1 sm:flex-none h-12 sm:h-auto sm:size-sm rounded-xl sm:rounded-md text-base sm:text-sm font-medium sm:font-normal hover:bg-red-600 transition-all"
             onClick={() => handleDeleteClick(transaction.id)}
           >
-            <Trash2 className="w-3 h-3 mr-1" />
+            <Trash2 className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
             Hapus
           </Button>
         </div>

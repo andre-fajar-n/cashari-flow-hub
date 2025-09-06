@@ -11,7 +11,7 @@ import { InvestmentAssetModel } from "@/models/investment-assets";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
-import { useDeleteInvestmentAsset, useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
+import { useDeleteInvestmentAsset } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentAssetsPaginated } from "@/hooks/queries/paginated/use-investment-assets-paginated";
 
 const InvestmentAsset = () => {
@@ -57,47 +57,59 @@ const InvestmentAsset = () => {
   };
 
   const renderAssetItem = (asset: InvestmentAssetModel) => (
-    <Card key={asset.id} className="p-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <Coins className="w-4 h-4 text-green-600" />
-            <h3 className="font-semibold">{asset.name}</h3>
-            {asset.symbol && (
-              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                {asset.symbol}
-              </span>
-            )}
+    <Card key={asset.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+      <div className="space-y-3">
+        {/* Header Section */}
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-1 bg-green-100 rounded-full">
+                <Coins className="w-4 h-4 text-green-600" />
+              </div>
+              <h3 className="font-bold text-lg text-gray-900 truncate">{asset.name}</h3>
+              {asset.symbol && (
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
+                  {asset.symbol}
+                </span>
+              )}
+            </div>
 
+            <div className="bg-gray-50 rounded-lg p-2">
+              <p className="text-sm font-medium text-gray-700">
+                Instrumen: {asset.investment_instruments?.name}
+              </p>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Instrumen: {asset.investment_instruments?.name}
-          </p>
         </div>
-        <div className="flex gap-2">
+
+        {/* Actions - Mobile responsive */}
+        <div className="flex gap-2 pt-2 border-t border-gray-100">
           <Button
             variant="outline"
             size="sm"
+            className="flex-1 sm:flex-none"
             onClick={() => handleViewHistory(asset)}
           >
-            <TrendingUp className="w-3 h-3 mr-1" />
-            Detail
+            <TrendingUp className="w-3 h-3 sm:mr-1" />
+            <span className="hidden sm:inline">Detail</span>
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
+            className="flex-1 sm:flex-none"
             onClick={() => handleEdit(asset)}
           >
-            <Edit className="w-3 h-3 mr-1" />
-            Edit
+            <Edit className="w-3 h-3 sm:mr-1" />
+            <span className="hidden sm:inline">Edit</span>
           </Button>
           <Button
             variant="destructive"
             size="sm"
+            className="flex-1 sm:flex-none"
             onClick={() => handleDeleteClick(asset.id)}
           >
-            <Trash2 className="w-3 h-3 mr-1" />
-            Hapus
+            <Trash2 className="w-3 h-3 sm:mr-1" />
+            <span className="hidden sm:inline">Hapus</span>
           </Button>
         </div>
       </div>

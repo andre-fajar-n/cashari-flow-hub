@@ -6,7 +6,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import InvestmentInstrumentDialog from "@/components/investment/InvestmentInstrumentDialog";
 import Layout from "@/components/Layout";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { useDeleteInvestmentInstrument, useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
+import { useDeleteInvestmentInstrument } from "@/hooks/queries/use-investment-instruments";
 import { useInvestmentInstrumentsPaginated } from "@/hooks/queries/paginated/use-investment-instruments-paginated";
 import { InvestmentInstrumentModel } from "@/models/investment-instruments";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
@@ -49,45 +49,62 @@ const InvestmentInstrument = () => {
   };
 
   const renderInstrumentItem = (instrument: InvestmentInstrumentModel) => (
-    <Card key={instrument.id} className="p-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-blue-600" />
-            <h3 className="font-semibold">{instrument.name}</h3>
-          </div>
-          <div className="flex items-center gap-4 mt-1">
-            {instrument.unit_label && (
-              <span className="text-sm text-muted-foreground">
-                Unit: {instrument.unit_label}
+    <Card key={instrument.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+      <div className="space-y-3">
+        {/* Header Section */}
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-1 bg-blue-100 rounded-full">
+                <TrendingUp className="w-4 h-4 text-blue-600" />
+              </div>
+              <h3 className="font-bold text-lg text-gray-900 truncate">{instrument.name}</h3>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              {instrument.unit_label && (
+                <span className="text-sm font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded-lg w-fit">
+                  Unit: {instrument.unit_label}
+                </span>
+              )}
+              <span className={`text-xs px-3 py-1 rounded-full font-medium w-fit ${
+                instrument.is_trackable
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-gray-100 text-gray-800'
+              }`}>
+                {instrument.is_trackable ? 'Dapat Dilacak' : 'Tidak Dapat Dilacak'}
               </span>
-            )}
-            <span className={`text-xs px-2 py-1 rounded ${
-              instrument.is_trackable 
-                ? 'bg-green-100 text-green-800' 
-                : 'bg-gray-100 text-gray-800'
-            }`}>
-              {instrument.is_trackable ? 'Dapat Dilacak' : 'Tidak Dapat Dilacak'}
-            </span>
+            </div>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">Detail</Button>
-          <Button 
-            variant="outline" 
+
+        {/* Actions - Mobile responsive */}
+        <div className="flex gap-2 pt-2 border-t border-gray-100">
+          <Button
+            variant="outline"
             size="sm"
+            className="flex-1 sm:flex-none"
+          >
+            <TrendingUp className="w-3 h-3 sm:mr-1" />
+            <span className="hidden sm:inline">Detail</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 sm:flex-none"
             onClick={() => handleEdit(instrument)}
           >
-            <Edit className="w-3 h-3 mr-1" />
-            Edit
+            <Edit className="w-3 h-3 sm:mr-1" />
+            <span className="hidden sm:inline">Edit</span>
           </Button>
           <Button
             variant="destructive"
             size="sm"
+            className="flex-1 sm:flex-none"
             onClick={() => handleDeleteClick(instrument.id)}
           >
-            <Trash2 className="w-3 h-3 mr-1" />
-            Hapus
+            <Trash2 className="w-3 h-3 sm:mr-1" />
+            <span className="hidden sm:inline">Hapus</span>
           </Button>
         </div>
       </div>

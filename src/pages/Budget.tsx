@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Plus, Edit, Trash2, Eye } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import BudgetDialog from "@/components/budget/BudgetDialog";
@@ -56,45 +56,70 @@ const Budget = () => {
     setIsDialogOpen(true);
   };
 
-
-
-
-
   const renderBudgetItem = (budget: BudgetModel) => (
-    <Card key={budget.id} className="p-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-        <div>
-          <h3 className="font-semibold">{budget.name}</h3>
-          <p className="text-sm text-muted-foreground">
-            {budget.currency_code} {budget.amount.toLocaleString('id-ID')}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {new Date(budget.start_date).toLocaleDateString()} - {new Date(budget.end_date).toLocaleDateString()}
-          </p>
+    <Card key={budget.id} className="bg-white border-2 sm:border border-gray-100 sm:border-gray-200 rounded-2xl sm:rounded-xl p-5 sm:p-4 shadow-sm hover:shadow-lg sm:hover:shadow-md hover:border-gray-200 transition-all duration-200 sm:duration-75">
+      <div className="space-y-4 sm:space-y-3">
+        {/* Responsive Header Section */}
+        <div className="flex items-start justify-between gap-4 sm:gap-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-xl sm:font-semibold sm:text-base text-gray-900 truncate mb-3 sm:mb-2">{budget.name}</h3>
+            <div className="flex flex-col gap-3 sm:gap-2">
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 sm:bg-green-50 rounded-xl sm:rounded-lg p-3 sm:p-2 border border-green-100 sm:border-transparent">
+                <span className="text-base sm:text-sm font-bold sm:font-semibold text-green-700">
+                  Budget: {budget.amount.toLocaleString('id-ID')} {budget.currency_code}
+                </span>
+              </div>
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 sm:bg-blue-50 rounded-xl sm:rounded-lg p-3 sm:p-2 border border-blue-100 sm:border-transparent">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 sm:w-3 sm:h-3 text-blue-600" />
+                  <span className="text-sm sm:text-xs font-semibold sm:font-medium text-blue-700">
+                    {new Date(budget.start_date).toLocaleDateString()} - {new Date(budget.end_date).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Responsive Amount display */}
+          <div className="text-center flex-shrink-0">
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 sm:bg-gray-50 rounded-2xl sm:rounded-lg p-4 sm:p-2 shadow-sm sm:shadow-none border border-gray-200 sm:border-transparent">
+              <div className="text-2xl sm:text-lg font-bold text-gray-900">
+                {budget.amount.toLocaleString('id-ID')}
+              </div>
+              <div className="text-sm sm:text-xs font-medium text-gray-600 mt-1 sm:mt-0">
+                {budget.currency_code}
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm"
+
+        {/* Responsive Actions */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 pt-4 sm:pt-2 border-t-2 sm:border-t border-gray-100">
+          <Button
+            variant="outline"
+            size="lg"
+            className="flex-1 sm:flex-none h-12 sm:h-auto sm:size-sm rounded-xl sm:rounded-md border-2 sm:border text-base sm:text-sm font-medium sm:font-normal hover:bg-gray-50 hover:border-gray-300 transition-all"
             onClick={() => handleView(budget)}
           >
-            <Eye className="w-3 h-3 mr-1" />
+            <Eye className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
             Detail
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
+          <Button
+            variant="outline"
+            size="lg"
+            className="flex-1 sm:flex-none h-12 sm:h-auto sm:size-sm rounded-xl sm:rounded-md border-2 sm:border text-base sm:text-sm font-medium sm:font-normal hover:bg-gray-50 hover:border-gray-300 transition-all"
             onClick={() => handleEdit(budget)}
           >
-            <Edit className="w-3 h-3 mr-1" />
+            <Edit className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
             Edit
           </Button>
           <Button
             variant="destructive"
-            size="sm"
+            size="lg"
+            className="flex-1 sm:flex-none h-12 sm:h-auto sm:size-sm rounded-xl sm:rounded-md text-base sm:text-sm font-medium sm:font-normal hover:bg-red-600 transition-all"
             onClick={() => handleDeleteClick(budget.id)}
           >
-            <Trash2 className="w-3 h-3 mr-1" />
+            <Trash2 className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
             Hapus
           </Button>
         </div>
