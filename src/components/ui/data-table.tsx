@@ -52,9 +52,30 @@ export function DataTable<T extends Record<string, any>>({
   onServerParamsChange,
 }: DataTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [columnFilterValues, setColumnFilterValues] = useState<Record<string, any>>({});
   const [currentPage, setCurrentPage] = useState(page ?? 1);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+
+  // Debounce search term with 300ms delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1);
+
+      // Trigger server-side search automatically in server mode
+      if (serverMode && onServerParamsChange) {
+        onServerParamsChange({
+          searchTerm,
+          filters: columnFilterValues,
+          page: 1,
+          itemsPerPage
+        });
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, serverMode, onServerParamsChange, columnFilterValues, itemsPerPage]);
 
   // Sync internal page with controlled prop in server mode
   useEffect(() => {
@@ -63,14 +84,12 @@ export function DataTable<T extends Record<string, any>>({
     }
   }, [page, serverMode]);
 
-
-
   // Guard against undefined data to avoid runtime errors when pages pass undefined during initial load
   const safeData = (data ?? []) as T[];
 
-
   const resetFilters = () => {
     setSearchTerm("");
+    setDebouncedSearchTerm("");
     setColumnFilterValues({});
     setCurrentPage(1);
     if (serverMode && onServerParamsChange) {
@@ -78,13 +97,13 @@ export function DataTable<T extends Record<string, any>>({
     }
   };
 
-  const hasActiveFilters = searchTerm !== "" || Object.keys(columnFilterValues).some(key => columnFilterValues[key] !== "");
+  const hasActiveFilters = debouncedSearchTerm !== "" || Object.keys(columnFilterValues).some(key => columnFilterValues[key] !== "");
 
   const filteredData = useMemo(() => {
     let filtered = safeData;
 
-    // Apply search filter
-    if (searchTerm) {
+    // Apply search filter using debounced search term
+    if (debouncedSearchTerm) {
       // Helper to get nested value using dot notation (e.g., "categories.name")
       const getNestedValue = (obj: any, path: string | number | symbol) => {
         if (typeof path === 'string' && path.includes('.')) {
@@ -93,7 +112,7 @@ export function DataTable<T extends Record<string, any>>({
         return obj[path as keyof typeof obj];
       };
 
-      const termLower = searchTerm.toLowerCase();
+      const termLower = debouncedSearchTerm.toLowerCase();
 
       filtered = filtered.filter((item) =>
         searchFields.some((field) => {
@@ -164,9 +183,8 @@ export function DataTable<T extends Record<string, any>>({
       }
     });
 
-
     return filtered;
-  }, [data, searchTerm, columnFilterValues, searchFields, columnFilters]);
+  }, [data, debouncedSearchTerm, columnFilterValues, searchFields, columnFilters]);
 
   const effectiveTotal = serverMode ? (totalCount ?? 0) : (filteredData?.length || 0);
   const totalPages = Math.ceil(effectiveTotal / itemsPerPage);
@@ -292,16 +310,9 @@ export function DataTable<T extends Record<string, any>>({
                 onChange={(e) => {
                   const nextTerm = e.target.value;
                   setSearchTerm(nextTerm);
-                  setCurrentPage(1);
+                  // Page reset will be handled by debounce effect
                 }}
                 className="pl-11 sm:pl-10 h-12 sm:h-9 text-base sm:text-sm rounded-xl sm:rounded-md border-2 sm:border focus:border-primary"
-                onKeyDown={(e) => {
-                  if (serverMode && e.key === 'Enter') {
-                    e.preventDefault();
-                    setCurrentPage(1);
-                    onServerParamsChange?.({ searchTerm, filters: columnFilterValues, page: 1, itemsPerPage });
-                  }
-                }}
               />
             </div>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 items-stretch sm:items-center">
@@ -320,41 +331,16 @@ export function DataTable<T extends Record<string, any>>({
                   </CollapsibleTrigger>
                 </Collapsible>
               )}
-              <div className="flex gap-3 sm:gap-2">
-                {serverMode && (
-                  <Button
-                    variant="default"
-                    className="h-12 sm:h-9 flex-1 sm:flex-initial sm:px-4 rounded-xl sm:rounded-md text-base sm:text-sm font-medium"
-                    onClick={() => {
-                      setCurrentPage(1);
-                      onServerParamsChange?.({ searchTerm, filters: columnFilterValues, page: 1, itemsPerPage });
-                    }}
-                  >
-                    Cari
-                  </Button>
-                )}
-                {!serverMode && (
-                  <Button
-                    variant="default"
-                    className="h-12 sm:h-9 flex-1 sm:flex-initial sm:px-4 rounded-xl sm:rounded-md text-base sm:text-sm font-medium"
-                    onClick={() => {
-                      setCurrentPage(1);
-                    }}
-                  >
-                    Cari
-                  </Button>
-                )}
-                {hasActiveFilters && (
-                  <Button
-                    variant="ghost"
-                    onClick={resetFilters}
-                    className="h-12 sm:h-9 px-4 sm:px-3 rounded-xl sm:rounded-md text-base sm:text-sm font-medium"
-                  >
-                    <RotateCcw className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
-                    Reset
-                  </Button>
-                )}
-              </div>
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  onClick={resetFilters}
+                  className="h-12 sm:h-9 px-4 sm:px-3 rounded-xl sm:rounded-md text-base sm:text-sm font-medium"
+                >
+                  <RotateCcw className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
+                  Reset
+                </Button>
+              )}
             </div>
           </div>
 

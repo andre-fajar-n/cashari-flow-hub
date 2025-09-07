@@ -15,6 +15,9 @@ export const useTransactionsPaginated = (params: PaginatedParams) => {
     ],
     mapSearch: (q: any, term: string) => {
       if (!term) return q;
+      const isNumeric = /^\d+(?:\.\d+)?$/.test(term);
+      if (!isNumeric) return q.ilike("description", `%${term}%`);
+
       return q.or(`amount.eq.${term},description.ilike.%${term}%`);
     },
     mapFilters: (q: any, filters: Record<string, any>) => {

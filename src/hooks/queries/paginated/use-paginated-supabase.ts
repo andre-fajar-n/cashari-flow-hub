@@ -80,7 +80,10 @@ export const usePaginatedSupabase = <T = any>(params: PaginatedParams, options: 
       }
 
       const { data, count, error } = await query;
-      if (error) throw error;
+      if (error) {
+        console.error("Failed to fetch paginated data", error);
+        throw error;
+      }
       return { data: (data || []) as T[], count: count || 0 };
     },
     placeholderData: keepPreviousData,
