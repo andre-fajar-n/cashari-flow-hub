@@ -59,81 +59,83 @@ const Transfer = () => {
   const renderTransferItem = (transfer: TransferModel) => (
     <div
       key={transfer.id}
-      className="bg-white border-2 sm:border border-gray-100 sm:border-gray-200 rounded-2xl sm:rounded-xl p-5 sm:p-4 shadow-sm hover:shadow-lg sm:hover:shadow-md hover:border-gray-200 transition-all duration-200 sm:duration-75"
+      className="bg-white border-2 sm:border border-gray-100 sm:border-gray-200 rounded-2xl sm:rounded-lg p-5 sm:p-3 shadow-sm hover:shadow-lg sm:hover:shadow-md hover:border-gray-200 transition-all duration-200 sm:duration-75"
     >
       {/* Responsive layout */}
-      <div className="space-y-4 sm:space-y-3">
-        {/* Header with icon and transfer info */}
-        <div className="flex items-start gap-4 sm:gap-3">
-          <div className="flex-shrink-0 p-3 sm:p-2 rounded-2xl sm:rounded-full bg-gradient-to-br from-blue-50 to-indigo-100 sm:bg-blue-50 shadow-sm sm:shadow-none">
-            <ArrowRightLeft className="w-6 h-6 sm:w-5 sm:h-5 text-blue-600" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-lg sm:font-semibold sm:text-base text-gray-900 mb-1 sm:mb-0.5">
-              Transfer Antar Dompet
-            </h3>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-1 text-sm sm:text-xs text-gray-500">
-              <div className="flex items-center gap-2">
-                <span className="truncate font-medium sm:font-normal">
-                  {transfer.from_wallet?.name || `Dompet ${transfer.from_wallet_id}`}
-                </span>
-                <ArrowRightLeft className="w-4 h-4 sm:w-3 sm:h-3 text-gray-400 flex-shrink-0" />
-                <span className="truncate font-medium sm:font-normal">
-                  {transfer.to_wallet?.name || `Dompet ${transfer.to_wallet_id}`}
-                </span>
+      <div className="space-y-4 sm:space-y-2">
+        {/* Header with icon and date - Compact for web */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 sm:gap-2">
+            <div className="flex-shrink-0 p-3 sm:p-1.5 rounded-2xl sm:rounded-lg bg-gradient-to-br from-blue-50 to-indigo-100 sm:bg-blue-50 shadow-sm sm:shadow-none">
+              <ArrowRightLeft className="w-6 h-6 sm:w-4 sm:h-4 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="font-bold text-xl sm:font-medium sm:text-sm text-gray-900">
+                Transfer Antar Dompet
+              </h3>
+              <div className="text-xs sm:text-xs text-gray-500 mt-1 sm:mt-0">
+                {formatDate(transfer.date)}
               </div>
-              <span className="text-xs text-gray-400 sm:hidden">•</span>
-              <span className="text-xs text-gray-400 whitespace-nowrap">{formatDate(transfer.date)}</span>
             </div>
           </div>
         </div>
 
-        {/* Responsive Amount display */}
-        <div className="bg-gradient-to-r from-gray-50 to-blue-50 sm:bg-gray-50 rounded-2xl sm:rounded-lg p-4 sm:p-3 border border-gray-200 sm:border-transparent">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-2">
-            <div className="flex items-center justify-between sm:justify-center sm:gap-2">
-              <div className="text-center flex-1 sm:flex-initial">
-                <div className="text-sm font-semibold text-gray-600 mb-2 sm:mb-1 sm:text-xs">Dari</div>
-                <div className="bg-white rounded-xl sm:rounded-lg p-3 sm:p-2 border border-red-200 sm:border-red-100 shadow-sm sm:shadow-none">
-                  <AmountText amount={-transfer.from_amount} showSign={true} className="text-red-600 font-bold text-lg sm:text-sm">
-                    {formatAmountCurrency(transfer.from_amount, transfer.from_wallet?.currency?.symbol || transfer.from_wallet?.currency_code)}
-                  </AmountText>
-                </div>
+        {/* Wallet Info - Prominent display */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 sm:bg-blue-50 rounded-xl sm:rounded-md p-4 sm:p-2 border border-blue-100 sm:border-blue-100">
+          <div className="flex items-center justify-center gap-3 sm:gap-2">
+            <div className="text-center flex-1">
+              <div className="font-bold text-lg sm:text-base text-gray-800 truncate">
+                {transfer.from_wallet?.name || `Dompet ${transfer.from_wallet_id}`}
               </div>
-
-              <div className="flex-shrink-0 mx-4 sm:mx-2">
-                <div className="p-2 sm:p-1 rounded-full bg-white sm:bg-transparent shadow-sm sm:shadow-none border border-gray-200 sm:border-transparent">
-                  <ArrowRightLeft className="w-5 h-5 sm:w-4 sm:h-4 text-blue-600 sm:text-gray-400" />
-                </div>
-              </div>
-
-              <div className="text-center flex-1 sm:flex-initial">
-                <div className="text-sm font-semibold text-gray-600 mb-2 sm:mb-1 sm:text-xs">Ke</div>
-                <div className="bg-white rounded-xl sm:rounded-lg p-3 sm:p-2 border border-green-200 sm:border-green-100 shadow-sm sm:shadow-none">
-                  <AmountText amount={transfer.to_amount} showSign={true} className="text-green-600 font-bold text-lg sm:text-sm">
-                    {formatAmountCurrency(transfer.to_amount, transfer.to_wallet?.currency?.symbol || transfer.to_wallet?.currency_code)}
-                  </AmountText>
-                </div>
+              <div className="text-xs text-gray-600 mt-1">
+                {transfer.from_wallet?.currency_code}
               </div>
             </div>
 
-            <div className="text-center sm:hidden">
-              <span className="text-sm text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">
-                {transfer.from_wallet?.currency_code} → {transfer.to_wallet?.currency_code}
-              </span>
+            <div className="flex-shrink-0">
+              <ArrowRightLeft className="w-6 h-6 sm:w-4 sm:h-4 text-blue-600" />
             </div>
-          </div>
-          <div className="text-center text-xs text-gray-500 mt-2 hidden sm:block">
-            {transfer.from_wallet?.currency_code} → {transfer.to_wallet?.currency_code}
+
+            <div className="text-center flex-1">
+              <div className="font-bold text-lg sm:text-base text-gray-800 truncate">
+                {transfer.to_wallet?.name || `Dompet ${transfer.to_wallet_id}`}
+              </div>
+              <div className="text-xs text-gray-600 mt-1">
+                {transfer.to_wallet?.currency_code}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Responsive Actions */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 pt-4 sm:pt-2 border-t-2 sm:border-t border-gray-100">
+        {/* Amount display - Below wallet info */}
+        <div className="bg-gradient-to-r from-gray-50 to-blue-50 sm:bg-gray-50 rounded-xl sm:rounded-md p-4 sm:p-2 border border-gray-200 sm:border-transparent">
+          <div className="flex items-center justify-center gap-4 sm:gap-3">
+            <div className="text-center">
+              <div className="text-sm sm:text-xs font-medium text-gray-600 mb-1">Dari</div>
+              <AmountText amount={-transfer.from_amount} showSign={true} className="text-red-600 font-bold text-lg sm:text-sm">
+                {formatAmountCurrency(transfer.from_amount, transfer.from_wallet?.currency?.symbol || transfer.from_wallet?.currency_code)}
+              </AmountText>
+            </div>
+
+            <div className="flex-shrink-0">
+              <ArrowRightLeft className="w-5 h-5 sm:w-3 sm:h-3 text-gray-400" />
+            </div>
+
+            <div className="text-center">
+              <div className="text-sm sm:text-xs font-medium text-gray-600 mb-1">Ke</div>
+              <AmountText amount={transfer.to_amount} showSign={true} className="text-green-600 font-bold text-lg sm:text-sm">
+                {formatAmountCurrency(transfer.to_amount, transfer.to_wallet?.currency?.symbol || transfer.to_wallet?.currency_code)}
+              </AmountText>
+            </div>
+          </div>
+        </div>
+
+        {/* Responsive Actions - More compact for web */}
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 pt-4 sm:pt-1 border-t-2 sm:border-t border-gray-100">
           <Button
             variant="outline"
             size="lg"
-            className="flex-1 sm:flex-none h-12 sm:h-auto sm:size-sm rounded-xl sm:rounded-md border-2 sm:border text-base sm:text-sm font-medium sm:font-normal hover:bg-gray-50 hover:border-gray-300 transition-all"
+            className="flex-1 sm:flex-none h-12 sm:h-8 rounded-xl sm:rounded-md border-2 sm:border text-base sm:text-xs font-medium sm:font-normal hover:bg-gray-50 hover:border-gray-300 transition-all"
             onClick={() => openDialog(transfer)}
           >
             <Edit className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
@@ -142,7 +144,7 @@ const Transfer = () => {
           <Button
             variant="destructive"
             size="lg"
-            className="flex-1 sm:flex-none h-12 sm:h-auto sm:size-sm rounded-xl sm:rounded-md text-base sm:text-sm font-medium sm:font-normal hover:bg-red-600 transition-all"
+            className="flex-1 sm:flex-none h-12 sm:h-8 rounded-xl sm:rounded-md text-base sm:text-xs font-medium sm:font-normal hover:bg-red-600 transition-all"
             onClick={() => handleDeleteClick(transfer.id)}
           >
             <Trash2 className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
