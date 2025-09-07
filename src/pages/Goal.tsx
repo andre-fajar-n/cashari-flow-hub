@@ -5,14 +5,11 @@ import { Plus } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import GoalDialog from "@/components/goal/GoalDialog";
-import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
-import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
-import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { GoalModel } from "@/models/goals";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import GoalCard from "@/components/goal/GoalCard";
-import { useDeleteGoal, useGoals } from "@/hooks/queries/use-goals";
+import { useDeleteGoal } from "@/hooks/queries/use-goals";
 import { useGoalsPaginated } from "@/hooks/queries/paginated/use-goals-paginated";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { useGoalFundsSummary } from "@/hooks/queries/use-goal-funds-summary";
@@ -22,11 +19,7 @@ const Goal = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [goalToDelete, setGoalToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
-  const [isRecordDialogOpen, setIsRecordDialogOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<GoalModel | undefined>(undefined);
-  const [selectedGoalForRecord, setSelectedGoalForRecord] = useState<number | undefined>(undefined);
-  const [transferConfig, setTransferConfig] = useState<GoalTransferConfig | undefined>(undefined);
 
   const { mutate: deleteGoal } = useDeleteGoal();
 
@@ -73,16 +66,6 @@ const Goal = () => {
     setIsDialogOpen(true);
   };
 
-  const handleAddRecord = (goalId: number) => {
-    setSelectedGoalForRecord(goalId);
-    setIsRecordDialogOpen(true);
-  };
-
-  const handleTransferToGoal = (config: GoalTransferConfig) => {
-    setTransferConfig(config);
-    setIsTransferDialogOpen(true);
-  };
-
   const renderGoalItem = (goal: GoalModel) => {    
     return (
       <GoalCard
@@ -91,8 +74,6 @@ const Goal = () => {
         totalAmount={groupedByGoalId[goal.id]?.total_amount || 0}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
-        onAddRecord={handleAddRecord}
-        onTransferToGoal={handleTransferToGoal}
       />
     );
   };
@@ -194,31 +175,6 @@ const Goal = () => {
           onOpenChange={setIsDialogOpen}
           goal={selectedGoal}
           onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ["goals"] });
-          }}
-        />
-
-        <GoalTransferDialog
-          open={isTransferDialogOpen}
-          onOpenChange={(open) => {
-            setIsTransferDialogOpen(open);
-            if (!open) {
-              setTransferConfig(undefined);
-            }
-          }}
-          transferConfig={transferConfig}
-          onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
-            queryClient.invalidateQueries({ queryKey: ["goals"] });
-          }}
-        />
-
-        <GoalInvestmentRecordDialog
-          open={isRecordDialogOpen}
-          onOpenChange={setIsRecordDialogOpen}
-          goalId={selectedGoalForRecord}
-          onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
             queryClient.invalidateQueries({ queryKey: ["goals"] });
           }}
         />
