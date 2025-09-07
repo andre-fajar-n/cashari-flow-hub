@@ -5,7 +5,9 @@ export const useInvestmentAssetsPaginated = (params: PaginatedParams) =>
     queryKeyBase: "investment_assets_paginated",
     table: "investment_assets",
     select: `*, investment_instruments(name)`,
-    orderBy: { column: "name", ascending: true },
+    orderBy: [
+      { column: "name", ascending: true },
+    ],
     mapSearch: (q: any, term: string) => q.or(`name.ilike.%${term}%,symbol.ilike.%${term}%`),
     mapFilters: (q: any, filters: Record<string, any>) => {
       Object.entries(filters).forEach(([key, value]) => {

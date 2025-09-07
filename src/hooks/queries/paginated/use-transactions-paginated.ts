@@ -9,7 +9,10 @@ export const useTransactionsPaginated = (params: PaginatedParams) => {
       wallets(id, name, currency_code, initial_amount),
       budget_items(budget_id, budgets(name)),
       business_project_transactions(project_id, business_projects(name))`,
-    orderBy: { column: "date", ascending: false },
+    orderBy: [
+      { column: "date", ascending: false },
+      { column: "created_at", ascending: false }
+    ],
     mapSearch: (q: any, term: string) => {
       if (!term) return q;
       return q.or(`amount.eq.${term},description.ilike.%${term}%`);

@@ -5,7 +5,9 @@ export const useGoalsPaginated = (params: PaginatedParams) =>
     queryKeyBase: "goals_paginated",
     table: "goals",
     select: `*`,
-    orderBy: { column: "name", ascending: true },
+    orderBy: [
+      { column: "name", ascending: true },
+    ],
     mapSearch: (q: any, term: string) => q.ilike("name", `%${term}%`),
     mapFilters: (q: any, filters: Record<string, any>) => {
       Object.entries(filters).forEach(([key, value]) => {

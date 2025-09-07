@@ -5,7 +5,9 @@ export const useBusinessProjectsPaginated = (params: PaginatedParams) =>
     queryKeyBase: "business_projects_paginated",
     table: "business_projects",
     select: `*`,
-    orderBy: { column: "name", ascending: true },
+    orderBy: [
+      { column: "name", ascending: true },
+    ],
     mapSearch: (q: any, term: string) => q.ilike("name", `%${term}%`),
     mapFilters: (q: any, filters: Record<string, any>) => {
       Object.entries(filters).forEach(([key, value]) => {

@@ -9,11 +9,16 @@ export interface PaginatedParams {
   filters?: Record<string, any>;
 }
 
+export interface OrderByOption {
+  column: string;
+  ascending?: boolean;
+}
+
 export interface PaginatedOptions {
   queryKeyBase: string;
   table: string;
   select: string;
-  orderBy?: { column: string; ascending?: boolean };
+  orderBy?: OrderByOption | OrderByOption[];
   includeUserId?: boolean; // default true
   userIdColumn?: string; // default 'user_id'
   baseFilters?: (q: any) => any;
@@ -52,7 +57,15 @@ export const usePaginatedSupabase = <T = any>(params: PaginatedParams, options: 
       }
 
       if (options.orderBy) {
-        query = query.order(options.orderBy.column, { ascending: options.orderBy.ascending ?? false });
+        // Handle multiple order by columns
+        if (Array.isArray(options.orderBy)) {
+          options.orderBy.forEach((orderOption) => {
+            query = query.order(orderOption.column, { ascending: orderOption.ascending ?? false });
+          });
+        } else {
+          // Handle single order by column (backward compatibility)
+          query = query.order(options.orderBy.column, { ascending: options.orderBy.ascending ?? false });
+        }
       }
 
       // paging

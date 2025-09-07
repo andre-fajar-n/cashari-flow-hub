@@ -7,7 +7,10 @@ export const useTransfersPaginated = (params: PaginatedParams) => {
     select: `*,
       from_wallet:wallets!transfers_from_wallet_id_fkey(id, name, currency_code, initial_amount),
       to_wallet:wallets!transfers_to_wallet_id_fkey(id, name, currency_code, initial_amount)`,
-    orderBy: { column: "date", ascending: false },
+    orderBy: [
+      { column: "date", ascending: false },
+      { column: "created_at", ascending: false }
+    ],
     mapSearch: (q: any, term: string) => {
       const isNumeric = /^\d+(?:\.\d+)?$/.test(term);
       return isNumeric ? q.or(`from_amount.eq.${term},to_amount.eq.${term}`) : q;
