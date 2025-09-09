@@ -54,14 +54,14 @@ const BusinessProject = () => {
   };
 
   const renderProjectItem = (project: BusinessProjectModel) => (
-    <Card key={project.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
-      <div className="space-y-3">
+    <Card key={project.id} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
+      <div className="space-y-2">
         {/* Header Section */}
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-lg text-gray-900 truncate">{project.name}</h3>
+            <h3 className="font-semibold text-base text-gray-900 truncate">{project.name}</h3>
             {project.description && (
-              <p className="text-sm text-gray-600 mt-2 bg-gray-50 rounded-lg p-2">
+              <p className="text-xs text-gray-600 mt-1 line-clamp-2">
                 {project.description}
               </p>
             )}
@@ -69,56 +69,54 @@ const BusinessProject = () => {
         </div>
 
         {/* Date Information */}
-        <div className="bg-blue-50 rounded-lg p-3 space-y-2">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs">
-            <div className="flex items-center gap-1 text-blue-700">
-              <Calendar className="w-3 h-3" />
-              <span className="font-medium">
-                Mulai: {project.start_date ? new Date(project.start_date).toLocaleDateString() : "Belum ditentukan"}
-              </span>
-            </div>
-            {project.end_date && (
-              <>
-                <span className="hidden sm:inline text-blue-400">•</span>
-                <div className="flex items-center gap-1 text-blue-700">
-                  <Calendar className="w-3 h-3" />
-                  <span className="font-medium">
-                    Selesai: {new Date(project.end_date).toLocaleDateString()}
-                  </span>
-                </div>
-              </>
-            )}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1 text-xs">
+          <div className="flex items-center gap-1 text-blue-700">
+            <Calendar className="w-3 h-3" />
+            <span>
+              Mulai: {project.start_date ? new Date(project.start_date).toLocaleDateString() : "Belum ditentukan"}
+            </span>
           </div>
+          {project.end_date && (
+            <>
+              <span className="hidden sm:inline text-blue-400 mx-1">•</span>
+              <div className="flex items-center gap-1 text-blue-700">
+                <Calendar className="w-3 h-3 sm:hidden" />
+                <span>
+                  Selesai: {new Date(project.end_date).toLocaleDateString()}
+                </span>
+              </div>
+            </>
+          )}
         </div>
 
-        {/* Actions - Mobile responsive */}
-        <div className="flex gap-2 pt-2 border-t border-gray-100">
+        {/* Actions */}
+        <div className="flex gap-1 pt-1 border-t border-gray-100">
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 sm:flex-none"
+            className="flex-1 h-8 text-xs"
             onClick={() => handleView(project)}
           >
-            <Eye className="w-3 h-3 sm:mr-1" />
-            <span className="hidden sm:inline">Detail</span>
+            <Eye className="w-3 h-3 mr-1" />
+            Detail
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 sm:flex-none"
+            className="flex-1 h-8 text-xs"
             onClick={() => handleEdit(project)}
           >
-            <Edit className="w-3 h-3 sm:mr-1" />
-            <span className="hidden sm:inline">Edit</span>
+            <Edit className="w-3 h-3 mr-1" />
+            Edit
           </Button>
           <Button
             variant="destructive"
             size="sm"
-            className="flex-1 sm:flex-none"
+            className="flex-1 h-8 text-xs"
             onClick={() => handleDeleteClick(project.id)}
           >
-            <Trash2 className="w-3 h-3 sm:mr-1" />
-            <span className="hidden sm:inline">Hapus</span>
+            <Trash2 className="w-3 h-3 mr-1" />
+            Hapus
           </Button>
         </div>
       </div>
