@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData } from "@/form-dto/goal-investment-records";
 import { Database } from "@/integrations/supabase/types";
@@ -150,20 +150,18 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Goal</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih goal" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {goals?.map((goal) => (
-                          <SelectItem key={goal.id} value={goal.id.toString()}>
-                            {goal.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <SearchableSelect
+                        options={goals?.map((goal) => ({
+                          label: goal.name,
+                          value: goal.id.toString()
+                        })) || []}
+                        value={field.value?.toString()}
+                        onValueChange={(value) => field.onChange(parseInt(value))}
+                        placeholder="Pilih goal"
+                        searchPlaceholder="Cari goal..."
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -240,23 +238,23 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
                   <FormItem>
                     <FormLabel>Instrumen Investasi</FormLabel>
                     <FormControl>
-                      <select 
-                        {...field}
-                        value={field.value || ""}
-                        onChange={(e) => {
-                          const value = e.target.value ? parseInt(e.target.value) : null;
-                          field.onChange(value);
+                      <SearchableSelect
+                        options={[
+                          { label: "Pilih Instrumen", value: "" },
+                          ...(instruments?.map((instrument) => ({
+                            label: instrument.name,
+                            value: instrument.id.toString()
+                          })) || [])
+                        ]}
+                        value={field.value?.toString() || ""}
+                        onValueChange={(value) => {
+                          const numValue = value ? parseInt(value) : null;
+                          field.onChange(numValue);
                           form.setValue("asset_id", null);
                         }}
-                        className="w-full p-2 border rounded-md"
-                      >
-                        <option value="">Pilih Instrumen</option>
-                        {instruments?.map((instrument) => (
-                          <option key={instrument.id} value={instrument.id}>
-                            {instrument.name}
-                          </option>
-                        ))}
-                      </select>
+                        placeholder="Pilih Instrumen"
+                        searchPlaceholder="Cari instrumen..."
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -270,23 +268,23 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
                   <FormItem>
                     <FormLabel>Aset Investasi</FormLabel>
                     <FormControl>
-                      <select 
-                        {...field}
-                        value={field.value || ""}
-                        onChange={(e) => {
-                          const value = e.target.value ? parseInt(e.target.value) : null;
-                          field.onChange(value);
+                      <SearchableSelect
+                        options={[
+                          { label: "Pilih Aset", value: "" },
+                          ...(filteredAssets.map((asset) => ({
+                            label: `${asset.name}${asset.symbol ? ` (${asset.symbol})` : ''}`,
+                            value: asset.id.toString()
+                          })))
+                        ]}
+                        value={field.value?.toString() || ""}
+                        onValueChange={(value) => {
+                          const numValue = value ? parseInt(value) : null;
+                          field.onChange(numValue);
                         }}
-                        className="w-full p-2 border rounded-md"
+                        placeholder="Pilih Aset"
+                        searchPlaceholder="Cari aset..."
                         disabled={!selectedInstrument}
-                      >
-                        <option value="">Pilih Aset</option>
-                        {filteredAssets.map((asset) => (
-                          <option key={asset.id} value={asset.id}>
-                            {asset.name} {asset.symbol && `(${asset.symbol})`}
-                          </option>
-                        ))}
-                      </select>
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
