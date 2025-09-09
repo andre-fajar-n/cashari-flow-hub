@@ -1,13 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
+import { usePaginatedSupabase, PaginatedParams } from "@/hooks/queries/paginated/use-paginated-supabase";
 
-interface UseBusinessProjectTransactionsPaginatedParams {
+interface UseBusinessProjectTransactionsPaginatedParams extends PaginatedParams {
   projectId: number;
-  page: number;
-  itemsPerPage: number;
-  searchTerm?: string;
-  filters?: Record<string, any>;
 }
 
 export const useBusinessProjectTransactionsPaginated = ({
@@ -17,75 +11,48 @@ export const useBusinessProjectTransactionsPaginated = ({
   searchTerm = "",
   filters = {}
 }: UseBusinessProjectTransactionsPaginatedParams) => {
-  const { user } = useAuth();
-
-  return useQuery({
-    queryKey: ["business-project-transactions-paginated", projectId, page, itemsPerPage, searchTerm, filters],
-    queryFn: async () => {
-      if (!projectId) return { data: [], count: 0 };
-
-      const offset = (page - 1) * itemsPerPage;
-
-      // Build the query
-      let query = supabase
-        .from("business_project_transactions")
-        .select(`
-          *,
-          transactions!inner(
-            *,
-            categories(name, is_income),
-            wallets(name, currency_code)
-          )
-        `, { count: 'exact' })
-        .eq("project_id", projectId);
-
-      // Apply search filter
-      if (searchTerm) {
-        query = query.or(`transactions.description.ilike.%${searchTerm}%,transactions.amount::text.ilike.%${searchTerm}%`);
-      }
-
-      // Apply column filters
+  return usePaginatedSupabase({ page, itemsPerPage, searchTerm, filters }, {
+    queryKeyBase: "business-project-transactions-paginated",
+    table: "business_project_transactions",
+    select: `*,
+      transactions!inner(
+        *,
+        categories(name, is_income),
+        wallets(name, currency_code)
+      )`,
+    orderBy: { column: "created_at", ascending: false },
+    includeUserId: false, // business_project_transactions has user_id but we filter by project_id instead
+    baseFilters: (q: any) => q.eq("project_id", projectId),
+    mapSearch: (q: any, term: string) => {
+      if (!term) return q;
+      return q.or(`transactions.description.ilike.%${term}%,transactions.amount::text.ilike.%${term}%`);
+    },
+    mapFilters: (q: any, filters: Record<string, any>) => {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== "") {
-          if (key === "date") {
+          if (key === "transactions.date") {
             // Handle date range filter
             if (typeof value === "object" && value.from) {
-              query = query.gte(`transactions.${key}`, value.from);
+              q = q.gte("transactions.date", value.from);
               if (value.to) {
-                query = query.lte(`transactions.${key}`, value.to);
+                q = q.lte("transactions.date", value.to);
               }
             } else {
-              query = query.eq(`transactions.${key}`, value);
+              q = q.eq("transactions.date", value);
             }
-          } else if (key === "category_id") {
-            query = query.eq(`transactions.${key}`, value);
-          } else if (key === "wallet_id") {
-            query = query.eq(`transactions.${key}`, value);
-          } else if (key === "is_income") {
-            query = query.eq(`transactions.categories.${key}`, value === "true");
+          } else if (key === "transactions.category_id") {
+            q = q.eq("transactions.category_id", value);
+          } else if (key === "transactions.wallet_id") {
+            q = q.eq("transactions.wallet_id", value);
+          } else if (key === "transactions.categories.is_income") {
+            q = q.eq("transactions.categories.is_income", value === "true");
           } else {
-            query = query.eq(`transactions.${key}`, value);
+            q = q.eq(key, value);
           }
         }
       });
-
-      // Apply pagination and ordering
-      query = query
-        .order("created_at", { ascending: false, referencedTable: "transactions" })
-        .range(offset, offset + itemsPerPage - 1);
-
-      const { data, error, count } = await query;
-
-      if (error) {
-        console.error("Failed to fetch paginated business project transactions", error);
-        throw error;
-      }
-
-      return {
-        data: data || [],
-        count: count || 0
-      };
+      return q;
     },
-    enabled: !!user && !!projectId,
+    enabled: !!projectId,
   });
 };

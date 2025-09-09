@@ -1,13 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
+import { usePaginatedSupabase, PaginatedParams } from "@/hooks/queries/paginated/use-paginated-supabase";
 
-interface UseBudgetTransactionsPaginatedParams {
+interface UseBudgetTransactionsPaginatedParams extends PaginatedParams {
   budgetId: number;
-  page: number;
-  itemsPerPage: number;
-  searchTerm?: string;
-  filters?: Record<string, any>;
 }
 
 export const useBudgetTransactionsPaginated = ({
@@ -17,75 +11,48 @@ export const useBudgetTransactionsPaginated = ({
   searchTerm = "",
   filters = {}
 }: UseBudgetTransactionsPaginatedParams) => {
-  const { user } = useAuth();
-
-  return useQuery({
-    queryKey: ["budget-transactions-paginated", budgetId, page, itemsPerPage, searchTerm, filters],
-    queryFn: async () => {
-      if (!budgetId) return { data: [], count: 0 };
-
-      const offset = (page - 1) * itemsPerPage;
-
-      // Build the query
-      let query = supabase
-        .from("budget_items")
-        .select(`
-          *,
-          transactions!inner(
-            *,
-            categories(name, is_income),
-            wallets(name, currency_code)
-          )
-        `, { count: 'exact' })
-        .eq("budget_id", budgetId);
-
-      // Apply search filter
-      if (searchTerm) {
-        query = query.or(`transactions.description.ilike.%${searchTerm}%,transactions.amount::text.ilike.%${searchTerm}%`);
-      }
-
-      // Apply column filters
+  return usePaginatedSupabase({ page, itemsPerPage, searchTerm, filters }, {
+    queryKeyBase: "budget-transactions-paginated",
+    table: "budget_items",
+    select: `*,
+      transactions!inner(
+        *,
+        categories(name, is_income),
+        wallets(name, currency_code)
+      )`,
+    orderBy: { column: "date", ascending: false },
+    includeUserId: false, // budget_items doesn't have user_id, we filter by budget_id instead
+    baseFilters: (q: any) => q.eq("budget_id", budgetId),
+    mapSearch: (q: any, term: string) => {
+      if (!term) return q;
+      return q.or(`transactions.description.ilike.%${term}%,transactions.amount::text.ilike.%${term}%`);
+    },
+    mapFilters: (q: any, filters: Record<string, any>) => {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== "") {
-          if (key === "date") {
+          if (key === "transactions.date") {
             // Handle date range filter
             if (typeof value === "object" && value.from) {
-              query = query.gte(`transactions.${key}`, value.from);
+              q = q.gte("transactions.date", value.from);
               if (value.to) {
-                query = query.lte(`transactions.${key}`, value.to);
+                q = q.lte("transactions.date", value.to);
               }
             } else {
-              query = query.eq(`transactions.${key}`, value);
+              q = q.eq("transactions.date", value);
             }
-          } else if (key === "category_id") {
-            query = query.eq(`transactions.${key}`, value);
-          } else if (key === "wallet_id") {
-            query = query.eq(`transactions.${key}`, value);
-          } else if (key === "is_income") {
-            query = query.eq(`transactions.categories.${key}`, value === "true");
+          } else if (key === "transactions.category_id") {
+            q = q.eq("transactions.category_id", value);
+          } else if (key === "transactions.wallet_id") {
+            q = q.eq("transactions.wallet_id", value);
+          } else if (key === "transactions.categories.is_income") {
+            q = q.eq("transactions.categories.is_income", value === "true");
           } else {
-            query = query.eq(`transactions.${key}`, value);
+            q = q.eq(key, value);
           }
         }
       });
-
-      // Apply pagination and ordering
-      query = query
-        .order("created_at", { ascending: false, referencedTable: "transactions" })
-        .range(offset, offset + itemsPerPage - 1);
-
-      const { data, error, count } = await query;
-
-      if (error) {
-        console.error("Failed to fetch paginated budget transactions", error);
-        throw error;
-      }
-
-      return {
-        data: data || [],
-        count: count || 0
-      };
+      return q;
     },
-    enabled: !!user && !!budgetId,
+    enabled: !!budgetId,
   });
 };
