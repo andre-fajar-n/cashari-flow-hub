@@ -11,6 +11,7 @@ import { useBusinessProjectTransactions } from "@/hooks/queries/use-business-pro
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
 import { BusinessProjectModel } from "@/models/business-projects";
+import { TransactionFilter } from "@/form-dto/transactions";
 
 interface BusinessProjectTransactionDialogProps {
   open: boolean;
@@ -28,8 +29,12 @@ const BusinessProjectTransactionDialog = ({
   const [selectedTransactionIds, setSelectedTransactionIds] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const filter: TransactionFilter = {
+    startDate: project?.start_date,
+    endDate: project?.end_date
+  };
 
-  const { data: allTransactions } = useTransactions();
+  const { data: allTransactions } = useTransactions(filter);
   const { 
     data: projectTransactions, 
     addTransactionsToProject 

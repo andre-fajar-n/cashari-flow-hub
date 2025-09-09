@@ -17,3 +17,8 @@ export const defaultTransactionFormValues: TransactionFormData = {
   budget_ids: [],
   business_project_ids: [],
 };
+
+export interface TransactionFilter {
+  startDate?: string;
+  endDate?: string;
+}

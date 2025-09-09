@@ -11,6 +11,7 @@ import { useBudgetTransactions } from "@/hooks/queries/use-budget-transactions";
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
 import { BudgetModel } from "@/models/budgets";
+import { TransactionFilter } from "@/form-dto/transactions";
 
 interface BudgetTransactionDialogProps {
   open: boolean;
@@ -28,8 +29,12 @@ const BudgetTransactionDialog = ({
   const [selectedTransactionIds, setSelectedTransactionIds] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const filter: TransactionFilter = {
+    startDate: budget?.start_date,
+    endDate: budget?.end_date
+  };
 
-  const { data: allTransactions } = useTransactions();
+  const { data: allTransactions } = useTransactions(filter);
   const { 
     data: budgetTransactions, 
     addTransactionsToBudget 

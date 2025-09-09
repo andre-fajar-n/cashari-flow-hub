@@ -2,15 +2,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { TransactionFormData } from "@/form-dto/transactions";
+import { TransactionFormData, TransactionFilter } from "@/form-dto/transactions";
 
-export const useTransactions = () => {
+export const useTransactions = (filter?: TransactionFilter) => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["transactions", user?.id],
+    queryKey: ["transactions", user?.id, filter],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("transactions")
         .select(`
           *,
@@ -28,6 +28,16 @@ export const useTransactions = () => {
         .eq("user_id", user?.id)
         .order("date", { ascending: false })
         .order("created_at", { ascending: false });
+
+      if (filter?.startDate) {
+        query = query.gte("date", filter.startDate);
+      }
+
+      if (filter?.endDate) {
+        query = query.lte("date", filter.endDate);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error("Failed to fetch transactions", error);
@@ -60,11 +70,11 @@ export const useCreateTransaction = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
       // Invalidate and refetch paginated transactions queries
-      queryClient.invalidateQueries({ queryKey: ["transactions_paginated"] });
-      queryClient.refetchQueries({ queryKey: ["transactions_paginated"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions_paginated", user?.id] });
+      queryClient.refetchQueries({ queryKey: ["transactions_paginated", user?.id] });
       toast({
         title: "Berhasil",
         description: "Transaksi berhasil ditambahkan",
@@ -102,11 +112,11 @@ export const useUpdateTransaction = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
       // Invalidate and refetch paginated transactions queries
-      queryClient.invalidateQueries({ queryKey: ["transactions_paginated"] });
-      queryClient.refetchQueries({ queryKey: ["transactions_paginated"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions_paginated", user?.id] });
+      queryClient.refetchQueries({ queryKey: ["transactions_paginated", user?.id] });
       toast({
         title: "Berhasil",
         description: "Transaksi berhasil diperbarui",
@@ -138,11 +148,11 @@ export const useDeleteTransaction = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
       // Invalidate and refetch paginated transactions queries
-      queryClient.invalidateQueries({ queryKey: ["transactions_paginated"] });
-      queryClient.refetchQueries({ queryKey: ["transactions_paginated"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions_paginated", user?.id] });
+      queryClient.refetchQueries({ queryKey: ["transactions_paginated", user?.id] });
       toast({
         title: "Berhasil",
         description: "Transaksi berhasil dihapus",

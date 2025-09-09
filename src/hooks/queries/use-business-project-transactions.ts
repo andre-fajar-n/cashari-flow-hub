@@ -40,7 +40,6 @@ export const useBusinessProjectTransactions = (projectId?: number) => {
         project_id: projectId,
         transaction_id: transactionId,
         user_id: user?.id,
-        updated_at: null
       }));
 
       const { error } = await supabase
@@ -55,7 +54,7 @@ export const useBusinessProjectTransactions = (projectId?: number) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["business-project-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["business_projects"] });
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions", user?.id] });
       toast({
         title: "Berhasil",
         description: "Transaksi berhasil ditambahkan ke proyek bisnis",
@@ -86,7 +85,7 @@ export const useBusinessProjectTransactions = (projectId?: number) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["business-project-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["business_projects"] });
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions", user?.id] });
       toast({
         title: "Berhasil",
         description: "Transaksi berhasil dihapus dari proyek bisnis",
