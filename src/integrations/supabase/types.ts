@@ -912,6 +912,43 @@ export type Database = {
           },
         ]
       }
+      money_summary: {
+        Row: {
+          wallet_id: number | null
+          wallet_name: string | null
+          goal_id: number | null
+          goal_name: string | null
+          instrument_id: number | null
+          instrument_name: string | null
+          asset_id: number | null
+          asset_name: string | null
+          original_currency_code: string | null
+          saldo: number | null
+          base_currency_code: string | null
+          latest_rate: number | null
+          rate_date: string | null
+          amount_unit: number | null
+          latest_asset_value: number | null
+          asset_value_date: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallets_currency_code_fkey"
+            columns: ["original_currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "wallets_base_currency_code_fkey"
+            columns: ["base_currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       money_movements: {
         Row: {
           amount: number | null

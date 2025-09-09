@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useCategories } from "@/hooks/queries/use-categories";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
+import { useMoneySummary } from "@/hooks/queries/use-money-summary";
+import MoneySummaryCard from "@/components/dashboard/MoneySummaryCard";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -12,6 +14,7 @@ const Dashboard = () => {
   const { data: wallets } = useWallets();
   const { data: categories } = useCategories();
   const { data: currencies } = useCurrencies();
+  const { data: moneySummary, isLoading: isMoneySummaryLoading } = useMoneySummary();
 
   return (
     <ProtectedRoute>
@@ -57,6 +60,16 @@ const Dashboard = () => {
               </p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Money Summary */}
+        <div className="mb-8">
+          <MoneySummaryCard
+            walletSummaries={moneySummary?.walletSummaries || []}
+            totalsByOriginalCurrency={moneySummary?.totalsByOriginalCurrency || []}
+            totalsByBaseCurrency={moneySummary?.totalsByBaseCurrency || []}
+            isLoading={isMoneySummaryLoading}
+          />
         </div>
 
         {/* Quick Overview */}
