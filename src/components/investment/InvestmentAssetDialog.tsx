@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { AssetFormData, defaultAssetFormValues } from "@/form-dto/investment-assets";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useCreateInvestmentAsset, useUpdateInvestmentAsset } from "@/hooks/queries/use-investment-assets";
@@ -132,18 +133,19 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
                 <FormItem>
                   <FormLabel>Instrumen Investasi</FormLabel>
                   <FormControl>
-                    <select
-                      {...field}
-                      className="w-full p-2 border rounded-md"
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
-                    >
-                      <option value={0}>Pilih instrumen</option>
-                      {instruments?.map((instrument) => (
-                        <option key={instrument.id} value={instrument.id}>
-                          {instrument.name}
-                        </option>
-                      ))}
-                    </select>
+                    <SearchableSelect
+                      options={[
+                        { label: "Pilih instrumen", value: "0" },
+                        ...(instruments?.map((instrument) => ({
+                          label: instrument.name,
+                          value: instrument.id.toString()
+                        })) || [])
+                      ]}
+                      value={field.value?.toString()}
+                      onValueChange={(val) => field.onChange(parseInt(val))}
+                      placeholder="Pilih instrumen"
+                      searchPlaceholder="Cari instrumen..."
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

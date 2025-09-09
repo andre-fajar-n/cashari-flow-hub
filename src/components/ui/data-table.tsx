@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Search, RotateCcw, Filter } from "lucide-react";
@@ -355,7 +355,7 @@ export function DataTable<T extends Record<string, any>>({
                         {filter.label}
                       </label>
                       {filter.type === 'select' ? (
-                        <Select
+                        <SearchableSelect
                           value={columnFilterValues[filter.field] || ""}
                           onValueChange={(value) => {
                             const nextFilters = {
@@ -368,19 +368,17 @@ export function DataTable<T extends Record<string, any>>({
                               onServerParamsChange({ searchTerm, filters: nextFilters, page: 1, itemsPerPage });
                             }
                           }}
-                        >
-                          <SelectTrigger className="h-12 sm:h-8 text-base sm:text-xs rounded-xl sm:rounded-md border-2 sm:border w-full">
-                            <SelectValue placeholder="Semua" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">Semua</SelectItem>
-                            {filter.options?.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          options={[
+                            { label: "Semua", value: "all" },
+                            ...(filter.options?.map((option) => ({
+                              label: option.label,
+                              value: option.value
+                            })) || [])
+                          ]}
+                          placeholder="Semua"
+                          searchPlaceholder="Cari..."
+                          className="h-12 sm:h-8 text-base sm:text-xs rounded-xl sm:rounded-md border-2 sm:border w-full"
+                        />
                       ) : filter.type === 'daterange' ? (
                         <div className="space-y-3 sm:space-y-1">
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-2">
