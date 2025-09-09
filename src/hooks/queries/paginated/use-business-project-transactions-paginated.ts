@@ -20,7 +20,10 @@ export const useBusinessProjectTransactionsPaginated = ({
         categories(name, is_income),
         wallets(name, currency_code)
       )`,
-    orderBy: { column: "created_at", ascending: false },
+    orderBy: [
+      { column: "date", ascending: false, referencedTable: "transactions" },
+      { column: "created_at", ascending: false, referencedTable: "transactions" }
+    ],
     includeUserId: false, // business_project_transactions has user_id but we filter by project_id instead
     baseFilters: (q: any) => q.eq("project_id", projectId),
     mapSearch: (q: any, term: string) => {

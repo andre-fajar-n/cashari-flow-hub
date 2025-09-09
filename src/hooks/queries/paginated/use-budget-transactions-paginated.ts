@@ -20,7 +20,10 @@ export const useBudgetTransactionsPaginated = ({
         categories(name, is_income),
         wallets(name, currency_code)
       )`,
-    orderBy: { column: "date", ascending: false },
+    orderBy: [
+      { column: "date", ascending: false, referencedTable: "transactions" },
+      { column: "created_at", ascending: false, referencedTable: "transactions" }
+    ],
     includeUserId: false, // budget_items doesn't have user_id, we filter by budget_id instead
     baseFilters: (q: any) => q.eq("budget_id", budgetId),
     mapSearch: (q: any, term: string) => {

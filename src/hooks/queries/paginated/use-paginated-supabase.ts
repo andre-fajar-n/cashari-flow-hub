@@ -12,6 +12,7 @@ export interface PaginatedParams {
 export interface OrderByOption {
   column: string;
   ascending?: boolean;
+  referencedTable?: string;
 }
 
 export interface PaginatedOptions {
@@ -60,11 +61,19 @@ export const usePaginatedSupabase = <T = any>(params: PaginatedParams, options: 
         // Handle multiple order by columns
         if (Array.isArray(options.orderBy)) {
           options.orderBy.forEach((orderOption) => {
-            query = query.order(orderOption.column, { ascending: orderOption.ascending ?? false });
+            const orderConfig: any = { ascending: orderOption.ascending ?? false };
+            if (orderOption.referencedTable) {
+              orderConfig.referencedTable = orderOption.referencedTable;
+            }
+            query = query.order(orderOption.column, orderConfig);
           });
         } else {
           // Handle single order by column (backward compatibility)
-          query = query.order(options.orderBy.column, { ascending: options.orderBy.ascending ?? false });
+          const orderConfig: any = { ascending: options.orderBy.ascending ?? false };
+          if (options.orderBy.referencedTable) {
+            orderConfig.referencedTable = options.orderBy.referencedTable;
+          }
+          query = query.order(options.orderBy.column, orderConfig);
         }
       }
 
