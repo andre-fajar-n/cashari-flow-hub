@@ -192,6 +192,7 @@ const BudgetTransactionList = ({ budget, onAddTransaction }: BudgetTransactionLi
           setServerFilters(filters);
           setPage(nextPage);
         }}
+        useUrlParams={true}
         renderItem={renderTransactionItem}
         emptyStateMessage="Belum ada transaksi dalam budget ini"
         title={`Transaksi dalam Budget (${paged?.count || 0})`}

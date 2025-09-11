@@ -243,6 +243,7 @@ const Transfer = () => {
               setServerFilters(filters);
               setPage(nextPage);
             }}
+            useUrlParams={true}
             renderItem={renderTransferItem}
             emptyStateMessage="Belum ada transfer"
             title="Manajemen Transfer"

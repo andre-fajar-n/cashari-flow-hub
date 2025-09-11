@@ -172,6 +172,7 @@ const Budget = () => {
             setServerFilters(filters);
             setPage(nextPage);
           }}
+          useUrlParams={true}
           renderItem={renderBudgetItem}
           emptyStateMessage="Belum ada budget yang dibuat"
           title="Manajemen Budget"

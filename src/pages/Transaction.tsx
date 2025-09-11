@@ -210,6 +210,7 @@ const Transaction = () => {
               setServerFilters(filters);
               setPage(nextPage);
             }}
+            useUrlParams={true}
             renderItem={renderTransactionItem}
             emptyStateMessage="Belum ada transaksi"
             title="Manajemen Transaksi"

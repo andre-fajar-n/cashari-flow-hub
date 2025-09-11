@@ -157,6 +157,7 @@ const InvestmentInstrument = () => {
             setServerFilters(filters);
             setPage(nextPage);
           }}
+          useUrlParams={true}
           renderItem={renderInstrumentItem}
           emptyStateMessage="Belum ada instrumen investasi yang dibuat"
           title="Instrumen Investasi"

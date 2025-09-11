@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Search, RotateCcw, Filter } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useUrlParams as useUrlParamsHook } from "@/hooks/use-url-params";
 
 export interface ColumnFilter {
   field: string;
@@ -32,6 +33,11 @@ export interface DataTableProps<T> {
   totalCount?: number;
   page?: number;
   onServerParamsChange?: (params: { searchTerm: string; filters: Record<string, any>; page: number; itemsPerPage: number; }) => void;
+  // URL params integration
+  useUrlParams?: boolean;
+  urlParamsPrefix?: string;
+  // Search behavior
+  searchMode?: 'debounce' | 'explicit'; // 'debounce' for auto search, 'explicit' for Enter/button
 }
 
 export function DataTable<T extends Record<string, any>>({
@@ -50,18 +56,100 @@ export function DataTable<T extends Record<string, any>>({
   totalCount,
   page,
   onServerParamsChange,
+  useUrlParams = true,
+  urlParamsPrefix = "",
+  searchMode = 'explicit', // Default to explicit search when using URL params
 }: DataTableProps<T>) {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-  const [columnFilterValues, setColumnFilterValues] = useState<Record<string, any>>({});
-  const [currentPage, setCurrentPage] = useState(page ?? 1);
+  // URL params integration - only use if enabled
+  const urlParamsHook = useUrlParams ? useUrlParamsHook({
+    defaultPage: 1,
+    defaultItemsPerPage: itemsPerPage,
+    defaultSearch: "",
+    defaultFilters: {}
+  }) : null;
+
+  // Local state for when URL params are disabled
+  const [localSearchTerm, setLocalSearchTerm] = useState("");
+  const [localDebouncedSearchTerm, setLocalDebouncedSearchTerm] = useState("");
+  const [localColumnFilterValues, setLocalColumnFilterValues] = useState<Record<string, any>>({});
+  const [localCurrentPage, setLocalCurrentPage] = useState(page ?? 1);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
-  // Debounce search term with 300ms delay
+  // For explicit search mode, we need separate input state
+  const [searchInput, setSearchInput] = useState("");
+
+  // Determine which state to use based on URL params availability
+  const searchTerm = urlParamsHook ? urlParamsHook.search : localSearchTerm;
+  const debouncedSearchTerm = urlParamsHook ? urlParamsHook.search : localDebouncedSearchTerm;
+  const columnFilterValues = urlParamsHook ? urlParamsHook.filters : localColumnFilterValues;
+  const currentPage = urlParamsHook ? urlParamsHook.page : localCurrentPage;
+
+  // Initialize search input from URL params or local state
+  React.useEffect(() => {
+    setSearchInput(searchTerm);
+  }, [searchTerm]);
+
+  // Helper functions for state updates
+  const updateSearchTerm = (value: string) => {
+    if (urlParamsHook) {
+      urlParamsHook.setSearch(value);
+    } else {
+      setLocalSearchTerm(value);
+    }
+  };
+
+  // Handle explicit search (Enter key or search button)
+  const handleExplicitSearch = () => {
+    updateSearchTerm(searchInput);
+  };
+
+  // Handle search input change
+  const handleSearchInputChange = (value: string) => {
+    setSearchInput(value);
+
+    // If using debounce mode, update search term immediately
+    if (searchMode === 'debounce') {
+      updateSearchTerm(value);
+    }
+  };
+
+  const updateColumnFilterValues = (filters: Record<string, any>) => {
+    if (urlParamsHook) {
+      urlParamsHook.setFilters(filters);
+    } else {
+      setLocalColumnFilterValues(filters);
+    }
+  };
+
+  const updateCurrentPage = (pageNum: number) => {
+    if (urlParamsHook) {
+      urlParamsHook.setPage(pageNum);
+    } else {
+      setLocalCurrentPage(pageNum);
+    }
+  };
+
+  const resetAllFilters = () => {
+    setSearchInput(""); // Reset search input
+    if (urlParamsHook) {
+      urlParamsHook.resetParams();
+    } else {
+      setLocalSearchTerm("");
+      setLocalDebouncedSearchTerm("");
+      setLocalColumnFilterValues({});
+      setLocalCurrentPage(1);
+    }
+  };
+
+  // Debounce search term with 300ms delay (only in debounce mode)
   useEffect(() => {
+    if (searchMode !== 'debounce') return;
+
     const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-      setCurrentPage(1);
+      if (!urlParamsHook) {
+        setLocalDebouncedSearchTerm(searchTerm);
+      }
+      updateCurrentPage(1);
 
       // Trigger server-side search automatically in server mode
       if (serverMode && onServerParamsChange) {
@@ -75,12 +163,27 @@ export function DataTable<T extends Record<string, any>>({
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, serverMode, onServerParamsChange, columnFilterValues, itemsPerPage]);
+  }, [searchTerm, serverMode, onServerParamsChange, itemsPerPage, urlParamsHook, searchMode]);
+
+  // Handle explicit search trigger (for explicit mode)
+  useEffect(() => {
+    if (searchMode !== 'explicit') return;
+
+    // Trigger server-side search when search term changes in explicit mode
+    if (serverMode && onServerParamsChange) {
+      onServerParamsChange({
+        searchTerm,
+        filters: columnFilterValues,
+        page: currentPage,
+        itemsPerPage
+      });
+    }
+  }, [searchTerm, serverMode, onServerParamsChange, itemsPerPage, columnFilterValues, currentPage, searchMode]);
 
   // Sync internal page with controlled prop in server mode
   useEffect(() => {
     if (serverMode && typeof page === 'number') {
-      setCurrentPage(page);
+      updateCurrentPage(page);
     }
   }, [page, serverMode]);
 
@@ -88,10 +191,7 @@ export function DataTable<T extends Record<string, any>>({
   const safeData = (data ?? []) as T[];
 
   const resetFilters = () => {
-    setSearchTerm("");
-    setDebouncedSearchTerm("");
-    setColumnFilterValues({});
-    setCurrentPage(1);
+    resetAllFilters();
     if (serverMode && onServerParamsChange) {
       onServerParamsChange({ searchTerm: "", filters: {}, page: 1, itemsPerPage });
     }
@@ -121,7 +221,7 @@ export function DataTable<T extends Record<string, any>>({
             return value.toLowerCase().includes(termLower);
           }
           if (typeof value === 'number') {
-            return value.toString().includes(searchTerm);
+            return value.toString().includes(termLower);
           }
           return false;
         })
@@ -138,17 +238,18 @@ export function DataTable<T extends Record<string, any>>({
           const filter = columnFilters.find(f => f.field === field);
 
           if (filter?.type === 'daterange') {
-            const itemDate = new Date(itemValue);
+            const itemDate = new Date(itemValue as string);
+            const valueStr = value as string;
 
-            if (value.includes(',')) {
+            if (valueStr.includes(',')) {
               // Range format: "startDate,endDate"
-              const [startDate, endDate] = value.split(',');
+              const [startDate, endDate] = valueStr.split(',');
               const start = new Date(startDate);
               const end = new Date(endDate);
               return itemDate >= start && itemDate <= end;
             } else {
               // Single date format
-              const filterDate = new Date(value);
+              const filterDate = new Date(valueStr);
               return itemDate.toDateString() === filterDate.toDateString();
             }
           }
@@ -173,10 +274,10 @@ export function DataTable<T extends Record<string, any>>({
 
           // Handle regular filtering
           if (typeof itemValue === 'string') {
-            return itemValue.toLowerCase().includes(value.toLowerCase());
+            return itemValue.toLowerCase().includes((value as string).toLowerCase());
           }
           if (typeof itemValue === 'number') {
-            return itemValue.toString().includes(value);
+            return itemValue.toString().includes(value as string);
           }
           return false;
         });
@@ -194,9 +295,9 @@ export function DataTable<T extends Record<string, any>>({
 
   const handlePageChange = (pageNum: number) => {
     const next = Math.max(1, Math.min(pageNum, totalPages));
-    setCurrentPage(next);
+    updateCurrentPage(next);
     if (serverMode && onServerParamsChange) {
-      onServerParamsChange({ searchTerm, filters: columnFilterValues, page: next, itemsPerPage });
+      onServerParamsChange({ searchTerm: debouncedSearchTerm, filters: columnFilterValues, page: next, itemsPerPage });
     }
   };
 
@@ -306,14 +407,31 @@ export function DataTable<T extends Record<string, any>>({
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-4 sm:w-4 text-muted-foreground" />
               <Input
                 placeholder={searchPlaceholder}
-                value={searchTerm}
+                value={searchMode === 'explicit' ? searchInput : searchTerm}
                 onChange={(e) => {
                   const nextTerm = e.target.value;
-                  setSearchTerm(nextTerm);
-                  // Page reset will be handled by debounce effect
+                  if (searchMode === 'explicit') {
+                    handleSearchInputChange(nextTerm);
+                  } else {
+                    updateSearchTerm(nextTerm);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchMode === 'explicit') {
+                    handleExplicitSearch();
+                  }
                 }}
                 className="pl-11 sm:pl-10 h-12 sm:h-9 text-base sm:text-sm rounded-xl sm:rounded-md border-2 sm:border focus:border-primary"
               />
+              {searchMode === 'explicit' && (
+                <Button
+                  onClick={handleExplicitSearch}
+                  size="sm"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 px-3"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              )}
             </div>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 items-stretch sm:items-center">
               {columnFilters.length > 0 && (
@@ -362,10 +480,10 @@ export function DataTable<T extends Record<string, any>>({
                               ...columnFilterValues,
                               [filter.field]: value === "all" ? "" : value
                             };
-                            setColumnFilterValues(nextFilters);
-                            setCurrentPage(1);
+                            updateColumnFilterValues(nextFilters);
+                            updateCurrentPage(1);
                             if (serverMode && onServerParamsChange) {
-                              onServerParamsChange({ searchTerm, filters: nextFilters, page: 1, itemsPerPage });
+                              onServerParamsChange({ searchTerm: debouncedSearchTerm, filters: nextFilters, page: 1, itemsPerPage });
                             }
                           }}
                           options={[
@@ -393,10 +511,10 @@ export function DataTable<T extends Record<string, any>>({
                                   const endDate = currentValue.includes(',') ? currentValue.split(',')[1] : "";
                                   const newValue = endDate ? `${e.target.value},${endDate}` : e.target.value;
                                   const nextFilters = { ...columnFilterValues, [filter.field]: newValue };
-                                  setColumnFilterValues(nextFilters);
-                                  setCurrentPage(1);
+                                  updateColumnFilterValues(nextFilters);
+                                  updateCurrentPage(1);
                                   if (serverMode && onServerParamsChange) {
-                                    onServerParamsChange({ searchTerm, filters: nextFilters, page: 1, itemsPerPage });
+                                    onServerParamsChange({ searchTerm: debouncedSearchTerm, filters: nextFilters, page: 1, itemsPerPage });
                                   }
                                 }}
                                 className="h-12 sm:h-8 text-base sm:text-xs rounded-xl sm:rounded-md border-2 sm:border w-full"
@@ -413,10 +531,10 @@ export function DataTable<T extends Record<string, any>>({
                                   const startDate = currentValue.includes(',') ? currentValue.split(',')[0] : currentValue;
                                   const newValue = startDate ? `${startDate},${e.target.value}` : `,${e.target.value}`;
                                   const nextFilters = { ...columnFilterValues, [filter.field]: newValue };
-                                  setColumnFilterValues(nextFilters);
-                                  setCurrentPage(1);
+                                  updateColumnFilterValues(nextFilters);
+                                  updateCurrentPage(1);
                                   if (serverMode && onServerParamsChange) {
-                                    onServerParamsChange({ searchTerm, filters: nextFilters, page: 1, itemsPerPage });
+                                    onServerParamsChange({ searchTerm: debouncedSearchTerm, filters: nextFilters, page: 1, itemsPerPage });
                                   }
                                 }}
                                 className="h-12 sm:h-8 text-base sm:text-xs rounded-xl sm:rounded-md border-2 sm:border w-full"
@@ -430,10 +548,10 @@ export function DataTable<T extends Record<string, any>>({
                           value={columnFilterValues[filter.field] || ""}
                           onChange={(e) => {
                             const nextFilters = { ...columnFilterValues, [filter.field]: e.target.value };
-                            setColumnFilterValues(nextFilters);
-                            setCurrentPage(1);
+                            updateColumnFilterValues(nextFilters);
+                            updateCurrentPage(1);
                             if (serverMode && onServerParamsChange) {
-                              onServerParamsChange({ searchTerm, filters: nextFilters, page: 1, itemsPerPage });
+                              onServerParamsChange({ searchTerm: debouncedSearchTerm, filters: nextFilters, page: 1, itemsPerPage });
                             }
                           }}
                           type={filter.type === 'number' ? 'number' : filter.type === 'date' ? 'date' : 'text'}

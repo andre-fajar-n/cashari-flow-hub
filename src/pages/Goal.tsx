@@ -147,6 +147,7 @@ const Goal = () => {
             setServerFilters(filters);
             setPage(nextPage);
           }}
+          useUrlParams={true}
           renderItem={renderGoalItem}
           emptyStateMessage="Belum ada target yang dibuat"
           title="Manajemen Target"

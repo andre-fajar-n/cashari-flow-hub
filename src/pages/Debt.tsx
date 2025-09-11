@@ -204,6 +204,7 @@ const Debt = () => {
             setServerFilters(filters);
             setPage(nextPage);
           }}
+          useUrlParams={true}
           renderItem={renderDebtItem}
           emptyStateMessage="Belum ada data hutang/piutang"
           title="Manajemen Hutang/Piutang"

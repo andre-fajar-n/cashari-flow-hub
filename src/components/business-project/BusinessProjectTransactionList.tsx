@@ -216,6 +216,7 @@ const BusinessProjectTransactionList = ({ project, onAddTransaction }: BusinessP
           setServerFilters(filters);
           setPage(nextPage);
         }}
+        useUrlParams={true}
         renderItem={renderTransactionItem}
         emptyStateMessage="Belum ada transaksi di proyek ini"
         title={`Transaksi dalam Proyek (${paged?.count || 0})`}
