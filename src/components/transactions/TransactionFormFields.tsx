@@ -1,7 +1,7 @@
 import { Control } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { SearchableSelect } from "@/components/ui/searchable-select";
+import { SearchableCombobox } from "@/components/ui/searchable-combobox";
 import { InputNumber } from "@/components/ui/input-number";
 
 interface TransactionFormFieldsProps {
@@ -21,7 +21,7 @@ const TransactionFormFields = ({ control, wallets, categories }: TransactionForm
           <FormItem>
             <FormLabel>Dompet</FormLabel>
             <FormControl>
-              <SearchableSelect
+              <SearchableCombobox
                 options={wallets?.map((wallet) => ({
                   label: `${wallet.name} (${wallet.currency_code})`,
                   value: wallet.id.toString()
@@ -30,6 +30,7 @@ const TransactionFormFields = ({ control, wallets, categories }: TransactionForm
                 onValueChange={field.onChange}
                 placeholder="Pilih dompet"
                 searchPlaceholder="Cari dompet..."
+                emptyMessage="Tidak ada dompet ditemukan"
               />
             </FormControl>
             <FormMessage />
@@ -45,7 +46,7 @@ const TransactionFormFields = ({ control, wallets, categories }: TransactionForm
           <FormItem>
             <FormLabel>Kategori</FormLabel>
             <FormControl>
-              <SearchableSelect
+              <SearchableCombobox
                 options={categories?.map((category) => ({
                   label: `${category.name} ${category.is_income ? "(Pemasukan)" : "(Pengeluaran)"}`,
                   value: category.id.toString()
@@ -54,6 +55,7 @@ const TransactionFormFields = ({ control, wallets, categories }: TransactionForm
                 onValueChange={field.onChange}
                 placeholder="Pilih kategori"
                 searchPlaceholder="Cari kategori..."
+                emptyMessage="Tidak ada kategori ditemukan"
               />
             </FormControl>
             <FormMessage />
