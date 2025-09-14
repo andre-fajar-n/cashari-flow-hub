@@ -1,7 +1,7 @@
 import { Control } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { SearchableSelect } from "@/components/ui/searchable-select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { InputNumber } from "@/components/ui/input-number";
 
 interface TransactionFormFieldsProps {
@@ -20,18 +20,20 @@ const TransactionFormFields = ({ control, wallets, categories }: TransactionForm
         render={({ field }) => (
           <FormItem>
             <FormLabel>Dompet</FormLabel>
-            <FormControl>
-              <SearchableSelect
-                options={wallets?.map((wallet) => ({
-                  label: `${wallet.name} (${wallet.currency_code})`,
-                  value: wallet.id.toString()
-                })) || []}
-                value={field.value}
-                onValueChange={field.onChange}
-                placeholder="Pilih dompet"
-                searchPlaceholder="Cari dompet..."
-              />
-            </FormControl>
+            <Select onValueChange={field.onChange} value={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih dompet" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {wallets?.map((wallet) => (
+                  <SelectItem key={wallet.id} value={wallet.id.toString()}>
+                    {wallet.name} ({wallet.currency_code})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <FormMessage />
           </FormItem>
         )}
@@ -44,18 +46,20 @@ const TransactionFormFields = ({ control, wallets, categories }: TransactionForm
         render={({ field }) => (
           <FormItem>
             <FormLabel>Kategori</FormLabel>
-            <FormControl>
-              <SearchableSelect
-                options={categories?.map((category) => ({
-                  label: `${category.name} ${category.is_income ? "(Pemasukan)" : "(Pengeluaran)"}`,
-                  value: category.id.toString()
-                })) || []}
-                value={field.value}
-                onValueChange={field.onChange}
-                placeholder="Pilih kategori"
-                searchPlaceholder="Cari kategori..."
-              />
-            </FormControl>
+            <Select onValueChange={field.onChange} value={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih kategori" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {categories?.map((category) => (
+                  <SelectItem key={category.id} value={category.id.toString()}>
+                    {category.name} {category.is_income ? "(Pemasukan)" : "(Pengeluaran)"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <FormMessage />
           </FormItem>
         )}

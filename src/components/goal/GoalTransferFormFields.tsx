@@ -1,6 +1,6 @@
 import { Control } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { SearchableSelect } from "@/components/ui/searchable-select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getTransferModeConfig, GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import { GoalTransferFormData } from "@/form-dto/goal-transfers";
 
@@ -38,21 +38,21 @@ const GoalTransferFormFields = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Goal Asal</FormLabel>
-                  <FormControl>
-                    <SearchableSelect
-                      options={[
-                        { label: "Tidak ada", value: "0" },
-                        ...(goals?.map((goal) => ({
-                          label: `${goal.name} (${goal.currency_code})`,
-                          value: goal.id.toString()
-                        })) || [])
-                      ]}
-                      value={field.value?.toString()}
-                      onValueChange={(val) => field.onChange(parseInt(val))}
-                      placeholder="Pilih goal asal"
-                      searchPlaceholder="Cari goal..."
-                    />
-                  </FormControl>
+                  <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih goal asal" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="0">Tidak ada</SelectItem>
+                      {goals?.map((goal) => (
+                        <SelectItem key={goal.id} value={goal.id.toString()}>
+                          {goal.name} ({goal.currency_code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -65,21 +65,21 @@ const GoalTransferFormFields = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Dompet Asal</FormLabel>
-                <FormControl>
-                  <SearchableSelect
-                    options={[
-                      { label: "Tidak ada", value: "0" },
-                      ...(wallets?.map((wallet) => ({
-                        label: `${wallet.name} (${wallet.currency_code})`,
-                        value: wallet.id.toString()
-                      })) || [])
-                    ]}
-                    value={field.value?.toString()}
-                    onValueChange={(val) => field.onChange(parseInt(val))}
-                    placeholder="Pilih dompet asal"
-                    searchPlaceholder="Cari dompet..."
-                  />
-                </FormControl>
+                <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih dompet asal" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="0">Tidak ada</SelectItem>
+                    {wallets?.map((wallet) => (
+                      <SelectItem key={wallet.id} value={wallet.id.toString()}>
+                        {wallet.name} ({wallet.currency_code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -120,21 +120,21 @@ const GoalTransferFormFields = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Aset Asal</FormLabel>
-                  <FormControl>
-                    <SearchableSelect
-                      options={[
-                        { label: "Tidak ada", value: "0" },
-                        ...(fromAssets?.map((asset) => ({
-                          label: `${asset.name}${asset.symbol ? ` (${asset.symbol})` : ''}`,
-                          value: asset.id.toString()
-                        })) || [])
-                      ]}
-                      value={field.value?.toString()}
-                      onValueChange={(val) => field.onChange(parseInt(val))}
-                      placeholder="Pilih aset asal"
-                      searchPlaceholder="Cari aset..."
-                    />
-                  </FormControl>
+                  <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih aset asal" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="0">Tidak ada</SelectItem>
+                      {fromAssets?.map((asset) => (
+                        <SelectItem key={asset.id} value={asset.id.toString()}>
+                          {asset.name} {asset.symbol && `(${asset.symbol})`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -154,21 +154,21 @@ const GoalTransferFormFields = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Goal Tujuan</FormLabel>
-                  <FormControl>
-                    <SearchableSelect
-                      options={[
-                        { label: "Tidak ada", value: "0" },
-                        ...(goals?.filter(goal => goal.is_active && !goal.is_achieved).map((goal) => ({
-                          label: `${goal.name} (${goal.currency_code})`,
-                          value: goal.id.toString()
-                        })) || [])
-                      ]}
-                      value={field.value?.toString()}
-                      onValueChange={(val) => field.onChange(parseInt(val))}
-                      placeholder="Pilih goal tujuan"
-                      searchPlaceholder="Cari goal..."
-                    />
-                  </FormControl>
+                  <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih goal tujuan" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="0">Tidak ada</SelectItem>
+                      {goals?.filter(goal => goal.is_active && !goal.is_achieved).map((goal) => (
+                        <SelectItem key={goal.id} value={goal.id.toString()}>
+                          {goal.name} ({goal.currency_code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -181,21 +181,21 @@ const GoalTransferFormFields = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Dompet Tujuan</FormLabel>
-                <FormControl>
-                  <SearchableSelect
-                    options={[
-                      { label: "Tidak ada", value: "0" },
-                      ...(wallets?.map((wallet) => ({
-                        label: `${wallet.name} (${wallet.currency_code})`,
-                        value: wallet.id.toString()
-                      })) || [])
-                    ]}
-                    value={field.value?.toString()}
-                    onValueChange={(val) => field.onChange(parseInt(val))}
-                    placeholder="Pilih dompet tujuan"
-                    searchPlaceholder="Cari dompet..."
-                  />
-                </FormControl>
+                <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih dompet tujuan" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="0">Tidak ada</SelectItem>
+                    {wallets?.map((wallet) => (
+                      <SelectItem key={wallet.id} value={wallet.id.toString()}>
+                        {wallet.name} ({wallet.currency_code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -236,21 +236,21 @@ const GoalTransferFormFields = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Aset Tujuan</FormLabel>
-                  <FormControl>
-                    <SearchableSelect
-                      options={[
-                        { label: "Tidak ada", value: "0" },
-                        ...(toAssets?.map((asset) => ({
-                          label: `${asset.name}${asset.symbol ? ` (${asset.symbol})` : ''}`,
-                          value: asset.id.toString()
-                        })) || [])
-                      ]}
-                      value={field.value?.toString()}
-                      onValueChange={(val) => field.onChange(parseInt(val))}
-                      placeholder="Pilih aset tujuan"
-                      searchPlaceholder="Cari aset..."
-                    />
-                  </FormControl>
+                  <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih aset tujuan" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="0">Tidak ada</SelectItem>
+                      {toAssets?.map((asset) => (
+                        <SelectItem key={asset.id} value={asset.id.toString()}>
+                          {asset.name} {asset.symbol && `(${asset.symbol})`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

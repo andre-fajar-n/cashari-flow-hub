@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useWallets } from "@/hooks/queries/use-wallets";
-import { SearchableSelect } from "@/components/ui/searchable-select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { defaultTransferFormData, TransferFormData } from "@/form-dto/transfer";
 import { useCreateTransfer, useUpdateTransfer } from "@/hooks/queries/use-transfers";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
@@ -120,18 +120,26 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Dari Dompet</FormLabel>
-                    <FormControl>
-                      <SearchableSelect
-                        options={wallets?.map(wallet => ({
-                          label: `${wallet.name} (${wallet.currency_code})`,
-                          value: wallet.id.toString()
-                        })) || []}
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        placeholder="Pilih dompet"
-                        searchPlaceholder="Cari dompet..."
-                      />
-                    </FormControl>
+                    <Controller
+                      control={form.control}
+                      name="from_wallet_id"
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih dompet" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {wallets?.map(wallet => (
+                              <SelectItem key={wallet.id} value={wallet.id.toString()}>
+                                {wallet.name} ({wallet.currency_code})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}
@@ -144,18 +152,26 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Ke Dompet</FormLabel>
-                    <FormControl>
-                      <SearchableSelect
-                        options={wallets?.map(wallet => ({
-                          label: `${wallet.name} (${wallet.currency_code})`,
-                          value: wallet.id.toString()
-                        })) || []}
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        placeholder="Pilih dompet"
-                        searchPlaceholder="Cari dompet..."
-                      />
-                    </FormControl>
+                    <Controller
+                      control={form.control}
+                      name="to_wallet_id"
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Pilih dompet" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {wallets?.map(wallet => (
+                              <SelectItem key={wallet.id} value={wallet.id.toString()}>
+                                {wallet.name} ({wallet.currency_code})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                     <FormMessage />
                   </FormItem>
                 )}

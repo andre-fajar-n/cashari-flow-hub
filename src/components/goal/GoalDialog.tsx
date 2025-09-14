@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { SearchableSelect } from "@/components/ui/searchable-select";
 import { defaultGoalFormValues, GoalFormData } from "@/form-dto/goals";
 import { useCreateGoal, useUpdateGoal } from "@/hooks/queries/use-goals";
 import { useCurrencies, useDefaultCurrency } from "@/hooks/queries/use-currencies";
@@ -113,16 +112,13 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
                 <FormItem>
                   <FormLabel>Mata Uang</FormLabel>
                   <FormControl>
-                    <SearchableSelect
-                      options={currencies?.map((currency) => ({
-                        label: `${currency.code} - ${currency.name}`,
-                        value: currency.code
-                      })) || []}
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      placeholder="Pilih mata uang"
-                      searchPlaceholder="Cari mata uang..."
-                    />
+                    <select {...field} className="w-full p-2 border rounded-md">
+                      {currencies?.map((currency) => (
+                        <option key={currency.code} value={currency.code}>
+                          {currency.code} - {currency.name}
+                        </option>
+                      ))}
+                    </select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

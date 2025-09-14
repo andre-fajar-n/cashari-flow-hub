@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { SearchableSelect } from "@/components/ui/searchable-select";
 import { BudgetFormData, defaultBudgetFormValues } from "@/form-dto/budget";
 import { InputNumber } from "@/components/ui/input-number";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
@@ -132,16 +131,13 @@ const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogPro
                 <FormItem>
                   <FormLabel>Mata Uang</FormLabel>
                   <FormControl>
-                    <SearchableSelect
-                      options={currencies?.map((currency) => ({
-                        label: `${currency.code} - ${currency.name}`,
-                        value: currency.code
-                      })) || []}
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      placeholder="Pilih mata uang"
-                      searchPlaceholder="Cari mata uang..."
-                    />
+                    <select {...field} className="w-full p-2 border rounded-md">
+                      {currencies?.map((currency) => (
+                        <option key={currency.code} value={currency.code}>
+                          {currency.code} - {currency.name}
+                        </option>
+                      ))}
+                    </select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

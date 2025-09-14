@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { SearchableSelect } from "@/components/ui/searchable-select";
 import { DEBT_TYPES } from "@/constants/enums";
 import { DebtFormData, defaultDebtFormValues } from "@/form-dto/debts";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
@@ -107,16 +106,10 @@ const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) =>
                 <FormItem>
                   <FormLabel>Tipe</FormLabel>
                   <FormControl>
-                    <SearchableSelect
-                      options={[
-                        { label: "Hutang", value: DEBT_TYPES.LOAN },
-                        { label: "Piutang", value: DEBT_TYPES.BORROWED }
-                      ]}
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      placeholder="Pilih tipe"
-                      searchPlaceholder="Cari tipe..."
-                    />
+                    <select {...field} className="w-full p-2 border rounded-md">
+                      <option value={DEBT_TYPES.LOAN}>Hutang</option>
+                      <option value={DEBT_TYPES.BORROWED}>Piutang</option>
+                    </select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -130,16 +123,13 @@ const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) =>
                 <FormItem>
                   <FormLabel>Mata Uang</FormLabel>
                   <FormControl>
-                    <SearchableSelect
-                      options={currencies?.map((currency) => ({
-                        label: `${currency.code} - ${currency.name}`,
-                        value: currency.code
-                      })) || []}
-                      value={field.value}
-                      onValueChange={field.onChange}
-                      placeholder="Pilih mata uang"
-                      searchPlaceholder="Cari mata uang..."
-                    />
+                    <select {...field} className="w-full p-2 border rounded-md">
+                      {currencies?.map((currency) => (
+                        <option key={currency.code} value={currency.code}>
+                          {currency.code} - {currency.name}
+                        </option>
+                      ))}
+                    </select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
