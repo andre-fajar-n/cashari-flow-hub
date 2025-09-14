@@ -92,21 +92,21 @@ const GoalTransferFormFields = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Instrumen Asal</FormLabel>
-                  <FormControl>
-                    <SearchableSelect
-                      options={[
-                        { label: "Tidak ada", value: "0" },
-                        ...(instruments?.map((instrument) => ({
-                          label: instrument.name,
-                          value: instrument.id.toString()
-                        })) || [])
-                      ]}
-                      value={field.value?.toString()}
-                      onValueChange={(val) => field.onChange(parseInt(val))}
-                      placeholder="Pilih instrumen asal"
-                      searchPlaceholder="Cari instrumen..."
-                    />
-                  </FormControl>
+                  <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih instrumen asal" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="0">Tidak ada</SelectItem>
+                      {instruments?.map((instrument) => (
+                        <SelectItem key={instrument.id} value={instrument.id.toString()}>
+                          {instrument.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -208,21 +208,21 @@ const GoalTransferFormFields = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Instrumen Tujuan</FormLabel>
-                  <FormControl>
-                    <SearchableSelect
-                      options={[
-                        { label: "Tidak ada", value: "0" },
-                        ...(instruments?.map((instrument) => ({
-                          label: instrument.name,
-                          value: instrument.id.toString()
-                        })) || [])
-                      ]}
-                      value={field.value?.toString()}
-                      onValueChange={(val) => field.onChange(parseInt(val))}
-                      placeholder="Pilih instrumen tujuan"
-                      searchPlaceholder="Cari instrumen..."
-                    />
-                  </FormControl>
+                  <Select onValueChange={(val) => field.onChange(parseInt(val))} value={field.value?.toString()}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih instrumen tujuan" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="0">Tidak ada</SelectItem>
+                      {instruments?.map((instrument) => (
+                        <SelectItem key={instrument.id} value={instrument.id.toString()}>
+                          {instrument.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
