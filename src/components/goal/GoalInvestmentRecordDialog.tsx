@@ -177,22 +177,22 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
                     <FormItem>
                       <FormLabel>Wallet</FormLabel>
                       <FormControl>
-                        <SearchableSelect
-                          options={[
-                            { label: "Pilih Wallet", value: "" },
-                            ...(wallets?.map((wallet) => ({
-                              label: `${wallet.name} (${wallet.currency_code})`,
-                              value: wallet.id.toString()
-                            })) || [])
-                          ]}
-                          value={field.value?.toString() || ""}
-                          onValueChange={(value) => {
-                            const numValue = value ? parseInt(value) : null;
-                            field.onChange(numValue);
+                        <select 
+                          {...field}
+                          value={field.value || ""}
+                          onChange={(e) => {
+                            const value = e.target.value ? parseInt(e.target.value) : null;
+                            field.onChange(value);
                           }}
-                          placeholder="Pilih Wallet"
-                          searchPlaceholder="Cari wallet..."
-                        />
+                          className="w-full p-2 border rounded-md"
+                        >
+                          <option value="">Pilih Wallet</option>
+                          {wallets?.map((wallet) => (
+                            <option key={wallet.id} value={wallet.id}>
+                              {wallet.name}
+                            </option>
+                          ))}
+                        </select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -206,22 +206,22 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
                     <FormItem>
                       <FormLabel>Kategori</FormLabel>
                       <FormControl>
-                        <SearchableSelect
-                          options={[
-                            { label: "Pilih Kategori", value: "" },
-                            ...(categories?.map((category) => ({
-                              label: category.name,
-                              value: category.id.toString()
-                            })) || [])
-                          ]}
-                          value={field.value?.toString() || ""}
-                          onValueChange={(value) => {
-                            const numValue = value ? parseInt(value) : null;
-                            field.onChange(numValue);
+                        <select 
+                          {...field}
+                          value={field.value || ""}
+                          onChange={(e) => {
+                            const value = e.target.value ? parseInt(e.target.value) : null;
+                            field.onChange(value);
                           }}
-                          placeholder="Pilih Kategori"
-                          searchPlaceholder="Cari kategori..."
-                        />
+                          className="w-full p-2 border rounded-md"
+                        >
+                          <option value="">Pilih Kategori</option>
+                          {categories?.map((category) => (
+                            <option key={category.id} value={category.id}>
+                              {category.name}
+                            </option>
+                          ))}
+                        </select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
