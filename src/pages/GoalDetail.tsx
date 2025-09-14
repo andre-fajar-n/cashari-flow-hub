@@ -16,7 +16,7 @@ import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
 import MovementsDataTable from "@/components/shared/MovementsDataTable";
 import { useDeleteGoal, useGoalDetail } from "@/hooks/queries/use-goals";
 import { useGoalTransfers } from "@/hooks/queries/use-goal-transfers";
-import { useGoalFundsSummary } from "@/hooks/queries/use-goal-funds-summary";
+import { useMoneySummary } from "@/hooks/queries/use-money-summary";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
@@ -35,7 +35,7 @@ const GoalDetail = () => {
   const { data: goal, isLoading: isGoalLoading } = useGoalDetail(parseInt(id!));
   const { data: goalTransfers, isLoading: isTransfersLoading } = useGoalTransfers();
   const { data: goalMovements, isLoading: isMovementsLoading } = useMoneyMovements({ goalId: parseInt(id!) });
-  const { data: goalFundsSummary, isLoading: isFundsSummaryLoading } = useGoalFundsSummary(parseInt(id!));
+  const { data: goalFundsSummary, isLoading: isFundsSummaryLoading } = useMoneySummary({ goalId: parseInt(id!) });
   const { data: wallets, isLoading: isWalletsLoading } = useWallets();
   const { data: assets, isLoading: isAssetsLoading } = useInvestmentAssets();
   const { data: instruments, isLoading: isInstrumentsLoading } = useInvestmentInstruments();
@@ -62,7 +62,7 @@ const GoalDetail = () => {
     );
   }
 
-  const totalAmount = goalFundsSummary?.reduce((sum, fund) => sum + fund.total_amount, 0) || 0;
+  const totalAmount = goalFundsSummary?.reduce((sum, fund) => sum + fund.amount, 0) || 0;
   const percentage = Math.min(totalAmount / goal.target_amount * 100, 100);
 
   let totalAmountRecord = 0;

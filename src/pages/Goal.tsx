@@ -12,7 +12,7 @@ import GoalCard from "@/components/goal/GoalCard";
 import { useDeleteGoal } from "@/hooks/queries/use-goals";
 import { useGoalsPaginated } from "@/hooks/queries/paginated/use-goals-paginated";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
-import { useGoalFundsSummary } from "@/hooks/queries/use-goal-funds-summary";
+import { useMoneySummary } from "@/hooks/queries/use-money-summary";
 
 const Goal = () => {
   const queryClient = useQueryClient();
@@ -30,7 +30,7 @@ const Goal = () => {
   const { data: paged, isLoading: isGoalsLoading } = useGoalsPaginated({ page, itemsPerPage, searchTerm: serverSearch, filters: serverFilters });
   const goals = paged?.data || [];
   const { data: currencies, isLoading: isCurrencyLoading } = useCurrencies();
-  const { data: goalFundsSummary, isLoading: isFundsSummaryLoading } = useGoalFundsSummary();
+  const { data: goalFundsSummary, isLoading: isFundsSummaryLoading } = useMoneySummary({ investmentOnly: true });
 
   const isLoading = isGoalsLoading || isCurrencyLoading || isFundsSummaryLoading;
 
@@ -38,12 +38,12 @@ const Goal = () => {
     if (!acc[item.goal_id]) {
       acc[item.goal_id] = {
         goal_id: item.goal_id,
-        total_amount: 0,
+        amount: 0,
       };
     }
-    acc[item.goal_id].total_amount += item.total_amount || 0;
+    acc[item.goal_id].amount += item.amount || 0;
     return acc;
-  }, {} as Record<number, { goal_id: number; total_amount: number }>);
+  }, {} as Record<number, { goal_id: number; amount: number }>);
 
   const handleEdit = (goal: GoalModel) => {
     setSelectedGoal(goal);
@@ -71,7 +71,7 @@ const Goal = () => {
       <GoalCard
         key={goal.id}
         goal={goal}
-        totalAmount={groupedByGoalId[goal.id]?.total_amount || 0}
+        totalAmount={groupedByGoalId[goal.id]?.amount || 0}
         onEdit={handleEdit}
         onDelete={handleDeleteClick}
       />

@@ -5,16 +5,17 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Wallet, TrendingUp, PieChart, ChevronDown, ChevronUp } from "lucide-react";
-import { useGoalFundsSummary } from "@/hooks/queries/use-goal-funds-summary";
+import { useMoneySummary } from "@/hooks/queries/use-money-summary";
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
+import { MoneySummaryModel } from "@/models/money-summary";
 
 interface GoalFundsSummaryProps {
   goalId: number;
 }
 
 const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
-  const { data: fundsSummary, isLoading } = useGoalFundsSummary(goalId);
+  const { data: fundsSummary, isLoading } = useMoneySummary({ goalId });
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [showZero, setShowZero] = useState(false);
 
@@ -66,7 +67,7 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
     const walletTotals = Object.keys(grouped).reduce((totals: Record<string, number>, walletKey) => {
       const total = (Object.values(grouped[walletKey]) as any[][])
         .flat()
-        .reduce((sum: number, fund: any) => sum + (fund.total_amount ?? 0), 0);
+        .reduce((sum: number, fund: any) => sum + (fund.amount ?? 0), 0);
       totals[walletKey] = total;
       return totals;
     }, {} as Record<string, number>);
@@ -76,8 +77,8 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
   };
 
   // Split into active (amount > 0) and zero (amount === 0)
-  const activeList = fundsSummary.filter((f: any) => (f.total_amount ?? 0) > 0);
-  const zeroList = fundsSummary.filter((f: any) => (f.total_amount ?? 0) <= 0);
+  const activeList = fundsSummary.filter((f: MoneySummaryModel) => (f.amount ?? 0) > 0);
+  const zeroList = fundsSummary.filter((f: MoneySummaryModel) => (f.amount ?? 0) <= 0);
 
   const { grouped: groupedActive, walletTotals: walletTotalsActive, sortedWalletKeys: sortedWalletKeysActive } = buildGrouped(activeList);
   const { grouped: groupedZero, walletTotals: walletTotalsZero, sortedWalletKeys: sortedWalletKeysZero } = buildGrouped(zeroList);
@@ -85,7 +86,7 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
   const isGroupExpanded = (groupKey: string) => Boolean(expandedGroups[groupKey]);
 
   // Render individual asset item
-  const renderAssetItem = (fund: any, index: number) => (
+  const renderAssetItem = (fund: MoneySummaryModel, index: number) => (
     <div key={index} className="flex items-center justify-between p-3 border rounded-lg ml-12">
       <div className="flex items-center gap-3">
         <div className="flex-shrink-0">
@@ -100,22 +101,22 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
           )}
           <div className="flex gap-1 mt-1">
             <Badge variant="outline" className="text-xs">
-              {fund.currency_code}
+              {fund.original_currency_code}
             </Badge>
           </div>
         </div>
       </div>
       <div className="text-right">
         <AmountText
-          amount={fund.total_amount}
+          amount={fund.amount}
           className="font-semibold text-sm"
           showSign={true}
         >
-          {formatAmountCurrency(fund.total_amount, fund.currency_code)}
+          {formatAmountCurrency(fund.amount, fund.original_currency_code)}
         </AmountText>
-        {fund.total_amount_unit !== null ? (
+        {fund.amount_unit !== null ? (
           <p className="text-xs text-muted-foreground">
-            {fund.total_amount_unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })} {fund.unit_label || 'unit'}
+            {fund.amount_unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })} {fund.unit_label || 'unit'}
           </p>
         ): null}
       </div>
@@ -126,7 +127,7 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
   const renderInstrumentGroup = (funds: any[], instrumentName: string, instrumentTotal: number, walletKey: string, ns: string = "") => {
     const instrumentKey = `${ns}${walletKey}-${instrumentName}`;
     const isExpanded = isGroupExpanded(instrumentKey);
-    const currencyCode = funds[0]?.currency_code || 'IDR';
+    const currencyCode = funds[0]?.original_currency_code || 'unknown currency';
 
     // Check if this instrument has any assets
     const hasAssets = funds.some(fund => fund.asset_name);
@@ -149,7 +150,7 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
                 <p className="font-medium text-sm">{instrumentName}</p>
                 <div className="flex gap-1 mt-1">
                   <Badge variant="outline" className="text-xs">
-                    {fund.currency_code}
+                    {fund.original_currency_code}
                   </Badge>
                 </div>
               </div>
@@ -162,9 +163,9 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
               >
                 {formatAmountCurrency(instrumentTotal, currencyCode)}
               </AmountText>
-              {fund.total_amount_unit !== null ? (
+              {fund.amount_unit !== null ? (
                 <p className="text-xs text-muted-foreground">
-                  {fund.total_amount_unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })} {fund.unit_label || 'unit'}
+                  {fund.amount_unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })} {fund.unit_label || 'unit'}
                 </p>
               ): null}
             </div>
@@ -187,7 +188,7 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
 
     // Sort assets by total amount (descending)
     const assetTotals: Record<string, number> = Object.keys(assetsMap).reduce((acc, key) => {
-      acc[key] = (assetsMap[key] as any[]).reduce((sum, f: any) => sum + (f.total_amount ?? 0), 0);
+      acc[key] = (assetsMap[key] as any[]).reduce((sum, f: any) => sum + (f.amount ?? 0), 0);
       return acc;
     }, {} as Record<string, number>);
     const sortedAssetKeys = Object.keys(assetsMap).sort((a, b) => (assetTotals[b] ?? 0) - (assetTotals[a] ?? 0));
@@ -233,12 +234,12 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
     const walletKeyScoped = `${ns}${walletKey}`;
     const isExpanded = isGroupExpanded(walletKeyScoped);
     const allFunds = (Object.values(instruments) as any[][]).flat();
-    const currencyCode = allFunds[0]?.currency_code || 'IDR';
+    const currencyCode = allFunds[0]?.original_currency_code || 'unknown currency';
 
     // Sort instruments by total amount
     const sortedInstruments = Object.keys(instruments).sort((a, b) => {
-      const totalA = instruments[a].reduce((sum, fund) => sum + (fund.total_amount ?? 0), 0);
-      const totalB = instruments[b].reduce((sum, fund) => sum + (fund.total_amount ?? 0), 0);
+      const totalA = instruments[a].reduce((sum, fund) => sum + (fund.amount ?? 0), 0);
+      const totalB = instruments[b].reduce((sum, fund) => sum + (fund.amount ?? 0), 0);
       return totalB - totalA;
     });
 
@@ -268,7 +269,7 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
         <CollapsibleContent className="space-y-2 px-4 pb-4">
           {sortedInstruments.map(instrumentKey => {
             const instrumentFunds = instruments[instrumentKey];
-            const instrumentTotal = instrumentFunds.reduce((sum, fund) => sum + fund.total_amount, 0);
+            const instrumentTotal = instrumentFunds.reduce((sum, fund) => sum + fund.amount, 0);
             return (
               <div key={instrumentKey}>
                 {renderInstrumentGroup(instrumentFunds, instrumentKey, instrumentTotal, walletKey, ns)}

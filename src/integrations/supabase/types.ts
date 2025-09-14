@@ -885,33 +885,6 @@ export type Database = {
       }
     }
     Views: {
-      fund_summary: {
-        Row: {
-          asset_id: number | null
-          asset_name: string | null
-          asset_symbol: string | null
-          currency_code: string | null
-          goal_id: number | null
-          goal_name: string | null
-          instrument_id: number | null
-          instrument_name: string | null
-          total_amount: number | null
-          total_amount_unit: number | null
-          unit_label: string | null
-          user_id: string | null
-          wallet_id: number | null
-          wallet_name: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "wallets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "currencies"
-            referencedColumns: ["code"]
-          },
-        ]
-      }
       money_summary: {
         Row: {
           wallet_id: number | null
@@ -922,15 +895,17 @@ export type Database = {
           instrument_name: string | null
           asset_id: number | null
           asset_name: string | null
+          asset_symbol: string | null
           original_currency_code: string | null
-          saldo: number | null
+          amount: number | null
           base_currency_code: string | null
           latest_rate: number | null
-          rate_date: string | null
+          latest_rate_date: string | null
           amount_unit: number | null
           latest_asset_value: number | null
-          asset_value_date: string | null
+          latest_asset_value_date: string | null
           user_id: string | null
+          unit_label: string | null
         }
         Relationships: [
           {

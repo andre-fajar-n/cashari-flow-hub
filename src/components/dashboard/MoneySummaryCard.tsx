@@ -1,65 +1,166 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Wallet, DollarSign, Coins, ChevronDown, ChevronRight, Search, ChevronLeft } from "lucide-react";
+import { Wallet, DollarSign, Coins, ChevronDown, ChevronRight, Search, ChevronLeft, AlertTriangle } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
-import { WalletSummary, CurrencyTotal, MoneySummaryItem } from "@/hooks/queries/use-money-summary";
+import { MoneySummaryGroupByCurrency, MoneySummaryModel, WalletSummary } from "@/models/money-summary";
 
 interface MoneySummaryCardProps {
-  walletSummaries: WalletSummary[];
-  totalsByOriginalCurrency: CurrencyTotal[];
-  totalsByBaseCurrency: CurrencyTotal[];
   isLoading?: boolean;
-}
-
-interface EnhancedCurrencyTotal extends CurrencyTotal {
-  base_currency_amount?: number;
-  base_currency_code?: string;
+  moneySummaries: MoneySummaryModel[];
 }
 
 const MoneySummaryCard = ({
-  walletSummaries,
-  totalsByOriginalCurrency,
-  totalsByBaseCurrency,
-  isLoading
+  isLoading,
+  moneySummaries
 }: MoneySummaryCardProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedWallets, setExpandedWallets] = useState<Set<number>>(new Set());
+  const [expandedInstruments, setExpandedInstruments] = useState<Set<string>>(new Set());
   const itemsPerPage = 5;
 
-  // Helper function to calculate base currency amount for totals
-  const calculateBaseCurrencyForTotal = (currencyCode: string, amount: number): { amount: number; code: string } | null => {
-    // Find any item with this currency that has a rate to base currency
-    for (const wallet of walletSummaries) {
-      for (const item of wallet.items) {
-        if (item.original_currency_code === currencyCode && item.latest_rate && item.base_currency_code) {
-          return {
-            amount: amount * item.latest_rate,
-            code: item.base_currency_code
-          };
-        }
-      }
+  // Process currency totals
+  const currencyMap = new Map<string, MoneySummaryGroupByCurrency>();
+  for (const row of moneySummaries) {
+    const key = row.original_currency_code;
+    const existing = currencyMap.get(key);
+
+    if (existing) {
+      existing.amount += row.amount;
+    } else {
+      currencyMap.set(key, {
+        original_currency_code: row.original_currency_code,
+        amount: row.amount,
+        base_currency_code: row.base_currency_code,
+        latest_rate: row.latest_rate ?? null,
+        latest_rate_date: row.latest_rate_date ?? null,
+      });
     }
-    return null;
-  };
+  }
+  const currencies = Array.from(currencyMap.keys());
 
-  // Filter wallets based on search
-  const filteredWallets = useMemo(() => {
-    if (!searchTerm) return walletSummaries;
+  // Process wallet hierarchy: wallet → instrument → asset
+  const processedWallets = useMemo(() => {
+    const walletMap = new Map<number, WalletSummary>();
 
-    return walletSummaries.filter(wallet =>
-      wallet.wallet_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      wallet.items.some(item =>
-        item.goal_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.instrument_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.asset_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    for (const row of moneySummaries) {
+      if (!row.wallet_id || !row.wallet_name) continue;
+
+      // Get or create wallet
+      let wallet = walletMap.get(row.wallet_id);
+      if (!wallet) {
+        wallet = {
+          wallet_id: row.wallet_id,
+          wallet_name: row.wallet_name,
+          amount: 0,
+          original_currency_code: row.original_currency_code,
+          instruments: []
+        };
+        walletMap.set(row.wallet_id, wallet);
+      }
+
+      // Add to wallet total
+      wallet.amount += row.amount || 0;
+
+      // Get or create instrument
+      const instrumentKey = row.instrument_id || 0;
+      let instrument = wallet.instruments.find(i => (i.instrument_id || 0) === instrumentKey);
+      if (!instrument) {
+        instrument = {
+          instrument_id: row.instrument_id,
+          instrument_name: row.instrument_name || 'unknown instrument',
+          amount: 0,
+          original_currency_code: row.original_currency_code,
+          assets: []
+        };
+        wallet.instruments.push(instrument);
+      }
+
+      // Add to instrument total
+      instrument.amount += row.amount || 0;
+
+      // Get or create asset
+      const assetKey = row.asset_id || 0;
+      let asset = instrument.assets.find(a => (a.asset_id || 0) === assetKey);
+      if (!asset) {
+        asset = {
+          asset_id: row.asset_id,
+          asset_name: row.asset_name || 'unknown asset',
+          amount: 0,
+          amount_unit: 0,
+          original_currency_code: row.original_currency_code,
+          latest_asset_value: row.latest_asset_value,
+          latest_rate: row.latest_rate,
+          base_currency_code: row.base_currency_code
+        };
+        instrument.assets.push(asset);
+      }
+
+      // Add to asset
+      asset.amount += row.amount || 0;
+      asset.amount_unit += row.amount_unit || 0;
+    }
+
+    // Custom sorting function: positive, zero, negative, then by name
+    const customSort = (a: { amount?: number; name: string }, b: { amount?: number; name: string }) => {
+      const aAmount = a.amount || 0;
+      const bAmount = b.amount || 0;
+
+      // First sort by amount category (positive > zero > negative)
+      if (aAmount > 0 && bAmount <= 0) return -1;
+      if (aAmount <= 0 && bAmount > 0) return 1;
+      if (aAmount === 0 && bAmount < 0) return -1;
+      if (aAmount < 0 && bAmount === 0) return 1;
+
+      // Then sort by name within same category
+      return a.name.localeCompare(b.name);
+    };
+
+    // Sort wallets by amount category, then by name
+    const sortedWallets = Array.from(walletMap.values()).sort((a, b) =>
+      customSort(
+        { amount: a.amount, name: a.wallet_name },
+        { amount: b.amount, name: b.wallet_name }
       )
     );
-  }, [walletSummaries, searchTerm]);
+
+    // Sort instruments and assets within each wallet
+    sortedWallets.forEach(wallet => {
+      wallet.instruments.sort((a, b) =>
+        customSort(
+          { amount: a.amount, name: a.instrument_name || '' },
+          { amount: b.amount, name: b.instrument_name || '' }
+        )
+      );
+      wallet.instruments.forEach(instrument => {
+        instrument.assets.sort((a, b) =>
+          customSort(
+            { amount: a.amount, name: a.asset_name || '' },
+            { amount: b.amount, name: b.asset_name || '' }
+          )
+        );
+      });
+    });
+
+    return sortedWallets;
+  }, [moneySummaries]);
+
+  // Filter wallets based on search term
+  const filteredWallets = useMemo(() => {
+    if (!searchTerm) return processedWallets;
+    return processedWallets.filter(wallet =>
+      wallet.wallet_name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [processedWallets, searchTerm]);
+
+  // Reset page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   // Pagination
   const totalPages = Math.ceil(filteredWallets.length / itemsPerPage);
@@ -74,6 +175,17 @@ const MoneySummaryCard = ({
       newExpanded.add(walletId);
     }
     setExpandedWallets(newExpanded);
+  };
+
+  const toggleInstrumentExpansion = (walletId: number, instrumentId: number | null) => {
+    const key = `${walletId}-${instrumentId || 0}`;
+    const newExpanded = new Set(expandedInstruments);
+    if (newExpanded.has(key)) {
+      newExpanded.delete(key);
+    } else {
+      newExpanded.add(key);
+    }
+    setExpandedInstruments(newExpanded);
   };
 
   if (isLoading) {
@@ -108,23 +220,40 @@ const MoneySummaryCard = ({
             <h4 className="font-medium">Total per Mata Uang</h4>
           </div>
           <div className="space-y-2">
-            {totalsByOriginalCurrency.length > 0 ? (
-              totalsByOriginalCurrency.map((total) => {
-                const baseCurrencyInfo = calculateBaseCurrencyForTotal(total.currency_code, total.total_amount);
+            {currencies.length > 0 ? (
+              currencies.map((currency) => {
+                const currencyData = currencyMap.get(currency);
+                const amount = currencyData?.amount || 0;
+                const show_in_base_currency = currencyData?.latest_rate !== null;
+                const same_original_and_base_currency = currencyData.original_currency_code === currencyData.base_currency_code;
+                const hasNullRate = currencyData?.latest_rate === null && currencyData?.base_currency_code;
+
                 return (
-                  <div key={total.currency_code} className="p-3 bg-blue-50 rounded-lg">
+                  <div key={currency} className="p-3 bg-blue-50 rounded-lg">
                     <div className="flex justify-between items-center">
-                      <Badge variant="outline" className="text-xs">
-                        {total.currency_code}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {currency}
+                        </Badge>
+                        {hasNullRate && (
+                          <div title="Exchange rate tidak tersedia">
+                            <AlertTriangle className="w-4 h-4 text-amber-500" />
+                          </div>
+                        )}
+                      </div>
                       <span className="font-semibold">
-                        {formatAmountCurrency(total.total_amount, total.currency_code)}
+                        {formatAmountCurrency(amount, currency)}
                       </span>
                     </div>
-                    {baseCurrencyInfo && (
+                    {show_in_base_currency && !same_original_and_base_currency && (
                       <div className="flex justify-between items-center mt-1 text-sm text-muted-foreground">
-                        <span>≈ {baseCurrencyInfo.code}</span>
-                        <span>{formatAmountCurrency(baseCurrencyInfo.amount, baseCurrencyInfo.code)}</span>
+                        <span>rate terakhir {currencyData?.latest_rate_date}</span>
+                        <span>{formatAmountCurrency(amount * (currencyData?.latest_rate || 0), currencyData?.base_currency_code)}</span>
+                      </div>
+                    )}
+                    {hasNullRate && (
+                      <div className="mt-1 text-xs text-amber-600">
+                        Exchange rate tidak tersedia untuk konversi ke {currencyData?.base_currency_code}
                       </div>
                     )}
                   </div>
@@ -176,13 +305,11 @@ const MoneySummaryCard = ({
                             <h5 className="font-medium">{wallet.wallet_name}</h5>
                           </div>
 
-                          {/* Wallet totals by original currency */}
-                          <div className="flex flex-wrap gap-2">
-                            {Object.entries(wallet.totalByOriginalCurrency).map(([currency, amount]) => (
-                              <div key={currency} className="text-xs bg-blue-50 px-2 py-1 rounded">
-                                <span className="font-medium">{formatAmountCurrency(amount, currency)}</span>
-                              </div>
-                            ))}
+                          {/* Wallet total amount */}
+                          <div className="text-xs bg-blue-50 px-2 py-1 rounded">
+                            <span className="font-medium">
+                              {formatAmountCurrency(wallet.amount, wallet.original_currency_code)}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -191,66 +318,142 @@ const MoneySummaryCard = ({
                     <CollapsibleContent>
                       <div className="px-4 pb-4 border-t bg-gray-50">
                         <div className="space-y-3 pt-3">
-                          {wallet.items.map((item, index) => (
-                            <div key={index} className="bg-white p-3 rounded border">
-                              <div className="space-y-2">
-                                {/* Hierarchy: Goal → Instrument → Asset */}
-                                <div className="text-sm">
-                                  {item.goal_name && (
-                                    <span className="font-medium text-purple-600">{item.goal_name}</span>
-                                  )}
-                                  {item.instrument_name && (
-                                    <span className="text-muted-foreground"> → {item.instrument_name}</span>
-                                  )}
-                                  {item.asset_name && (
-                                    <span className="text-muted-foreground"> → {item.asset_name}</span>
-                                  )}
-                                </div>
+                          {wallet.instruments.map((instrument) => {
+                            const instrumentKey = `${wallet.wallet_id}-${instrument.instrument_id || 0}`;
+                            const hasAssets = instrument.assets.length > 1 || (instrument.assets.length === 1 && instrument.assets[0].asset_id !== null);
 
-                                {/* Amount display */}
-                                <div className="space-y-1">
-                                  {/* Amount unit if available */}
-                                  {item.amount_unit && (
-                                    <div className="text-xs text-muted-foreground">
-                                      Unit: {item.amount_unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })}
+                            if (!hasAssets) {
+                              // Direct card without expandable for instruments without assets
+                              const asset = instrument.assets[0];
+                              return (
+                                <div key={`${instrument.instrument_id || 0}`} className="bg-white p-3 rounded border">
+                                  <div className="space-y-2">
+                                    <div className="text-sm">
+                                      <span className="font-medium text-purple-600">{instrument.instrument_name}</span>
                                     </div>
-                                  )}
 
-                                  {/* Asset value calculation if available */}
-                                  {item.latest_asset_value && item.amount_unit ? (
                                     <div className="space-y-1">
-                                      <div className="flex justify-between items-center">
-                                        <span className="text-sm font-medium">Nilai Aset:</span>
-                                        <span className="font-semibold">
-                                          {formatAmountCurrency(item.latest_asset_value * item.amount_unit, item.original_currency_code || 'IDR')}
-                                        </span>
-                                      </div>
-                                      {/* Base currency conversion if available */}
-                                      {item.latest_rate && item.base_currency_code && (
-                                        <div className="flex justify-between items-center text-sm text-muted-foreground">
-                                          <span>≈ {item.base_currency_code}:</span>
-                                          <span>
-                                            {formatAmountCurrency(
-                                              item.latest_asset_value * item.amount_unit * item.latest_rate,
-                                              item.base_currency_code
-                                            )}
+                                      {asset && asset.amount_unit > 0 && asset.latest_asset_value && (
+                                        <div className="text-xs text-muted-foreground">
+                                          Unit: {asset.amount_unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })}
+                                        </div>
+                                      )}
+
+                                      {asset && asset.latest_asset_value && asset.amount_unit ? (
+                                        <div className="space-y-1">
+                                          <div className="flex justify-between items-center">
+                                            <span className="text-sm font-medium">Nilai Aset:</span>
+                                            <span className="font-semibold">
+                                              {formatAmountCurrency(asset.latest_asset_value * asset.amount_unit, asset.original_currency_code)}
+                                            </span>
+                                          </div>
+                                          {asset.latest_rate && asset.base_currency_code && (
+                                            <div className="flex justify-between items-center text-sm text-muted-foreground">
+                                              <span>≈ {asset.base_currency_code}:</span>
+                                              <span>
+                                                {formatAmountCurrency(
+                                                  asset.latest_asset_value * asset.amount_unit * asset.latest_rate,
+                                                  asset.base_currency_code
+                                                )}
+                                              </span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <div className="flex justify-between items-center">
+                                          <span className="text-sm font-medium">Saldo:</span>
+                                          <span className="font-semibold">
+                                            {formatAmountCurrency(instrument.amount, instrument.original_currency_code)}
                                           </span>
                                         </div>
                                       )}
                                     </div>
-                                  ) : (
-                                    /* Regular saldo display */
-                                    <div className="flex justify-between items-center">
-                                      <span className="text-sm font-medium">Saldo:</span>
-                                      <span className="font-semibold">
-                                        {formatAmountCurrency(item.saldo || 0, item.original_currency_code || 'IDR')}
-                                      </span>
-                                    </div>
-                                  )}
+                                  </div>
                                 </div>
+                              );
+                            }
+
+                            // Expandable instrument with assets
+                            return (
+                              <div key={`${instrument.instrument_id || 0}`} className="bg-white rounded border">
+                                <Collapsible>
+                                  <CollapsibleTrigger asChild>
+                                    <div
+                                      className="p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                                      onClick={() => toggleInstrumentExpansion(wallet.wallet_id, instrument.instrument_id)}
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                          {expandedInstruments.has(instrumentKey) ? (
+                                            <ChevronDown className="w-3 h-3" />
+                                          ) : (
+                                            <ChevronRight className="w-3 h-3" />
+                                          )}
+                                          <span className="text-sm font-medium text-purple-600">{instrument.instrument_name}</span>
+                                        </div>
+                                        <div className="text-xs bg-purple-50 px-2 py-1 rounded">
+                                          <span className="font-medium">
+                                            {formatAmountCurrency(instrument.amount, instrument.original_currency_code)}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </CollapsibleTrigger>
+
+                                  <CollapsibleContent>
+                                    <div className="px-3 pb-3 border-t bg-gray-25">
+                                      <div className="space-y-2 pt-2">
+                                        {instrument.assets.map((asset) => (
+                                          <div key={`${asset.asset_id || 0}`} className="bg-white p-2 rounded border border-gray-200">
+                                            <div className="space-y-1">
+                                              <div className="text-xs">
+                                                <span className="font-medium">{asset.asset_name || 'unknown asset'}</span>
+                                              </div>
+
+                                              {asset.amount_unit > 0 && asset.latest_asset_value && (
+                                                <div className="text-xs text-muted-foreground">
+                                                  Unit: {asset.amount_unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })}
+                                                </div>
+                                              )}
+
+                                              {asset.latest_asset_value && asset.amount_unit ? (
+                                                <div className="space-y-1">
+                                                  <div className="flex justify-between items-center">
+                                                    <span className="text-xs font-medium">Nilai Aset:</span>
+                                                    <span className="text-xs font-semibold">
+                                                      {formatAmountCurrency(asset.latest_asset_value * asset.amount_unit, asset.original_currency_code)}
+                                                    </span>
+                                                  </div>
+                                                  {asset.latest_rate && asset.base_currency_code && (
+                                                    <div className="flex justify-between items-center text-xs text-muted-foreground">
+                                                      <span>≈ {asset.base_currency_code}:</span>
+                                                      <span>
+                                                        {formatAmountCurrency(
+                                                          asset.latest_asset_value * asset.amount_unit * asset.latest_rate,
+                                                          asset.base_currency_code
+                                                        )}
+                                                      </span>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              ) : (
+                                                <div className="flex justify-between items-center">
+                                                  <span className="text-xs font-medium">Saldo:</span>
+                                                  <span className="text-xs font-semibold">
+                                                    {formatAmountCurrency(asset.amount, asset.original_currency_code)}
+                                                  </span>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </CollapsibleContent>
+                                </Collapsible>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     </CollapsibleContent>

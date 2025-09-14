@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Wallet, Target, PieChart, ChevronDown, ChevronUp } from "lucide-react";
-import { useGoalFundsSummary } from "@/hooks/queries/use-goal-funds-summary";
+import { useMoneySummary } from "@/hooks/queries/use-money-summary";
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
 
@@ -13,7 +13,7 @@ interface AssetSummaryProps {
 
 const AssetSummary = ({ assetId, assetName }: AssetSummaryProps) => {
   const [expandedWallets, setExpandedWallets] = useState<Record<string, boolean>>({});
-  const { data: fundSummary, isLoading } = useGoalFundsSummary(undefined, assetId);
+  const { data: fundSummary, isLoading } = useMoneySummary({ assetId });
 
   if (isLoading) {
     return (
@@ -81,12 +81,12 @@ const AssetSummary = ({ assetId, assetName }: AssetSummaryProps) => {
 
     // Add record to goal
     walletGroups[walletKey].goals[goalKey].records.push(record);
-    walletGroups[walletKey].goals[goalKey].totalAmount += record.total_amount || 0;
-    walletGroups[walletKey].goals[goalKey].totalUnit += record.total_amount_unit || 0;
+    walletGroups[walletKey].goals[goalKey].totalAmount += record.amount || 0;
+    walletGroups[walletKey].goals[goalKey].totalUnit += record.amount_unit || 0;
 
     // Update wallet totals
-    walletGroups[walletKey].totalAmount += record.total_amount || 0;
-    walletGroups[walletKey].totalUnit += record.total_amount_unit || 0;
+    walletGroups[walletKey].totalAmount += record.amount || 0;
+    walletGroups[walletKey].totalUnit += record.amount_unit || 0;
 
     return walletGroups;
   }, {} as Record<string, {
@@ -109,7 +109,7 @@ const AssetSummary = ({ assetId, assetName }: AssetSummaryProps) => {
   // Calculate total summary
   const totalAmount = Object.values(groupedRecords).reduce((sum, group) => sum + group.totalAmount, 0);
   const totalUnit = Object.values(groupedRecords).reduce((sum, group) => sum + group.totalUnit, 0);
-  const currencyCode = assetRecords[0]?.currency_code || 'IDR';
+  const currencyCode = assetRecords[0]?.original_currency_code || 'unknown currency';
 
   return (
     <Card>
