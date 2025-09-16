@@ -36,8 +36,7 @@ export interface DataTableProps<T> {
   // URL params integration
   useUrlParams?: boolean;
   urlParamsPrefix?: string;
-  // Search behavior
-  searchMode?: 'debounce' | 'explicit'; // 'debounce' for auto search, 'explicit' for Enter/button
+  // Search behavior - always explicit mode
 }
 
 export function DataTable<T extends Record<string, any>>({
@@ -56,9 +55,7 @@ export function DataTable<T extends Record<string, any>>({
   totalCount,
   page,
   onServerParamsChange,
-  useUrlParams = true,
-  urlParamsPrefix = "",
-  searchMode = 'explicit', // Default to explicit search when using URL params
+  useUrlParams = true
 }: DataTableProps<T>) {
   // URL params integration - only use if enabled
   const urlParamsHook = useUrlParams ? useUrlParamsHook({
@@ -106,11 +103,6 @@ export function DataTable<T extends Record<string, any>>({
   // Handle search input change
   const handleSearchInputChange = (value: string) => {
     setSearchInput(value);
-
-    // If using debounce mode, update search term immediately
-    if (searchMode === 'debounce') {
-      updateSearchTerm(value);
-    }
   };
 
   const updateColumnFilterValues = (filters: Record<string, any>) => {
@@ -141,35 +133,9 @@ export function DataTable<T extends Record<string, any>>({
     }
   };
 
-  // Debounce search term with 300ms delay (only in debounce mode)
+  // Handle search trigger - only when search term changes
   useEffect(() => {
-    if (searchMode !== 'debounce') return;
-
-    const timer = setTimeout(() => {
-      if (!urlParamsHook) {
-        setLocalDebouncedSearchTerm(searchTerm);
-      }
-      updateCurrentPage(1);
-
-      // Trigger server-side search automatically in server mode
-      if (serverMode && onServerParamsChange) {
-        onServerParamsChange({
-          searchTerm,
-          filters: columnFilterValues,
-          page: 1,
-          itemsPerPage
-        });
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchTerm, serverMode, onServerParamsChange, itemsPerPage, urlParamsHook, searchMode]);
-
-  // Handle explicit search trigger (for explicit mode)
-  useEffect(() => {
-    if (searchMode !== 'explicit') return;
-
-    // Trigger server-side search when search term changes in explicit mode
+    // Trigger server-side search when search term changes
     if (serverMode && onServerParamsChange) {
       onServerParamsChange({
         searchTerm,
@@ -178,7 +144,7 @@ export function DataTable<T extends Record<string, any>>({
         itemsPerPage
       });
     }
-  }, [searchTerm, serverMode, onServerParamsChange, itemsPerPage, columnFilterValues, currentPage, searchMode]);
+  }, [searchTerm]);
 
   // Sync internal page with controlled prop in server mode
   useEffect(() => {
@@ -407,31 +373,22 @@ export function DataTable<T extends Record<string, any>>({
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 sm:h-4 sm:w-4 text-muted-foreground" />
               <Input
                 placeholder={searchPlaceholder}
-                value={searchMode === 'explicit' ? searchInput : searchTerm}
-                onChange={(e) => {
-                  const nextTerm = e.target.value;
-                  if (searchMode === 'explicit') {
-                    handleSearchInputChange(nextTerm);
-                  } else {
-                    updateSearchTerm(nextTerm);
-                  }
-                }}
+                value={searchInput}
+                onChange={(e) => handleSearchInputChange(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && searchMode === 'explicit') {
+                  if (e.key === 'Enter') {
                     handleExplicitSearch();
                   }
                 }}
                 className="pl-11 sm:pl-10 h-12 sm:h-9 text-base sm:text-sm rounded-xl sm:rounded-md border-2 sm:border focus:border-primary"
               />
-              {searchMode === 'explicit' && (
-                <Button
-                  onClick={handleExplicitSearch}
-                  size="sm"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 px-3"
-                >
-                  <Search className="h-4 w-4" />
-                </Button>
-              )}
+              <Button
+                onClick={handleExplicitSearch}
+                size="sm"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 px-3"
+              >
+                <Search className="h-4 w-4" />
+              </Button>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 items-stretch sm:items-center">
               {columnFilters.length > 0 && (
