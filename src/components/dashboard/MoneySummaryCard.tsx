@@ -7,6 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Wallet, DollarSign, Coins, ChevronDown, ChevronRight, Search, ChevronLeft, AlertTriangle } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { MoneySummaryGroupByCurrency, MoneySummaryModel, WalletSummary } from "@/models/money-summary";
+import { formatDate } from "@/lib/date";
 
 interface MoneySummaryCardProps {
   isLoading?: boolean;
@@ -247,7 +248,7 @@ const MoneySummaryCard = ({
                     </div>
                     {show_in_base_currency && !same_original_and_base_currency && (
                       <div className="flex justify-between items-center mt-1 text-sm text-muted-foreground">
-                        <span>rate terakhir {currencyData?.latest_rate_date}</span>
+                        <span>rate terakhir {formatDate(currencyData?.latest_rate_date)}</span>
                         <span>{formatAmountCurrency(amount * (currencyData?.latest_rate || 0), currencyData?.base_currency_code)}</span>
                       </div>
                     )}

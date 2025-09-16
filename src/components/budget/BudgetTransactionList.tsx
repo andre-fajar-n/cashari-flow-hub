@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { useCategories } from "@/hooks/queries/use-categories";
 import { useWallets } from "@/hooks/queries/use-wallets";
+import { formatDate } from "@/lib/date";
 
 interface BudgetTransactionListProps {
   budget: BudgetModel;
@@ -42,14 +43,6 @@ const BudgetTransactionList = ({ budget, onAddTransaction }: BudgetTransactionLi
   const { data: wallets } = useWallets();
 
   const transactions = paged?.data || [];
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('id-ID', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
 
   const handleRemoveTransaction = async (transactionId: number) => {
     try {

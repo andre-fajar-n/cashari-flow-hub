@@ -14,9 +14,9 @@ import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { AmountText } from "@/components/ui/amount-text";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { useWallets } from "@/hooks/queries/use-wallets";
+import { formatDate } from "@/lib/date";
 
 const Transfer = () => {
-
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [transferToDelete, setTransferToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -31,14 +31,6 @@ const Transfer = () => {
   const { data: currencies } = useCurrencies();
   const { mutate: deleteTransfer } = useDeleteTransfer();
   const queryClient = useQueryClient();
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('id-ID', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
 
   const openDialog = (transfer: TransferModel | undefined) => {
     setSelectedTransfer(transfer);

@@ -13,6 +13,7 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
 import { useDeleteGoalTransfer } from "@/hooks/queries/use-goal-transfers";
+import { formatDate } from "@/lib/date";
 
 export interface MovementsDataTableProps {
   movements: Database["public"]["Views"]["money_movements"]["Row"][];
@@ -65,14 +66,6 @@ const MovementsDataTable = ({
   const { toast } = useToast();
   const deleteRecord = useDeleteGoalInvestmentRecord();
   const deleteTransfer = useDeleteGoalTransfer();
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('id-ID', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
 
   // Filter movements based on type and ID
   const filteredMovements = movements.filter(movement => {

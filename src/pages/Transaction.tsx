@@ -17,6 +17,7 @@ import { TransactionFormData } from "@/form-dto/transactions";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { AmountText } from "@/components/ui/amount-text";
 import { TransactionModel } from "@/models/transactions";
+import { formatDate } from "@/lib/date";
 
 const Transaction = () => {
 
@@ -35,14 +36,6 @@ const Transaction = () => {
   const { data: categories } = useCategories();
   const { data: wallets } = useWallets();
   const { mutate: deleteTransaction } = useDeleteTransaction();
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('id-ID', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
 
   const openDialog = (transaction: any) => {
     setSelectedTransaction(transaction);

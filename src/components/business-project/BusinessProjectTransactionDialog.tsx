@@ -12,6 +12,7 @@ import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
 import { BusinessProjectModel } from "@/models/business-projects";
 import { TransactionFilter } from "@/form-dto/transactions";
+import { formatDate } from "@/lib/date";
 
 interface BusinessProjectTransactionDialogProps {
   open: boolean;
@@ -101,14 +102,6 @@ const BusinessProjectTransactionDialog = ({
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('id-ID', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
   };
 
   if (!project) return null;

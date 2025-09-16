@@ -11,6 +11,7 @@ import { BusinessProjectModel } from "@/models/business-projects";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { useCategories } from "@/hooks/queries/use-categories";
 import { useWallets } from "@/hooks/queries/use-wallets";
+import { formatDate } from "@/lib/date";
 
 interface BusinessProjectTransactionListProps {
   project: BusinessProjectModel;
@@ -45,14 +46,6 @@ const BusinessProjectTransactionList = ({ project, onAddTransaction }: BusinessP
     removeTransactionFromProject.mutate({
       projectId: project.id,
       transactionId
-    });
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('id-ID', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
     });
   };
 
