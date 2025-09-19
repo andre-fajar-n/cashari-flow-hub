@@ -69,9 +69,6 @@ const BudgetTransactionList = ({ budget, onAddTransaction }: BudgetTransactionLi
     return sum + (transaction?.amount || 0);
   }, 0) || 0;
 
-  const remainingBudget = budget.amount - totalSpent;
-  const spentPercentage = budget.amount > 0 ? (totalSpent / budget.amount) * 100 : 0;
-
   // Render transaction item for DataTable
   const renderTransactionItem = (item: any) => {
     const transaction = item.transactions;
@@ -90,11 +87,13 @@ const BudgetTransactionList = ({ budget, onAddTransaction }: BudgetTransactionLi
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <p className="font-medium text-sm truncate">
+                  {transaction?.categories?.name}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 mb-1 text-s text-muted-foreground">
+                <p className="font-medium text-sm truncate">
                   {transaction?.description || 'No description'}
                 </p>
-                <Badge variant="outline" className="text-xs">
-                  {transaction?.categories?.name}
-                </Badge>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span>{formatDate(transaction?.date || '')}</span>
@@ -113,9 +112,6 @@ const BudgetTransactionList = ({ budget, onAddTransaction }: BudgetTransactionLi
               >
                 {formatAmountCurrency(transaction?.amount || 0, transaction?.wallets?.currency_code || budget.currency_code)}
               </AmountText>
-              <Badge variant="outline" className="text-xs mt-1">
-                {transaction?.wallets?.currency_code}
-              </Badge>
             </div>
 
             <Button
