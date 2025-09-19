@@ -15,6 +15,7 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { useDeleteDebtHistory } from "@/hooks/queries/use-debt-histories";
 import { AmountText } from "@/components/ui/amount-text";
 import { DebtHistoryModel } from "@/models/debt-histories";
+import { formatDate } from "@/lib/date";
 
 const DebtHistory = () => {
   const [isMarkPaidModalOpen, setIsMarkPaidModalOpen] = useState(false);
@@ -87,7 +88,7 @@ const DebtHistory = () => {
                 {formatAmountCurrency(Math.abs(history.amount), history.wallets?.currency_code)}
               </AmountText>
               <Badge variant="outline">
-                {new Date(history.date).toLocaleDateString('id-ID')}
+                {formatDate(history.date)}
               </Badge>
             </div>
             

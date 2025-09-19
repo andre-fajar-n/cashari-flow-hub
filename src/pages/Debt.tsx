@@ -15,6 +15,7 @@ import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
+import { formatDate } from "@/lib/date";
 
 const Debt = () => {
   const queryClient = useQueryClient();
@@ -86,7 +87,7 @@ const Debt = () => {
               {debt.due_date && (
                 <div className="flex items-center gap-1 text-xs text-orange-700 bg-orange-50 px-2 py-1 rounded-md">
                   <Calendar className="w-3 h-3" />
-                  <span>Jatuh tempo: {new Date(debt.due_date).toLocaleDateString()}</span>
+                  <span>Jatuh tempo: {formatDate(debt.due_date)}</span>
                 </div>
               )}
             </div>

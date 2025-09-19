@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { GoalModel } from "@/models/goals";
+import { formatDate } from "@/lib/date";
 
 interface GoalCardProps {
   goal: GoalModel;
@@ -44,7 +45,7 @@ const GoalCard = ({ goal, totalAmount, onEdit, onDelete }: GoalCardProps) => {
               {goal.target_date && (
                 <div className="flex items-center gap-2 text-sm sm:text-xs text-gray-600 bg-gray-50 sm:bg-transparent px-3 sm:px-0 py-2 sm:py-0 rounded-xl sm:rounded-none border border-gray-200 sm:border-transparent">
                   <Calendar className="w-4 h-4 sm:w-3 sm:h-3" />
-                  <span className="font-medium sm:font-normal">Target: {new Date(goal.target_date).toLocaleDateString()}</span>
+                  <span className="font-medium sm:font-normal">Target: {formatDate(goal.target_date)}</span>
                 </div>
               )}
             </div>

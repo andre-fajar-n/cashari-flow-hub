@@ -12,6 +12,7 @@ import BudgetTransactionDialog from "@/components/budget/BudgetTransactionDialog
 import { AmountText } from "@/components/ui/amount-text";
 import { formatAmountCurrency } from "@/lib/currency";
 import { useBudgetTransactions } from "@/hooks/queries/use-budget-transactions";
+import { formatDate } from "@/lib/date";
 
 const BudgetDetail = () => {
   const { id } = useParams();
@@ -70,7 +71,7 @@ const BudgetDetail = () => {
                   <h1 className="text-2xl font-bold">{budget.name}</h1>
                   <p className="text-muted-foreground mt-0.5 flex items-center gap-2">
                     <Calendar className="w-3.5 h-3.5" />
-                    {new Date(budget.start_date).toLocaleDateString()} - {new Date(budget.end_date).toLocaleDateString()}
+                    {formatDate(budget.start_date)} - {formatDate(budget.end_date)}
                   </p>
                 </div>
               </div>

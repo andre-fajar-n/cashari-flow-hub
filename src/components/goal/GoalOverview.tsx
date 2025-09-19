@@ -5,6 +5,7 @@ import { formatAmountCurrency } from "@/lib/currency";
 import { GoalModel } from "@/models/goals";
 import AmountText from "@/components/ui/amount-text";
 import GoalFundsSummary from "@/components/goal/GoalFundsSummary";
+import { formatDate } from "@/lib/date";
 
 interface GoalOverviewProps {
   goal: GoalModel;
@@ -41,7 +42,7 @@ const GoalOverview = ({ goal, totalAmount, percentage, totalAmountRecord, totalA
             <div>
               <p className="text-sm text-muted-foreground">Target Date</p>
               <p className="text-xl font-semibold">
-                {goal.target_date ? new Date(goal.target_date).toLocaleDateString() : 'Tidak ada'}
+                {goal.target_date ? formatDate(goal.target_date) : 'Tidak ada'}
               </p>
             </div>
           </div>

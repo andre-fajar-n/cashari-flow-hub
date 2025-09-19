@@ -10,6 +10,7 @@ import BusinessProjectTransactionList from "@/components/business-project/Busine
 import { useBusinessProjects } from "@/hooks/queries/use-business-projects";
 import { useState } from "react";
 import BusinessProjectDialog from "@/components/business-project/BusinessProjectDialog";
+import { formatDate } from "@/lib/date";
 
 const BusinessProjectDetail = () => {
   const { id } = useParams();
@@ -98,14 +99,7 @@ const BusinessProjectDetail = () => {
                 <Calendar className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">Tanggal Mulai:</span>
                 <span className="font-medium">
-                  {project.start_date
-                    ? new Date(project.start_date).toLocaleDateString('id-ID', {
-                        day: '2-digit',
-                        month: 'long',
-                        year: 'numeric'
-                      })
-                    : "Belum ditentukan"
-                  }
+                  {project.start_date ? formatDate(project.start_date) : "Belum ditentukan"}
                 </span>
               </div>
               {project.end_date && (
@@ -113,11 +107,7 @@ const BusinessProjectDetail = () => {
                   <Calendar className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">Tanggal Selesai:</span>
                   <span className="font-medium">
-                    {new Date(project.end_date).toLocaleDateString('id-ID', {
-                      day: '2-digit',
-                      month: 'long',
-                      year: 'numeric'
-                    })}
+                    {project.end_date ? formatDate(project.end_date) : "Belum ditentukan"}
                   </span>
                 </div>
               )}

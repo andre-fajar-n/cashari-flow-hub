@@ -12,6 +12,7 @@ import { BusinessProjectModel } from "@/models/business-projects";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { formatDate } from "@/lib/date";
 
 const BusinessProject = () => {
   const navigate = useNavigate();
@@ -73,7 +74,7 @@ const BusinessProject = () => {
           <div className="flex items-center gap-1 text-blue-700">
             <Calendar className="w-3 h-3" />
             <span>
-              Mulai: {project.start_date ? new Date(project.start_date).toLocaleDateString() : "Belum ditentukan"}
+              Mulai: {project.start_date ? formatDate(project.start_date) : "Belum ditentukan"}
             </span>
           </div>
           {project.end_date && (
@@ -82,7 +83,7 @@ const BusinessProject = () => {
               <div className="flex items-center gap-1 text-blue-700">
                 <Calendar className="w-3 h-3 sm:hidden" />
                 <span>
-                  Selesai: {new Date(project.end_date).toLocaleDateString()}
+                  Selesai: {formatDate(project.end_date)}
                 </span>
               </div>
             </>

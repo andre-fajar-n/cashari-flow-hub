@@ -13,6 +13,7 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { BudgetModel } from "@/models/budgets";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
+import { formatDate } from "@/lib/date";
 
 
 const Budget = () => {
@@ -66,7 +67,7 @@ const Budget = () => {
             <div className="flex items-center gap-2 sm:gap-1">
               <Calendar className="w-4 h-4 sm:w-3 sm:h-3 text-blue-600" />
               <span className="text-sm sm:text-xs text-blue-700">
-                {new Date(budget.start_date).toLocaleDateString()} - {new Date(budget.end_date).toLocaleDateString()}
+                {formatDate(budget.start_date)} - {formatDate(budget.end_date)}
               </span>
             </div>
           </div>
