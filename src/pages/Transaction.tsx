@@ -89,9 +89,6 @@ const Transaction = () => {
             >
               {formatAmountCurrency(transaction.amount, transaction.wallets.currency_code)}
             </AmountText>
-            <Badge variant="outline" className="text-sm sm:text-xs mt-2 sm:mt-1 px-3 sm:px-2 py-1 rounded-full sm:rounded-md font-medium sm:font-normal">
-              {transaction.wallets.currency_code}
-            </Badge>
           </div>
         </div>
 
