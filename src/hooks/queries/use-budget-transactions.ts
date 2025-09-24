@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 
-export const useBudgetTransactions = (budgetId?: number) => {
+export const useBudgetTransactions = (budgetId: number) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();

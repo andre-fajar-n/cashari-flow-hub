@@ -23,6 +23,26 @@ export const useBudgets = () => {
   });
 };
 
+export const useBudget = (id: number) => {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["budgets", user?.id, id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("budgets")
+        .select("*")
+        .eq("user_id", user?.id)
+        .eq("id", id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user && !!id,
+  });
+};
+
 export const useDeleteBudget = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();

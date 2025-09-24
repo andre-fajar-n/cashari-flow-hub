@@ -4,7 +4,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Edit, Trash2, Calendar, Plus } from "lucide-react";
-import { useBudgets, useDeleteBudget } from "@/hooks/queries/use-budgets";
+import { useBudget, useDeleteBudget } from "@/hooks/queries/use-budgets";
 import BudgetTransactionList from "@/components/budget/BudgetTransactionList";
 import BudgetDialog from "@/components/budget/BudgetDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -15,16 +15,15 @@ import { useBudgetTransactions } from "@/hooks/queries/use-budget-transactions";
 import { formatDate } from "@/lib/date";
 
 const BudgetDetail = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  const { data: budgets } = useBudgets();
-  const budget = budgets?.find(b => b.id === parseInt(id || "0"));
+  const { data: budget } = useBudget(parseInt(id!));
   const { mutate: deleteBudget } = useDeleteBudget();
-  const { data: budgetTransactions } = useBudgetTransactions(budget?.id);
+  const { data: budgetTransactions } = useBudgetTransactions(budget?.id!);
 
   const totalSpent = budgetTransactions?.reduce((sum, item) => sum + (item.transactions?.amount || 0), 0) || 0;
   const remainingBudget = (budget?.amount || 0) - totalSpent;

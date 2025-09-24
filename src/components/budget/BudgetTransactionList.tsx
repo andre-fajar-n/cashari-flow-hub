@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ArrowUpCircle, ArrowDownCircle, X, Plus } from "lucide-react";
 import { useBudgetTransactions } from "@/hooks/queries/use-budget-transactions";
