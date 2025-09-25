@@ -4,10 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Wallet, DollarSign, Coins, ChevronDown, ChevronRight, Search, ChevronLeft, AlertTriangle } from "lucide-react";
+import { Wallet, DollarSign, Coins, ChevronDown, ChevronRight, Search, ChevronLeft, AlertTriangle, Calculator, Info } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { MoneySummaryGroupByCurrency, MoneySummaryModel, WalletSummary } from "@/models/money-summary";
 import { formatDate } from "@/lib/date";
+import { useDefaultCurrency } from "@/hooks/queries/use-currencies";
 
 interface MoneySummaryCardProps {
   isLoading?: boolean;
@@ -23,6 +24,9 @@ const MoneySummaryCard = ({
   const [expandedWallets, setExpandedWallets] = useState<Set<number>>(new Set());
   const [expandedInstruments, setExpandedInstruments] = useState<Set<string>>(new Set());
   const itemsPerPage = 5;
+
+  // Get user's default currency
+  const defaultCurrency = useDefaultCurrency();
 
   // Process currency totals
   const currencyMap = new Map<string, MoneySummaryGroupByCurrency>();
@@ -43,6 +47,39 @@ const MoneySummaryCard = ({
     }
   }
   const currencies = Array.from(currencyMap.keys());
+
+  // Calculate total amount in default currency
+  const totalAmountCalculation = useMemo(() => {
+    if (!defaultCurrency || currencies.length === 0) {
+      return { canCalculate: false, totalAmount: 0, missingRates: [] };
+    }
+
+    const missingRates: string[] = [];
+    let totalAmount = 0;
+    let canCalculate = true;
+
+    for (const currency of currencies) {
+      const currencyData = currencyMap.get(currency);
+      if (!currencyData) continue;
+
+      const amount = currencyData.amount || 0;
+
+      // If it's the same as default currency, no conversion needed
+      if (currency === defaultCurrency.code) {
+        totalAmount += amount;
+      } else {
+        // Need exchange rate for conversion
+        if (currencyData.latest_rate === null) {
+          missingRates.push(currency);
+          canCalculate = false;
+        } else {
+          totalAmount += amount * (currencyData.latest_rate || 0);
+        }
+      }
+    }
+
+    return { canCalculate, totalAmount, missingRates };
+  }, [currencies, currencyMap, defaultCurrency]);
 
   // Process wallet hierarchy: wallet → instrument → asset
   const processedWallets = useMemo(() => {
@@ -214,6 +251,42 @@ const MoneySummaryCard = ({
       </div>
 
       <div className="space-y-6">
+        {/* Total Amount Section */}
+        {defaultCurrency && currencies.length > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Calculator className="w-4 h-4 text-green-600" />
+              <h4 className="font-medium">Total Keseluruhan</h4>
+            </div>
+            {totalAmountCalculation.canCalculate ? (
+              <div className="p-4 bg-green-50 rounded-lg border-l-4 border-l-green-500">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-green-700">
+                    Total dalam {defaultCurrency.code}:
+                  </span>
+                  <span className="text-lg font-bold text-green-800">
+                    {formatAmountCurrency(totalAmountCalculation.totalAmount, defaultCurrency.code)}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 bg-amber-50 rounded-lg border-l-4 border-l-amber-500">
+                <div className="flex items-start gap-2">
+                  <Info className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-amber-700">
+                      Total tidak dapat dihitung
+                    </p>
+                    <p className="text-xs text-amber-600">
+                      Exchange rate tidak tersedia untuk mata uang: {totalAmountCalculation.missingRates.join(', ')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Grand Totals - Only Original Currency with Base Currency conversion */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
