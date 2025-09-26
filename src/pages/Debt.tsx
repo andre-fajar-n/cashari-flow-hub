@@ -6,10 +6,12 @@ import { Plus, Calendar, Edit, Trash2, History } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import DebtDialog from "@/components/debt/DebtDialog";
+import DebtSummaryCard from "@/components/debt/DebtSummaryCard";
 import { DEBT_TYPES } from "@/constants/enums";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useDeleteDebt } from "@/hooks/queries/use-debts";
 import { useDebtsPaginated } from "@/hooks/queries/paginated/use-debts-paginated";
+import { useDebtSummary } from "@/hooks/queries/use-debt-summary";
 import { DebtModel } from "@/models/debts";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
@@ -33,6 +35,7 @@ const Debt = () => {
   const { data: paged, isLoading } = useDebtsPaginated({ page, itemsPerPage, searchTerm: serverSearch, filters: serverFilters });
   const debts = paged?.data || [];
   const { data: currencies } = useCurrencies();
+  const { data: debtSummary } = useDebtSummary();
 
   const handleEdit = (debt: DebtModel) => {
     setSelectedDebt(debt);
@@ -189,7 +192,18 @@ const Debt = () => {
           cancelText="Batal"
           variant="destructive"
         />
-        
+
+        {/* Debt Summary Card */}
+        {debtSummary && debtSummary.length > 0 && (
+          <div className="mb-6">
+            <DebtSummaryCard
+              summaryData={debtSummary}
+              showDetailedBreakdown={false}
+              title="Ringkasan Total Hutang/Piutang"
+            />
+          </div>
+        )}
+
         <DataTable
           data={debts}
           isLoading={isLoading}

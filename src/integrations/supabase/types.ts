@@ -885,6 +885,35 @@ export type Database = {
       }
     }
     Views: {
+      debt_summary: {
+        Row: {
+          user_id: string | null
+          debt_id: number | null
+          debt_name: string | null
+          income_amount: number | null
+          outcome_amount: number | null
+          currency_code: string | null
+          income_amount_in_base_currency: number | null
+          outcome_amount_in_base_currency: number | null
+          base_currency_code: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "debts_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "debts_base_currency_code_fkey"
+            columns: ["base_currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       money_summary: {
         Row: {
           wallet_id: number | null

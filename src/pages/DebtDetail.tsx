@@ -6,10 +6,12 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import { useDebtHistories } from "@/hooks/queries/use-debt-histories";
 import { useDebts, useMarkDebtAsActive, useMarkDebtAsPaid } from "@/hooks/queries/use-debts";
+import { useDebtSummaryById } from "@/hooks/queries/use-debt-summary";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import DebtHistoryDialog from "@/components/debt/DebtHistoryDialog";
+import DebtSummaryCard from "@/components/debt/DebtSummaryCard";
 import { formatAmountCurrency } from "@/lib/currency";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useDeleteDebtHistory } from "@/hooks/queries/use-debt-histories";
@@ -29,6 +31,7 @@ const DebtHistory = () => {
   const debtId = id ? parseInt(id) : 0;
   const { data: histories, isLoading } = useDebtHistories(debtId);
   const { data: debts } = useDebts();
+  const { data: debtSummary } = useDebtSummaryById(debtId);
   const markAsPaid = useMarkDebtAsPaid();
   const markAsActive = useMarkDebtAsActive();
   const deleteDebtHistory = useDeleteDebtHistory();
@@ -169,19 +172,12 @@ const DebtHistory = () => {
           </div>
 
           {/* Summary Card */}
-          {histories && histories.length > 0 && (
-            <Card>
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold">
-                    Total: {formatAmountCurrency(Math.abs(totalAmount))} {histories[0]?.wallets?.currency_code}
-                  </div>
-                  <p className="text-muted-foreground">
-                    Total pembayaran dari {histories.length} transaksi
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+          {debtSummary && (
+            <DebtSummaryCard
+              summaryData={debtSummary}
+              showDetailedBreakdown={true}
+              title={`Ringkasan ${debt.name}`}
+            />
           )}
 
           {/* Data Table */}
