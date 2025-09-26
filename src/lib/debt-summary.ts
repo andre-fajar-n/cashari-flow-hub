@@ -57,7 +57,7 @@ export const groupDebtSummaryByCurrency = (summaryData: DebtSummaryModel[]): Deb
     if (item.income_amount_in_base_currency !== null && item.outcome_amount_in_base_currency !== null) {
       group.income_amount_in_base_currency = (group.income_amount_in_base_currency || 0) + item.income_amount_in_base_currency;
       group.outcome_amount_in_base_currency = (group.outcome_amount_in_base_currency || 0) + item.outcome_amount_in_base_currency;
-      group.net_amount_in_base_currency = (group.income_amount_in_base_currency || 0) - (group.outcome_amount_in_base_currency || 0);
+      group.net_amount_in_base_currency = (group.income_amount_in_base_currency || 0) + (group.outcome_amount_in_base_currency || 0);
       group.has_exchange_rate = true;
     } else {
       // If any item doesn't have exchange rate, mark the whole group as not having complete exchange rate

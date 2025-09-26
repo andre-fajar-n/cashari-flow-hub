@@ -6,7 +6,6 @@ import { Plus, Calendar, Edit, Trash2, History } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import DebtDialog from "@/components/debt/DebtDialog";
-import DebtSummaryCard from "@/components/debt/DebtSummaryCard";
 import { DEBT_TYPES } from "@/constants/enums";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useDeleteDebt } from "@/hooks/queries/use-debts";
@@ -18,6 +17,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { formatDate } from "@/lib/date";
+import { formatAmountCurrency } from "@/lib/currency";
+import { calculateTotalInBaseCurrency } from "@/lib/debt-summary";
+import { DebtSummaryModel } from "@/models/debt-summary";
 
 const Debt = () => {
   const queryClient = useQueryClient();
@@ -62,7 +64,19 @@ const Debt = () => {
     navigate(`/debt/${debt.id}/history`);
   };
 
-  const renderDebtItem = (debt: DebtModel) => (
+  const groupedSummaryById = (debtSummary ?? []).reduce((acc, item) => {
+    if (!acc[item.debt_id]) {
+      acc[item.debt_id] = [];
+    }
+    acc[item.debt_id].push(item);
+    return acc;
+  }, {} as Record<number, DebtSummaryModel[]>);
+
+  const renderDebtItem = (debt: DebtModel) => {
+    const summaries = groupedSummaryById[debt.id];
+    const totalAmount = summaries ? calculateTotalInBaseCurrency(summaries) : null;
+
+    return (
     <Card key={debt.id} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
       <div className="space-y-2">
         {/* Header Section */}
@@ -98,15 +112,47 @@ const Debt = () => {
 
           {/* Amount display */}
           <div className="text-right flex-shrink-0">
-            <div className="text-sm font-medium text-gray-600">
-              {debt.currency_code}
-            </div>
-            {/* TODO: add total amount */}
-            {/* <div className={`text-lg font-bold ${
-              debt.type === DEBT_TYPES.LOAN ? 'text-red-700' : 'text-green-700'
-            }`}>
-              {debt.amount.toLocaleString('id-ID')}
-            </div> */}
+            {!totalAmount ? (
+              <div>
+                <div className="text-sm font-medium text-gray-600">
+                  {debt.currency_code}
+                </div>
+                <div className="text-xs text-yellow-600">
+                  Belum ada transaksi
+                </div>
+              </div>
+            ) : totalAmount.can_calculate ? (
+              // Show base currency amount if available
+              <div>
+                <div>
+                  <div className="text-xs text-gray-500 mb-1">
+                    Total dalam {totalAmount.base_currency_code}
+                  </div>
+                  <div className={`text-lg font-bold ${
+                    (totalAmount.total_income + totalAmount.total_outcome) > 0
+                      ? 'text-green-700'
+                      : (totalAmount.total_income + totalAmount.total_outcome) < 0
+                        ? 'text-red-700'
+                        : 'text-gray-700'
+                  }`}>
+                    {formatAmountCurrency(
+                      totalAmount.total_income + totalAmount.total_outcome,
+                      totalAmount.base_currency_code || ''
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              // Show original currency if no base currency conversion
+              <div>
+                <div className="text-sm font-medium text-gray-600">
+                  {debt.currency_code}
+                </div>
+                <div className="text-xs text-yellow-600">
+                  Exchange rate belum tersedia
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -142,7 +188,8 @@ const Debt = () => {
         </div>
       </div>
     </Card>
-  );
+    );
+  };
 
   const columnFilters: ColumnFilter[] = [
     {
@@ -192,17 +239,6 @@ const Debt = () => {
           cancelText="Batal"
           variant="destructive"
         />
-
-        {/* Debt Summary Card */}
-        {debtSummary && debtSummary.length > 0 && (
-          <div className="mb-6">
-            <DebtSummaryCard
-              summaryData={debtSummary}
-              showDetailedBreakdown={false}
-              title="Ringkasan Total Hutang/Piutang"
-            />
-          </div>
-        )}
 
         <DataTable
           data={debts}
