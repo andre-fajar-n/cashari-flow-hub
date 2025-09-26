@@ -2,20 +2,16 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
-export const useDebtSummary = (debtId?: number) => {
+export const useDebtSummary = () => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["debt_summary", user?.id, debtId],
+    queryKey: ["debt_summary", user?.id],
     queryFn: async () => {
       let query = supabase
         .from("debt_summary")
         .select('*')
         .eq("user_id", user?.id);
-
-      if (debtId) {
-        query = query.eq("debt_id", debtId);
-      }
 
       const { data, error } = await query;
       if (error) {
