@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, CheckCircle, Edit, Plus, RotateCcw, Trash2 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
@@ -20,6 +21,7 @@ import { DebtHistoryModel } from "@/models/debt-histories";
 import { formatDate } from "@/lib/date";
 
 const DebtHistory = () => {
+  const [activeTab, setActiveTab] = useState("summary");
   const [isMarkPaidModalOpen, setIsMarkPaidModalOpen] = useState(false);
   const [isMarkActiveModalOpen, setIsMarkActiveModalOpen] = useState(false);
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
@@ -147,8 +149,6 @@ const DebtHistory = () => {
     },
   ];
 
-  const totalAmount = histories?.reduce((sum, history) => sum + (history.categories?.is_income ? history.amount : -history.amount), 0) || 0;
-
   return (
     <ProtectedRoute>
       <Layout>
@@ -166,34 +166,14 @@ const DebtHistory = () => {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold">{debt.name}</h1>
-                <p className="text-muted-foreground">History Pembayaran</p>
+                <p className="text-muted-foreground">Detail Hutang/Piutang</p>
               </div>
             </div>
-          </div>
 
-          {/* Summary Card */}
-          {debtSummary && (
-            <DebtSummaryCard
-              summaryData={debtSummary}
-              showDetailedBreakdown={true}
-              title={`Ringkasan ${debt.name}`}
-            />
-          )}
-
-          {/* Data Table */}
-          <DataTable
-            data={histories || []}
-            isLoading={isLoading}
-            searchPlaceholder="Cari history pembayaran..."
-            searchFields={["description", "categories.name"]}
-            columnFilters={columnFilters}
-            renderItem={renderHistoryItem}
-            emptyStateMessage="Belum ada history pembayaran"
-            title="History Pembayaran"
-            description={`Daftar pembayaran untuk ${debt.name}`}
-            headerActions={
-              debt.status === 'active' ? (
-                <div className="flex gap-2 ml-4">
+            {/* Action Buttons - Always visible above tabs */}
+            <div className="flex gap-2 justify-end">
+              {debt.status === 'active' ? (
+                <>
                   <Button
                     onClick={() => setIsMarkPaidModalOpen(true)}
                     variant="outline"
@@ -201,11 +181,11 @@ const DebtHistory = () => {
                     <CheckCircle className="w-4 h-4 mr-2" />
                     Tandai Lunas
                   </Button>
-                  <Button onClick={() => setIsHistoryDialogOpen(true)} className="w-full sm:w-auto">
+                  <Button onClick={() => setIsHistoryDialogOpen(true)}>
                     <Plus className="w-4 h-4 mr-2" />
                     Tambah History
                   </Button>
-                </div>
+                </>
               ) : (
                 <Button
                   onClick={() => setIsMarkActiveModalOpen(true)}
@@ -214,9 +194,42 @@ const DebtHistory = () => {
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Tandai Aktif
                 </Button>
-              )
-            }
-          />
+              )}
+            </div>
+          </div>
+
+
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="summary">Ringkasan</TabsTrigger>
+              <TabsTrigger value="history">Riwayat</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="summary" className="space-y-4">
+              {debtSummary && (
+                <DebtSummaryCard
+                  summaryData={debtSummary}
+                  showDetailedBreakdown={true}
+                  title={`Ringkasan ${debt.name}`}
+                />
+              )}
+            </TabsContent>
+
+            <TabsContent value="history" className="space-y-4">
+              <DataTable
+                data={histories || []}
+                isLoading={isLoading}
+                searchPlaceholder="Cari history pembayaran..."
+                searchFields={["description", "categories.name"]}
+                columnFilters={columnFilters}
+                renderItem={renderHistoryItem}
+                emptyStateMessage="Belum ada history pembayaran"
+                title="History Pembayaran"
+                description={`Daftar pembayaran untuk ${debt.name}`}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
 
         <DebtHistoryDialog
