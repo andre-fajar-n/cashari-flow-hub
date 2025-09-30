@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 import { useTransactions } from "@/hooks/queries/use-transactions";
-import { useBudgetTransactions } from "@/hooks/queries/use-budget-transactions";
+import { useBudgetTransactions, useCreateBudgetItem } from "@/hooks/queries/use-budget-transactions";
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
 import { BudgetModel } from "@/models/budgets";
@@ -36,10 +36,8 @@ const BudgetTransactionDialog = ({
   };
 
   const { data: allTransactions } = useTransactions(filter);
-  const { 
-    data: budgetTransactions, 
-    addTransactionsToBudget 
-  } = useBudgetTransactions(budget?.id);
+  const addTransactionsToBudget = useCreateBudgetItem();
+  const { data: budgetTransactions } = useBudgetTransactions(budget?.id);
 
   // Get transactions that are not already in this budget
   const availableTransactions = allTransactions?.filter(transaction => {

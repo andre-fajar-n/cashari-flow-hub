@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowUpCircle, ArrowDownCircle, X, Plus } from "lucide-react";
-import { useBudgetTransactions } from "@/hooks/queries/use-budget-transactions";
+import { ArrowUpCircle, ArrowDownCircle, X } from "lucide-react";
+import { useDeleteBudgetItem } from "@/hooks/queries/use-budget-transactions";
 import { useBudgetTransactionsPaginated } from "@/hooks/queries/paginated/use-budget-transactions-paginated";
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
-import { BudgetModel } from "@/models/budgets";
-import { useToast } from "@/hooks/use-toast";
+import { BudgetItemWithTransactions, BudgetModel } from "@/models/budgets";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { useCategories } from "@/hooks/queries/use-categories";
 import { useWallets } from "@/hooks/queries/use-wallets";
@@ -15,20 +14,15 @@ import { formatDate } from "@/lib/date";
 
 interface BudgetTransactionListProps {
   budget: BudgetModel;
-  onAddTransaction?: () => void;
 }
 
-const BudgetTransactionList = ({ budget, onAddTransaction }: BudgetTransactionListProps) => {
-  const { toast } = useToast();
+const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
   const [page, setPage] = useState(1);
   const [serverSearch, setServerSearch] = useState("");
   const [serverFilters, setServerFilters] = useState<Record<string, any>>({});
   const itemsPerPage = 10;
 
-  const {
-    data: budgetTransactions,
-    removeTransactionFromBudget
-  } = useBudgetTransactions(budget.id);
+  const removeTransactionFromBudget = useDeleteBudgetItem();
 
   const { data: paged, isLoading } = useBudgetTransactionsPaginated({
     budgetId: budget.id,
@@ -43,83 +37,106 @@ const BudgetTransactionList = ({ budget, onAddTransaction }: BudgetTransactionLi
 
   const transactions = paged?.data || [];
 
-  const handleRemoveTransaction = async (transactionId: number) => {
-    try {
-      await removeTransactionFromBudget.mutateAsync({
-        budgetId: budget.id,
-        transactionId
-      });
-      toast({
-        title: "Berhasil",
-        description: "Transaksi berhasil dihapus dari budget",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Gagal menghapus transaksi dari budget",
-        variant: "destructive",
-      });
-    }
+  const handleRemoveTransaction = (transactionId: number) => {
+    removeTransactionFromBudget.mutateAsync({
+      budgetId: budget.id,
+      transactionId
+    })
   };
 
-  // Calculate total amounts from all budget transactions (not paginated)
-  const totalSpent = budgetTransactions?.reduce((sum, item) => {
-    const transaction = item.transactions;
-    return sum + (transaction?.amount || 0);
-  }, 0) || 0;
-
   // Render transaction item for DataTable
-  const renderTransactionItem = (item: any) => {
-    const transaction = item.transactions;
+  const renderTransactionItem = (item: BudgetItemWithTransactions) => {
+    const isIncome = item.amount > 0;
+    const isExpense = item.amount < 0;
+    const isDifferentCurrency = item.exchange_rate !== 1;
+    const originalAmount = Math.abs(item.amount);
+    const convertedAmount = Math.abs(item.amount * item.exchange_rate);
+
     return (
-      <Card key={item.id} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 flex-1">
-            <div className="flex-shrink-0">
-              {transaction?.categories?.is_income ? (
-                <ArrowUpCircle className="w-4 h-4 text-green-600" />
+      <Card key={item.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+        <div className="flex items-center justify-between gap-4">
+          {/* Left section - Icon and transaction details */}
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="flex-shrink-0 mt-0.5">
+              {isIncome ? (
+                <ArrowUpCircle className="w-5 h-5 text-green-600" />
+              ) : isExpense ? (
+                <ArrowDownCircle className="w-5 h-5 text-red-600" />
               ) : (
-                <ArrowDownCircle className="w-4 h-4 text-red-600" />
+                <div className="w-5 h-5 bg-gray-200 rounded-full" />
               )}
             </div>
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <p className="font-medium text-sm truncate">
-                  {transaction?.categories?.name}
-                </p>
+            <div className="flex-1 min-w-0 space-y-1">
+              {/* Category name */}
+              <div className="flex items-center gap-2">
+                <h4 className="font-semibold text-sm text-gray-900 truncate">
+                  {item.category_name}
+                </h4>
               </div>
-              <div className="flex items-center gap-2 mb-1 text-s text-muted-foreground">
-                <p className="font-medium text-sm truncate">
-                  {transaction?.description || 'No description'}
-                </p>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>{formatDate(transaction?.date || '')}</span>
+
+              {/* Description */}
+              <p className="text-sm text-gray-600 truncate">
+                {item.description || 'Tanpa deskripsi'}
+              </p>
+
+              {/* Date and wallet info */}
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <span className="font-medium">{formatDate(item.date || '')}</span>
                 <span>•</span>
-                <span>{transaction?.wallets?.name}</span>
+                <span className="truncate">{item.wallet_name}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="text-right">
-              <AmountText
-                amount={transaction?.categories?.is_income ? transaction.amount : -transaction.amount}
-                className="font-semibold text-sm"
-                showSign={true}
-              >
-                {formatAmountCurrency(transaction?.amount || 0, transaction?.wallets?.currency_code || budget.currency_code)}
-              </AmountText>
+          {/* Right section - Amount and actions */}
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <div className="text-right space-y-1">
+              {/* Main amount display */}
+              <div className="flex flex-col items-end">
+                <AmountText
+                  amount={item.amount}
+                  className="font-bold text-base"
+                  showSign={true}
+                >
+                  {formatAmountCurrency(originalAmount, item.original_currency_code)}
+                </AmountText>
+
+                {/* Show converted amount if different currency and rate is available */}
+                {isDifferentCurrency && item.exchange_rate && (
+                  <div className="flex flex-col items-end mt-1">
+                    <AmountText
+                      amount={item.amount}
+                      className="font-medium text-sm text-gray-600"
+                      showSign={true}
+                    >
+                      {formatAmountCurrency(convertedAmount, budget.currency_code)}
+                    </AmountText>
+                    <span className="text-xs text-gray-400 mt-0.5">
+                      (Rate: {item.exchange_rate?.toFixed(4)})
+                    </span>
+                  </div>
+                )}
+
+                {/* Show warning if rate is not available */}
+                {!item.exchange_rate && (
+                  <div className="flex flex-col items-end mt-1">
+                    <span className="text-xs text-yellow-600 mt-0.5">
+                      (Rate belum tersedia)
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
 
+            {/* Remove button */}
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleRemoveTransaction(transaction?.id || 0)}
-              className="text-destructive hover:text-destructive h-8 w-8 p-0"
+              onClick={() => handleRemoveTransaction(item.id)}
+              className="text-destructive hover:text-destructive hover:bg-red-50 h-8 w-8 p-0 mt-1"
             >
-              <X className="w-3 h-3" />
+              <X className="w-4 h-4" />
             </Button>
           </div>
         </div>
@@ -130,16 +147,7 @@ const BudgetTransactionList = ({ budget, onAddTransaction }: BudgetTransactionLi
   // Column filters for DataTable
   const columnFilters: ColumnFilter[] = [
     {
-      field: "transactions.categories.is_income",
-      label: "Tipe",
-      type: "select",
-      options: [
-        { label: "Pemasukan", value: "true" },
-        { label: "Pengeluaran", value: "false" }
-      ]
-    },
-    {
-      field: "transactions.category_id",
+      field: "category_id",
       label: "Kategori",
       type: "select",
       options: categories?.map(category => ({
@@ -148,7 +156,7 @@ const BudgetTransactionList = ({ budget, onAddTransaction }: BudgetTransactionLi
       })) || []
     },
     {
-      field: "transactions.wallet_id",
+      field: "wallet_id",
       label: "Dompet",
       type: "select",
       options: wallets?.map(wallet => ({
@@ -157,7 +165,7 @@ const BudgetTransactionList = ({ budget, onAddTransaction }: BudgetTransactionLi
       })) || []
     },
     {
-      field: "transactions.date",
+      field: "date",
       label: "Tanggal",
       type: "date"
     }
@@ -184,15 +192,6 @@ const BudgetTransactionList = ({ budget, onAddTransaction }: BudgetTransactionLi
         renderItem={renderTransactionItem}
         emptyStateMessage="Belum ada transaksi dalam budget ini"
         title={`Transaksi dalam Budget (${paged?.count || 0})`}
-        description={`Total terpakai: ${formatAmountCurrency(totalSpent, budget.currency_code)} dari ${formatAmountCurrency(budget.amount, budget.currency_code)}`}
-        headerActions={
-          onAddTransaction && (
-            <Button onClick={onAddTransaction} className="w-full sm:w-auto">
-              <Plus className="w-4 h-4 mr-2" />
-              Tambah Transaksi
-            </Button>
-          )
-        }
       />
     </div>
   );

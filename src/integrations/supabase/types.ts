@@ -914,6 +914,38 @@ export type Database = {
           },
         ]
       }
+      budget_item_with_transactions: {
+        Row: {
+          user_id: string | null
+          id: number | null
+          budget_id: number | null
+          transaction_id: number | null
+          wallet_id: number | null
+          wallet_name: string | null
+          category_id: number | null
+          category_name: string | null
+          description: string | null
+          amount: number | null
+          original_currency_code: string | null
+          date: string | null
+          base_currency_code: string | null
+          exchange_rate: number | null
+        }
+      }
+      budget_summary: {
+        Row: {
+          user_id: string | null
+          budget_id: number | null
+          name: string | null
+          budget_amount: number | null
+          start_date: string | null
+          end_date: string | null
+          amount: number | null
+          original_currency_code: string | null
+          amount_in_base_currency: number | null
+          base_currency_code: string | null
+        }
+      }
       money_summary: {
         Row: {
           wallet_id: number | null

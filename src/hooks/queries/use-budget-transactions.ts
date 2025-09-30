@@ -2,13 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { BudgetItemWithTransactions } from "@/models/budgets";
 
 export const useBudgetTransactions = (budgetId: number) => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  const query = useQuery({
+  return useQuery<BudgetItemWithTransactions[]>({
     queryKey: ["budget-transactions", budgetId],
     queryFn: async () => {
       if (!budgetId) return [];
@@ -23,7 +22,9 @@ export const useBudgetTransactions = (budgetId: number) => {
             wallets(name, currency_code)
           )
         `)
-        .eq("budget_id", budgetId);
+        .eq("budget_id", budgetId)
+        .order("date", { ascending: false, referencedTable: "transactions" })
+        .order("created_at", { ascending: false, referencedTable: "transactions" });
 
       if (error) {
         console.error("Failed to fetch budget transactions", error);
@@ -33,8 +34,13 @@ export const useBudgetTransactions = (budgetId: number) => {
     },
     enabled: !!user && !!budgetId,
   });
+};
 
-  const addTransactionsToBudget = useMutation({
+export const useCreateBudgetItem = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
     mutationFn: async ({ budgetId, transactionIds }: { budgetId: number; transactionIds: number[] }) => {
       const budgetItems = transactionIds.map(transactionId => ({
         budget_id: budgetId,
@@ -67,8 +73,13 @@ export const useBudgetTransactions = (budgetId: number) => {
       });
     },
   });
+};
 
-  const removeTransactionFromBudget = useMutation({
+export const useDeleteBudgetItem = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
     mutationFn: async ({ budgetId, transactionId }: { budgetId: number; transactionId: number }) => {
       const { error } = await supabase
         .from("budget_items")
@@ -98,10 +109,4 @@ export const useBudgetTransactions = (budgetId: number) => {
       });
     },
   });
-
-  return {
-    ...query,
-    addTransactionsToBudget,
-    removeTransactionFromBudget
-  };
 };

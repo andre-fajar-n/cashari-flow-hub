@@ -3,11 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { BudgetFormData } from "@/form-dto/budget";
+import { BudgetModel } from "@/models/budgets";
 
 export const useBudgets = () => {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<BudgetModel[]>({
     queryKey: ["budgets", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -26,7 +27,7 @@ export const useBudgets = () => {
 export const useBudget = (id: number) => {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<BudgetModel>({
     queryKey: ["budgets", user?.id, id],
     queryFn: async () => {
       const { data, error } = await supabase
