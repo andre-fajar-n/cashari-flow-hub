@@ -9,11 +9,12 @@ import { AssetFormData, defaultAssetFormValues } from "@/form-dto/investment-ass
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useCreateInvestmentAsset, useUpdateInvestmentAsset } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
+import { InvestmentAssetModel } from "@/models/investment-assets";
 
 interface InvestmentAssetDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  asset?: any;
+  asset?: InvestmentAssetModel;
   onSuccess?: () => void;
 }
 

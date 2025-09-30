@@ -6,14 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { defaultProjectFormValues, ProjectFormData } from "@/form-dto/business-projects";
-import { useCreateProject, useUpdateProject } from "@/hooks/queries/use-business-projects";
+import { defaultBusinessProjectFormValues, BusinessProjectFormData } from "@/form-dto/business-projects";
+import { useCreateBusinessProject, useUpdateBusinessProject } from "@/hooks/queries/use-business-projects";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { BusinessProjectModel } from "@/models/business-projects";
 
 interface BusinessProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  project?: any;
+  project?: BusinessProjectModel;
   onSuccess?: () => void;
 }
 
@@ -21,11 +22,11 @@ const BusinessProjectDialog = ({ open, onOpenChange, project, onSuccess }: Busin
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  const createProject = useCreateProject();
-  const updateProject = useUpdateProject();
+  const createProject = useCreateBusinessProject();
+  const updateProject = useUpdateBusinessProject();
 
-  const form = useForm<ProjectFormData>({
-    defaultValues: defaultProjectFormValues,
+  const form = useForm<BusinessProjectFormData>({
+    defaultValues: defaultBusinessProjectFormValues,
   });
 
   // Reset form when project prop changes or dialog opens/closes
@@ -39,7 +40,7 @@ const BusinessProjectDialog = ({ open, onOpenChange, project, onSuccess }: Busin
           end_date: project.end_date || "",
         });
       } else {
-        form.reset(defaultProjectFormValues);
+        form.reset(defaultBusinessProjectFormValues);
       }
     }
   }, [project, open, form]);
@@ -53,7 +54,7 @@ const BusinessProjectDialog = ({ open, onOpenChange, project, onSuccess }: Busin
     queryKeysToInvalidate: QUERY_KEY_SETS.BUSINESS_PROJECTS
   });
 
-  const onSubmit = async (data: ProjectFormData) => {
+  const onSubmit = async (data: BusinessProjectFormData) => {
     if (!user) return;
 
     setIsLoading(true);

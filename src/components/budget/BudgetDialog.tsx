@@ -10,11 +10,12 @@ import { InputNumber } from "@/components/ui/input-number";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useCreateBudget, useUpdateBudget } from "@/hooks/queries/use-budgets";
 import { useCurrencies, useDefaultCurrency } from "@/hooks/queries/use-currencies";
+import { BudgetModel } from "@/models/budgets";
 
 interface BudgetDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  budget?: any;
+  budget?: BudgetModel;
   onSuccess?: () => void;
 }
 
@@ -24,7 +25,7 @@ const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogPro
   const updateBudget = useUpdateBudget();
   const createBudget = useCreateBudget();
   const { data: currencies } = useCurrencies();
-  const defaultCurrency = useDefaultCurrency();
+  const { data: defaultCurrency } = useDefaultCurrency();
 
   const form = useForm<BudgetFormData>({
     defaultValues: defaultBudgetFormValues,

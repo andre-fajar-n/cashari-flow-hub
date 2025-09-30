@@ -3,11 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { WalletFormData } from "@/form-dto/wallets";
+import { WalletModel } from "@/models/wallets";
 
 export const useWallets = () => {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<WalletModel[]>({
     queryKey: ["wallets", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase

@@ -9,11 +9,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { defaultGoalFormValues, GoalFormData } from "@/form-dto/goals";
 import { useCreateGoal, useUpdateGoal } from "@/hooks/queries/use-goals";
 import { useCurrencies, useDefaultCurrency } from "@/hooks/queries/use-currencies";
+import { GoalModel } from "@/models/goals";
 
 interface GoalDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  goal?: any;
+  goal?: GoalModel;
   onSuccess?: () => void;
 }
 
@@ -23,7 +24,7 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
   const createGoal = useCreateGoal();
   const updateGoal = useUpdateGoal();
   const { data: currencies } = useCurrencies();
-  const defaultCurrency = useDefaultCurrency();
+  const { data: defaultCurrency } = useDefaultCurrency();
 
   const form = useForm<GoalFormData>({
     defaultValues: defaultGoalFormValues,

@@ -11,11 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { defaultTransferFormData, TransferFormData } from "@/form-dto/transfer";
 import { useCreateTransfer, useUpdateTransfer } from "@/hooks/queries/use-transfers";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { TransferModel } from "@/models/transfer";
 
 interface TransferDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  transfer?: any;
+  transfer?: TransferModel;
   onSuccess?: () => void;
 }
 

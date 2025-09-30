@@ -3,11 +3,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { InstrumentFormData } from "@/form-dto/investment-instruments";
+import { InvestmentInstrumentModel } from "@/models/investment-instruments";
 
 export const useInvestmentInstruments = () => {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<InvestmentInstrumentModel[]>({
     queryKey: ["investment_instruments", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase

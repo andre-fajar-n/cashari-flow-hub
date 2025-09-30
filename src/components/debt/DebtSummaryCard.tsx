@@ -14,9 +14,8 @@ interface DebtSummaryCardProps {
 }
 
 const DebtSummaryCard = ({ summaryData, showDetailedBreakdown = false, title = "Ringkasan Hutang/Piutang" }: DebtSummaryCardProps) => {
-  const defaultCurrency = useDefaultCurrency();
+  const { data: defaultCurrency } = useDefaultCurrency();
 
-  const calculatedSummary = useMemo(() => calculateDebtSummary(summaryData), [summaryData]);
   const groupedByCurrency = useMemo(() => groupDebtSummaryByCurrency(summaryData), [summaryData]);
   const totalCalculation = useMemo(() => calculateTotalInBaseCurrency(summaryData), [summaryData]);
 

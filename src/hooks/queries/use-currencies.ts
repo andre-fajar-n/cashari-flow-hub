@@ -3,27 +3,32 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { CurrencyFormData } from "@/form-dto/currencies";
+import { CurrencyModel } from "@/models/currencies";
 
 export const useCurrencies = (is_default?: boolean) => {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<CurrencyModel[]>({
     queryKey: ["currencies", user?.id],
     queryFn: async () => {
       let query = supabase
         .from("currencies")
-        .select("code, name, symbol, is_default")
+        .select("*")
         .eq("user_id", user?.id)
         .order("is_default", { ascending: false })
         .order("code");
 
-      if (is_default !== undefined) {
+      if (is_default) {
         query = query.eq("is_default", is_default);
       }
 
       const { data, error } = await query;
-      
-      if (error) throw error;
+
+      if (error) {
+        console.error("Failed to fetch currencies", error);
+        throw error;
+      };
+
       return data;
     },
     enabled: !!user,
@@ -31,9 +36,12 @@ export const useCurrencies = (is_default?: boolean) => {
 };
 
 export const useDefaultCurrency = () => {
-  const { data: defaultCurrency } = useCurrencies(true);
-  
-  return defaultCurrency && defaultCurrency.length > 0 ? defaultCurrency[0] : null;
+  const { data: currencies, ...rest } = useCurrencies();
+
+  return {
+    ...rest,
+    data: currencies?.[0] ?? null as CurrencyModel | null,
+  };
 };
 
 export const useCreateCurrency = () => {

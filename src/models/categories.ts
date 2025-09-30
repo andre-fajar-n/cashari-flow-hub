@@ -1,9 +1,3 @@
-import { CategoryApplication } from "@/constants/enums";
+import { Database } from "@/integrations/supabase/types";
 
-export interface CategoryModel {
-  id: number;
-  name: string;
-  is_income: boolean;
-  parent_id: number | null;
-  application: CategoryApplication | null;
-}
+export type CategoryModel = Database["public"]["Tables"]["categories"]["Row"];

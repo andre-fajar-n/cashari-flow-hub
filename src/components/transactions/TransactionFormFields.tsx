@@ -3,11 +3,13 @@ import { Input } from "@/components/ui/input";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { InputNumber } from "@/components/ui/input-number";
+import { WalletModel } from "@/models/wallets";
+import { CategoryModel } from "@/models/categories";
 
 interface TransactionFormFieldsProps {
   control: Control<any>;
-  wallets?: any[];
-  categories?: any[];
+  wallets?: WalletModel[];
+  categories?: CategoryModel[];
 }
 
 const TransactionFormFields = ({ control, wallets, categories }: TransactionFormFieldsProps) => {

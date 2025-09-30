@@ -9,7 +9,6 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData } from "@/form-dto/goal-investment-records";
-import { Database } from "@/integrations/supabase/types";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useCreateGoalInvestmentRecord, useUpdateGoalInvestmentRecord } from "@/hooks/queries/use-goal-investment-records";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
@@ -17,12 +16,13 @@ import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useInvestmentCategories } from "@/hooks/queries/use-categories";
 import { useGoals } from "@/hooks/queries/use-goals";
+import { GoalInvestmentRecordModel } from "@/models/goal-investment-records";
 
 interface GoalInvestmentRecordDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   goalId?: number;
-  record?: Database["public"]["Tables"]["goal_investment_records"]["Row"] | null;
+  record?: GoalInvestmentRecordModel | null;
   onSuccess?: () => void;
 }
 

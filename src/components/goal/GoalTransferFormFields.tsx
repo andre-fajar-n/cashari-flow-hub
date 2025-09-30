@@ -3,14 +3,18 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getTransferModeConfig, GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import { GoalTransferFormData } from "@/form-dto/goal-transfers";
+import { WalletModel } from "@/models/wallets";
+import { GoalModel } from "@/models/goals";
+import { InvestmentInstrumentModel } from "@/models/investment-instruments";
+import { InvestmentAssetModel } from "@/models/investment-assets";
 
 interface GoalTransferFormFieldsProps {
   control: Control<GoalTransferFormData>;
-  wallets?: any[];
-  goals?: any[];
-  instruments?: any[];
-  fromAssets?: any[];
-  toAssets?: any[];
+  wallets?: WalletModel[];
+  goals?: GoalModel[];
+  instruments?: InvestmentInstrumentModel[];
+  fromAssets?: InvestmentAssetModel[];
+  toAssets?: InvestmentAssetModel[];
   transferConfig?: GoalTransferConfig;
 }
 

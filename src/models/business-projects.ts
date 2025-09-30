@@ -1,9 +1,3 @@
-export interface BusinessProjectModel {
-  id: number;
-  name: string;
-  description: string;
-  start_date: string;
-  end_date: string;
-  created_at: string;
-  updated_at: string;
-}
+import { Database } from "@/integrations/supabase/types";
+
+export type BusinessProjectModel = Database["public"]["Tables"]["business_projects"]["Row"];

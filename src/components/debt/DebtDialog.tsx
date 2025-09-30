@@ -10,11 +10,12 @@ import { DebtFormData, defaultDebtFormValues } from "@/form-dto/debts";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useCreateDebt, useUpdateDebt } from "@/hooks/queries/use-debts";
 import { useCurrencies, useDefaultCurrency } from "@/hooks/queries/use-currencies";
+import { DebtModel } from "@/models/debts";
 
 interface DebtDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  debt?: any;
+  debt?: DebtModel;
   onSuccess?: () => void;
 }
 
@@ -24,7 +25,7 @@ const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) =>
   const createDebt = useCreateDebt();
   const updateDebt = useUpdateDebt();
   const { data: currencies } = useCurrencies();
-  const defaultCurrency = useDefaultCurrency();
+  const { data: defaultCurrency } = useDefaultCurrency();
 
   const form = useForm<DebtFormData>({
     defaultValues: defaultDebtFormValues,

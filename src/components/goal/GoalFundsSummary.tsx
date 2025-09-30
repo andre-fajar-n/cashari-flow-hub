@@ -54,7 +54,7 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
   }
 
   // Helper to build grouped structure and totals per wallet
-  const buildGrouped = (list: any[]) => {
+  const buildGrouped = (list: MoneySummaryModel[]) => {
     const grouped = list.reduce((groups, fund) => {
       const walletKey = fund.wallet_name || 'Unknown Wallet';
       const instrumentKey = fund.instrument_name || 'Cash & Wallet';
@@ -62,12 +62,12 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
       if (!groups[walletKey][instrumentKey]) groups[walletKey][instrumentKey] = [];
       groups[walletKey][instrumentKey].push(fund);
       return groups;
-    }, {} as Record<string, Record<string, any[]>>);
+    }, {} as Record<string, Record<string, MoneySummaryModel[]>>);
 
     const walletTotals = Object.keys(grouped).reduce((totals: Record<string, number>, walletKey) => {
-      const total = (Object.values(grouped[walletKey]) as any[][])
+      const total = (Object.values(grouped[walletKey]) as MoneySummaryModel[][])
         .flat()
-        .reduce((sum: number, fund: any) => sum + (fund.amount ?? 0), 0);
+        .reduce((sum: number, fund: MoneySummaryModel) => sum + (fund.amount ?? 0), 0);
       totals[walletKey] = total;
       return totals;
     }, {} as Record<string, number>);
@@ -124,7 +124,7 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
   );
 
   // Render instrument group with assets
-  const renderInstrumentGroup = (funds: any[], instrumentName: string, instrumentTotal: number, walletKey: string, ns: string = "") => {
+  const renderInstrumentGroup = (funds: MoneySummaryModel[], instrumentName: string, instrumentTotal: number, walletKey: string, ns: string = "") => {
     const instrumentKey = `${ns}${walletKey}-${instrumentName}`;
     const isExpanded = isGroupExpanded(instrumentKey);
     const currencyCode = funds[0]?.original_currency_code || 'unknown currency';
@@ -179,16 +179,16 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
       if (fund.asset_name) {
         const assetKey = fund.asset_name;
         if (!map[assetKey]) {
-          map[assetKey] = [] as any[];
+          map[assetKey] = [] as MoneySummaryModel[];
         }
         map[assetKey].push(fund);
       }
       return map;
-    }, {} as Record<string, any[]>);
+    }, {} as Record<string, MoneySummaryModel[]>);
 
     // Sort assets by total amount (descending)
     const assetTotals: Record<string, number> = Object.keys(assetsMap).reduce((acc, key) => {
-      acc[key] = (assetsMap[key] as any[]).reduce((sum, f: any) => sum + (f.amount ?? 0), 0);
+      acc[key] = (assetsMap[key] as MoneySummaryModel[]).reduce((sum, f: MoneySummaryModel) => sum + (f.amount ?? 0), 0);
       return acc;
     }, {} as Record<string, number>);
     const sortedAssetKeys = Object.keys(assetsMap).sort((a, b) => (assetTotals[b] ?? 0) - (assetTotals[a] ?? 0));
@@ -221,7 +221,7 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-2 px-3 pb-3">
             {sortedAssetKeys.map((assetKey) => (
-              (assetsMap[assetKey] as any[]).map((fund, index) => renderAssetItem(fund, index))
+              (assetsMap[assetKey] as MoneySummaryModel[]).map((fund, index) => renderAssetItem(fund, index))
             ))}
           </CollapsibleContent>
         </Collapsible>
@@ -230,10 +230,10 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
   };
 
   // Render wallet group with instruments
-  const renderWalletGroup = (walletKey: string, instruments: Record<string, any[]>, walletTotal: number, ns: string = "") => {
+  const renderWalletGroup = (walletKey: string, instruments: Record<string, MoneySummaryModel[]>, walletTotal: number, ns: string = "") => {
     const walletKeyScoped = `${ns}${walletKey}`;
     const isExpanded = isGroupExpanded(walletKeyScoped);
-    const allFunds = (Object.values(instruments) as any[][]).flat();
+    const allFunds = (Object.values(instruments) as MoneySummaryModel[][]).flat();
     const currencyCode = allFunds[0]?.original_currency_code || 'unknown currency';
 
     // Sort instruments by total amount

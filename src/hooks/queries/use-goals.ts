@@ -3,11 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { GoalFormData } from "@/form-dto/goals";
+import { GoalModel } from "@/models/goals";
 
 export const useGoals = () => {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<GoalModel[]>({
     queryKey: ["goals", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -130,7 +131,7 @@ export const useCreateGoal = () => {
 export const useGoalDetail = (id: number) => {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<GoalModel>({
     queryKey: ["goals", user?.id, id],
     queryFn: async () => {
       const { data, error } = await supabase

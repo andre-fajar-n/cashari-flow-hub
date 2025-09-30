@@ -2,11 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { MoneySummaryFilter } from "@/form-dto/money-summary";
+import { MoneySummaryModel } from "@/models/money-summary";
 
 export const useMoneySummary = (filter?: MoneySummaryFilter) => {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<MoneySummaryModel[]>({
     queryKey: ["money_summary", user?.id, filter],
     queryFn: async () => {
       let query = supabase

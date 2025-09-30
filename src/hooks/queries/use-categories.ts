@@ -4,11 +4,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { CategoryFormData } from "@/form-dto/categories";
 import { CategoryApplication } from "@/constants/enums";
+import { CategoryModel } from "@/models/categories";
 
 export const useCategories = (isIncome?: boolean, application?: CategoryApplication) => {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<CategoryModel[]>({
     queryKey: ["categories", user?.id, isIncome],
     queryFn: async () => {
       let query = supabase

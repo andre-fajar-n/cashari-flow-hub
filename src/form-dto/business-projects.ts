@@ -1,11 +1,11 @@
-export interface ProjectFormData {
+export interface BusinessProjectFormData {
   name: string;
   description: string;
   start_date: string;
   end_date: string;
 }
 
-export const defaultProjectFormValues: ProjectFormData = {
+export const defaultBusinessProjectFormValues: BusinessProjectFormData = {
   name: "",
   description: "",
   start_date: "",

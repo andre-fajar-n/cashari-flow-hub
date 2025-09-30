@@ -14,11 +14,12 @@ import { useGoals } from "@/hooks/queries/use-goals";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
 import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
 import { useWallets } from "@/hooks/queries/use-wallets";
+import { GoalTransferModel } from "@/models/goal-transfers";
 
 interface GoalTransferDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  transfer?: any;
+  transfer?: GoalTransferModel;
   onSuccess?: () => void;
   transferConfig?: GoalTransferConfig;
 }

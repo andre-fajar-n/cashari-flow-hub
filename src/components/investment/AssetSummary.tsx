@@ -5,6 +5,7 @@ import { Wallet, Target, PieChart, ChevronDown, ChevronUp } from "lucide-react";
 import { useMoneySummary } from "@/hooks/queries/use-money-summary";
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
+import { MoneySummaryModel } from "@/models/money-summary";
 
 interface AssetSummaryProps {
   assetId: number;
@@ -95,7 +96,7 @@ const AssetSummary = ({ assetId, assetName }: AssetSummaryProps) => {
     totalUnit: number;
     goals: Record<string, {
       goalName: string;
-      records: any[];
+      records: MoneySummaryModel[];
       totalAmount: number;
       totalUnit: number;
     }>

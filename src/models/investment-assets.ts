@@ -1,11 +1,6 @@
+import { Database } from "@/integrations/supabase/types";
+import { InvestmentInstrumentModel } from "./investment-instruments";
 
-export interface InvestmentAssetModel {
-  id: number;
-  name: string;
-  symbol: string;
-  instrument_id: number;
-  created_at: string;
-  investment_instruments?: {
-    name: string;
-  };
-}
+export type InvestmentAssetModel = Database["public"]["Tables"]["investment_assets"]["Row"] & {
+  investment_instruments: InvestmentInstrumentModel;
+};

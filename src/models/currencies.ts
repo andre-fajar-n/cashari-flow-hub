@@ -1,6 +1,3 @@
-export interface CurrencyModel {
-  code: string;
-  name: string;
-  symbol: string;
-  is_default: boolean;
-}
+import { Database } from "@/integrations/supabase/types";
+
+export type CurrencyModel = Database["public"]["Tables"]["currencies"]["Row"];

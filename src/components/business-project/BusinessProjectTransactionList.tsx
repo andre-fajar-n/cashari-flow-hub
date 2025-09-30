@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowUpCircle, ArrowDownCircle, X } from "lucide-react";
 import { useBusinessProjectTransactions } from "@/hooks/queries/use-business-project-transactions";
 import { useBusinessProjectTransactionsPaginated } from "@/hooks/queries/paginated/use-business-project-transactions-paginated";

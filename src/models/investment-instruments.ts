@@ -1,7 +1,3 @@
-export interface InvestmentInstrumentModel {
-  id: number;
-  name: string;
-  unit_label: string;
-  is_trackable: boolean;
-  created_at: string;
-}
+import { Database } from "@/integrations/supabase/types";
+
+export type InvestmentInstrumentModel = Database["public"]["Tables"]["investment_instruments"]["Row"];

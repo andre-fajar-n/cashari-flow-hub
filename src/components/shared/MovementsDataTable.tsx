@@ -14,15 +14,22 @@ import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
 import { useDeleteGoalTransfer } from "@/hooks/queries/use-goal-transfers";
 import { formatDate } from "@/lib/date";
+import { GoalTransferModel } from "@/models/goal-transfers";
+import { GoalInvestmentRecordModel } from "@/models/goal-investment-records";
+import { WalletModel } from "@/models/wallets";
+import { GoalModel } from "@/models/goals";
+import { InvestmentInstrumentModel } from "@/models/investment-instruments";
+import { InvestmentAssetModel } from "@/models/investment-assets";
+import { MoneyMovementModel } from "@/models/money-movements";
 
 export interface MovementsDataTableProps {
-  movements: Database["public"]["Views"]["money_movements"]["Row"][];
-  transfers: Database["public"]["Tables"]["goal_transfers"]["Row"][];
-  records: Database["public"]["Tables"]["goal_investment_records"]["Row"][];
-  wallets: Database["public"]["Tables"]["wallets"]["Row"][];
-  goals?: Database["public"]["Tables"]["goals"]["Row"][];
-  instruments?: Database["public"]["Tables"]["investment_instruments"]["Row"][];
-  assets?: Database["public"]["Tables"]["investment_assets"]["Row"][];
+  movements: MoneyMovementModel[];
+  transfers: GoalTransferModel[];
+  records: GoalInvestmentRecordModel[];
+  wallets: WalletModel[];
+  goals?: GoalModel[];
+  instruments?: InvestmentInstrumentModel[];
+  assets?: InvestmentAssetModel[];
   filterType: 'goal' | 'instrument' | 'asset';
   filterId: number;
   title: string;
@@ -55,12 +62,12 @@ const MovementsDataTable = ({
   // Edit dialog states
   const [editTransferDialog, setEditTransferDialog] = useState<{
     open: boolean;
-    transfer: Database["public"]["Tables"]["goal_transfers"]["Row"] | null;
+    transfer: GoalTransferModel | null;
   }>({ open: false, transfer: null });
 
   const [editRecordDialog, setEditRecordDialog] = useState<{
     open: boolean;
-    record: Database["public"]["Tables"]["goal_investment_records"]["Row"] | null;
+    record: GoalInvestmentRecordModel | null;
   }>({ open: false, record: null });
 
   const { toast } = useToast();
@@ -79,7 +86,7 @@ const MovementsDataTable = ({
     return false;
   });
 
-  const getDescription = (movement: any) => {
+  const getDescription = (movement: MoneyMovementModel) => {
     const lines: Array<{ text: string; highlightedParts?: string[] }> = []
     if (movement.resource_type === 'investment_growth') {
       lines.push({ text: movement.description || '' });
@@ -188,7 +195,7 @@ const MovementsDataTable = ({
     );
   };
 
-  const handleEdit = (movement: any) => {
+  const handleEdit = (movement: MoneyMovementModel) => {
     if (movement.resource_type === 'goal_transfers_in' || movement.resource_type === 'goal_transfers_out') {
       // Find the transfer data using movement.id as unique identifier
       const transfer = transfers?.find(t => t.id === movement.resource_id);
@@ -221,7 +228,7 @@ const MovementsDataTable = ({
     }
   };
 
-  const handleDelete = (movement: any) => {
+  const handleDelete = (movement: MoneyMovementModel) => {
     let type: 'transfer' | 'record' | null = null;
 
     if (movement.resource_type === 'goal_transfers_in' || movement.resource_type === 'goal_transfers_out') {
@@ -235,7 +242,7 @@ const MovementsDataTable = ({
         open: true,
         type,
         id: movement.resource_id,
-        movementId: movement.id // Store movement ID for reference
+        movementId: movement.id.toString() // Store movement ID for reference
       });
     }
   };
@@ -325,7 +332,7 @@ const MovementsDataTable = ({
   });
 
   // Render function for each movement item
-  const renderMovementItem = (movement: any) => {
+  const renderMovementItem = (movement: MoneyMovementModel) => {
     // Create unique identifier using movement.id (from money_movements table)
     const uniqueId = `movement-${movement.id}`;
     

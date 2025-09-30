@@ -7,7 +7,7 @@ import BusinessProjectTransactionDialog from "@/components/business-project/Busi
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import BusinessProjectTransactionList from "@/components/business-project/BusinessProjectTransactionList";
-import { useBusinessProjects } from "@/hooks/queries/use-business-projects";
+import { useBusinessProjectDetail } from "@/hooks/queries/use-business-projects";
 import { useState } from "react";
 import BusinessProjectDialog from "@/components/business-project/BusinessProjectDialog";
 import { formatDate } from "@/lib/date";
@@ -19,8 +19,7 @@ const BusinessProjectDetail = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  const { data: projects } = useBusinessProjects();
-  const project = projects?.find(p => p.id === parseInt(id || "0"));
+  const { data: project } = useBusinessProjectDetail(parseInt(id || "0"));
 
   if (!project) {
     return (

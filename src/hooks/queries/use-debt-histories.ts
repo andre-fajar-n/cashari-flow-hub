@@ -3,11 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { DebtHistoryFormData } from "@/form-dto/debt-histories";
+import { DebtHistoryModel } from "@/models/debt-histories";
 
 export const useDebtHistories = (debtId?: number) => {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<DebtHistoryModel[]>({
     queryKey: ["debt-histories", user?.id, debtId],
     queryFn: async () => {
       let query = supabase

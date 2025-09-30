@@ -1,16 +1,12 @@
-import { WalletModel } from "@/models/wallets"
-import { CategoryModel } from "@/models/categories"
+import { WalletModel } from "@/models/wallets";
+import { CategoryModel } from "@/models/categories";
+import { Database } from "@/integrations/supabase/types";
+import { BudgetItemModel } from "@/models/budget-items";
+import { BusinessProjectTransactionModel } from "@/models/business-project-transactions";
 
-export interface TransactionModel {
-  id: number
-  amount: number
-  category_id: number
-  created_at: string | null
-  date: string
-  description: string | null
-  updated_at: string | null
-  user_id: string
-  wallet_id: number
-  wallets: WalletModel
-  categories: CategoryModel
-}
+export type TransactionModel = Database["public"]["Tables"]["transactions"]["Row"] & {
+  wallets: WalletModel;
+  categories: CategoryModel;
+  budget_items: BudgetItemModel[];
+  business_project_transactions: BusinessProjectTransactionModel[];
+};

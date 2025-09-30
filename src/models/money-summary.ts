@@ -1,24 +1,6 @@
-export interface MoneySummaryModel {
-  wallet_id: number | null;
-  wallet_name: string | null;
-  goal_id: number | null;
-  goal_name: string | null;
-  instrument_id: number | null;
-  instrument_name: string | null;
-  asset_id: number | null;
-  asset_name: string | null;
-  asset_symbol: string | null;
-  original_currency_code: string | null;
-  amount: number | null;
-  base_currency_code: string | null;
-  latest_rate: number | null;
-  latest_rate_date: string | null;
-  amount_unit: number | null;
-  latest_asset_value: number | null;
-  latest_asset_value_date: string | null;
-  user_id: string | null;
-  unit_label: string | null;
-}
+import { Database } from "@/integrations/supabase/types";
+
+export type MoneySummaryModel = Database["public"]["Views"]["money_summary"]["Row"];
 
 export interface MoneySummaryGroupByCurrency {
   original_currency_code: string;

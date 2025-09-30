@@ -1,13 +1,14 @@
 import { Badge } from "@/components/ui/badge";
+import { TransactionModel } from "@/models/transactions";
 import { Building2, Target } from "lucide-react";
 
 interface TransactionAssociationsProps {
-  transaction: any;
+  transaction: TransactionModel;
 }
 
 const TransactionAssociations = ({ transaction }: TransactionAssociationsProps) => {
-  const budgets = transaction.budget_items?.map((item: any) => item.budgets?.name).filter(Boolean) || [];
-  const businessProjects = transaction.business_project_transactions?.map((item: any) => item.business_projects?.name).filter(Boolean) || [];
+  const budgets = transaction.budget_items?.map((item) => item.budgets?.name).filter(Boolean) || [];
+  const businessProjects = transaction.business_project_transactions?.map((item) => item.business_projects?.name).filter(Boolean) || [];
 
   if (budgets.length === 0 && businessProjects.length === 0) {
     return null;

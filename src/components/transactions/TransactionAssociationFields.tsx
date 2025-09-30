@@ -6,11 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Check, ChevronsUpDown, X } from "lucide-react";
+import { BudgetModel } from "@/models/budgets";
+import { BusinessProjectModel } from "@/models/business-projects";
 
 interface TransactionAssociationFieldsProps {
   control: Control<any>;
-  budgets?: any[];
-  businessProjects?: any[];
+  budgets?: BudgetModel[];
+  businessProjects?: BusinessProjectModel[];
 }
 
 type Option = { label: string; value: number };
@@ -92,15 +94,15 @@ const TransactionAssociationFields = ({ control, budgets, businessProjects }: Tr
               <div className="space-y-2">
                 <MultiSelect
                   placeholder="Pilih budget"
-                  options={(budgets || []).map((b:any) => ({ label: b.name, value: b.id }))}
+                  options={(budgets || []).map((b) => ({ label: b.name, value: b.id }))}
                   value={field.value || []}
                   onChange={field.onChange}
                 />
                 {field.value?.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {(budgets || [])
-                      .filter((b:any) => (field.value || []).includes(b.id))
-                      .map((b:any) => (
+                      .filter((b) => (field.value || []).includes(b.id))
+                      .map((b) => (
                         <Badge key={b.id} variant="secondary" className="text-xs">
                           {b.name}
                         </Badge>
@@ -124,15 +126,15 @@ const TransactionAssociationFields = ({ control, budgets, businessProjects }: Tr
               <div className="space-y-2">
                 <MultiSelect
                   placeholder="Pilih proyek bisnis"
-                  options={(businessProjects || []).map((p:any) => ({ label: p.name, value: p.id }))}
+                  options={(businessProjects || []).map((p) => ({ label: p.name, value: p.id }))}
                   value={field.value || []}
                   onChange={field.onChange}
                 />
                 {field.value?.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {(businessProjects || [])
-                      .filter((p:any) => (field.value || []).includes(p.id))
-                      .map((p:any) => (
+                      .filter((p) => (field.value || []).includes(p.id))
+                      .map((p) => (
                         <Badge key={p.id} variant="secondary" className="text-xs">
                           {p.name}
                         </Badge>

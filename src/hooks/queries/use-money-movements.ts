@@ -1,12 +1,13 @@
 import { MoneyMovementFilter } from "@/form-dto/money-movements";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
+import { MoneyMovementModel } from "@/models/money-movements";
 import { useQuery } from "@tanstack/react-query";
 
 export const useMoneyMovements = (filter?: MoneyMovementFilter) => {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<MoneyMovementModel[]>({
     queryKey: ["money_movements", user?.id, filter],
     queryFn: async () => {
       let query = supabase

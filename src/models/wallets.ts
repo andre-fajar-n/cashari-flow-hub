@@ -1,9 +1,3 @@
-import { CurrencyModel } from "@/models/currencies";
+import { Database } from "@/integrations/supabase/types";
 
-export interface WalletModel {
-  id: number;
-  name: string;
-  currency_code: string;
-  initial_amount: number;
-  currency?: CurrencyModel;
-}
+export type WalletModel = Database["public"]["Tables"]["wallets"]["Row"];

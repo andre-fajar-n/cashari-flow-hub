@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { DebtSummaryModel } from "@/models/debt-summary";
 
 export const useDebtSummary = () => {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<DebtSummaryModel[]>({
     queryKey: ["debt_summary", user?.id],
     queryFn: async () => {
       let query = supabase
@@ -28,7 +29,7 @@ export const useDebtSummary = () => {
 export const useDebtSummaryById = (debtId: number) => {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<DebtSummaryModel[]>({
     queryKey: ["debt_summary", user?.id, debtId],
     queryFn: async () => {
       const { data, error } = await supabase

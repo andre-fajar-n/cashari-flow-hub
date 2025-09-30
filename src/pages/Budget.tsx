@@ -34,7 +34,7 @@ const Budget = () => {
   const budgets = paged?.data || [];
   const { data: currencies, isLoading: isLoadingCurrencies } = useCurrencies();
   const { data: budgetSummary, isLoading: isLoadingBudgetSummary } = useBudgetSummary();
-  const baseCurrency = useDefaultCurrency(); // Get the default currency
+  const { data: baseCurrency } = useDefaultCurrency(); // Get the default currency
 
   // Combine all loading states
   const isLoading = isLoadingBudgets || isLoadingCurrencies || isLoadingBudgetSummary || !baseCurrency;

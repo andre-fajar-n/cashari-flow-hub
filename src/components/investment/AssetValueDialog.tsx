@@ -8,11 +8,12 @@ import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useCreateInvestmentAssetValue, useUpdateInvestmentAssetValue } from "@/hooks/queries/use-investment-asset-values";
 import { AssetValueFormData, defaultAssetValueFormValues } from "@/form-dto/investment-asset-values";
+import { InvestmentAssetValueModel } from "@/models/investment-asset-values";
 
 interface AssetValueDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  assetValue?: any;
+  assetValue?: InvestmentAssetValueModel;
   assetId?: number;
   onSuccess?: () => void;
 }

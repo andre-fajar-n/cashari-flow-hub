@@ -12,11 +12,12 @@ import { defaultTransactionFormValues, TransactionFormData } from "@/form-dto/tr
 import { useInsertTransactionWithRelations, useUpdateTransactionWithRelations } from "@/hooks/queries/use-transaction-with-relations";
 import { useForm } from "react-hook-form";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { TransactionModel } from "@/models/transactions";
 
 interface TransactionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  transaction?: any;
+  transaction?: TransactionModel;
   onSuccess?: () => void;
 }
 
@@ -38,9 +39,9 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
     if (open) {
       if (transaction) {
         // Extract budget IDs from the associations
-        const budgetIds = transaction.budget_items?.map((item: any) => item.budget_id) || [];
+        const budgetIds = transaction.budget_items?.map((item) => item.budget_id) || [];
         // Extract business project IDs from the associations
-        const businessProjectIds = transaction.business_project_transactions?.map((item: any) => item.project_id) || [];
+        const businessProjectIds = transaction.business_project_transactions?.map((item) => item.project_id) || [];
 
         form.reset({
           amount: transaction.amount || 0,
@@ -69,23 +70,13 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
   const onSubmit = (data: TransactionFormData) => {
     setIsLoading(true);
 
-    const transactionData = {
-      amount: data.amount,
-      category_id: parseInt(data.category_id),
-      wallet_id: parseInt(data.wallet_id),
-      date: data.date,
-      description: data.description || null,
-      budget_ids: data.budget_ids,
-      business_project_ids: data.business_project_ids,
-    };
-
     if (transaction) {
-      updateTransactionWithRelations.mutate({ id: transaction.id, ...transactionData } as any, {
+      updateTransactionWithRelations.mutate({ id: transaction.id, ...data }, {
         onSuccess: handleSuccess,
         onError: handleError
       });
     } else {
-      insertTransactionWithRelations.mutate(transactionData as any, {
+      insertTransactionWithRelations.mutate(data, {
         onSuccess: handleSuccess,
         onError: handleError
       });

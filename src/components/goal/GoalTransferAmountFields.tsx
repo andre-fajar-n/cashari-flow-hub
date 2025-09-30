@@ -3,11 +3,12 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { GoalTransferFormData } from "@/form-dto/goal-transfers";
+import { WalletModel } from "@/models/wallets";
 
 interface GoalTransferAmountFieldsProps {
   control: Control<GoalTransferFormData>;
   watch: UseFormWatch<GoalTransferFormData>;
-  wallets?: any[];
+  wallets?: WalletModel[];
 }
 
 const GoalTransferAmountFields = ({ control, watch, wallets }: GoalTransferAmountFieldsProps) => {

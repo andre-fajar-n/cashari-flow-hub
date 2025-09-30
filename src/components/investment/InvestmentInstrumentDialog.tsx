@@ -8,11 +8,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { defaultInstrumentFormValues, InstrumentFormData } from "@/form-dto/investment-instruments";
 import { useCreateInvestmentInstrument, useUpdateInvestmentInstrument } from "@/hooks/queries/use-investment-instruments";
+import { InvestmentInstrumentModel } from "@/models/investment-instruments";
 
 interface InvestmentInstrumentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  instrument?: any;
+  instrument?: InvestmentInstrumentModel;
   onSuccess?: () => void;
 }
 

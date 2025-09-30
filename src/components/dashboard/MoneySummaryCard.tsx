@@ -26,7 +26,7 @@ const MoneySummaryCard = ({
   const itemsPerPage = 5;
 
   // Get user's default currency
-  const defaultCurrency = useDefaultCurrency();
+  const { data: defaultCurrency } = useDefaultCurrency();
 
   // Process currency totals
   const currencyMap = new Map<string, MoneySummaryGroupByCurrency>();

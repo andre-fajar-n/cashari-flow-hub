@@ -11,7 +11,6 @@ import AssetValueDialog from "@/components/investment/AssetValueDialog";
 import { useInvestmentAssets, useDeleteInvestmentAsset } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentAssetValues, useDeleteInvestmentAssetValue } from "@/hooks/queries/use-investment-asset-values";
 import InvestmentAssetDialog from "@/components/investment/InvestmentAssetDialog";
-import { InvestmentAssetModel } from "@/models/investment-assets";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format } from "date-fns";
 import { DataTable } from "@/components/ui/data-table";
@@ -25,6 +24,8 @@ import { useGoalTransfers } from "@/hooks/queries/use-goal-transfers";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useGoals } from "@/hooks/queries/use-goals";
 import { useGoalInvestmentRecords } from "@/hooks/queries/use-goal-investment-records";
+import { InvestmentAssetValueModel } from "@/models/investment-asset-values";
+import { MoneyMovementModel } from "@/models/money-movements";
 
 const AssetDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,7 +34,7 @@ const AssetDetail = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isValueDialogOpen, setIsValueDialogOpen] = useState(false);
-  const [selectedAssetValue, setSelectedAssetValue] = useState<any | undefined>(undefined);
+  const [selectedAssetValue, setSelectedAssetValue] = useState<InvestmentAssetValueModel | undefined>(undefined);
   const [isRecordDialogOpen, setIsRecordDialogOpen] = useState(false);
   const [deleteValueModal, setDeleteValueModal] = useState<{
     open: boolean;
@@ -53,7 +54,7 @@ const AssetDetail = () => {
   const isLoadingHistoryTab = isMovementsLoading || isTransfersLoading || isWalletsLoading || isGoalsLoading ||
                               isRecordsLoading;
 
-  const asset = assets?.find(a => a.id === parseInt(id!)) as InvestmentAssetModel;
+  const asset = assets?.find(a => a.id === parseInt(id!));
 
   if (!asset) {
     return (
@@ -72,7 +73,7 @@ const AssetDetail = () => {
   }
 
   // Derive currency code from related wallet records (since assets no longer have currency_code)
-  const assetCurrencyCode = movements?.find((r: any) => (r.asset_id ?? r.asset?.id) === (asset?.id))?.currency_code
+  const assetCurrencyCode = movements?.find((r: MoneyMovementModel) => (r.asset_id ?? r.asset?.id) === (asset?.id))?.currency_code
     || (wallets && wallets.length > 0 ? wallets[0].currency_code : undefined)
     || 'unknown currency';
 
@@ -97,7 +98,7 @@ const AssetDetail = () => {
     setIsValueDialogOpen(true);
   };
 
-  const handleEditValue = (assetValue: any) => {
+  const handleEditValue = (assetValue: InvestmentAssetValueModel) => {
     setSelectedAssetValue(assetValue);
     setIsValueDialogOpen(true);
   };
@@ -125,7 +126,7 @@ const AssetDetail = () => {
   // Prepare table data for asset values history
   const valueHistoryTableData = assetValues || [];
 
-  const renderValueHistoryItem = (value: any) => (
+  const renderValueHistoryItem = (value: InvestmentAssetValueModel) => (
     <div key={value.id} className="flex items-center justify-between p-4 border rounded-lg">
       <div className="flex-1">
         <div className="flex items-center gap-4">

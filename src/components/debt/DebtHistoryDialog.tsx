@@ -9,13 +9,14 @@ import { useCreateDebtHistory, useUpdateDebtHistory } from "@/hooks/queries/use-
 import { DebtHistoryFormData, defaultDebtHistoryFormValues } from "@/form-dto/debt-histories";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useDebtCategories } from "@/hooks/queries/use-categories";
+import { DebtHistoryModel } from "@/models/debt-histories";
 
 interface DebtHistoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   debtId: number;
   onSuccess?: () => void;
-  history?: any;
+  history?: DebtHistoryModel;
 }
 
 const DebtHistoryDialog = ({ open, onOpenChange, debtId, onSuccess, history }: DebtHistoryDialogProps) => {
@@ -31,16 +32,13 @@ const DebtHistoryDialog = ({ open, onOpenChange, debtId, onSuccess, history }: D
 
   const onSubmit = async (data: DebtHistoryFormData) => {
     setIsLoading(true);
-    const submitData = {
-      ...data,
-      wallet_id: parseInt(data.wallet_id),
-      category_id: parseInt(data.category_id),
-    };
+    data.wallet_id = data.wallet_id;
+    data.category_id = data.category_id;
 
     if (history) {
-      updateDebtHistory.mutate({ id: history.id, ...submitData } as any);
+      updateDebtHistory.mutate({ id: history.id, ...data });
     } else {
-      createDebtHistory.mutate(submitData as any);
+      createDebtHistory.mutate(data);
     }
   };
 

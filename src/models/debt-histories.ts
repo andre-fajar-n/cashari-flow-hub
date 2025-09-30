@@ -1,16 +1,8 @@
 import { CategoryModel } from "@/models/categories";
 import { WalletModel } from "@/models/wallets";
+import { Database } from "@/integrations/supabase/types";
 
-export interface DebtHistoryModel {
-  id: number;
-  debt_id: number;
-  wallet_id: number;
-  category_id: number;
-  amount: number;
-  date: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
-  categories?: CategoryModel;
-  wallets?: WalletModel;
-}
+export type DebtHistoryModel = Database["public"]["Tables"]["debt_histories"]["Row"] & {
+  wallets: WalletModel;
+  categories: CategoryModel;
+};

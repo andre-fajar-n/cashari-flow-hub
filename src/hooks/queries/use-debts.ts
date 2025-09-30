@@ -4,11 +4,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { DebtFormData } from "@/form-dto/debts";
 import { Database } from "@/integrations/supabase/types";
+import { DebtModel } from "@/models/debts";
 
 export const useDebts = () => {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<DebtModel[]>({
     queryKey: ["debts", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -17,7 +18,10 @@ export const useDebts = () => {
         .eq("user_id", user?.id)
         .order("name");
       
-      if (error) throw error;
+      if (error) {
+        console.error("Failed to fetch debts", error);
+        throw error;
+      };
       return data;
     },
     enabled: !!user,
