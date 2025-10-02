@@ -109,7 +109,7 @@ const GoalCard = ({ goal, totalAmount, onEdit, onDelete }: GoalCardProps) => {
           <Button
             variant="outline"
             size="lg"
-            className="flex-1 sm:flex-none h-12 sm:h-7 rounded-xl sm:rounded-md border-2 sm:border text-base sm:text-xs font-medium sm:font-normal hover:bg-gray-50 hover:border-gray-300 transition-all"
+            className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
             onClick={handleViewDetail}
           >
             <Eye className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
@@ -118,7 +118,7 @@ const GoalCard = ({ goal, totalAmount, onEdit, onDelete }: GoalCardProps) => {
           <Button
             variant="outline"
             size="lg"
-            className="flex-1 sm:flex-none h-12 sm:h-7 rounded-xl sm:rounded-md border-2 sm:border text-base sm:text-xs font-medium sm:font-normal hover:bg-gray-50 hover:border-gray-300 transition-all"
+            className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
             onClick={() => onEdit(goal)}
           >
             <Edit className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
@@ -127,7 +127,7 @@ const GoalCard = ({ goal, totalAmount, onEdit, onDelete }: GoalCardProps) => {
           <Button
             variant="destructive"
             size="lg"
-            className="flex-1 sm:flex-none h-12 sm:h-7 rounded-xl sm:rounded-md text-base sm:text-xs font-medium sm:font-normal hover:bg-red-600 transition-all"
+            className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
             onClick={() => onDelete(goal.id)}
           >
             <Trash2 className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />

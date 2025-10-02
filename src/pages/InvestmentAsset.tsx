@@ -83,33 +83,33 @@ const InvestmentAsset = () => {
         </div>
 
         {/* Actions - Mobile responsive */}
-        <div className="flex gap-2 pt-2 border-t border-gray-100">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 pt-4 sm:pt-1 border-t-2 sm:border-t border-gray-100">
           <Button
             variant="outline"
-            size="sm"
-            className="flex-1 sm:flex-none"
+            size="lg"
+            className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
             onClick={() => handleViewHistory(asset)}
           >
             <TrendingUp className="w-3 h-3 sm:mr-1" />
-            <span className="hidden sm:inline">Detail</span>
+            Detail
           </Button>
           <Button
             variant="outline"
-            size="sm"
-            className="flex-1 sm:flex-none"
+            size="lg"
+            className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
             onClick={() => handleEdit(asset)}
           >
             <Edit className="w-3 h-3 sm:mr-1" />
-            <span className="hidden sm:inline">Edit</span>
+            Edit
           </Button>
           <Button
             variant="destructive"
-            size="sm"
-            className="flex-1 sm:flex-none"
+            size="lg"
+            className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
             onClick={() => handleDeleteClick(asset.id)}
           >
             <Trash2 className="w-3 h-3 sm:mr-1" />
-            <span className="hidden sm:inline">Hapus</span>
+            Hapus
           </Button>
         </div>
       </div>

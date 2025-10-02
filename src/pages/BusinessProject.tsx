@@ -91,11 +91,11 @@ const BusinessProject = () => {
         </div>
 
         {/* Actions */}
-        <div className="flex gap-1 pt-1 border-t border-gray-100">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 pt-4 sm:pt-1 border-t-2 sm:border-t border-gray-100">
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 h-8 text-xs"
+            className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
             onClick={() => handleView(project)}
           >
             <Eye className="w-3 h-3 mr-1" />
@@ -104,7 +104,7 @@ const BusinessProject = () => {
           <Button
             variant="outline"
             size="sm"
-            className="flex-1 h-8 text-xs"
+            className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
             onClick={() => handleEdit(project)}
           >
             <Edit className="w-3 h-3 mr-1" />
@@ -113,7 +113,7 @@ const BusinessProject = () => {
           <Button
             variant="destructive"
             size="sm"
-            className="flex-1 h-8 text-xs"
+            className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
             onClick={() => handleDeleteClick(project.id)}
           >
             <Trash2 className="w-3 h-3 mr-1" />

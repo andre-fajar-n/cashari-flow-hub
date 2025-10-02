@@ -185,7 +185,7 @@ const Budget = () => {
         )}
 
         {/* Actions */}
-        <div className="flex gap-2 sm:gap-1 pt-2 sm:pt-1 border-t border-gray-100">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 pt-4 sm:pt-1 border-t-2 sm:border-t border-gray-100">
           <Button
             variant="outline"
             size="sm"

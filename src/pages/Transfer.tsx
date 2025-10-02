@@ -77,10 +77,8 @@ const Transfer = () => {
           <div className="flex items-center justify-center gap-3 sm:gap-2">
             <div className="text-center flex-1">
               <div className="font-bold text-lg sm:text-base text-gray-800 truncate">
-                {transfer.from_wallet?.name || `Dompet ${transfer.from_wallet_id}`}
-              </div>
-              <div className="text-xs text-gray-600 mt-1">
-                {transfer.from_wallet?.currency_code}
+                <div className="text-sm sm:text-xs font-medium text-gray-600 mb-1">Dari</div>
+                {transfer.from_wallet?.name || `Dompet ${transfer.from_wallet_id}`} ({transfer.from_wallet?.currency_code})
               </div>
             </div>
 
@@ -90,10 +88,8 @@ const Transfer = () => {
 
             <div className="text-center flex-1">
               <div className="font-bold text-lg sm:text-base text-gray-800 truncate">
-                {transfer.to_wallet?.name || `Dompet ${transfer.to_wallet_id}`}
-              </div>
-              <div className="text-xs text-gray-600 mt-1">
-                {transfer.to_wallet?.currency_code}
+                <div className="text-sm sm:text-xs font-medium text-gray-600 mb-1">Ke</div>
+                {transfer.to_wallet?.name || `Dompet ${transfer.to_wallet_id}`} ({transfer.to_wallet?.currency_code})
               </div>
             </div>
           </div>
@@ -103,7 +99,6 @@ const Transfer = () => {
         <div className="bg-gradient-to-r from-gray-50 to-blue-50 sm:bg-gray-50 rounded-xl sm:rounded-md p-4 sm:p-2 border border-gray-200 sm:border-transparent">
           <div className="flex items-center justify-center gap-4 sm:gap-3">
             <div className="text-center">
-              <div className="text-sm sm:text-xs font-medium text-gray-600 mb-1">Dari</div>
               <AmountText amount={-transfer.from_amount} showSign={true} className="text-red-600 font-bold text-lg sm:text-sm">
                 {formatAmountCurrency(transfer.from_amount, transfer.from_wallet?.currency?.symbol || transfer.from_wallet?.currency_code)}
               </AmountText>
@@ -114,7 +109,6 @@ const Transfer = () => {
             </div>
 
             <div className="text-center">
-              <div className="text-sm sm:text-xs font-medium text-gray-600 mb-1">Ke</div>
               <AmountText amount={transfer.to_amount} showSign={true} className="text-green-600 font-bold text-lg sm:text-sm">
                 {formatAmountCurrency(transfer.to_amount, transfer.to_wallet?.currency?.symbol || transfer.to_wallet?.currency_code)}
               </AmountText>
@@ -127,7 +121,7 @@ const Transfer = () => {
           <Button
             variant="outline"
             size="lg"
-            className="flex-1 sm:flex-none h-12 sm:h-8 rounded-xl sm:rounded-md border-2 sm:border text-base sm:text-xs font-medium sm:font-normal hover:bg-gray-50 hover:border-gray-300 transition-all"
+            className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
             onClick={() => openDialog(transfer)}
           >
             <Edit className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
@@ -136,7 +130,7 @@ const Transfer = () => {
           <Button
             variant="destructive"
             size="lg"
-            className="flex-1 sm:flex-none h-12 sm:h-8 rounded-xl sm:rounded-md text-base sm:text-xs font-medium sm:font-normal hover:bg-red-600 transition-all"
+            className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
             onClick={() => handleDeleteClick(transfer.id)}
           >
             <Trash2 className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />

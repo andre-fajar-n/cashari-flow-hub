@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Plus, ArrowUpCircle, ArrowDownCircle, Edit, Trash2 } from "lucide-react";
 import { useDeleteTransaction } from "@/hooks/queries/use-transactions";
 import { useTransactionsPaginated } from "@/hooks/queries/paginated/use-transactions-paginated";
@@ -13,7 +12,6 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { useQueryClient } from "@tanstack/react-query";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { formatAmountCurrency } from "@/lib/currency";
-import { TransactionFormData } from "@/form-dto/transactions";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { AmountText } from "@/components/ui/amount-text";
 import { TransactionModel } from "@/models/transactions";
@@ -25,7 +23,7 @@ const Transaction = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState<number | null>(null);
   const queryClient = useQueryClient();
-  const [selectedTransaction, setSelectedTransaction] = useState<TransactionFormData | undefined>(undefined);
+  const [selectedTransaction, setSelectedTransaction] = useState<TransactionModel | undefined>(undefined);
   // Server-side pagination state
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
@@ -37,7 +35,7 @@ const Transaction = () => {
   const { data: wallets } = useWallets();
   const { mutate: deleteTransaction } = useDeleteTransaction();
 
-  const openDialog = (transaction: any) => {
+  const openDialog = (transaction: TransactionModel) => {
     setSelectedTransaction(transaction);
     setIsDialogOpen(true);
   };
@@ -109,7 +107,7 @@ const Transaction = () => {
           <Button
             variant="outline"
             size="lg"
-            className="flex-1 sm:flex-none h-12 sm:h-auto sm:size-sm rounded-xl sm:rounded-md border-2 sm:border text-base sm:text-sm font-medium sm:font-normal hover:bg-gray-50 hover:border-gray-300 transition-all"
+            className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
             onClick={() => openDialog(transaction)}
           >
             <Edit className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
@@ -118,7 +116,7 @@ const Transaction = () => {
           <Button
             variant="destructive"
             size="lg"
-            className="flex-1 sm:flex-none h-12 sm:h-auto sm:size-sm rounded-xl sm:rounded-md text-base sm:text-sm font-medium sm:font-normal hover:bg-red-600 transition-all"
+            className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
             onClick={() => handleDeleteClick(transaction.id)}
           >
             <Trash2 className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
