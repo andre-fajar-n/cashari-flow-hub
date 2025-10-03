@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronRight } from "lucide-react";
-import { AmountColumn } from "./AmountColumn";
-import { UnrealizedColumn } from "./UnrealizedColumn";
+import { AmountColumn } from "@/components/dashboard/money-summary/AmountColumn";
+import { UnrealizedColumn } from "@/components/dashboard/money-summary/UnrealizedColumn";
 import { WalletSummary } from "@/models/money-summary";
 
 interface WalletRowProps {

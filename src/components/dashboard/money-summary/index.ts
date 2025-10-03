@@ -1,9 +1,9 @@
 // Export all money summary components and utilities
-export { InfoColumn } from "./InfoColumn";
-export { AmountColumn } from "./AmountColumn";
-export { UnrealizedColumn } from "./UnrealizedColumn";
-export { FourColumnLayout } from "./FourColumnLayout";
-export { WalletRow } from "./WalletRow";
-export { InstrumentRow } from "./InstrumentRow";
-export { createAmountData } from "./utils";
-export type { AmountDisplayData, InfoColumnData } from "./types";
+export { InfoColumn } from "@/components/dashboard/money-summary/InfoColumn";
+export { AmountColumn } from "@/components/dashboard/money-summary/AmountColumn";
+export { UnrealizedColumn } from "@/components/dashboard/money-summary/UnrealizedColumn";
+export { FourColumnLayout } from "@/components/dashboard/money-summary/FourColumnLayout";
+export { WalletRow } from "@/components/dashboard/money-summary/WalletRow";
+export { InstrumentRow } from "@/components/dashboard/money-summary/InstrumentRow";
+export { createAmountData } from "@/components/dashboard/money-summary/utils";
+export type { AmountDisplayData, InfoColumnData } from "@/components/dashboard/money-summary/types";

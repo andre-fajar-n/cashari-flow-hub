@@ -1,5 +1,5 @@
 import { formatAmountCurrency } from "@/lib/currency";
-import { AmountDisplayData } from "./types";
+import { AmountDisplayData } from "@/components/dashboard/money-summary/types";
 
 interface UnrealizedColumnProps {
   data: AmountDisplayData;

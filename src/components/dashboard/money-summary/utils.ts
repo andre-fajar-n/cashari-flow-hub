@@ -1,4 +1,4 @@
-import { AmountDisplayData } from "./types";
+import { AmountDisplayData } from "@/components/dashboard/money-summary/types";
 
 /**
  * Helper function to create amount data for components

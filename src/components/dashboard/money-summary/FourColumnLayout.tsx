@@ -1,7 +1,7 @@
-import { InfoColumn } from "./InfoColumn";
-import { AmountColumn } from "./AmountColumn";
-import { UnrealizedColumn } from "./UnrealizedColumn";
-import { InfoColumnData, AmountDisplayData } from "./types";
+import { InfoColumn } from "@/components/dashboard/money-summary/InfoColumn";
+import { AmountColumn } from "@/components/dashboard/money-summary/AmountColumn";
+import { UnrealizedColumn } from "@/components/dashboard/money-summary/UnrealizedColumn";
+import { InfoColumnData, AmountDisplayData } from "@/components/dashboard/money-summary/types";
 
 interface FourColumnLayoutProps {
   infoData: InfoColumnData;

@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Wallet, DollarSign, Coins, ChevronDown, ChevronRight, Search, ChevronLeft, Calculator, Info } from "lucide-react";
+import { Wallet, DollarSign, Coins, ChevronRight, Search, ChevronLeft, Calculator, Info } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { MoneySummaryGroupByCurrency, MoneySummaryModel, WalletSummary } from "@/models/money-summary";
 import { useDefaultCurrency } from "@/hooks/queries/use-currencies";
@@ -12,7 +12,7 @@ import {
   WalletRow,
   InstrumentRow,
   createAmountData
-} from "./money-summary";
+} from "@/components/dashboard/money-summary";
 
 interface MoneySummaryCardProps {
   isLoading?: boolean;

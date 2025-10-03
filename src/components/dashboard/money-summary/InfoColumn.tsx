@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle } from "lucide-react";
 import { formatDate } from "@/lib/date";
-import { InfoColumnData } from "./types";
+import { InfoColumnData } from "@/components/dashboard/money-summary/types";
 
 interface InfoColumnProps {
   data: InfoColumnData;
