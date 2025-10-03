@@ -1,14 +1,18 @@
 import { useState, useMemo, useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Wallet, DollarSign, Coins, ChevronDown, ChevronRight, Search, ChevronLeft, AlertTriangle, Calculator, Info } from "lucide-react";
+import { Wallet, DollarSign, Coins, ChevronDown, ChevronRight, Search, ChevronLeft, Calculator, Info } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { MoneySummaryGroupByCurrency, MoneySummaryModel, WalletSummary } from "@/models/money-summary";
-import { formatDate } from "@/lib/date";
 import { useDefaultCurrency } from "@/hooks/queries/use-currencies";
+import {
+  FourColumnLayout,
+  WalletRow,
+  InstrumentRow,
+  createAmountData
+} from "./money-summary";
 
 interface MoneySummaryCardProps {
   isLoading?: boolean;
@@ -28,57 +32,103 @@ const MoneySummaryCard = ({
   // Get user's default currency
   const { data: defaultCurrency } = useDefaultCurrency();
 
-  // Process currency totals
-  const currencyMap = new Map<string, MoneySummaryGroupByCurrency>();
+  // Helper function to calculate actual amount (considering asset value)
+  const getActualAmount = (row: MoneySummaryModel): number => {
+    // If asset has latest_asset_value and amount_unit, use calculated value
+    if (row.latest_asset_value && row.amount_unit) {
+      return row.latest_asset_value * row.amount_unit;
+    }
+    // Otherwise use the original amount
+    return row.amount || 0;
+  };
+
+  // Process currency totals with both original and calculated amounts
+  const currencyMap = new Map<string, MoneySummaryGroupByCurrency & {
+    originalAmount: number;
+    calculatedAmount: number;
+    unrealizedAmount: number;
+  }>();
+
   for (const row of moneySummaries) {
     const key = row.original_currency_code;
     const existing = currencyMap.get(key);
+    const actualAmount = getActualAmount(row);
+    const originalAmount = row.amount || 0;
 
     if (existing) {
-      existing.amount += row.amount;
+      existing.originalAmount += originalAmount;
+      existing.calculatedAmount += actualAmount;
+      existing.amount += actualAmount; // Keep for backward compatibility
     } else {
       currencyMap.set(key, {
         original_currency_code: row.original_currency_code,
-        amount: row.amount,
+        amount: actualAmount, // Keep for backward compatibility
+        originalAmount: originalAmount,
+        calculatedAmount: actualAmount,
+        unrealizedAmount: 0, // Will be calculated after
         base_currency_code: row.base_currency_code,
         latest_rate: row.latest_rate ?? null,
         latest_rate_date: row.latest_rate_date ?? null,
       });
     }
   }
+
+  // Calculate unrealized amounts
+  for (const [key, currencyData] of currencyMap.entries()) {
+    currencyData.unrealizedAmount = currencyData.calculatedAmount - currencyData.originalAmount;
+  }
   const currencies = Array.from(currencyMap.keys());
 
-  // Calculate total amount in default currency
+  // Calculate total amount in default currency with unrealized breakdown
   const totalAmountCalculation = useMemo(() => {
     if (!defaultCurrency || currencies.length === 0) {
-      return { canCalculate: false, totalAmount: 0, missingRates: [] };
+      return {
+        canCalculate: false,
+        totalAmount: 0,
+        totalOriginalAmount: 0,
+        totalUnrealizedAmount: 0,
+        missingRates: []
+      };
     }
 
     const missingRates: string[] = [];
     let totalAmount = 0;
+    let totalOriginalAmount = 0;
     let canCalculate = true;
 
     for (const currency of currencies) {
       const currencyData = currencyMap.get(currency);
       if (!currencyData) continue;
 
-      const amount = currencyData.amount || 0;
+      const calculatedAmount = currencyData.calculatedAmount || 0;
+      const originalAmount = currencyData.originalAmount || 0;
 
       // If it's the same as default currency, no conversion needed
       if (currency === defaultCurrency.code) {
-        totalAmount += amount;
+        totalAmount += calculatedAmount;
+        totalOriginalAmount += originalAmount;
       } else {
         // Need exchange rate for conversion
         if (currencyData.latest_rate === null) {
           missingRates.push(currency);
           canCalculate = false;
         } else {
-          totalAmount += amount * (currencyData.latest_rate || 0);
+          const rate = currencyData.latest_rate || 0;
+          totalAmount += calculatedAmount * rate;
+          totalOriginalAmount += originalAmount * rate;
         }
       }
     }
 
-    return { canCalculate, totalAmount, missingRates };
+    const totalUnrealizedAmount = totalAmount - totalOriginalAmount;
+
+    return {
+      canCalculate,
+      totalAmount,
+      totalOriginalAmount,
+      totalUnrealizedAmount,
+      missingRates
+    };
   }, [currencies, currencyMap, defaultCurrency]);
 
   // Process wallet hierarchy: wallet → instrument → asset
@@ -95,14 +145,25 @@ const MoneySummaryCard = ({
           wallet_id: row.wallet_id,
           wallet_name: row.wallet_name,
           amount: 0,
+          originalAmount: 0,
+          calculatedAmount: 0,
+          unrealizedAmount: 0,
           original_currency_code: row.original_currency_code,
+          latest_rate: row.latest_rate,
+          latest_rate_date: row.latest_rate_date,
+          base_currency_code: row.base_currency_code,
           instruments: []
         };
         walletMap.set(row.wallet_id, wallet);
       }
 
-      // Add to wallet total
-      wallet.amount += row.amount || 0;
+      // Add to wallet total using both amounts
+      const actualAmount = getActualAmount(row);
+      const originalAmount = row.amount || 0;
+      wallet.amount += actualAmount; // Keep for backward compatibility
+      wallet.originalAmount += originalAmount;
+      wallet.calculatedAmount += actualAmount;
+      wallet.unrealizedAmount = wallet.calculatedAmount - wallet.originalAmount;
 
       // Get or create instrument
       const instrumentKey = row.instrument_id || 0;
@@ -112,14 +173,23 @@ const MoneySummaryCard = ({
           instrument_id: row.instrument_id,
           instrument_name: row.instrument_name || 'unknown instrument',
           amount: 0,
+          originalAmount: 0,
+          calculatedAmount: 0,
+          unrealizedAmount: 0,
           original_currency_code: row.original_currency_code,
+          latest_rate: row.latest_rate,
+          base_currency_code: row.base_currency_code,
+          latest_rate_date: row.latest_rate_date,
           assets: []
         };
         wallet.instruments.push(instrument);
       }
 
-      // Add to instrument total
-      instrument.amount += row.amount || 0;
+      // Add to instrument total using both amounts
+      instrument.amount += actualAmount; // Keep for backward compatibility
+      instrument.originalAmount += originalAmount;
+      instrument.calculatedAmount += actualAmount;
+      instrument.unrealizedAmount = instrument.calculatedAmount - instrument.originalAmount;
 
       // Get or create asset
       const assetKey = row.asset_id || 0;
@@ -129,17 +199,24 @@ const MoneySummaryCard = ({
           asset_id: row.asset_id,
           asset_name: row.asset_name || 'unknown asset',
           amount: 0,
+          originalAmount: 0,
+          calculatedAmount: 0,
+          unrealizedAmount: 0,
           amount_unit: 0,
           original_currency_code: row.original_currency_code,
           latest_asset_value: row.latest_asset_value,
+          latest_asset_value_date: row.latest_asset_value_date,
           latest_rate: row.latest_rate,
           base_currency_code: row.base_currency_code
         };
         instrument.assets.push(asset);
       }
 
-      // Add to asset
-      asset.amount += row.amount || 0;
+      // Add to asset using both amounts
+      asset.amount += actualAmount; // Keep for backward compatibility
+      asset.originalAmount += originalAmount;
+      asset.calculatedAmount += actualAmount;
+      asset.unrealizedAmount = asset.calculatedAmount - asset.originalAmount;
       asset.amount_unit += row.amount_unit || 0;
     }
 
@@ -268,6 +345,23 @@ const MoneySummaryCard = ({
                     {formatAmountCurrency(totalAmountCalculation.totalAmount, defaultCurrency.code)}
                   </span>
                 </div>
+
+                {/* Show breakdown of total amounts */}
+                <div className="mt-3 space-y-1 text-sm">
+                  <div className="flex justify-between text-green-600">
+                    <span>Amount Asli:</span>
+                    <span>{formatAmountCurrency(totalAmountCalculation.totalOriginalAmount, defaultCurrency.code)}</span>
+                  </div>
+                  {totalAmountCalculation.totalUnrealizedAmount !== 0 && (
+                    <div className={`flex justify-between font-medium ${totalAmountCalculation.totalUnrealizedAmount >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                      <span>Total Unrealized:</span>
+                      <span>
+                        {totalAmountCalculation.totalUnrealizedAmount >= 0 ? '+' : ''}
+                        {formatAmountCurrency(totalAmountCalculation.totalUnrealizedAmount, defaultCurrency.code)}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="p-4 bg-amber-50 rounded-lg border-l-4 border-l-amber-500">
@@ -297,39 +391,30 @@ const MoneySummaryCard = ({
             {currencies.length > 0 ? (
               currencies.map((currency) => {
                 const currencyData = currencyMap.get(currency);
-                const amount = currencyData?.amount || 0;
                 const show_in_base_currency = currencyData?.latest_rate !== null;
                 const same_original_and_base_currency = currencyData.original_currency_code === currencyData.base_currency_code;
                 const hasNullRate = currencyData?.latest_rate === null && currencyData?.base_currency_code;
+                const hasNoAssetValue = currencyData.originalAmount === currencyData.calculatedAmount;
 
                 return (
-                  <div key={currency} className="p-3 bg-blue-50 rounded-lg">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          {currency}
-                        </Badge>
-                        {hasNullRate && (
-                          <div title="Exchange rate tidak tersedia">
-                            <AlertTriangle className="w-4 h-4 text-amber-500" />
-                          </div>
-                        )}
-                      </div>
-                      <span className="font-semibold">
-                        {formatAmountCurrency(amount, currency)}
-                      </span>
-                    </div>
-                    {show_in_base_currency && !same_original_and_base_currency && (
-                      <div className="flex justify-between items-center mt-1 text-sm text-muted-foreground">
-                        <span>rate terakhir {formatDate(currencyData?.latest_rate_date)}</span>
-                        <span>{formatAmountCurrency(amount * (currencyData?.latest_rate || 0), currencyData?.base_currency_code)}</span>
-                      </div>
-                    )}
-                    {hasNullRate && (
-                      <div className="mt-1 text-xs text-amber-600">
-                        Exchange rate tidak tersedia untuk konversi ke {currencyData?.base_currency_code}
-                      </div>
-                    )}
+                  <div key={currency} className="p-4 bg-blue-50 rounded-lg">
+                    <FourColumnLayout
+                      infoData={{
+                        name: currency,
+                        currency: currency,
+                        rate: show_in_base_currency && !same_original_and_base_currency ? currencyData?.latest_rate : undefined,
+                        rateDate: show_in_base_currency && !same_original_and_base_currency ? currencyData?.latest_rate_date : undefined,
+                        hasNullRate: !!hasNullRate
+                      }}
+                      amountData={createAmountData(
+                        currencyData?.originalAmount || 0,
+                        currencyData?.calculatedAmount || 0,
+                        currency,
+                        currencyData?.base_currency_code,
+                        show_in_base_currency && !same_original_and_base_currency ? currencyData?.latest_rate : undefined
+                      )}
+                      hasAsset={!hasNoAssetValue}
+                    />
                   </div>
                 );
               })
@@ -369,23 +454,10 @@ const MoneySummaryCard = ({
                         className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
                         onClick={() => toggleWalletExpansion(wallet.wallet_id)}
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            {expandedWallets.has(wallet.wallet_id) ? (
-                              <ChevronDown className="w-4 h-4" />
-                            ) : (
-                              <ChevronRight className="w-4 h-4" />
-                            )}
-                            <h5 className="font-medium">{wallet.wallet_name}</h5>
-                          </div>
-
-                          {/* Wallet total amount */}
-                          <div className="text-xs bg-blue-50 px-2 py-1 rounded">
-                            <span className="font-medium">
-                              {formatAmountCurrency(wallet.amount, wallet.original_currency_code)}
-                            </span>
-                          </div>
-                        </div>
+                        <WalletRow
+                          wallet={wallet}
+                          isExpanded={expandedWallets.has(wallet.wallet_id)}
+                        />
                       </div>
                     </CollapsibleTrigger>
 
@@ -400,49 +472,23 @@ const MoneySummaryCard = ({
                               // Direct card without expandable for instruments without assets
                               const asset = instrument.assets[0];
                               return (
-                                <div key={`${instrument.instrument_id || 0}`} className="bg-white p-3 rounded border">
-                                  <div className="space-y-2">
-                                    <div className="text-sm">
-                                      <span className="font-medium text-purple-600">{instrument.instrument_name}</span>
-                                    </div>
-
-                                    <div className="space-y-1">
-                                      {asset && asset.amount_unit > 0 && asset.latest_asset_value && (
-                                        <div className="text-xs text-muted-foreground">
-                                          Unit: {asset.amount_unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })}
-                                        </div>
-                                      )}
-
-                                      {asset && asset.latest_asset_value && asset.amount_unit ? (
-                                        <div className="space-y-1">
-                                          <div className="flex justify-between items-center">
-                                            <span className="text-sm font-medium">Nilai Aset:</span>
-                                            <span className="font-semibold">
-                                              {formatAmountCurrency(asset.latest_asset_value * asset.amount_unit, asset.original_currency_code)}
-                                            </span>
-                                          </div>
-                                          {asset.latest_rate && asset.base_currency_code && (
-                                            <div className="flex justify-between items-center text-sm text-muted-foreground">
-                                              <span>≈ {asset.base_currency_code}:</span>
-                                              <span>
-                                                {formatAmountCurrency(
-                                                  asset.latest_asset_value * asset.amount_unit * asset.latest_rate,
-                                                  asset.base_currency_code
-                                                )}
-                                              </span>
-                                            </div>
-                                          )}
-                                        </div>
-                                      ) : (
-                                        <div className="flex justify-between items-center">
-                                          <span className="text-sm font-medium">Saldo:</span>
-                                          <span className="font-semibold">
-                                            {formatAmountCurrency(instrument.amount, instrument.original_currency_code)}
-                                          </span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
+                                <div key={`${instrument.instrument_id || 0}`} className="bg-white p-4 rounded border">
+                                  <FourColumnLayout
+                                    infoData={{
+                                      name: instrument.instrument_name || 'Unknown',
+                                      currency: instrument.original_currency_code,
+                                      unit: asset && asset.amount_unit > 0 && asset.latest_asset_value ? asset.amount_unit : undefined,
+                                      assetValueDate: asset?.latest_asset_value_date || undefined
+                                    }}
+                                    amountData={createAmountData(
+                                      asset?.originalAmount || instrument.originalAmount,
+                                      asset?.calculatedAmount || instrument.calculatedAmount,
+                                      asset?.original_currency_code || instrument.original_currency_code,
+                                      asset?.base_currency_code,
+                                      asset && asset.latest_rate && asset.base_currency_code && asset.base_currency_code !== asset.original_currency_code ? asset.latest_rate : undefined
+                                    )}
+                                    hasAsset={!!(asset && asset.latest_asset_value && asset.amount_unit)}
+                                  />
                                 </div>
                               );
                             }
@@ -456,21 +502,10 @@ const MoneySummaryCard = ({
                                       className="p-3 cursor-pointer hover:bg-gray-50 transition-colors"
                                       onClick={() => toggleInstrumentExpansion(wallet.wallet_id, instrument.instrument_id)}
                                     >
-                                      <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                          {expandedInstruments.has(instrumentKey) ? (
-                                            <ChevronDown className="w-3 h-3" />
-                                          ) : (
-                                            <ChevronRight className="w-3 h-3" />
-                                          )}
-                                          <span className="text-sm font-medium text-purple-600">{instrument.instrument_name}</span>
-                                        </div>
-                                        <div className="text-xs bg-purple-50 px-2 py-1 rounded">
-                                          <span className="font-medium">
-                                            {formatAmountCurrency(instrument.amount, instrument.original_currency_code)}
-                                          </span>
-                                        </div>
-                                      </div>
+                                      <InstrumentRow
+                                        instrument={instrument}
+                                        isExpanded={expandedInstruments.has(instrumentKey)}
+                                      />
                                     </div>
                                   </CollapsibleTrigger>
 
@@ -478,47 +513,23 @@ const MoneySummaryCard = ({
                                     <div className="px-3 pb-3 border-t bg-gray-25">
                                       <div className="space-y-2 pt-2">
                                         {instrument.assets.map((asset) => (
-                                          <div key={`${asset.asset_id || 0}`} className="bg-white p-2 rounded border border-gray-200">
-                                            <div className="space-y-1">
-                                              <div className="text-xs">
-                                                <span className="font-medium">{asset.asset_name || 'unknown asset'}</span>
-                                              </div>
-
-                                              {asset.amount_unit > 0 && asset.latest_asset_value && (
-                                                <div className="text-xs text-muted-foreground">
-                                                  Unit: {asset.amount_unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })}
-                                                </div>
+                                          <div key={`${asset.asset_id || 0}`} className="bg-white p-3 rounded border border-gray-200">
+                                            <FourColumnLayout
+                                              infoData={{
+                                                name: asset.asset_name || 'unknown asset',
+                                                currency: asset.original_currency_code,
+                                                unit: asset.amount_unit > 0 && asset.latest_asset_value ? asset.amount_unit : undefined,
+                                                assetValueDate: asset.latest_asset_value_date || undefined
+                                              }}
+                                              amountData={createAmountData(
+                                                asset.originalAmount,
+                                                asset.calculatedAmount,
+                                                asset.original_currency_code,
+                                                asset.base_currency_code,
+                                                asset.latest_rate && asset.base_currency_code !== asset.original_currency_code ? asset.latest_rate : undefined
                                               )}
-
-                                              {asset.latest_asset_value && asset.amount_unit ? (
-                                                <div className="space-y-1">
-                                                  <div className="flex justify-between items-center">
-                                                    <span className="text-xs font-medium">Nilai Aset:</span>
-                                                    <span className="text-xs font-semibold">
-                                                      {formatAmountCurrency(asset.latest_asset_value * asset.amount_unit, asset.original_currency_code)}
-                                                    </span>
-                                                  </div>
-                                                  {asset.latest_rate && asset.base_currency_code && (
-                                                    <div className="flex justify-between items-center text-xs text-muted-foreground">
-                                                      <span>≈ {asset.base_currency_code}:</span>
-                                                      <span>
-                                                        {formatAmountCurrency(
-                                                          asset.latest_asset_value * asset.amount_unit * asset.latest_rate,
-                                                          asset.base_currency_code
-                                                        )}
-                                                      </span>
-                                                    </div>
-                                                  )}
-                                                </div>
-                                              ) : (
-                                                <div className="flex justify-between items-center">
-                                                  <span className="text-xs font-medium">Saldo:</span>
-                                                  <span className="text-xs font-semibold">
-                                                    {formatAmountCurrency(asset.amount, asset.original_currency_code)}
-                                                  </span>
-                                                </div>
-                                              )}
-                                            </div>
+                                              hasAsset={!!(asset.latest_asset_value && asset.amount_unit)}
+                                            />
                                           </div>
                                         ))}
                                       </div>
