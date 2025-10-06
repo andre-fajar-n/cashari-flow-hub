@@ -171,7 +171,7 @@ const MoneySummaryCard = ({
       if (!instrument) {
         instrument = {
           instrument_id: row.instrument_id,
-          instrument_name: row.instrument_name || 'unknown instrument',
+          instrument_name: row.instrument_name || 'Bukan instrumen',
           amount: 0,
           originalAmount: 0,
           calculatedAmount: 0,
@@ -197,7 +197,7 @@ const MoneySummaryCard = ({
       if (!asset) {
         asset = {
           asset_id: row.asset_id,
-          asset_name: row.asset_name || 'unknown asset',
+          asset_name: row.asset_name || 'Bukan aset',
           amount: 0,
           originalAmount: 0,
           calculatedAmount: 0,
@@ -401,7 +401,6 @@ const MoneySummaryCard = ({
                     <FourColumnLayout
                       infoData={{
                         name: currency,
-                        currency: currency,
                         rate: show_in_base_currency && !same_original_and_base_currency ? currencyData?.latest_rate : undefined,
                         rateDate: show_in_base_currency && !same_original_and_base_currency ? currencyData?.latest_rate_date : undefined,
                         hasNullRate: !!hasNullRate
@@ -475,8 +474,7 @@ const MoneySummaryCard = ({
                                 <div key={`${instrument.instrument_id || 0}`} className="bg-white p-4 rounded border">
                                   <FourColumnLayout
                                     infoData={{
-                                      name: instrument.instrument_name || 'Unknown',
-                                      currency: instrument.original_currency_code,
+                                      name: instrument.instrument_name || 'Bukan instrumen',
                                       unit: asset && asset.amount_unit > 0 && asset.latest_asset_value ? asset.amount_unit : undefined,
                                       assetValueDate: asset?.latest_asset_value_date || undefined
                                     }}
@@ -516,8 +514,7 @@ const MoneySummaryCard = ({
                                           <div key={`${asset.asset_id || 0}`} className="bg-white p-3 rounded border border-gray-200">
                                             <FourColumnLayout
                                               infoData={{
-                                                name: asset.asset_name || 'unknown asset',
-                                                currency: asset.original_currency_code,
+                                                name: asset.asset_name || 'Bukan aset',
                                                 unit: asset.amount_unit > 0 && asset.latest_asset_value ? asset.amount_unit : undefined,
                                                 assetValueDate: asset.latest_asset_value_date || undefined
                                               }}

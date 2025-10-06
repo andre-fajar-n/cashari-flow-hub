@@ -17,17 +17,24 @@ export const FourColumnLayout = ({
   <div className="grid grid-cols-4 gap-3 items-start">
     <InfoColumn data={infoData} />
     
-    <AmountColumn
-      label="Amount Asli"
-      amount={amountData.originalAmount}
-      currency={amountData.currency}
-      baseCurrencyAmount={amountData.showBaseCurrency ? amountData.originalAmount * (amountData.exchangeRate || 0) : undefined}
-      baseCurrency={amountData.baseCurrency}
-      showBaseCurrency={amountData.showBaseCurrency}
-    />
+    {amountData.originalAmount === amountData.calculatedAmount ? (
+      <div className="text-center space-y-1">
+        <div className="text-xs text-muted-foreground font-medium">Amount Asli</div>
+        <div className="font-semibold">-</div>
+      </div>
+    ) : (
+      <AmountColumn
+        label="Amount Asli"
+        amount={amountData.originalAmount}
+        currency={amountData.currency}
+        baseCurrencyAmount={amountData.showBaseCurrency ? amountData.originalAmount * (amountData.exchangeRate || 0) : undefined}
+        baseCurrency={amountData.baseCurrency}
+        showBaseCurrency={amountData.showBaseCurrency}
+      />
+    )}
     
     <AmountColumn
-      label={hasAsset ? "Nilai Aset" : "Saldo"}
+      label="Amount Akhir"
       amount={amountData.calculatedAmount}
       currency={amountData.currency}
       baseCurrencyAmount={amountData.showBaseCurrency ? amountData.calculatedAmount * (amountData.exchangeRate || 0) : undefined}

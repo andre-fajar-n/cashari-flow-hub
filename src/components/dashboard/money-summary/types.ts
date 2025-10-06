@@ -11,7 +11,6 @@ export interface AmountDisplayData {
 
 export interface InfoColumnData {
   name: string;
-  currency: string;
   rate?: number;
   rateDate?: string;
   hasNullRate?: boolean;

@@ -11,7 +11,7 @@ export const InfoColumn = ({ data }: InfoColumnProps) => (
   <div className="space-y-1">
     <div className="flex items-center gap-2">
       <Badge variant="outline" className="text-xs">
-        {data.currency}
+        {data.name}
       </Badge>
       {data.hasNullRate && (
         <div title="Exchange rate tidak tersedia">
@@ -22,20 +22,20 @@ export const InfoColumn = ({ data }: InfoColumnProps) => (
     
     {data.rate && data.rateDate && (
       <div className="text-xs text-muted-foreground">
+        <div>Rate per: {formatDate(data.rateDate)}</div>
         <div>Rate: {data.rate.toLocaleString("id-ID", { maximumFractionDigits: 2 })}</div>
-        <div>Tgl: {formatDate(data.rateDate)}</div>
       </div>
     )}
-    
+
+    {data.assetValueDate && (
+      <div className="text-xs text-muted-foreground">
+        Nilai Aset per: {formatDate(data.assetValueDate)}
+      </div>
+    )}
+
     {data.unit && (
       <div className="text-xs text-muted-foreground">
         Unit: {data.unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })}
-      </div>
-    )}
-    
-    {data.assetValueDate && (
-      <div className="text-xs text-muted-foreground">
-        Tgl: {formatDate(data.assetValueDate)}
       </div>
     )}
     

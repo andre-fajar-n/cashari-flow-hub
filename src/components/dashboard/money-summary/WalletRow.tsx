@@ -24,18 +24,25 @@ export const WalletRow = ({ wallet, isExpanded }: WalletRowProps) => (
     </div>
 
     {/* Column 2: Original Amount */}
-    <AmountColumn
-      label="Amount Asli"
-      amount={wallet.originalAmount}
-      currency={wallet.original_currency_code}
-      baseCurrencyAmount={wallet.latest_rate && wallet.base_currency_code !== wallet.original_currency_code ? wallet.originalAmount * wallet.latest_rate : undefined}
-      baseCurrency={wallet.base_currency_code}
-      showBaseCurrency={wallet.latest_rate && wallet.base_currency_code !== wallet.original_currency_code}
-    />
+    {wallet.originalAmount === wallet.calculatedAmount ? (
+      <div className="text-center space-y-1">
+        <div className="text-xs text-muted-foreground font-medium">Amount Asli</div>
+        <div className="font-semibold">-</div>
+      </div>
+    ) : (
+      <AmountColumn
+        label="Amount Asli"
+        amount={wallet.originalAmount}
+        currency={wallet.original_currency_code}
+        baseCurrencyAmount={wallet.latest_rate && wallet.base_currency_code !== wallet.original_currency_code ? wallet.originalAmount * wallet.latest_rate : undefined}
+        baseCurrency={wallet.base_currency_code}
+        showBaseCurrency={wallet.latest_rate && wallet.base_currency_code !== wallet.original_currency_code}
+      />
+    )}
 
     {/* Column 3: Calculated Amount */}
     <AmountColumn
-      label="Nilai Terhitung"
+      label="Amount Akhir"
       amount={wallet.calculatedAmount}
       currency={wallet.original_currency_code}
       baseCurrencyAmount={wallet.latest_rate && wallet.base_currency_code !== wallet.original_currency_code ? wallet.calculatedAmount * wallet.latest_rate : undefined}

@@ -23,18 +23,25 @@ export const InstrumentRow = ({ instrument, isExpanded }: InstrumentRowProps) =>
     </div>
 
     {/* Column 2: Original Amount */}
-    <AmountColumn
-      label="Amount Asli"
-      amount={instrument.originalAmount}
-      currency={instrument.original_currency_code}
-      baseCurrencyAmount={instrument.latest_rate && instrument.base_currency_code !== instrument.original_currency_code ? instrument.originalAmount * instrument.latest_rate : undefined}
-      baseCurrency={instrument.base_currency_code}
-      showBaseCurrency={instrument.latest_rate && instrument.base_currency_code !== instrument.original_currency_code}
-    />
+    {instrument.originalAmount === instrument.calculatedAmount ? (
+      <div className="text-center space-y-1">
+        <div className="text-xs text-muted-foreground font-medium">Amount Asli</div>
+        <div className="font-semibold">-</div>
+      </div>
+    ) : (
+      <AmountColumn
+        label="Amount Asli"
+        amount={instrument.originalAmount}
+        currency={instrument.original_currency_code}
+        baseCurrencyAmount={instrument.latest_rate && instrument.base_currency_code !== instrument.original_currency_code ? instrument.originalAmount * instrument.latest_rate : undefined}
+        baseCurrency={instrument.base_currency_code}
+        showBaseCurrency={instrument.latest_rate && instrument.base_currency_code !== instrument.original_currency_code}
+      />
+    )}
 
     {/* Column 3: Calculated Amount */}
     <AmountColumn
-      label="Nilai Terhitung"
+      label="Amount Terakhir"
       amount={instrument.calculatedAmount}
       currency={instrument.original_currency_code}
       baseCurrencyAmount={instrument.latest_rate && instrument.base_currency_code !== instrument.original_currency_code ? instrument.calculatedAmount * instrument.latest_rate : undefined}
