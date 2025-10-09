@@ -12,7 +12,6 @@ import { useInvestmentAssets, useDeleteInvestmentAsset } from "@/hooks/queries/u
 import { useInvestmentAssetValues, useDeleteInvestmentAssetValue } from "@/hooks/queries/use-investment-asset-values";
 import InvestmentAssetDialog from "@/components/investment/InvestmentAssetDialog";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { format } from "date-fns";
 import { DataTable } from "@/components/ui/data-table";
 import AmountText from "@/components/ui/amount-text";
 import { formatAmountCurrency } from "@/lib/currency";
@@ -26,6 +25,7 @@ import { useGoals } from "@/hooks/queries/use-goals";
 import { useGoalInvestmentRecords } from "@/hooks/queries/use-goal-investment-records";
 import { InvestmentAssetValueModel } from "@/models/investment-asset-values";
 import { MoneyMovementModel } from "@/models/money-movements";
+import { formatDate } from "@/lib/date";
 
 const AssetDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -118,7 +118,7 @@ const AssetDetail = () => {
 
   // Prepare chart data
   const chartData = assetValues?.map(value => ({
-    date: format(new Date(value.date), 'dd/MM/yyyy'),
+    date: formatDate(value.date),
     value: value.value,
     fullDate: value.date
   })).reverse() || [];
@@ -131,7 +131,7 @@ const AssetDetail = () => {
       <div className="flex-1">
         <div className="flex items-center gap-4">
           <div>
-            <p className="font-medium">{format(new Date(value.date), 'dd/MM/yyyy')}</p>
+            <p className="font-medium">{formatDate(value.date)}</p>
             <p className="text-sm text-muted-foreground">Tanggal</p>
           </div>
           <div>
@@ -216,11 +216,11 @@ const AssetDetail = () => {
           </div>
 
           {/* Tabs */}
-          <Tabs defaultValue="history" className="w-full">
+          <Tabs defaultValue="summary" className="w-full">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="history">Riwayat Nilai</TabsTrigger>
               <TabsTrigger value="summary">Ringkasan</TabsTrigger>
-              <TabsTrigger value="movements">Riwayat</TabsTrigger>
+              <TabsTrigger value="history">Riwayat Nilai</TabsTrigger>
+              <TabsTrigger value="movements">Riwayat Pergerakan Dana</TabsTrigger>
             </TabsList>
 
             <TabsContent value="history" className="space-y-4">
@@ -238,21 +238,26 @@ const AssetDetail = () => {
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={chartData}>
                           <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="date" />
-                          <YAxis />
+                          <XAxis dataKey="date" padding={{ left: 30, right: 30 }} />
+                          <YAxis
+                            domain={['dataMin - dataMin * 0.05', 'dataMax + dataMax * 0.05']}
+                            tickFormatter={(value) => formatAmountCurrency(value, assetCurrencyCode)}
+                            width={100}
+                          />
                           <Tooltip
-                            formatter={(value) => [`${Number(value).toLocaleString('id-ID')} ${assetCurrencyCode}`, 'Nilai']}
+                            formatter={(value) => [formatAmountCurrency(Number(value), assetCurrencyCode), 'Nilai']}
                             labelFormatter={(label) => {
                               const item = chartData.find(d => d.date === label);
-                              return item ? format(new Date(item.fullDate), 'dd MMMM yyyy') : label;
+                              return item ? formatDate(item.fullDate) : label;
                             }}
                           />
                           <Line
                             type="monotone"
                             dataKey="value"
-                            stroke="#8884d8"
+                            stroke="#2563eb"
                             strokeWidth={2}
-                            dot={{ r: 4 }}
+                            dot={{ fill: '#2563eb', strokeWidth: 2, r: 4 }}
+                            activeDot={{ r: 6, stroke: '#2563eb', strokeWidth: 2 }}
                           />
                         </LineChart>
                       </ResponsiveContainer>

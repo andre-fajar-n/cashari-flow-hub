@@ -117,7 +117,7 @@ const AssetSummary = ({ assetId, assetName }: AssetSummaryProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <PieChart className="w-5 h-5" />
-          Summary Aset - {assetName}
+          Ringkasan Aset - {assetName}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
