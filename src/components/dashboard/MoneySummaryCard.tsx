@@ -349,7 +349,7 @@ const MoneySummaryCard = ({
                 {/* Show breakdown of total amounts */}
                 <div className="mt-3 space-y-1 text-sm">
                   <div className="flex justify-between text-green-600">
-                    <span>Amount Asli:</span>
+                    <span>Amount Awal:</span>
                     <span>{formatAmountCurrency(totalAmountCalculation.totalOriginalAmount, defaultCurrency.code)}</span>
                   </div>
                   {totalAmountCalculation.totalUnrealizedAmount !== 0 && (

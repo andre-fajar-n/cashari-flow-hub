@@ -8,8 +8,8 @@ interface InfoColumnProps {
 }
 
 export const InfoColumn = ({ data }: InfoColumnProps) => (
-  <div className="space-y-1">
-    <div className="flex items-center gap-2">
+  <div className="text-center space-y-1">
+    <div className="flex justify-center items-center gap-2">
       <Badge variant="outline" className="text-xs">
         {data.name}
       </Badge>

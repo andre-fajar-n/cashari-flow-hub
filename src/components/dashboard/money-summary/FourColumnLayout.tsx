@@ -16,15 +16,15 @@ export const FourColumnLayout = ({
 }: FourColumnLayoutProps) => (
   <div className="grid grid-cols-4 gap-3 items-start">
     <InfoColumn data={infoData} />
-    
+
     {amountData.originalAmount === amountData.calculatedAmount ? (
       <div className="text-center space-y-1">
-        <div className="text-xs text-muted-foreground font-medium">Amount Asli</div>
+        <div className="text-xs text-muted-foreground font-medium">Amount Awal</div>
         <div className="font-semibold">-</div>
       </div>
     ) : (
       <AmountColumn
-        label="Amount Asli"
+        label="Amount Awal"
         amount={amountData.originalAmount}
         currency={amountData.currency}
         baseCurrencyAmount={amountData.showBaseCurrency ? amountData.originalAmount * (amountData.exchangeRate || 0) : undefined}
@@ -32,7 +32,9 @@ export const FourColumnLayout = ({
         showBaseCurrency={amountData.showBaseCurrency}
       />
     )}
-    
+
+    <UnrealizedColumn data={amountData} />
+
     <AmountColumn
       label="Amount Akhir"
       amount={amountData.calculatedAmount}
@@ -40,8 +42,6 @@ export const FourColumnLayout = ({
       baseCurrencyAmount={amountData.showBaseCurrency ? amountData.calculatedAmount * (amountData.exchangeRate || 0) : undefined}
       baseCurrency={amountData.baseCurrency}
       showBaseCurrency={amountData.showBaseCurrency}
-    />
-    
-    <UnrealizedColumn data={amountData} />
+    />    
   </div>
 );
