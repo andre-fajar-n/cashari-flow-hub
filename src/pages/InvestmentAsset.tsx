@@ -17,7 +17,6 @@ import { useAssetSummaries } from "@/hooks/queries/use-asset-summaries";
 import { formatAmountCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/date";
 
-
 const InvestmentAsset = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();

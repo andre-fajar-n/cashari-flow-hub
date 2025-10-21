@@ -1,24 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { MoneySummaryModel } from "@/models/money-summary";
-
-export interface AssetSummaryData {
-  assetId: number;
-  assetName: string;
-  latestAssetValue: number | null;
-  latestAssetValueDate: string | null;
-  totalAmount: number;
-  totalAmountUnit: number;
-  currencyCode: string;
-  averagePricePerUnit: number | null;
-  currentAssetAmount: number | null; // totalAmountUnit * latestAssetValue
-  amountChange: number | null; // currentAssetAmount - totalAmount
-  amountChangePercentage: number | null; // (amountChange / totalAmount) * 100
-  assetValueChange: number | null; // latestAssetValue - averagePricePerUnit
-  assetValueChangePercentage: number | null; // (assetValueChange / averagePricePerUnit) * 100
-  unrealizedAmount: number | null; // currentAssetAmount - totalAmount (same as amountChange)
-}
+import { AssetSummaryData } from "@/models/money-summary";
 
 export const useAssetSummaries = () => {
   const { user } = useAuth();
