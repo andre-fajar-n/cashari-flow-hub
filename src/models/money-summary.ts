@@ -52,3 +52,20 @@ interface AssetSummary {
   latest_rate: number | null;
   base_currency_code: string | null;
 }
+
+export interface AssetSummaryData {
+  assetId: number;
+  assetName: string;
+  latestAssetValue: number | null;
+  latestAssetValueDate: string | null;
+  totalAmount: number;
+  totalAmountUnit: number;
+  currencyCode: string;
+  averagePricePerUnit: number | null;
+  currentAssetAmount: number | null; // totalAmountUnit * latestAssetValue
+  amountChange: number | null; // currentAssetAmount - totalAmount
+  amountChangePercentage: number | null; // (amountChange / totalAmount) * 100
+  assetValueChange: number | null; // latestAssetValue - averagePricePerUnit
+  assetValueChangePercentage: number | null; // (assetValueChange / averagePricePerUnit) * 100
+  unrealizedAmount: number | null; // currentAssetAmount - totalAmount (same as amountChange)
+}

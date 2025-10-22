@@ -13,6 +13,7 @@ import {
   InstrumentRow,
   createAmountData
 } from "@/components/dashboard/money-summary";
+import { ZakatInfo } from "@/components/dashboard/ZakatInfo";
 
 interface MoneySummaryCardProps {
   isLoading?: boolean;
@@ -379,6 +380,15 @@ const MoneySummaryCard = ({
               </div>
             )}
           </div>
+        )}
+
+        {/* Zakat Information */}
+        {defaultCurrency && currencies.length > 0 && (
+          <ZakatInfo
+            totalWealth={totalAmountCalculation.totalAmount}
+            baseCurrency={defaultCurrency.code}
+            canCalculateWealth={totalAmountCalculation.canCalculate}
+          />
         )}
 
         {/* Grand Totals - Only Original Currency with Base Currency conversion */}

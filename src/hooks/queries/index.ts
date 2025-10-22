@@ -13,6 +13,7 @@ export * from '@/hooks/queries/use-debts';
 export * from '@/hooks/queries/use-debt-summary';
 export * from '@/hooks/queries/use-business-projects';
 export * from '@/hooks/queries/use-transactions';
+export * from '@/hooks/queries/use-exchange-rates';
 export * from '@/hooks/queries/use-transfers';
 export * from '@/hooks/queries/use-goal-investment-records';
 export * from "@/hooks/queries/use-debt-histories";
