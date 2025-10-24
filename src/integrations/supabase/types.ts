@@ -845,6 +845,38 @@ export type Database = {
           },
         ]
       }
+      user_settings: {
+        Row: {
+          base_currency_code: string
+          created_at: string | null
+          id: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          base_currency_code: string
+          created_at?: string | null
+          id?: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          base_currency_code?: string
+          created_at?: string | null
+          id?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_settings_base_currency_code_fkey"
+            columns: ["base_currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       wallets: {
         Row: {
           created_at: string | null

@@ -6,6 +6,7 @@ import Layout from "@/components/Layout";
 import CurrencyManagement from "@/components/settings/CurrencyManagement";
 import WalletManagement from "@/components/settings/WalletManagement";
 import CategoryManagement from "@/components/settings/CategoryManagement";
+import UserSettingsManagement from "@/components/settings/UserSettingsManagement";
 
 const Settings = () => {
   return (
@@ -20,12 +21,17 @@ const Settings = () => {
           </CardHeader>
         </Card>
 
-        <Tabs defaultValue="currencies" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-4">
+        <Tabs defaultValue="general" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-4">
+            <TabsTrigger value="general" className="text-xs sm:text-sm">Umum</TabsTrigger>
             <TabsTrigger value="currencies" className="text-xs sm:text-sm">Mata Uang</TabsTrigger>
             <TabsTrigger value="wallets" className="text-xs sm:text-sm">Dompet</TabsTrigger>
             <TabsTrigger value="categories" className="text-xs sm:text-sm">Kategori</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="general">
+            <UserSettingsManagement />
+          </TabsContent>
 
           <TabsContent value="currencies">
             <CurrencyManagement />
