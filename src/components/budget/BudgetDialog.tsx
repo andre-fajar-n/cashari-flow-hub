@@ -9,9 +9,8 @@ import { BudgetFormData, defaultBudgetFormValues } from "@/form-dto/budget";
 import { InputNumber } from "@/components/ui/input-number";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useCreateBudget, useUpdateBudget } from "@/hooks/queries/use-budgets";
-import { useCurrencies, useDefaultCurrency } from "@/hooks/queries/use-currencies";
+import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { BudgetModel } from "@/models/budgets";
-
 interface BudgetDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -25,7 +24,6 @@ const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogPro
   const updateBudget = useUpdateBudget();
   const createBudget = useCreateBudget();
   const { data: currencies } = useCurrencies();
-  const { data: defaultCurrency } = useDefaultCurrency();
 
   const form = useForm<BudgetFormData>({
     defaultValues: defaultBudgetFormValues,
@@ -64,7 +62,7 @@ const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogPro
         form.reset({
           name: budget.name || "",
           amount: budget.amount || 0,
-          currency_code: budget.currency_code || defaultCurrency?.code || "IDR",
+          currency_code: budget.currency_code || "",
           start_date: budget.start_date || "",
           end_date: budget.end_date || "",
         });
@@ -72,7 +70,7 @@ const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogPro
         form.reset(defaultBudgetFormValues);
       }
     }
-  }, [budget, open, form, defaultCurrency]);
+  }, [budget, open, form]);
 
   useEffect(() => {
     if (createBudget.isSuccess || updateBudget.isSuccess) {

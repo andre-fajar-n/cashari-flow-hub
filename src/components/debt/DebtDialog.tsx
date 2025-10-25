@@ -9,7 +9,7 @@ import { DEBT_TYPES } from "@/constants/enums";
 import { DebtFormData, defaultDebtFormValues } from "@/form-dto/debts";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useCreateDebt, useUpdateDebt } from "@/hooks/queries/use-debts";
-import { useCurrencies, useDefaultCurrency } from "@/hooks/queries/use-currencies";
+import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { DebtModel } from "@/models/debts";
 
 interface DebtDialogProps {
@@ -25,7 +25,6 @@ const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) =>
   const createDebt = useCreateDebt();
   const updateDebt = useUpdateDebt();
   const { data: currencies } = useCurrencies();
-  const { data: defaultCurrency } = useDefaultCurrency();
 
   const form = useForm<DebtFormData>({
     defaultValues: defaultDebtFormValues,
@@ -38,14 +37,14 @@ const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) =>
         form.reset({
           name: debt.name || "",
           type: debt.type || DEBT_TYPES.LOAN,
-          currency_code: debt.currency_code || defaultCurrency?.code || "IDR",
+          currency_code: debt.currency_code || "",
           due_date: debt.due_date || "",
         });
       } else {
         form.reset(defaultDebtFormValues);
       }
     }
-  }, [debt, open, form, defaultCurrency]);
+  }, [debt, open, form]);
 
   // Use mutation callbacks utility
   const { handleSuccess, handleError } = useMutationCallbacks({

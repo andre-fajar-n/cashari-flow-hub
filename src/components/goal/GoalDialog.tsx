@@ -8,7 +8,7 @@ import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { defaultGoalFormValues, GoalFormData } from "@/form-dto/goals";
 import { useCreateGoal, useUpdateGoal } from "@/hooks/queries/use-goals";
-import { useCurrencies, useDefaultCurrency } from "@/hooks/queries/use-currencies";
+import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { GoalModel } from "@/models/goals";
 
 interface GoalDialogProps {
@@ -24,7 +24,6 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
   const createGoal = useCreateGoal();
   const updateGoal = useUpdateGoal();
   const { data: currencies } = useCurrencies();
-  const { data: defaultCurrency } = useDefaultCurrency();
 
   const form = useForm<GoalFormData>({
     defaultValues: defaultGoalFormValues,
@@ -46,14 +45,14 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
         form.reset({
           name: goal.name || "",
           target_amount: goal.target_amount || 0,
-          currency_code: goal.currency_code || defaultCurrency?.code || "IDR",
+          currency_code: goal.currency_code || "",
           target_date: goal.target_date || "",
         });
       } else {
         form.reset(defaultGoalFormValues);
       }
     }
-  }, [goal, open, form, defaultCurrency]);
+  }, [goal, open, form]);
 
   useEffect(() => {
     if (createGoal.isSuccess || updateGoal.isSuccess) {

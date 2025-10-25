@@ -9,7 +9,7 @@ import Layout from "@/components/Layout";
 import { useDeleteBudget } from "@/hooks/queries/use-budgets";
 import { useBudgetsPaginated } from "@/hooks/queries/paginated/use-budgets-paginated";
 import { useBudgetSummary } from "@/hooks/queries/use-budget-summary";
-import { useCurrencies, useDefaultCurrency } from "@/hooks/queries/use-currencies";
+import { useCurrencies } from "@/hooks/queries/use-currencies";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { BudgetModel, BudgetSummary } from "@/models/budgets";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
@@ -17,6 +17,7 @@ import { Card } from "@/components/ui/card";
 import { formatDate } from "@/lib/date";
 import { formatAmountCurrency } from "@/lib/currency";
 import { calculateTotalSpentInBaseCurrency } from "@/lib/budget-summary";
+import { useUserSettings } from "@/hooks/queries/use-user-settings";
 
 const Budget = () => {
   const queryClient = useQueryClient();
@@ -34,10 +35,10 @@ const Budget = () => {
   const budgets = paged?.data || [];
   const { data: currencies, isLoading: isLoadingCurrencies } = useCurrencies();
   const { data: budgetSummary, isLoading: isLoadingBudgetSummary } = useBudgetSummary();
-  const { data: baseCurrency } = useDefaultCurrency(); // Get the default currency
+  const { data: userSettings, isLoading: isLoadingUserSettings } = useUserSettings();
 
   // Combine all loading states
-  const isLoading = isLoadingBudgets || isLoadingCurrencies || isLoadingBudgetSummary || !baseCurrency;
+  const isLoading = isLoadingBudgets || isLoadingCurrencies || isLoadingBudgetSummary || isLoadingUserSettings;
 
   if (isLoading) {
     return (
@@ -110,7 +111,7 @@ const Budget = () => {
           <div className="text-right flex-shrink-0">
             <div className="text-xs text-gray-500 mb-1">Budget</div>
             <div className="text-xl sm:text-lg font-bold text-gray-900">
-              {formatAmountCurrency(budget.amount, baseCurrency.code)}
+              {formatAmountCurrency(budget.amount, userSettings?.base_currency_code || '')}
             </div>
           </div>
         </div>
@@ -153,7 +154,7 @@ const Budget = () => {
                   Terpakai
                 </div>
                 <div className={`text-sm sm:text-xs font-bold ${isOverBudget ? 'text-red-900' : 'text-blue-900'}`}>
-                  {formatAmountCurrency(Math.abs(totalSpent.total_spent) || 0, baseCurrency.code || '')}
+                  {formatAmountCurrency(Math.abs(totalSpent.total_spent) || 0, userSettings?.base_currency_code || '')}
                 </div>
               </div>
 
@@ -171,7 +172,7 @@ const Budget = () => {
                 <div className={`text-sm sm:text-xs font-bold ${
                   isOverBudget ? 'text-red-900' : 'text-green-900'
                 }`}>
-                  {formatAmountCurrency(Math.abs(remainingBudget), baseCurrency.code)}
+                  {formatAmountCurrency(Math.abs(remainingBudget), userSettings?.base_currency_code || '')}
                 </div>
               </div>
             </div>

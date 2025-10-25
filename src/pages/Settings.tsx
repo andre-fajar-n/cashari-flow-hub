@@ -3,7 +3,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
-import CurrencyManagement from "@/components/settings/CurrencyManagement";
 import WalletManagement from "@/components/settings/WalletManagement";
 import CategoryManagement from "@/components/settings/CategoryManagement";
 import UserSettingsManagement from "@/components/settings/UserSettingsManagement";
@@ -22,19 +21,14 @@ const Settings = () => {
         </Card>
 
         <Tabs defaultValue="general" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-4">
+          <TabsList className="grid w-full grid-cols-3 mb-3">
             <TabsTrigger value="general" className="text-xs sm:text-sm">Umum</TabsTrigger>
-            <TabsTrigger value="currencies" className="text-xs sm:text-sm">Mata Uang</TabsTrigger>
             <TabsTrigger value="wallets" className="text-xs sm:text-sm">Dompet</TabsTrigger>
             <TabsTrigger value="categories" className="text-xs sm:text-sm">Kategori</TabsTrigger>
           </TabsList>
 
           <TabsContent value="general">
             <UserSettingsManagement />
-          </TabsContent>
-
-          <TabsContent value="currencies">
-            <CurrencyManagement />
           </TabsContent>
 
           <TabsContent value="wallets">

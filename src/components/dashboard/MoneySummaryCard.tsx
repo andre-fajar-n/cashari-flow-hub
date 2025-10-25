@@ -6,7 +6,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Wallet, DollarSign, Coins, ChevronRight, Search, ChevronLeft, Calculator, Info } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { MoneySummaryGroupByCurrency, MoneySummaryModel, WalletSummary } from "@/models/money-summary";
-import { useDefaultCurrency } from "@/hooks/queries/use-currencies";
 import {
   FourColumnLayout,
   WalletRow,
@@ -14,6 +13,7 @@ import {
   createAmountData
 } from "@/components/dashboard/money-summary";
 import { ZakatInfo } from "@/components/dashboard/ZakatInfo";
+import { useUserSettings } from "@/hooks/queries/use-user-settings";
 
 interface MoneySummaryCardProps {
   isLoading?: boolean;
@@ -30,8 +30,8 @@ const MoneySummaryCard = ({
   const [expandedInstruments, setExpandedInstruments] = useState<Set<string>>(new Set());
   const itemsPerPage = 5;
 
-  // Get user's default currency
-  const { data: defaultCurrency } = useDefaultCurrency();
+  // Get user's base currency
+  const { data: userSettings } = useUserSettings();
 
   // Helper function to calculate actual amount (considering asset value)
   const getActualAmount = (row: MoneySummaryModel): number => {
@@ -82,7 +82,7 @@ const MoneySummaryCard = ({
 
   // Calculate total amount in default currency with unrealized breakdown
   const totalAmountCalculation = useMemo(() => {
-    if (!defaultCurrency || currencies.length === 0) {
+    if (!userSettings.base_currency_code || currencies.length === 0) {
       return {
         canCalculate: false,
         totalAmount: 0,
@@ -105,7 +105,7 @@ const MoneySummaryCard = ({
       const originalAmount = currencyData.originalAmount || 0;
 
       // If it's the same as default currency, no conversion needed
-      if (currency === defaultCurrency.code) {
+      if (currency === userSettings.base_currency_code) {
         totalAmount += calculatedAmount;
         totalOriginalAmount += originalAmount;
       } else {
@@ -130,7 +130,7 @@ const MoneySummaryCard = ({
       totalUnrealizedAmount,
       missingRates
     };
-  }, [currencies, currencyMap, defaultCurrency]);
+  }, [currencies, currencyMap, userSettings]);
 
   // Process wallet hierarchy: wallet → instrument → asset
   const processedWallets = useMemo(() => {
@@ -330,7 +330,7 @@ const MoneySummaryCard = ({
 
       <div className="space-y-6">
         {/* Total Amount Section */}
-        {defaultCurrency && currencies.length > 0 && (
+        {userSettings?.base_currency_code && currencies.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Calculator className="w-4 h-4 text-green-600" />
@@ -340,10 +340,10 @@ const MoneySummaryCard = ({
               <div className="p-4 bg-green-50 rounded-lg border-l-4 border-l-green-500">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-green-700">
-                    Total dalam {defaultCurrency.code}:
+                    Total dalam {userSettings.base_currency_code}:
                   </span>
                   <span className="text-lg font-bold text-green-800">
-                    {formatAmountCurrency(totalAmountCalculation.totalAmount, defaultCurrency.code)}
+                    {formatAmountCurrency(totalAmountCalculation.totalAmount, userSettings.base_currency_code)}
                   </span>
                 </div>
 
@@ -351,14 +351,14 @@ const MoneySummaryCard = ({
                 <div className="mt-3 space-y-1 text-sm">
                   <div className="flex justify-between text-green-600">
                     <span>Amount Awal:</span>
-                    <span>{formatAmountCurrency(totalAmountCalculation.totalOriginalAmount, defaultCurrency.code)}</span>
+                    <span>{formatAmountCurrency(totalAmountCalculation.totalOriginalAmount, userSettings.base_currency_code)}</span>
                   </div>
                   {totalAmountCalculation.totalUnrealizedAmount !== 0 && (
                     <div className={`flex justify-between font-medium ${totalAmountCalculation.totalUnrealizedAmount >= 0 ? 'text-green-700' : 'text-red-600'}`}>
                       <span>Total Unrealized:</span>
                       <span>
                         {totalAmountCalculation.totalUnrealizedAmount >= 0 ? '+' : ''}
-                        {formatAmountCurrency(totalAmountCalculation.totalUnrealizedAmount, defaultCurrency.code)}
+                        {formatAmountCurrency(totalAmountCalculation.totalUnrealizedAmount, userSettings.base_currency_code)}
                       </span>
                     </div>
                   )}
@@ -383,10 +383,10 @@ const MoneySummaryCard = ({
         )}
 
         {/* Zakat Information */}
-        {defaultCurrency && currencies.length > 0 && (
+        {userSettings?.base_currency_code && currencies.length > 0 && (
           <ZakatInfo
             totalWealth={totalAmountCalculation.totalAmount}
-            baseCurrency={defaultCurrency.code}
+            baseCurrency={userSettings.base_currency_code}
             canCalculateWealth={totalAmountCalculation.canCalculate}
           />
         )}

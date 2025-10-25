@@ -4,8 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Calculator, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { DebtSummaryModel } from "@/models/debt-summary";
-import { calculateDebtSummary, groupDebtSummaryByCurrency, calculateTotalInBaseCurrency } from "@/lib/debt-summary";
-import { useDefaultCurrency } from "@/hooks/queries/use-currencies";
+import { groupDebtSummaryByCurrency, calculateTotalInBaseCurrency } from "@/lib/debt-summary";
 
 interface DebtSummaryCardProps {
   summaryData: DebtSummaryModel[];
@@ -14,8 +13,6 @@ interface DebtSummaryCardProps {
 }
 
 const DebtSummaryCard = ({ summaryData, showDetailedBreakdown = false, title = "Ringkasan Hutang/Piutang" }: DebtSummaryCardProps) => {
-  const { data: defaultCurrency } = useDefaultCurrency();
-
   const groupedByCurrency = useMemo(() => groupDebtSummaryByCurrency(summaryData), [summaryData]);
   const totalCalculation = useMemo(() => calculateTotalInBaseCurrency(summaryData), [summaryData]);
 
@@ -64,7 +61,7 @@ const DebtSummaryCard = ({ summaryData, showDetailedBreakdown = false, title = "
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Total dalam Base Currency */}
-        {defaultCurrency && totalCalculation.can_calculate && totalCalculation.base_currency_code && (
+        {totalCalculation.can_calculate && totalCalculation.base_currency_code && (
           <div className="p-3 bg-blue-50 rounded-lg border-l-4 border-l-blue-500">
             <div className="flex items-center gap-2 mb-2">
               <Calculator className="w-4 h-4 text-blue-600" />
