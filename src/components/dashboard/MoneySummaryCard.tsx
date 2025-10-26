@@ -82,7 +82,7 @@ const MoneySummaryCard = ({
 
   // Calculate total amount in default currency with unrealized breakdown
   const totalAmountCalculation = useMemo(() => {
-    if (!userSettings.base_currency_code || currencies.length === 0) {
+    if (!userSettings?.base_currency_code || currencies.length === 0) {
       return {
         canCalculate: false,
         totalAmount: 0,
@@ -105,7 +105,7 @@ const MoneySummaryCard = ({
       const originalAmount = currencyData.originalAmount || 0;
 
       // If it's the same as default currency, no conversion needed
-      if (currency === userSettings.base_currency_code) {
+      if (currency === userSettings?.base_currency_code) {
         totalAmount += calculatedAmount;
         totalOriginalAmount += originalAmount;
       } else {
