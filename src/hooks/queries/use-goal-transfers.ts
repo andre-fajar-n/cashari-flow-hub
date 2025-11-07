@@ -3,15 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { TablesInsert } from "@/integrations/supabase/types";
-import { GoalTransferFormData } from "@/form-dto/goal-transfers";
+import { GoalTransferFilter, GoalTransferFormData } from "@/form-dto/goal-transfers";
 
-export const useGoalTransfers = () => {
+export const useGoalTransfers = (params?: GoalTransferFilter) => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["goal_transfers", user?.id],
+    queryKey: ["goal_transfers", user?.id, params],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("goal_transfers")
         .select(`
           *,
@@ -26,8 +26,16 @@ export const useGoalTransfers = () => {
         `)
         .eq("user_id", user?.id)
         .order("date", { ascending: false });
-      
-      if (error) throw error;
+
+      if (params?.ids) {
+        query = query.in("id", params.ids);
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        console.error("Failed to fetch goal transfers", error);
+        throw error;
+      }
       return data;
     },
     enabled: !!user,

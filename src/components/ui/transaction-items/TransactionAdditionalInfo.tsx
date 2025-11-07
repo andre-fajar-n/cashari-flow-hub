@@ -1,22 +1,21 @@
 import { Badge } from "@/components/ui/badge";
-import { TransactionModel } from "@/models/transactions";
 import { Building2, Target } from "lucide-react";
+import { TransactionAdditionalInfoProps } from "@/components/ui/transaction-items/types";
 
-interface TransactionAssociationsProps {
-  transaction: TransactionModel;
-}
+const TransactionAdditionalInfo = ({ movement }: TransactionAdditionalInfoProps) => {
+  const hasBudget = movement.budget_ids && movement.budget_ids.length > 0;
+  const hasProject = movement.project_ids && movement.project_ids.length > 0;
 
-const TransactionAssociations = ({ transaction }: TransactionAssociationsProps) => {
-  const budgets = transaction.budget_items?.map((item) => item.budgets?.name).filter(Boolean) || [];
-  const businessProjects = transaction.business_project_transactions?.map((item) => item.business_projects?.name).filter(Boolean) || [];
-
-  if (budgets.length === 0 && businessProjects.length === 0) {
+  if (!hasBudget && !hasProject) {
     return null;
   }
 
+  const budgets = movement.budget_names_text?.split(",") || [];
+  const businessProjects = movement.business_project_names_text?.split(",") || [];
+
   return (
     <div className="flex flex-col gap-2 mt-3">
-      {budgets.length > 0 && (
+      {hasBudget && (
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1.5 text-sm font-medium text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200">
             <Target className="w-4 h-4" />
@@ -31,7 +30,7 @@ const TransactionAssociations = ({ transaction }: TransactionAssociationsProps) 
           </div>
         </div>
       )}
-      {businessProjects.length > 0 && (
+      {hasProject && (
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-1.5 text-sm font-medium text-green-700 bg-green-50 px-2.5 py-1 rounded-md border border-green-200">
             <Building2 className="w-4 h-4" />
@@ -50,4 +49,4 @@ const TransactionAssociations = ({ transaction }: TransactionAssociationsProps) 
   );
 };
 
-export default TransactionAssociations;
+export default TransactionAdditionalInfo;

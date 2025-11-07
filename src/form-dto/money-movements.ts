@@ -1,4 +1,6 @@
 export interface MoneyMovementFilter {
+  resourceType?: string;
+  resourceIds?: number[];
   goalId?: number;
   walletId?: number;
   instrumentId?: number;

@@ -9,5 +9,12 @@ export const CATEGORY_APPLICATIONS = {
   DEBT: 'debt' as const,
 } as const;
 
-export type DebtType = typeof DEBT_TYPES[keyof typeof DEBT_TYPES];
+export const MOVEMENT_TYPES = {
+  TRANSACTION: 'transactions' as const,
+  TRANSFER: 'transfers' as const,
+  GOAL_TRANSFER: 'goal_transfers' as const,
+  INVESTMENT_GROWTH: 'investment_growth' as const,
+  DEBT_HISTORY: 'debt_histories' as const,
+} as const;
+
 export type CategoryApplication = typeof CATEGORY_APPLICATIONS[keyof typeof CATEGORY_APPLICATIONS];

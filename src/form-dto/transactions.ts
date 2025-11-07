@@ -21,4 +21,5 @@ export const defaultTransactionFormValues: TransactionFormData = {
 export interface TransactionFilter {
   startDate?: string;
   endDate?: string;
+  ids?: number[];
 }

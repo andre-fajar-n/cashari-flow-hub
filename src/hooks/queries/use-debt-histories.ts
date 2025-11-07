@@ -2,21 +2,23 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { DebtHistoryFormData } from "@/form-dto/debt-histories";
+import { DebtHistoryFilter, DebtHistoryFormData } from "@/form-dto/debt-histories";
 import { DebtHistoryModel } from "@/models/debt-histories";
 
-export const useDebtHistories = (debtId?: number) => {
+export const useDebtHistories = (params: DebtHistoryFilter = {}) => {
   const { user } = useAuth();
+  const { debtId, ids } = params;
 
   return useQuery<DebtHistoryModel[]>({
-    queryKey: ["debt-histories", user?.id, debtId],
+    queryKey: ["debt-histories", user?.id, debtId, ids],
     queryFn: async () => {
       let query = supabase
         .from("debt_histories")
         .select(`
           *,
           wallets (id, name, currency_code, initial_amount),
-          categories (id, name, is_income, application, parent_id)
+          categories (id, name, is_income, application, parent_id),
+          debts (id, name, type, currency_code, due_date)
         `)
         .eq("user_id", user?.id)
         .order("date", { ascending: false });
@@ -24,13 +26,16 @@ export const useDebtHistories = (debtId?: number) => {
       if (debtId) {
         query = query.eq("debt_id", debtId);
       }
-      
+
+      if (ids) {
+        query = query.in("id", ids);
+      }
+
       const { data, error } = await query;
-      
       if (error) throw error;
       return data;
     },
-    enabled: !!user,
+    enabled: !!user && (!debtId || !!debtId) && (!ids || !!ids),
   });
 };
 

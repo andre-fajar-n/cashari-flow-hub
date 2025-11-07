@@ -37,8 +37,11 @@ export const useTransactions = (filter?: TransactionFilter) => {
         query = query.lte("date", filter.endDate);
       }
 
-      const { data, error } = await query;
+      if (filter?.ids) {
+        query = query.in("id", filter.ids);
+      }
 
+      const { data, error } = await query;
       if (error) {
         console.error("Failed to fetch transactions", error);
         throw error;

@@ -3,12 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { GoalInvestmentRecordFilter } from "@/form-dto/goal-investment-records";
 
-export const useGoalInvestmentRecords = (goalId?: number, assetId?: number) => {
+export const useGoalInvestmentRecords = (params?: GoalInvestmentRecordFilter) => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["goal_investment_records", user?.id, goalId],
+    queryKey: ["goal_investment_records", user?.id, params],
     queryFn: async () => {
       let query = supabase
         .from("goal_investment_records")
@@ -21,18 +22,24 @@ export const useGoalInvestmentRecords = (goalId?: number, assetId?: number) => {
           asset:investment_assets(name, symbol)
         `)
         .eq("user_id", user?.id);
-      
-      if (goalId) {
-        query = query.eq("goal_id", goalId);
+
+      if (params?.goalId) {
+        query = query.eq("goal_id", params.goalId);
       }
 
-      if (assetId) {
-        query = query.eq("asset_id", assetId);
+      if (params?.assetId) {
+        query = query.eq("asset_id", params.assetId);
       }
-      
+
+      if (params?.ids) {
+        query = query.in("id", params.ids);
+      }
+
       const { data, error } = await query.order("date", { ascending: false });
-      
-      if (error) throw error;
+      if (error) {
+        console.error("Failed to fetch goal investment records", error);
+        throw error;
+      }
       return data;
     },
     enabled: !!user,

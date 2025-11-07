@@ -41,8 +41,15 @@ export const useMoneyMovements = (filter?: MoneyMovementFilter) => {
         query = query.lte("date", filter.endDate);
       }
 
-      const { data, error } = await query.order("date", { ascending: false });
+      if (filter?.resourceType) {
+        query = query.eq("resource_type", filter.resourceType);
+      }
 
+      if (filter?.resourceIds) {
+        query = query.in("resource_id", filter.resourceIds);
+      }
+
+      const { data, error } = await query.order("date", { ascending: false }).order("created_at", { ascending: false });
       if (error) {
         console.error("Failed to fetch money movements", error);
         throw error;

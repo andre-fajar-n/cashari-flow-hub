@@ -6,8 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "@/pages/Index";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
-import Transaction from "@/pages/Transaction";
-import Transfer from "@/pages/Transfer";
+import TransactionHistory from "@/pages/TransactionHistory";
 import Budget from "@/pages/Budget";
 import BudgetDetail from "@/pages/BudgetDetail";
 import Debt from "@/pages/Debt";
@@ -36,8 +35,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/transaction" element={<Transaction />} />
-            <Route path="/transfer" element={<Transfer />} />
+            <Route path="/transaction-history" element={<TransactionHistory />} />
             <Route path="/budget" element={<Budget />} />
             <Route path="/budget/:id" element={<BudgetDetail />} />
             <Route path="/debt" element={<Debt />} />

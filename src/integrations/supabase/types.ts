@@ -1019,37 +1019,44 @@ export type Database = {
       }
       money_movements: {
         Row: {
-          amount: number | null
-          amount_unit: number | null
-          asset_id: number | null
-          asset_name: string | null
-          asset_symbol: string | null
-          category_id: number | null
-          category_name: string | null
-          created_at: string | null
-          currency_code: string | null
-          date: string | null
-          description: string | null
-          goal_id: number | null
-          goal_name: string | null
           id: number | null
-          instrument_id: number | null
-          instrument_name: string | null
-          opposite_asset_id: number | null
-          opposite_asset_name: string | null
-          opposite_asset_symbol: string | null
-          opposite_goal_id: number | null
-          opposite_goal_name: string | null
-          opposite_instrument_id: number | null
-          opposite_instrument_name: string | null
-          opposite_wallet_id: number | null
-          opposite_wallet_name: string | null
           resource_id: number | null
           resource_type: string | null
-          unit_label: string | null
           user_id: string | null
           wallet_id: number | null
           wallet_name: string | null
+          opposite_wallet_id: number | null
+          opposite_wallet_name: string | null
+          category_id: number | null
+          category_name: string | null
+          description: string | null
+          amount: number | null
+          currency_code: string | null
+          date: string | null
+          goal_id: number | null
+          goal_name: string | null
+          opposite_goal_id: number | null
+          opposite_goal_name: string | null
+          instrument_id: number | null
+          instrument_name: string | null
+          opposite_instrument_id: number | null
+          opposite_instrument_name: string | null
+          asset_id: number | null
+          asset_name: string | null
+          opposite_asset_id: number | null
+          opposite_asset_name: string | null
+          amount_unit: number | null
+          unit_label: string | null
+          created_at: string | null
+          asset_symbol: string | null
+          opposite_asset_symbol: string | null
+          base_currency_code: string | null
+          exchange_rate: number | null
+          budget_ids: number[] | null
+          budget_names_text: string | null
+          project_ids: number[] | null
+          business_project_names_text: string | null
+          debt_name: string | null
         }
         Relationships: [
           {

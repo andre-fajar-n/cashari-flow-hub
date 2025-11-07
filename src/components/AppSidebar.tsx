@@ -13,18 +13,17 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { 
-  Home, 
-  Settings, 
-  LogOut, 
-  Wallet, 
-  Target, 
-  TrendingUp, 
-  Calendar, 
-  Users, 
+import {
+  Home,
+  Settings,
+  LogOut,
+  Wallet,
+  Target,
+  TrendingUp,
+  Calendar,
+  Users,
   CreditCard,
-  Receipt,
-  ArrowLeftRight
+  History,
 } from "lucide-react";
 
 const AppSidebar = () => {
@@ -38,8 +37,7 @@ const AppSidebar = () => {
   ];
 
   const transactionMenuItems = [
-    { path: "/transaction", label: "Transaksi", icon: Receipt },
-    { path: "/transfer", label: "Transfer", icon: ArrowLeftRight },
+    { path: "/transaction-history", label: "Riwayat Transaksi", icon: History },
   ];
 
   const featureMenuItems = [

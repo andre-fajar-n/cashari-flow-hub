@@ -13,3 +13,7 @@ export const defaultTransferFormData: TransferFormData = {
   to_amount: 0,
   date: new Date().toISOString().split("T")[0],
 };
+
+export interface TransferFilter {
+  ids?: number[];
+}

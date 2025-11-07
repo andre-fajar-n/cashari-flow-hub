@@ -30,3 +30,7 @@ export const defaultGoalTransferFormData: GoalTransferFormData = {
   to_amount_unit: null,
   date: new Date().toISOString().split("T")[0],
 };
+
+export interface GoalTransferFilter {
+  ids?: number[];
+}

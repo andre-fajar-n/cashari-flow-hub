@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,6 +31,7 @@ import { formatDate } from "@/lib/date";
 const AssetDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -49,7 +51,7 @@ const AssetDetail = () => {
   const { data: transfers, isLoading: isTransfersLoading } = useGoalTransfers();
   const { data: wallets, isLoading: isWalletsLoading } = useWallets();
   const { data: goals, isLoading: isGoalsLoading } = useGoals();
-  const { data: records, isLoading: isRecordsLoading } = useGoalInvestmentRecords(undefined, parseInt(id!));
+  const { data: records, isLoading: isRecordsLoading } = useGoalInvestmentRecords({ assetId: parseInt(id!) });
 
   const isLoadingHistoryTab = isMovementsLoading || isTransfersLoading || isWalletsLoading || isGoalsLoading ||
                               isRecordsLoading;
@@ -105,6 +107,13 @@ const AssetDetail = () => {
   const handleAddRecord = () => {
     setIsRecordDialogOpen(true);
   };
+
+  const handleSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ["money_movements"] });
+    queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
+    queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
+  };
+
   const handleDeleteValueClick = (id: number) => {
     setDeleteValueModal({ open: true, id });
   };
@@ -318,10 +327,10 @@ const AssetDetail = () => {
                   wallets={wallets || []}
                   goals={goals || []}
                   filterType="asset"
-                  filterId={asset.id}
                   title={`Riwayat Aset - ${asset.name}`}
                   description="Kelola dan pantau semua pergerakan dana untuk aset ini"
                   emptyMessage={`Belum ada riwayat pergerakan dana untuk aset ${asset.name}`}
+                  onSuccess={handleSuccess}
                 />
               )}
             </TabsContent>

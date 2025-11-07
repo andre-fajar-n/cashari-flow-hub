@@ -24,3 +24,9 @@ export const defaultGoalInvestmentRecordFormData: GoalInvestmentRecordFormData =
   description: "",
   is_valuation: false,
 };
+
+export interface GoalInvestmentRecordFilter {
+  ids?: number[];
+  goalId?: number;
+  assetId?: number;
+}

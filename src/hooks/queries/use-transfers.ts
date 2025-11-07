@@ -3,14 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
+import { TransferFilter } from "@/form-dto/transfer";
 
-export const useTransfers = () => {
+export const useTransfers = (params?: TransferFilter) => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["transfers", user?.id],
+    queryKey: ["transfers", user?.id, params],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("transfers")
         .select(`
           *,
@@ -21,13 +22,18 @@ export const useTransfers = () => {
         .order("date", { ascending: false })
         .order("created_at", { ascending: false });
 
+      if (params?.ids) {
+        query = query.in("id", params.ids);
+      }
+
+      const { data, error } = await query;
       if (error) {
         console.error("Failed to fetch transfers", error);
         throw error;
       }
       return data;
     },
-    enabled: !!user,
+    enabled: !!user && (!params?.ids || !!params?.ids),
   });
 };
 

@@ -6,7 +6,7 @@ import { ArrowLeft, CheckCircle, Edit, Plus, RotateCcw, Trash2 } from "lucide-re
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import { useDebtHistories } from "@/hooks/queries/use-debt-histories";
-import { useDebts, useMarkDebtAsActive, useMarkDebtAsPaid } from "@/hooks/queries/use-debts";
+import { useDebtDetail, useMarkDebtAsActive, useMarkDebtAsPaid } from "@/hooks/queries/use-debts";
 import { useDebtSummaryById } from "@/hooks/queries/use-debt-summary";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,13 +31,12 @@ const DebtHistory = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const debtId = id ? parseInt(id) : 0;
-  const { data: histories, isLoading } = useDebtHistories(debtId);
-  const { data: debts } = useDebts();
+  const { data: histories, isLoading } = useDebtHistories({ debtId });
   const { data: debtSummary } = useDebtSummaryById(debtId);
   const markAsPaid = useMarkDebtAsPaid();
   const markAsActive = useMarkDebtAsActive();
   const deleteDebtHistory = useDeleteDebtHistory();
-  const debt = debts?.find(d => d.id === debtId);
+  const { data: debt } = useDebtDetail(debtId);
 
   const handleMarkAsPaid = () => {
     markAsPaid.mutate(debt.id);

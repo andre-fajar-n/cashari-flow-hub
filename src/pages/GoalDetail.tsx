@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -21,10 +22,12 @@ import { useWallets } from "@/hooks/queries/use-wallets";
 import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
 import { useGoalInvestmentRecords } from "@/hooks/queries";
+import { MOVEMENT_TYPES } from "@/constants/enums";
 
 const GoalDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
@@ -69,18 +72,21 @@ const GoalDetail = () => {
   let totalAmountTransfer = 0;
 
   for (const movement of goalMovements || []) {
-    if (movement.resource_type === "investment_growth") {
+    if (movement.resource_type === MOVEMENT_TYPES.INVESTMENT_GROWTH) {
       totalAmountRecord += movement.amount;
-    } else if (
-      movement.resource_type === "goal_transfers_in" ||
-      movement.resource_type === "goal_transfers_out"
-    ) {
+    } else if (movement.resource_type === MOVEMENT_TYPES.GOAL_TRANSFER) {
       totalAmountTransfer += movement.amount;
     }
   }
 
   const handleEdit = () => {
     setIsDialogOpen(true);
+  };
+
+  const handleSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ["money_movements"] });
+    queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
+    queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
   };
 
   const handleDeleteClick = () => {
@@ -227,10 +233,10 @@ const GoalDetail = () => {
                 instruments={instruments || []}
                 assets={assets || []}
                 filterType="goal"
-                filterId={goal.id}
                 title="Riwayat Pergerakan Dana"
                 description="Kelola dan pantau semua pergerakan dana dalam goal ini"
                 emptyMessage="Belum ada riwayat pergerakan dana"
+                onSuccess={handleSuccess}
               />
             </TabsContent>
           </Tabs>

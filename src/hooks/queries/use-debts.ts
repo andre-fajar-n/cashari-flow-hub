@@ -132,6 +132,26 @@ export const useCreateDebt = () => {
   });
 };
 
+export const useDebtDetail = (id: number) => {
+  const { user } = useAuth();
+
+  return useQuery<DebtModel>({
+    queryKey: ["debts", user?.id, id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("debts")
+        .select("*")
+        .eq("user_id", user?.id)
+        .eq("id", id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user && !!id,
+  });
+};
+
 const useDebtChangeStatus = (status: Database["public"]["Enums"]["debt_statuses"]) => {
   const { toast } = useToast();
   const { user } = useAuth();

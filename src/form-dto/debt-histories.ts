@@ -15,3 +15,8 @@ export const defaultDebtHistoryFormValues: DebtHistoryFormData = {
   date: new Date().toISOString().split("T")[0],
   description: "",
 };
+
+export interface DebtHistoryFilter {
+  debtId?: number;
+  ids?: number[];
+}
