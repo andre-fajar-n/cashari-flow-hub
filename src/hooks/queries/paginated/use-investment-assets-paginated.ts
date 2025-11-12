@@ -1,7 +1,7 @@
 import { usePaginatedSupabase, PaginatedParams } from "@/hooks/queries/paginated/use-paginated-supabase";
 
-export const useInvestmentAssetsPaginated = (params: PaginatedParams) =>
-  usePaginatedSupabase(params, {
+export const useInvestmentAssetsPaginated = (params: PaginatedParams) => {
+  return usePaginatedSupabase(params, {
     queryKeyBase: "investment_assets_paginated",
     table: "investment_assets",
     select: `*, investment_instruments(name)`,
@@ -16,5 +16,6 @@ export const useInvestmentAssetsPaginated = (params: PaginatedParams) =>
       });
       return q;
     },
-  });
+  })
+}
 

@@ -7,12 +7,13 @@ export interface PaginatedParams {
   itemsPerPage: number;
   searchTerm?: string;
   filters?: Record<string, any>;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface OrderByOption {
   column: string;
   ascending?: boolean;
-  referencedTable?: string;
 }
 
 export interface PaginatedOptions {
@@ -30,7 +31,7 @@ export interface PaginatedOptions {
 
 export const usePaginatedSupabase = <T = any>(params: PaginatedParams, options: PaginatedOptions) => {
   const { user } = useAuth();
-  const { page, itemsPerPage, searchTerm = "", filters = {} } = params;
+  const { page, itemsPerPage, searchTerm = "", filters = {}, sortBy, sortOrder } = params;
 
   return useQuery<{ data: T[]; count: number }>({
     queryKey: [
@@ -40,6 +41,8 @@ export const usePaginatedSupabase = <T = any>(params: PaginatedParams, options: 
       itemsPerPage,
       searchTerm,
       filters,
+      sortBy,
+      sortOrder,
     ],
     queryFn: async () => {
       if (!user) return { data: [], count: 0 } as { data: T[]; count: number };
@@ -57,23 +60,19 @@ export const usePaginatedSupabase = <T = any>(params: PaginatedParams, options: 
         query = options.baseFilters(query);
       }
 
-      if (options.orderBy) {
+      // Apply sorting from params (server-side sorting)
+      if (sortBy && sortOrder) {
+        query = query.order(sortBy, { ascending: sortOrder === 'asc' });
+      } else if (options.orderBy) {
+        // Fallback to default orderBy if no sorting params provided
         // Handle multiple order by columns
         if (Array.isArray(options.orderBy)) {
           options.orderBy.forEach((orderOption) => {
-            const orderConfig: any = { ascending: orderOption.ascending ?? false };
-            if (orderOption.referencedTable) {
-              orderConfig.referencedTable = orderOption.referencedTable;
-            }
-            query = query.order(orderOption.column, orderConfig);
+            query = query.order(orderOption.column, { ascending: orderOption.ascending ?? false });
           });
         } else {
           // Handle single order by column (backward compatibility)
-          const orderConfig: any = { ascending: options.orderBy.ascending ?? false };
-          if (options.orderBy.referencedTable) {
-            orderConfig.referencedTable = options.orderBy.referencedTable;
-          }
-          query = query.order(options.orderBy.column, orderConfig);
+          query = query.order(options.orderBy.column, { ascending: options.orderBy.ascending ?? false });
         }
       }
 

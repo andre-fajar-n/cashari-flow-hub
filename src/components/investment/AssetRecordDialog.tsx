@@ -28,7 +28,6 @@ const AssetRecordDialog = ({ open, onOpenChange, asset, onSuccess }: AssetRecord
   const createRecord = useCreateGoalInvestmentRecord();
   const { data: wallets } = useWallets();
   const { data: categories } = useCategories();
-  const { data: currencies } = useCurrencies();
   const { data: goals } = useGoals();
 
   const form = useForm<GoalInvestmentRecordFormData>({
