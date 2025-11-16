@@ -16,8 +16,14 @@ export const useMoneyMovementsPaginated = (params: PaginatedParams) => {
     mapFilters: (q: any, filters: Record<string, any>) => {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== "") {
-          if (key === "date") {
-            // Handle date range filter
+          if (key === "date_from") {
+            // Handle date range from
+            q = q.gte("date", value);
+          } else if (key === "date_to") {
+            // Handle date range to
+            q = q.lte("date", value);
+          } else if (key === "date") {
+            // Handle single date or date range object
             if (typeof value === "object" && value.from) {
               q = q.gte("date", value.from);
               if (value.to) {
@@ -36,6 +42,14 @@ export const useMoneyMovementsPaginated = (params: PaginatedParams) => {
             q = q.eq("instrument_id", value);
           } else if (key === "asset_id") {
             q = q.eq("asset_id", value);
+          } else if (key === "budget_id") {
+            q = q.contains("budget_ids", [value]);
+          } else if (key === "project_id") {
+            q = q.contains("project_ids", [value]);
+          } else if (key === "debt_id") {
+            q = q.eq("debt_id", value);
+          } else if (key === "category_id") {
+            q = q.eq("category_id", value);
           } else {
             q = q.eq(key, value);
           }

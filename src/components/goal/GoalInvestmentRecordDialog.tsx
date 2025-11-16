@@ -142,11 +142,12 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
               )}
             />
 
-            {/* Goal Selector - Only show in edit mode */}
-            {record && (
+            {/* Goal Selector - Only show when NOT called from goal detail page */}
+            {!goalId && (
               <FormField
                 control={form.control}
                 name="goal_id"
+                rules={{ required: "Goal harus dipilih" }}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Goal</FormLabel>

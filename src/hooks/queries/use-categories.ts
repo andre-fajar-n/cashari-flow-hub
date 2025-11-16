@@ -10,14 +10,14 @@ export const useCategories = (isIncome?: boolean, application?: CategoryApplicat
   const { user } = useAuth();
 
   return useQuery<CategoryModel[]>({
-    queryKey: ["categories", user?.id, isIncome],
+    queryKey: ["categories", user?.id, isIncome, application],
     queryFn: async () => {
       let query = supabase
         .from("categories")
         .select("*")
         .eq("user_id", user?.id)
         .order("name");
-      
+
       if (isIncome !== undefined) {
         query = query.eq("is_income", isIncome);
       }
@@ -25,9 +25,8 @@ export const useCategories = (isIncome?: boolean, application?: CategoryApplicat
       if (application) {
         query = query.or("application.is.null,application.eq." + application);
       }
-      
+
       const { data, error } = await query.order("name");
-      
       if (error) {
         console.error("Failed to fetch categories", error);
         throw error;

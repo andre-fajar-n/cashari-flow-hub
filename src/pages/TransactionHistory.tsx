@@ -3,7 +3,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
-import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Plus, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
@@ -11,9 +10,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useWallets } from "@/hooks/queries/use-wallets";
-import { useCategories } from "@/hooks/queries/use-categories";
-import { CommonItem } from "@/components/ui/transaction-items";
 import TransactionDialog from "@/components/transactions/TransactionDialog";
 import TransferDialog from "@/components/transfers/TransferDialog";
 import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
@@ -33,13 +29,19 @@ import { DebtHistoryModel } from "@/models/debt-histories";
 import { MoneyMovementModel } from "@/models/money-movements";
 import { MOVEMENT_TYPES } from "@/constants/enums";
 import { useMoneyMovementsPaginated } from "@/hooks/queries/paginated/use-money-movements-paginated";
+import { useTableState } from "@/hooks/use-table-state";
+import { TransactionHistoryTable } from "@/components/transactions/TransactionHistoryTable";
+import { getTransactionHistoryColumns } from "@/components/transactions/TransactionHistoryColumns";
+import { useBudgets, useBusinessProjects, useCategories, useDebts, useGoals, useInvestmentAssets, useInvestmentInstruments, useWallets } from "@/hooks/queries";
 
 const TransactionHistory = () => {
   const queryClient = useQueryClient();
-  const [page, setPage] = useState(1);
-  const [serverSearch, setServerSearch] = useState("");
-  const [serverFilters, setServerFilters] = useState<Record<string, any>>({});
-  const itemsPerPage = 10;
+
+  // Table state management using generic hook
+  const { state: tableState, actions: tableActions } = useTableState({
+    initialPage: 1,
+    initialPageSize: 10,
+  });
 
   // Dialog states
   const [transactionDialog, setTransactionDialog] = useState<{
@@ -72,8 +74,14 @@ const TransactionHistory = () => {
     item?: MoneyMovementModel;
   }>({ open: false });
 
-  const { data: paged, isLoading: isMovementsLoading } = useMoneyMovementsPaginated({ page, itemsPerPage, searchTerm: serverSearch, filters: serverFilters });
+  const { data: paged, isLoading: isMovementsLoading } = useMoneyMovementsPaginated({
+    page: tableState.page,
+    itemsPerPage: tableState.pageSize,
+    searchTerm: tableState.searchTerm,
+    filters: tableState.filters,
+  });
   const movements = paged?.data || [];
+  const totalCount = paged?.count || 0;
 
   const debtHistoryIds = movements?.filter(m => m.resource_type === MOVEMENT_TYPES.DEBT_HISTORY).map(m => m.resource_id) || [];
   const { data: debtHistories, isLoading: isDebtHistoriesLoading } = useDebtHistories({ ids: debtHistoryIds });
@@ -148,8 +156,8 @@ const TransactionHistory = () => {
   const { mutateAsync: deleteDebtHistory } = useDeleteDebtHistory();
 
   // Handle delete actions
-  const handleDelete = (item: MoneyMovementModel) => {
-    setDeleteModal({ open: true, item });
+  const handleDelete = (movement: MoneyMovementModel) => {
+    setDeleteModal({ open: true, item: movement });
   };
 
   const handleConfirmDelete = async () => {
@@ -205,133 +213,183 @@ const TransactionHistory = () => {
     }
   };
 
-  // Render item based on type
-  const renderItem = (item: MoneyMovementModel) => {
-    return (
-      <CommonItem
-        key={item.id}
-        movement={item}
-        onEdit={() => handleEdit(item)}
-        onDelete={() => handleDelete(item)}
-      />
-    );
-  };
-
   const { data: categories } = useCategories();
   const { data: wallets } = useWallets();
+  const { data: goals } = useGoals();
+  const { data: instruments } = useInvestmentInstruments();
+  const { data: assets } = useInvestmentAssets();
+  const { data: debts } = useDebts();
+  const { data: businessProjects } = useBusinessProjects();
+  const { data: budgets } = useBudgets();
 
-  // Column filters
-  const columnFilters: ColumnFilter[] = [
+  // Generate columns using separated column definitions
+  const columns = getTransactionHistoryColumns({
+    onEdit: handleEdit,
+    onDelete: handleDelete,
+  });
+
+  // Select filters configuration
+  // Order matters: first filters will be shown as primary (first 5 if total > 6)
+  // All filters now have fixed width (200px) set in the component
+  const selectFilters = [
     {
-      field: "resource_type",
+      key: "resource_type",
       label: "Tipe",
-      type: "select",
       options: [
         { label: "Transaksi", value: "transactions" },
         { label: "Transfer", value: "transfers" },
         { label: "Transfer Goal", value: "goal_transfers" },
         { label: "Progres Investasi", value: "investment_growth" },
         { label: "Riwayat Hutang/Piutang", value: "debt_histories" },
-      ]
+      ],
     },
     {
-      field: "walletId",
+      key: "wallet_id",
       label: "Dompet",
-      type: "select",
-      options: wallets?.map(wallet => ({
-        label: wallet.name,
-        value: wallet.id.toString()
-      })) || []
+      options:
+        wallets?.map((wallet) => ({
+          label: wallet.name,
+          value: wallet.id.toString(),
+        })) || [],
     },
     {
-      field: "categoryId",
+      key: "category_id",
       label: "Kategori",
-      type: "select",
-      options: categories?.map(category => ({
-        label: category.name,
-        value: category.id.toString()
-      })) || []
+      options:
+        categories?.map((category) => ({
+          label: category.name,
+          value: category.id.toString(),
+        })) || [],
     },
     {
-      field: "date",
-      label: "Tanggal",
-      type: "daterange"
-    }
+      key: "goal_id",
+      label: "Goal",
+      options:
+        goals?.map((goal) => ({
+          label: goal.name,
+          value: goal.id.toString(),
+        })) || [],
+    },
+    {
+      key: "instrument_id",
+      label: "Instrumen",
+      options:
+        instruments?.map((instrument) => ({
+          label: instrument.name,
+          value: instrument.id.toString(),
+        })) || [],
+    },
+    {
+      key: "asset_id",
+      label: "Aset",
+      options:
+        assets?.map((asset) => ({
+          label: asset.name,
+          value: asset.id.toString(),
+        })) || [],
+    },
+    {
+      key: "budget_id",
+      label: "Budget",
+      options:
+        budgets?.map((budget) => ({
+          label: budget.name,
+          value: budget.id.toString(),
+        })) || [],
+    },
+    {
+      key: "project_id",
+      label: "Proyek",
+      options:
+        businessProjects?.map((project) => ({
+          label: project.name,
+          value: project.id.toString(),
+        })) || [],
+    },
+    {
+      key: "debt_id",
+      label: "Hutang/Piutang",
+      options:
+        debts?.map((debt) => ({
+          label: debt.name,
+          value: debt.id.toString(),
+        })) || [],
+    },
   ];
+
+  // Date range filter configuration
+  // Fixed width (200px) set in the component
+  const dateRangeFilter = {
+    key: "date",
+    label: "Tanggal",
+    placeholder: "Pilih rentang tanggal",
+  };
 
   const handleSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
   };
 
-  if (isLoading) {
-    return (
-      <ProtectedRoute>
-        <Layout>
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Memuat data...</p>
-          </div>
-        </Layout>
-      </ProtectedRoute>
-    );
-  }
-
   return (
     <ProtectedRoute>
       <Layout>
-        <div className="space-y-6">
-          <DataTable
+        <div className="space-y-4">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Riwayat Transaksi</h1>
+              <p className="text-sm text-gray-600 mt-1">
+                Semua riwayat transaksi, transfer, dan pergerakan dana dalam satu tempat
+              </p>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="w-full sm:w-auto">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Tambah Baru
+                  <ChevronDown className="w-4 h-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.TRANSACTION)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Transaksi
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.TRANSFER)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Transfer
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.GOAL_TRANSFER)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Transfer Goal
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.INVESTMENT_GROWTH)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Progres Investasi
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.DEBT_HISTORY)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Hutang/Piutang
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Transaction History Table */}
+          <TransactionHistoryTable
+            columns={columns}
             data={movements}
+            totalCount={totalCount}
             isLoading={isLoading}
-            searchPlaceholder="Cari riwayat transaksi..."
-            searchFields={["description", "amount"]}
-            columnFilters={columnFilters}
-            itemsPerPage={itemsPerPage}
-            serverMode
-            totalCount={paged?.count}
-            page={page}
-            onServerParamsChange={({ searchTerm, filters, page: nextPage }) => {
-              setServerSearch(searchTerm);
-              setServerFilters(filters);
-              setPage(nextPage);
-            }}
-            useUrlParams={true}
-            renderItem={renderItem}
-            emptyStateMessage="Belum ada riwayat transaksi"
-            title="Riwayat Transaksi"
-            description="Semua riwayat transaksi, transfer, dan pergerakan dana dalam satu tempat"
-            headerActions={
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="sm">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Tambah Baru
-                    <ChevronDown className="w-4 h-4 ml-2" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.TRANSACTION)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Transaksi
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.TRANSFER)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Transfer
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.GOAL_TRANSFER)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Transfer Goal
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.INVESTMENT_GROWTH)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Progres Investasi
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.DEBT_HISTORY)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Hutang/Piutang
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            }
+            searchTerm={tableState.searchTerm}
+            onSearchChange={tableActions.handleSearchChange}
+            filters={tableState.filters}
+            onFiltersChange={tableActions.handleFiltersChange}
+            selectFilters={selectFilters}
+            dateRangeFilter={dateRangeFilter}
+            page={tableState.page}
+            pageSize={tableState.pageSize}
+            setPage={tableActions.handlePageChange}
+            setPageSize={tableActions.handlePageSizeChange}
           />
 
           {/* Dialogs */}
