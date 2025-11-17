@@ -3,5 +3,7 @@ export { DataTableColumnHeader } from "./data-table-column-header"
 export { DataTablePagination } from "./data-table-pagination"
 export { DataTableViewOptions } from "./data-table-view-options"
 export { DataTableFacetedFilter } from "./data-table-faceted-filter"
+export { DataTableRowActions } from "./data-table-row-actions"
 export type { DataTableColumnHeaderProps } from "./data-table-column-header"
+export type { RowAction } from "./data-table-row-actions"
 

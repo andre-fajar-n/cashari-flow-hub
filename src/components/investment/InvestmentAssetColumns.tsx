@@ -2,16 +2,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import { InvestmentAssetModel } from "@/models/investment-assets";
 import { AssetSummaryData } from "@/models/money-summary";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { DataTableColumnHeader } from "@/components/ui/advanced-data-table";
-import { Coins, Edit, Trash2, ArrowUp, ArrowDown, MoreHorizontal, Eye } from "lucide-react";
+import { DataTableColumnHeader, DataTableRowActions, RowAction } from "@/components/ui/advanced-data-table";
+import { Coins, Edit, Trash2, ArrowUp, ArrowDown, Eye } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/date";
 
@@ -208,35 +200,27 @@ export const getInvestmentAssetColumns = ({
     cell: ({ row }) => {
       const asset = row.original;
 
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Buka menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => onViewHistory(asset)}>
-              <Eye className="mr-2 h-4 w-4" />
-              Lihat Detail
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onEdit(asset)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => onDelete(asset.id)}
-              className="text-red-600"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Hapus
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+      const actions: RowAction<InvestmentAssetModel>[] = [
+        {
+          label: "Lihat Detail",
+          icon: Eye,
+          onClick: onViewHistory,
+        },
+        {
+          label: "Edit",
+          icon: Edit,
+          onClick: onEdit,
+        },
+        {
+          label: "Hapus",
+          icon: Trash2,
+          onClick: (asset) => onDelete(asset.id),
+          variant: "destructive",
+          separator: true,
+        },
+      ];
+
+      return <DataTableRowActions item={asset} actions={actions} />;
     },
   },
 ];

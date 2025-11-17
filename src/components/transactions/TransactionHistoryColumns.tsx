@@ -1,24 +1,13 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { MoneyMovementModel } from "@/models/money-movements";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-import { DataTableColumnHeader } from "@/components/ui/advanced-data-table";
+import { DataTableColumnHeader, DataTableRowActions, RowAction } from "@/components/ui/advanced-data-table";
 import {
   ArrowUpCircle,
   ArrowDownCircle,
   ArrowLeftRight,
   Edit,
   Trash2,
-  MoreHorizontal,
   Target,
   TrendingUp,
   CreditCard,
@@ -383,32 +372,22 @@ export const getTransactionHistoryColumns = ({
     cell: ({ row }) => {
       const movement = row.original;
 
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Buka menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => onEdit(movement)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => onDelete(movement)}
-              className="text-red-600"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Hapus
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+      const actions: RowAction<MoneyMovementModel>[] = [
+        {
+          label: "Edit",
+          icon: Edit,
+          onClick: onEdit,
+        },
+        {
+          label: "Hapus",
+          icon: Trash2,
+          onClick: onDelete,
+          variant: "destructive",
+          separator: true,
+        },
+      ];
+
+      return <DataTableRowActions item={movement} actions={actions} />;
     },
   },
 ];
