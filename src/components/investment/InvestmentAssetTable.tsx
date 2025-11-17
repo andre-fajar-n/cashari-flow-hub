@@ -40,6 +40,7 @@ export function InvestmentAssetTable<TData, TValue>({
   // Configure select filters
   const selectFilters: SelectFilterConfig[] = [
     {
+      label: "Instrumen",
       key: "instrument_id",
       placeholder: "Semua Instrumen",
       options: instruments.map((instrument) => ({

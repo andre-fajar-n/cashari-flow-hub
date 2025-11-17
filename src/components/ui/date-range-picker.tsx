@@ -43,23 +43,27 @@ export function DateRangePicker({
         <Button
           variant="outline"
           className={cn(
-            "justify-start text-left font-normal h-10",
+            "justify-center items-center font-normal h-[52px] px-3",
             !date && "text-muted-foreground",
             className
           )}
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
+          <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
           {date?.from ? (
             date.to ? (
-              <>
-                {format(date.from, "dd MMM yyyy", { locale: id })} -{" "}
-                {format(date.to, "dd MMM yyyy", { locale: id })}
-              </>
+              <div className="flex flex-col text-sm leading-tight text-center">
+                <span className="truncate">{format(date.from, "dd MMM yyyy", { locale: id })}</span>
+                <span className="truncate">-</span>
+                <span className="truncate">{format(date.to, "dd MMM yyyy", { locale: id })}</span>
+              </div>
             ) : (
-              format(date.from, "dd MMM yyyy", { locale: id })
+              <div className="flex flex-col text-sm leading-tight text-center">
+                <span className="truncate">{format(date.from, "dd MMM yyyy", { locale: id })}</span>
+                <span className="truncate">- Sekarang</span>
+              </div>
             )
           ) : (
-            <span>{placeholder}</span>
+            <span className="text-sm text-center">{placeholder}</span>
           )}
         </Button>
       </PopoverTrigger>

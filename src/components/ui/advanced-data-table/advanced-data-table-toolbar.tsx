@@ -210,9 +210,9 @@ export const AdvancedDataTableToolbar = ({
 
       {/* Bottom Row: Filters (only show if there are filters) */}
       {totalFiltersCount > 0 && (
-        <div className="flex items-end gap-4">
+        <div className="flex items-start gap-4">
           {/* Left side: Filters (can wrap) */}
-          <div className="flex flex-wrap items-end gap-4 flex-1 min-w-0">
+          <div className="flex flex-wrap items-start gap-4 flex-1 min-w-0">
             {/* Primary Filters (first MAXIMUM_PRIMARY_FILTERS - 1 if > MAXIMUM_PRIMARY_FILTERS total, otherwise all) */}
             {primaryFilters.map((filter) => {
               if (filter.type === 'select') {
@@ -224,12 +224,12 @@ export const AdvancedDataTableToolbar = ({
                       {filterConfig.label}
                     </label>
 
-                    {/* Select Dropdown - Fixed width */}
+                    {/* Select Dropdown - Fixed width and height */}
                     <Select
                       value={filters[filterConfig.key] || "all"}
                       onValueChange={(value) => handleFilterChange(filterConfig.key, value)}
                     >
-                      <SelectTrigger className="w-[200px]">
+                      <SelectTrigger className="w-[200px] h-[52px]">
                         <SelectValue placeholder={filterConfig.placeholder || "Semua"} />
                       </SelectTrigger>
                       <SelectContent>
@@ -276,22 +276,26 @@ export const AdvancedDataTableToolbar = ({
             {shouldShowMoreFilters && (
               <Sheet open={showMoreFilters} onOpenChange={setShowMoreFilters}>
                 <SheetTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-10 relative w-[160px]"
-                  >
-                    <SlidersHorizontal className="w-4 h-4 mr-2" />
-                    Filter Lainnya
-                    {activeMoreFiltersCount > 0 && (
-                      <Badge
-                        variant="destructive"
-                        className="ml-2 px-1.5 py-0 h-5 min-w-5 flex items-center justify-center"
-                      >
-                        {activeMoreFiltersCount}
-                      </Badge>
-                    )}
-                  </Button>
+                  <div className="flex flex-col gap-1.5">
+                    {/* Empty label for alignment */}
+                    <div className="h-[20px]"></div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-[52px] relative w-[180px]"
+                    >
+                      <SlidersHorizontal className="w-4 h-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">Filter Lainnya</span>
+                      {activeMoreFiltersCount > 0 && (
+                        <Badge
+                          variant="destructive"
+                          className="ml-2 px-1.5 py-0 h-5 min-w-5 flex items-center justify-center flex-shrink-0"
+                        >
+                          {activeMoreFiltersCount}
+                        </Badge>
+                      )}
+                    </Button>
+                  </div>
                 </SheetTrigger>
                 <SheetContent side="right" className="w-[400px] sm:w-[540px]">
                   <SheetHeader>
@@ -367,16 +371,20 @@ export const AdvancedDataTableToolbar = ({
           </div>
 
           {/* Right side: Reset Button (always visible, disabled when no active filters) */}
-          <Button
-            variant="ghost"
-            onClick={handleResetFilters}
-            size="sm"
-            className="h-10 flex-shrink-0 w-[140px]"
-            disabled={!hasActiveFilters}
-          >
-            <X className="w-4 h-4 mr-2" />
-            Reset Filter
-          </Button>
+          <div className="flex flex-col gap-1.5 flex-shrink-0">
+            {/* Empty label for alignment */}
+            <div className="h-[20px]"></div>
+            <Button
+              variant="ghost"
+              onClick={handleResetFilters}
+              size="sm"
+              className="h-[52px] w-[140px]"
+              disabled={!hasActiveFilters}
+            >
+              <X className="w-4 h-4 mr-2 flex-shrink-0" />
+              <span className="truncate">Reset Filter</span>
+            </Button>
+          </div>
         </div>
       )}
     </div>
