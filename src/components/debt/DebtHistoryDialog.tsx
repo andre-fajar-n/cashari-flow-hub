@@ -5,26 +5,37 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateDebtHistory, useUpdateDebtHistory } from "@/hooks/queries/use-debt-histories";
 import { DebtHistoryFormData, defaultDebtHistoryFormValues } from "@/form-dto/debt-histories";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useDebtCategories } from "@/hooks/queries/use-categories";
+import { useDebts } from "@/hooks/queries/use-debts";
 import { DebtHistoryModel } from "@/models/debt-histories";
 
 interface DebtHistoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  debtId: number;
+  debtId?: number; // Made optional to support usage from transaction history
   onSuccess?: () => void;
   history?: DebtHistoryModel;
+  showDebtSelection?: boolean; // New prop to control debt selection visibility
 }
 
-const DebtHistoryDialog = ({ open, onOpenChange, debtId, onSuccess, history }: DebtHistoryDialogProps) => {
+const DebtHistoryDialog = ({
+  open,
+  onOpenChange,
+  debtId,
+  onSuccess,
+  history,
+  showDebtSelection = false
+}: DebtHistoryDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const createDebtHistory = useCreateDebtHistory();
   const updateDebtHistory = useUpdateDebtHistory();
   const { data: wallets } = useWallets();
   const { data: categories } = useDebtCategories();
+  const { data: debts } = useDebts();
 
   const form = useForm<DebtHistoryFormData>({
     defaultValues: defaultDebtHistoryFormValues,
@@ -46,7 +57,7 @@ const DebtHistoryDialog = ({ open, onOpenChange, debtId, onSuccess, history }: D
     if (open) {
       if (history) {
         form.reset({
-          debt_id: history.debt_id || debtId,
+          debt_id: history.debt_id || debtId || 0,
           wallet_id: history.wallet_id ? history.wallet_id.toString() : "",
           category_id: history.category_id ? history.category_id.toString() : "",
           amount: history.amount || 0,
@@ -55,7 +66,7 @@ const DebtHistoryDialog = ({ open, onOpenChange, debtId, onSuccess, history }: D
         });
       } else {
         form.reset({
-          debt_id: debtId,
+          debt_id: debtId || 0,
           ...defaultDebtHistoryFormValues,
         });
       }
@@ -78,6 +89,37 @@ const DebtHistoryDialog = ({ open, onOpenChange, debtId, onSuccess, history }: D
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {showDebtSelection && (
+              <FormField
+                control={form.control}
+                name="debt_id"
+                rules={{ required: "Hutang/Piutang harus dipilih" }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hutang/Piutang</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value?.toString() || ""}
+                        onValueChange={(value) => field.onChange(parseInt(value))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih hutang/piutang" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {debts?.map((debt) => (
+                            <SelectItem key={debt.id} value={debt.id.toString()}>
+                              {debt.name} ({debt.type === 'loan' ? 'Hutang' : 'Piutang'})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <FormField
               control={form.control}
               name="amount"

@@ -240,7 +240,7 @@ const TransactionHistory = () => {
         { label: "Transfer", value: "transfers" },
         { label: "Transfer Goal", value: "goal_transfers" },
         { label: "Progres Investasi", value: "investment_growth" },
-        { label: "Riwayat Hutang/Piutang", value: "debt_histories" },
+        { label: "Hutang/Piutang", value: "debt_histories" },
       ],
     },
     {
@@ -424,8 +424,9 @@ const TransactionHistory = () => {
           <DebtHistoryDialog
             open={debtHistoryDialog.open}
             onOpenChange={(open) => setDebtHistoryDialog({ open })}
-            debtId={debtHistoryDialog.history?.id}
+            debtId={debtHistoryDialog.history?.debt_id}
             history={debtHistoryDialog.history}
+            showDebtSelection={true}
             onSuccess={handleSuccess}
           />
 
