@@ -1,7 +1,7 @@
 export interface TransactionFormData {
   amount: number;
-  category_id: string;
-  wallet_id: string;
+  category_id: string | null;
+  wallet_id: string | null;
   date: string;
   description: string | null;
   budget_ids: number[];
@@ -10,8 +10,8 @@ export interface TransactionFormData {
 
 export const defaultTransactionFormValues: TransactionFormData = {
   amount: 0,
-  category_id: "",
-  wallet_id: "",
+  category_id: null,
+  wallet_id: null,
   date: new Date().toISOString().split("T")[0],
   description: "",
   budget_ids: [],

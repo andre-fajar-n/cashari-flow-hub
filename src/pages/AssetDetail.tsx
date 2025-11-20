@@ -17,7 +17,7 @@ import { DataTable } from "@/components/ui/data-table";
 import AmountText from "@/components/ui/amount-text";
 import { formatAmountCurrency } from "@/lib/currency";
 import AssetSummary from "@/components/investment/AssetSummary";
-import AssetRecordDialog from "@/components/investment/AssetRecordDialog";
+import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
 import MovementsDataTable from "@/components/shared/MovementsDataTable";
 import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
 import { useGoalTransfers } from "@/hooks/queries/use-goal-transfers";
@@ -347,6 +347,7 @@ const AssetDetail = () => {
             cancelText="Batal"
             variant="destructive"
           />
+
           <ConfirmationModal
             open={deleteValueModal.open}
             onOpenChange={(open) => setDeleteValueModal({ ...deleteValueModal, open })}
@@ -370,10 +371,13 @@ const AssetDetail = () => {
             assetValue={selectedAssetValue}
             assetId={asset.id}
           />
-          <AssetRecordDialog
+
+          <GoalInvestmentRecordDialog
             open={isRecordDialogOpen}
             onOpenChange={setIsRecordDialogOpen}
-            asset={asset}
+            assetId={asset.id}
+            instrumentId={asset.instrument_id}
+            onSuccess={handleSuccess}
           />
         </div>
       </Layout>

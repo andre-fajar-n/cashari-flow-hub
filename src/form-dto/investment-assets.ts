@@ -2,11 +2,11 @@
 export interface AssetFormData {
   name: string;
   symbol: string;
-  instrument_id: number;
+  instrument_id: number | null;
 }
 
 export const defaultAssetFormValues: AssetFormData = {
   name: "",
   symbol: "",
-  instrument_id: 0,
+  instrument_id: null,
 };

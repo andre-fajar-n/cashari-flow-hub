@@ -10,6 +10,7 @@ import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handl
 import { useCreateInvestmentAsset, useUpdateInvestmentAsset } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
 import { InvestmentAssetModel } from "@/models/investment-assets";
+import { Dropdown } from "../ui/dropdown";
 
 interface InvestmentAssetDialogProps {
   open: boolean;
@@ -29,7 +30,6 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
   });
 
   const { data: instruments } = useInvestmentInstruments();
-
 
   // Use mutation callbacks utility
   const { handleSuccess, handleError } = useMutationCallbacks({
@@ -65,8 +65,7 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
         form.reset({
           name: asset.name || "",
           symbol: asset.symbol || "",
-          instrument_id: asset.instrument_id || 0,
-
+          instrument_id: asset.instrument_id || null,
         });
       } else {
         form.reset(defaultAssetFormValues);
@@ -122,33 +121,19 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
               )}
             />
 
-            <FormField
+            <Dropdown
               control={form.control}
               name="instrument_id"
-              rules={{
-                required: "Instrumen harus dipilih",
-                min: { value: 1, message: "Instrumen harus dipilih" }
-              }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Instrumen Investasi</FormLabel>
-                  <FormControl>
-                    <select
-                      {...field}
-                      className="w-full p-2 border rounded-md"
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
-                    >
-                      <option value={0}>Pilih instrumen</option>
-                      {instruments?.map((instrument) => (
-                        <option key={instrument.id} value={instrument.id}>
-                          {instrument.name}
-                        </option>
-                      ))}
-                    </select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Instrumen Investasi"
+              placeholder="Pilih Instrumen"
+              options={[
+                { value: "none", label: "Pilih Instrumen" },
+                ...instruments.map((instrument) => ({
+                  value: instrument.id.toString(),
+                  label: instrument.name
+                }))
+              ]}
+              onValueChange={(value) => form.setValue("instrument_id", value === "none" ? null : parseInt(value))}
             />
 
             <div className="flex justify-end gap-2 pt-4">

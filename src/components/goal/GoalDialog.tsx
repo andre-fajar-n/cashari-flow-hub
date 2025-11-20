@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Dropdown } from "@/components/ui/dropdown";
 import { defaultGoalFormValues, GoalFormData } from "@/form-dto/goals";
 import { useCreateGoal, useUpdateGoal } from "@/hooks/queries/use-goals";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
@@ -105,24 +106,15 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
               )}
             />
 
-            <FormField
+            <Dropdown
               control={form.control}
               name="currency_code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Mata Uang</FormLabel>
-                  <FormControl>
-                    <select {...field} className="w-full p-2 border rounded-md">
-                      {currencies?.map((currency) => (
-                        <option key={currency.code} value={currency.code}>
-                          {currency.code} - {currency.name}
-                        </option>
-                      ))}
-                    </select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Mata Uang"
+              placeholder="Pilih mata uang"
+              options={currencies?.map((currency) => ({
+                value: currency.code,
+                label: `${currency.code} - ${currency.name}`
+              })) || []}
             />
 
             <FormField

@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Dropdown } from "@/components/ui/dropdown";
 import { BudgetFormData, defaultBudgetFormValues } from "@/form-dto/budget";
 import { InputNumber } from "@/components/ui/input-number";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
@@ -123,24 +124,15 @@ const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogPro
               )}
             />
 
-            <FormField
+            <Dropdown
               control={form.control}
               name="currency_code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Mata Uang</FormLabel>
-                  <FormControl>
-                    <select {...field} className="w-full p-2 border rounded-md">
-                      {currencies?.map((currency) => (
-                        <option key={currency.code} value={currency.code}>
-                          {currency.code} - {currency.name}
-                        </option>
-                      ))}
-                    </select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Mata Uang"
+              placeholder="Pilih mata uang"
+              options={currencies?.map((currency) => ({
+                value: currency.code,
+                label: `${currency.code} - ${currency.name}`
+              })) || []}
             />
 
             <FormField

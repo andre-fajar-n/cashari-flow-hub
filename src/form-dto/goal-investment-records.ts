@@ -1,10 +1,10 @@
 
 export interface GoalInvestmentRecordFormData {
-  goal_id: number;
-  instrument_id: number;
-  asset_id: number;
-  wallet_id: number;
-  category_id: number;
+  goal_id: number | null;
+  instrument_id: number | null;
+  asset_id: number | null;
+  wallet_id: number | null;
+  category_id: number | null;
   amount: number;
   amount_unit: number | null;
   date: string;
@@ -13,11 +13,11 @@ export interface GoalInvestmentRecordFormData {
 }
 
 export const defaultGoalInvestmentRecordFormData: GoalInvestmentRecordFormData = {
-  goal_id: 0,
-  instrument_id: 0,
-  asset_id: 0,
-  wallet_id: 0,
-  category_id: 0,
+  goal_id: null,
+  instrument_id: null,
+  asset_id: null,
+  wallet_id: null,
+  category_id: null,
   amount: 0,
   amount_unit: null,
   date: new Date().toISOString().split("T")[0],

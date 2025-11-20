@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dropdown } from "@/components/ui/dropdown";
 import { useCreateDebtHistory, useUpdateDebtHistory } from "@/hooks/queries/use-debt-histories";
 import { DebtHistoryFormData, defaultDebtHistoryFormValues } from "@/form-dto/debt-histories";
 import { useWallets } from "@/hooks/queries/use-wallets";
@@ -43,8 +43,6 @@ const DebtHistoryDialog = ({
 
   const onSubmit = async (data: DebtHistoryFormData) => {
     setIsLoading(true);
-    data.wallet_id = data.wallet_id;
-    data.category_id = data.category_id;
 
     if (history) {
       updateDebtHistory.mutate({ id: history.id, ...data });
@@ -90,33 +88,16 @@ const DebtHistoryDialog = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {showDebtSelection && (
-              <FormField
+              <Dropdown
                 control={form.control}
                 name="debt_id"
+                label="Hutang/Piutang"
+                placeholder="Pilih hutang/piutang"
+                options={debts?.map((debt) => ({
+                  value: debt.id.toString(),
+                  label: `${debt.name} (${debt.type === 'loan' ? 'Hutang' : 'Piutang'})`
+                })) || []}
                 rules={{ required: "Hutang/Piutang harus dipilih" }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Hutang/Piutang</FormLabel>
-                    <FormControl>
-                      <Select
-                        value={field.value?.toString() || ""}
-                        onValueChange={(value) => field.onChange(parseInt(value))}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih hutang/piutang" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {debts?.map((debt) => (
-                            <SelectItem key={debt.id} value={debt.id.toString()}>
-                              {debt.name} ({debt.type === 'loan' ? 'Hutang' : 'Piutang'})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
               />
             )}
 
@@ -141,56 +122,28 @@ const DebtHistoryDialog = ({
               )}
             />
 
-            <FormField
+            <Dropdown
               control={form.control}
               name="wallet_id"
+              label="Dompet"
+              placeholder="Pilih dompet"
+              options={wallets?.map((wallet) => ({
+                value: wallet.id.toString(),
+                label: `${wallet.name} (${wallet.currency_code})`
+              })) || []}
               rules={{ required: "Dompet harus dipilih" }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Dompet</FormLabel>
-                  <FormControl>
-                    <select
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      className="w-full p-2 border rounded-md"
-                    >
-                      <option value="">Pilih dompet</option>
-                      {wallets?.map((wallet) => (
-                        <option key={wallet.id} value={wallet.id.toString()}>
-                          {wallet.name} ({wallet.currency_code})
-                        </option>
-                      ))}
-                    </select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
             />
 
-            <FormField
+            <Dropdown
               control={form.control}
               name="category_id"
+              label="Kategori"
+              placeholder="Pilih kategori"
+              options={categories?.map((category) => ({
+                value: category.id.toString(),
+                label: category.name
+              })) || []}
               rules={{ required: "Kategori harus dipilih" }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Kategori</FormLabel>
-                  <FormControl>
-                    <select
-                      value={field.value || ""}
-                      onChange={(e) => field.onChange(e.target.value)}
-                      className="w-full p-2 border rounded-md"
-                    >
-                      <option value="">Pilih kategori</option>
-                      {categories?.map((category) => (
-                        <option key={category.id} value={category.id.toString()}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
             />
 
             <FormField

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useAuth } from "@/hooks/use-auth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useWallets } from "@/hooks/queries/use-wallets";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dropdown } from "@/components/ui/dropdown";
 import { defaultTransferFormData, TransferFormData } from "@/form-dto/transfer";
 import { useCreateTransfer, useUpdateTransfer } from "@/hooks/queries/use-transfers";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
@@ -51,8 +51,8 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
 
     if (transfer) {
       form.reset({
-        from_wallet_id: transfer.from_wallet_id?.toString() || "",
-        to_wallet_id: transfer.to_wallet_id?.toString() || "",
+        from_wallet_id: transfer.from_wallet_id?.toString() || null,
+        to_wallet_id: transfer.to_wallet_id?.toString() || null,
         from_amount: transfer.from_amount || 0,
         to_amount: transfer.to_amount || 0,
         date: transfer.date || new Date().toISOString().split("T")[0],
@@ -84,8 +84,8 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
     setIsLoading(true);
 
     const transferData = {
-      from_wallet_id: parseInt(data.from_wallet_id),
-      to_wallet_id: parseInt(data.to_wallet_id),
+      from_wallet_id: parseInt(data.from_wallet_id || "0"),
+      to_wallet_id: parseInt(data.to_wallet_id || "0"),
       from_amount: data.from_amount,
       to_amount: isSameCurrency ? data.from_amount : data.to_amount,
       date: data.date,
@@ -114,68 +114,36 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <FormField
+              <Dropdown
                 control={form.control}
                 name="from_wallet_id"
+                label="Dari Dompet"
+                placeholder="Pilih dompet"
                 rules={{ required: "Dompet asal harus dipilih" }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dari Dompet</FormLabel>
-                    <Controller
-                      control={form.control}
-                      name="from_wallet_id"
-                      render={({ field }) => (
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Pilih dompet" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {wallets?.map(wallet => (
-                              <SelectItem key={wallet.id} value={wallet.id.toString()}>
-                                {wallet.name} ({wallet.currency_code})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
+                options={[
+                  { value: "none", label: "Pilih dompet" },
+                  ...(wallets?.map(wallet => ({
+                    value: wallet.id.toString(),
+                    label: `${wallet.name} (${wallet.currency_code})`
+                  })) || [])
+                ]}
+                onValueChange={(value) => form.setValue("from_wallet_id", value === "none" ? null : value)}
               />
 
-              <FormField
+              <Dropdown
                 control={form.control}
                 name="to_wallet_id"
+                label="Ke Dompet"
+                placeholder="Pilih dompet"
                 rules={{ required: "Dompet tujuan harus dipilih" }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Ke Dompet</FormLabel>
-                    <Controller
-                      control={form.control}
-                      name="to_wallet_id"
-                      render={({ field }) => (
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Pilih dompet" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {wallets?.map(wallet => (
-                              <SelectItem key={wallet.id} value={wallet.id.toString()}>
-                                {wallet.name} ({wallet.currency_code})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )}
+                options={[
+                  { value: "none", label: "Pilih dompet" },
+                  ...(wallets?.map(wallet => ({
+                    value: wallet.id.toString(),
+                    label: `${wallet.name} (${wallet.currency_code})`
+                  })) || [])
+                ]}
+                onValueChange={(value) => form.setValue("to_wallet_id", value === "none" ? null : value)}
               />
             </div>
 

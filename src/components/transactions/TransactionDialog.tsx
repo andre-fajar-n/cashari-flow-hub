@@ -45,8 +45,8 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
 
         form.reset({
           amount: transaction.amount || 0,
-          category_id: transaction.category_id ? transaction.category_id.toString() : "",
-          wallet_id: transaction.wallet_id ? transaction.wallet_id.toString() : "",
+          category_id: transaction.category_id ? transaction.category_id.toString() : null,
+          wallet_id: transaction.wallet_id ? transaction.wallet_id.toString() : null,
           date: transaction.date || new Date().toISOString().split("T")[0],
           description: transaction.description || "",
           budget_ids: budgetIds,
@@ -70,13 +70,20 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
   const onSubmit = (data: TransactionFormData) => {
     setIsLoading(true);
 
+    // Convert null values back to proper format for API
+    const processedData = {
+      ...data,
+      category_id: data.category_id || "",
+      wallet_id: data.wallet_id || "",
+    };
+
     if (transaction) {
-      updateTransactionWithRelations.mutate({ id: transaction.id, ...data }, {
+      updateTransactionWithRelations.mutate({ id: transaction.id, ...processedData }, {
         onSuccess: handleSuccess,
         onError: handleError
       });
     } else {
-      insertTransactionWithRelations.mutate(data, {
+      insertTransactionWithRelations.mutate(processedData, {
         onSuccess: handleSuccess,
         onError: handleError
       });
@@ -95,7 +102,7 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
       <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {transaction ? "Edit Transaction" : "Tambah Transaction Baru"}
+            {transaction ? "Ubah Transaksi" : "Tambah Transaksi Baru"}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -121,7 +128,7 @@ const TransactionDialog = ({ open, onOpenChange, transaction, onSuccess }: Trans
                 Batal
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Menyimpan..." : transaction ? "Update" : "Simpan"}
+                {isLoading ? "Menyimpan..." : transaction ? "Perbarui" : "Simpan"}
               </Button>
             </div>
           </form>

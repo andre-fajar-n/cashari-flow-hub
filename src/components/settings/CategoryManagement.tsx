@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Dropdown } from "@/components/ui/dropdown";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
-import { CATEGORY_APPLICATIONS } from "@/constants/enums";
+import { CATEGORY_APPLICATIONS, CategoryApplication } from "@/constants/enums";
 import { useForm } from "react-hook-form";
 import { Plus, Trash, Pen } from "lucide-react";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -202,71 +203,43 @@ const CategoryManagement = () => {
                       </FormItem>
                     )}
                   />
-                  <FormField
+                  <Dropdown
                     control={form.control}
                     name="is_income"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tipe</FormLabel>
-                        <FormControl>
-                          <select
-                            className="w-full p-2 border rounded"
-                            value={field.value.toString()}
-                            onChange={(e) => field.onChange(e.target.value === "true")}
-                          >
-                            <option value="false">Pengeluaran</option>
-                            <option value="true">Pemasukan</option>
-                          </select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label="Tipe"
+                    placeholder="Pilih tipe"
+                    options={[
+                      { value: "false", label: "Pengeluaran" },
+                      { value: "true", label: "Pemasukan" }
+                    ]}
+                    onValueChange={(value) => form.setValue("is_income", value === "true")}
                   />
-                  <FormField
+                  <Dropdown
                     control={form.control}
                     name="application"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Aplikasi</FormLabel>
-                        <FormControl>
-                          <select
-                            className="w-full p-2 border rounded"
-                            value={field.value ?? ''}
-                            onChange={(e) => field.onChange(e.target.value === '' ? null : e.target.value)}
-                          >
-                            <option value="">Tidak Ada</option>
-                            <option value="transaction">Transaksi</option>
-                            <option value="investment">Investasi</option>
-                            <option value="debt">Hutang/Piutang</option>
-                          </select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label="Aplikasi"
+                    placeholder="Pilih aplikasi"
+                    options={[
+                      { value: "none", label: "Tidak Ada" },
+                      { value: "transaction", label: "Transaksi" },
+                      { value: "investment", label: "Investasi" },
+                      { value: "debt", label: "Hutang/Piutang" }
+                    ]}
+                    onValueChange={(value) => form.setValue("application", value === "none" ? null : value as CategoryApplication)}
                   />
-                  <FormField
+                  <Dropdown
                     control={form.control}
                     name="parent_id"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Kategori Induk (Opsional)</FormLabel>
-                        <FormControl>
-                          <select
-                            className="w-full p-2 border rounded"
-                            value={field.value?.toString() || "none"}
-                            onChange={(e) => field.onChange(e.target.value === "none" ? null : parseInt(e.target.value))}
-                          >
-                            <option value="none">Tidak ada induk</option>
-                            {parentCategories.map((category) => (
-                              <option key={category.id} value={category.id.toString()}>
-                                {category.name}
-                              </option>
-                            ))}
-                          </select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label="Kategori Induk (Opsional)"
+                    placeholder="Pilih kategori induk"
+                    options={[
+                      { value: "none", label: "Tidak ada induk" },
+                      ...parentCategories.map((category) => ({
+                        value: category.id.toString(),
+                        label: category.name
+                      }))
+                    ]}
+                    onValueChange={(value) => form.setValue("parent_id", value === "none" ? null : parseInt(value))}
                   />
                 </div>
                 <div className="flex gap-2">

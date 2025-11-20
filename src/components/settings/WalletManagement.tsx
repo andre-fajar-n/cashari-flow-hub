@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Dropdown } from "@/components/ui/dropdown";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { useForm } from "react-hook-form";
 import { Plus, Trash, Pen } from "lucide-react";
@@ -37,7 +38,7 @@ const WalletManagement = () => {
     if (editingWallet) {
       form.reset({
         name: editingWallet.name,
-        currency_code: editingWallet.currency_code,
+        currency_code: editingWallet.currency_code || null,
         initial_amount: editingWallet.initial_amount,
       });
     }
@@ -156,25 +157,19 @@ const WalletManagement = () => {
                       </FormItem>
                     )}
                   />
-                  <FormField
+                  <Dropdown
                     control={form.control}
                     name="currency_code"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Mata Uang</FormLabel>
-                        <FormControl>
-                          <select className="w-full p-2 border rounded" {...field}>
-                            <option value="">Pilih mata uang</option>
-                            {currencies?.map((currency) => (
-                              <option key={currency.code} value={currency.code}>
-                                {currency.code} - {currency.name}
-                              </option>
-                            ))}
-                          </select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    label="Mata Uang"
+                    placeholder="Pilih mata uang"
+                    options={[
+                      { value: "none", label: "Pilih mata uang" },
+                      ...(currencies?.map((currency) => ({
+                        value: currency.code,
+                        label: `${currency.code} - ${currency.name} (${currency.symbol})`
+                      })) || [])
+                    ]}
+                    onValueChange={(value) => form.setValue("currency_code", value === "none" ? null : value)}
                   />
                   <FormField
                     control={form.control}

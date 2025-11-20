@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dropdown } from "@/components/ui/dropdown";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData } from "@/form-dto/goal-investment-records";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
@@ -22,11 +21,13 @@ interface GoalInvestmentRecordDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   goalId?: number;
+  instrumentId?: number; // Pre-filled instrument ID (hides instrument selector)
+  assetId?: number; // Pre-filled asset ID (hides asset selector)
   record?: GoalInvestmentRecordModel | null;
   onSuccess?: () => void;
 }
 
-const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSuccess }: GoalInvestmentRecordDialogProps) => {
+const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, instrumentId, assetId, record, onSuccess }: GoalInvestmentRecordDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const createRecord = useCreateGoalInvestmentRecord();
   const updateRecord = useUpdateGoalInvestmentRecord();
@@ -37,7 +38,12 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
   const { data: goals } = useGoals();
 
   const form = useForm<GoalInvestmentRecordFormData>({
-    defaultValues: { ...defaultGoalInvestmentRecordFormData, goal_id: goalId || record?.goal_id },
+    defaultValues: {
+      ...defaultGoalInvestmentRecordFormData,
+      goal_id: goalId || record?.goal_id || null,
+      instrument_id: instrumentId || record?.instrument_id || null,
+      asset_id: assetId || record?.asset_id || null,
+    },
   });
 
   // Use mutation callbacks utility
@@ -50,18 +56,17 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
   });
 
   const selectedInstrument = form.watch("instrument_id");
-  const isValuation = form.watch("is_valuation");
 
   const filteredAssets = assets?.filter(asset => asset.instrument_id === selectedInstrument) || [];
 
   // Fill form when editing existing record
   useEffect(() => {
     if (record && open) {
-      form.setValue("goal_id", record.goal_id);
-      form.setValue("instrument_id", record.instrument_id || 0);
-      form.setValue("asset_id", record.asset_id || 0);
-      form.setValue("wallet_id", record.wallet_id || 0);
-      form.setValue("category_id", record.category_id || 0);
+      form.setValue("goal_id", record.goal_id || null);
+      form.setValue("instrument_id", record.instrument_id || null);
+      form.setValue("asset_id", record.asset_id || null);
+      form.setValue("wallet_id", record.wallet_id || null);
+      form.setValue("category_id", record.category_id || null);
       form.setValue("amount", record.amount);
       form.setValue("amount_unit", record.amount_unit);
       form.setValue("date", record.date);
@@ -69,23 +74,23 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
       form.setValue("is_valuation", record.is_valuation || false);
     } else if (!record && open) {
       // Reset form when creating new record
-      form.reset({ ...defaultGoalInvestmentRecordFormData, goal_id: goalId || 0 });
+      form.reset({
+        ...defaultGoalInvestmentRecordFormData,
+        goal_id: goalId || null,
+        instrument_id: instrumentId || null,
+        asset_id: assetId || null,
+      });
     }
-  }, [record, open, form, goalId]);
+  }, [record, open, form, goalId, assetId]);
 
   const onSubmit = async (data: GoalInvestmentRecordFormData) => {
     setIsLoading(true);
-    
+
     // Remove fields that should be null when not applicable
     const cleanData = { ...data };
-    
-    if (isValuation) {
-      cleanData.wallet_id = null;
-      cleanData.category_id = null;
-    } else {
-      cleanData.wallet_id = data.wallet_id || null;
-      cleanData.category_id = data.category_id || null;
-    }
+
+    cleanData.wallet_id = data.wallet_id || null;
+    cleanData.category_id = data.category_id || null;
 
     if (!data.instrument_id) {
       cleanData.instrument_id = null;
@@ -121,179 +126,98 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="is_valuation"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Valuation Only</FormLabel>
-                    <div className="text-sm text-muted-foreground">
-                      Hanya untuk pencatatan nilai, tidak melibatkan transaksi
-                    </div>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
             {/* Goal Selector - Only show when NOT called from goal detail page */}
             {!goalId && (
-              <FormField
+              <Dropdown
                 control={form.control}
                 name="goal_id"
+                label="Goal"
+                placeholder="Pilih goal"
                 rules={{ required: "Goal harus dipilih" }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Goal</FormLabel>
-                    <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih goal" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {goals?.map((goal) => (
-                          <SelectItem key={goal.id} value={goal.id.toString()}>
-                            {goal.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                options={[
+                  { value: "none", label: "Pilih goal" },
+                  ...(goals?.map((goal) => ({
+                    value: goal.id.toString(),
+                    label: goal.name
+                  })) || [])
+                ]}
+                onValueChange={(value) => form.setValue("goal_id", value === "none" ? null : parseInt(value))}
               />
-            )}
-
-            {!isValuation && (
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="wallet_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Wallet</FormLabel>
-                      <FormControl>
-                        <select 
-                          {...field}
-                          value={field.value || ""}
-                          onChange={(e) => {
-                            const value = e.target.value ? parseInt(e.target.value) : null;
-                            field.onChange(value);
-                          }}
-                          className="w-full p-2 border rounded-md"
-                        >
-                          <option value="">Pilih Wallet</option>
-                          {wallets?.map((wallet) => (
-                            <option key={wallet.id} value={wallet.id}>
-                              {wallet.name}
-                            </option>
-                          ))}
-                        </select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="category_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Kategori</FormLabel>
-                      <FormControl>
-                        <select 
-                          {...field}
-                          value={field.value || ""}
-                          onChange={(e) => {
-                            const value = e.target.value ? parseInt(e.target.value) : null;
-                            field.onChange(value);
-                          }}
-                          className="w-full p-2 border rounded-md"
-                        >
-                          <option value="">Pilih Kategori</option>
-                          {categories?.map((category) => (
-                            <option key={category.id} value={category.id}>
-                              {category.name}
-                            </option>
-                          ))}
-                        </select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
             )}
 
             <div className="grid grid-cols-2 gap-4">
-              <FormField
+              <Dropdown
                 control={form.control}
-                name="instrument_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Instrumen Investasi</FormLabel>
-                    <FormControl>
-                      <select 
-                        {...field}
-                        value={field.value || ""}
-                        onChange={(e) => {
-                          const value = e.target.value ? parseInt(e.target.value) : null;
-                          field.onChange(value);
-                          form.setValue("asset_id", null);
-                        }}
-                        className="w-full p-2 border rounded-md"
-                      >
-                        <option value="">Pilih Instrumen</option>
-                        {instruments?.map((instrument) => (
-                          <option key={instrument.id} value={instrument.id}>
-                            {instrument.name}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                name="wallet_id"
+                label="Wallet"
+                placeholder="Pilih Wallet"
+                options={[
+                  { value: "none", label: "Pilih Wallet" },
+                  ...(wallets?.map((wallet) => ({
+                    value: wallet.id.toString(),
+                    label: wallet.name
+                  })) || [])
+                ]}
+                onValueChange={(value) => form.setValue("wallet_id", value === "none" ? null : parseInt(value))}
               />
 
-              <FormField
+              <Dropdown
                 control={form.control}
-                name="asset_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Aset Investasi</FormLabel>
-                    <FormControl>
-                      <select 
-                        {...field}
-                        value={field.value || ""}
-                        onChange={(e) => {
-                          const value = e.target.value ? parseInt(e.target.value) : null;
-                          field.onChange(value);
-                        }}
-                        className="w-full p-2 border rounded-md"
-                        disabled={!selectedInstrument}
-                      >
-                        <option value="">Pilih Aset</option>
-                        {filteredAssets.map((asset) => (
-                          <option key={asset.id} value={asset.id}>
-                            {asset.name} {asset.symbol && `(${asset.symbol})`}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                name="category_id"
+                label="Kategori"
+                placeholder="Pilih Kategori"
+                options={[
+                  { value: "none", label: "Pilih Kategori" },
+                  ...(categories?.map((category) => ({
+                    value: category.id.toString(),
+                    label: category.name
+                  })) || [])
+                ]}
+                onValueChange={(value) => form.setValue("category_id", value === "none" ? null : parseInt(value))}
               />
             </div>
+
+            {!instrumentId && !assetId ? (
+              <div className="grid grid-cols-2 gap-4">
+                {!instrumentId && (
+                  <Dropdown
+                    control={form.control}
+                    name="instrument_id"
+                    label="Instrumen Investasi"
+                    placeholder="Pilih Instrumen"
+                    options={[
+                      { value: "none", label: "Pilih Instrumen" },
+                      ...(instruments?.map((instrument) => ({
+                        value: instrument.id.toString(),
+                        label: instrument.name
+                      })) || [])
+                    ]}
+                    onValueChange={(value) => {
+                      form.setValue("instrument_id", value === "none" ? null : parseInt(value));
+                      form.setValue("asset_id", null);
+                    }}
+                  />
+                )}
+
+                {!assetId && (
+                  <Dropdown
+                    control={form.control}
+                    name="asset_id"
+                    label="Aset Investasi"
+                    placeholder="Pilih Aset"
+                    disabled={!selectedInstrument}
+                    options={[
+                      { value: "none", label: "Pilih Aset" },
+                      ...filteredAssets.map((asset) => ({
+                        value: asset.id.toString(),
+                        label: `${asset.name} ${asset.symbol ? `(${asset.symbol})` : ''}`
+                      }))
+                    ]}
+                    onValueChange={(value) => form.setValue("asset_id", value === "none" ? null : parseInt(value))}
+                  />
+                )}
+              </div>
+            ) : (null)}
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
@@ -307,7 +231,7 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
                   <FormItem>
                     <FormLabel>Amount</FormLabel>
                     <FormControl>
-                      <InputNumber 
+                      <InputNumber
                         {...field}
                         onChange={(value) => field.onChange(value || 0)}
                         value={field.value}
@@ -332,13 +256,12 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
                           value={field.value}
                           allowNull={true}
                           placeholder="Kosong untuk null"
-                          className={`${
-                            field.value === null
+                          className={`${field.value === null
                               ? "bg-blue-50 border-blue-200 text-blue-700"
                               : field.value === 0
                                 ? "bg-orange-50 border-orange-200 text-orange-700"
                                 : ""
-                          }`}
+                            }`}
                         />
                         {field.value === null && (
                           <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
@@ -399,7 +322,7 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, record, onSucc
                 <FormItem>
                   <FormLabel>Deskripsi</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Masukkan deskripsi (opsional)"
                       {...field}
                       rows={3}

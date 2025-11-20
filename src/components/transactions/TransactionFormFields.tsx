@@ -1,7 +1,7 @@
-import { Control } from "react-hook-form";
+import { Control, useFormContext } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dropdown } from "@/components/ui/dropdown";
 import { InputNumber } from "@/components/ui/input-number";
 import { WalletModel } from "@/models/wallets";
 import { CategoryModel } from "@/models/categories";
@@ -13,58 +13,40 @@ interface TransactionFormFieldsProps {
 }
 
 const TransactionFormFields = ({ control, wallets, categories }: TransactionFormFieldsProps) => {
+  const form = useFormContext();
+
   return (
     <>
-      <FormField
+      <Dropdown
         control={control}
         name="wallet_id"
+        label="Dompet"
+        placeholder="Pilih dompet"
+        options={[
+          { value: "none", label: "Pilih dompet" },
+          ...(wallets?.map((wallet) => ({
+            value: wallet.id.toString(),
+            label: `${wallet.name} (${wallet.currency_code})`
+          })) || [])
+        ]}
         rules={{ required: "Dompet harus dipilih" }}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Dompet</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih dompet" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {wallets?.map((wallet) => (
-                  <SelectItem key={wallet.id} value={wallet.id.toString()}>
-                    {wallet.name} ({wallet.currency_code})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
+        onValueChange={(value) => form.setValue("wallet_id", value === "none" ? null : value)}
       />
 
-      <FormField
+      <Dropdown
         control={control}
         name="category_id"
+        label="Kategori"
+        placeholder="Pilih kategori"
+        options={[
+          { value: "none", label: "Pilih kategori" },
+          ...(categories?.map((category) => ({
+            value: category.id.toString(),
+            label: `${category.name} ${category.is_income ? "(Pemasukan)" : "(Pengeluaran)"}`
+          })) || [])
+        ]}
         rules={{ required: "Kategori harus dipilih" }}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Kategori</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih kategori" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {categories?.map((category) => (
-                  <SelectItem key={category.id} value={category.id.toString()}>
-                    {category.name} {category.is_income ? "(Pemasukan)" : "(Pengeluaran)"}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
+        onValueChange={(value) => form.setValue("category_id", value === "none" ? null : value)}
       />
 
       <FormField
