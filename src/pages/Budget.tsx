@@ -108,10 +108,10 @@ const Budget = () => {
             pageSize={tableState.pageSize}
             searchTerm={tableState.searchTerm}
             filters={tableState.filters}
-            onPageChange={tableActions.setPage}
-            onPageSizeChange={tableActions.setPageSize}
-            onSearchChange={tableActions.setSearchTerm}
-            onFiltersChange={tableActions.setFilters}
+            onPageChange={tableActions.handlePageChange}
+            onPageSizeChange={tableActions.handlePageSizeChange}
+            onSearchChange={tableActions.handleSearchChange}
+            onFiltersChange={tableActions.handleFiltersChange}
             onEdit={handleEdit}
             onDelete={handleDeleteClick}
             onView={handleView}

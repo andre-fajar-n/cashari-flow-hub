@@ -140,15 +140,15 @@ const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
         totalCount={totalCount}
         isLoading={isLoading}
         searchTerm={tableState.searchTerm}
-        onSearchChange={tableActions.setSearchTerm}
+        onSearchChange={tableActions.handleSearchChange}
         filters={tableState.filters}
-        onFiltersChange={tableActions.setFilters}
+        onFiltersChange={tableActions.handleFiltersChange}
         selectFilters={selectFilters}
         dateRangeFilter={dateRangeFilter}
         page={tableState.page}
         pageSize={tableState.pageSize}
-        setPage={tableActions.setPage}
-        setPageSize={tableActions.setPageSize}
+        setPage={tableActions.handlePageChange}
+        setPageSize={tableActions.handlePageSizeChange}
       />
 
       <TransactionDialog

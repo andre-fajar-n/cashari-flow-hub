@@ -1,6 +1,7 @@
 import { usePaginatedSupabase, PaginatedParams } from "@/hooks/queries/paginated/use-paginated-supabase";
 
 export const useMoneyMovementsPaginated = (params: PaginatedParams) => {
+  console.log("Params:", params);
   return usePaginatedSupabase(params, {
     queryKeyBase: "money_movements_paginated",
     table: "money_movements",
@@ -66,6 +67,16 @@ export const useMoneyMovementsPaginatedByBudget = (budgetId: number, params: Pag
     filters: {
       ...params.filters,
       budget_id: budgetId
+    }
+  });
+};
+
+export const useMoneyMovementsPaginatedByProject = (projectId: number, params: PaginatedParams) => {
+  return useMoneyMovementsPaginated({
+    ...params,
+    filters: {
+      ...params.filters,
+      project_id: projectId
     }
   });
 };

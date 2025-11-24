@@ -114,7 +114,7 @@ const BusinessProjectDetail = () => {
           </Card>
 
           {/* Transactions */}
-          <BusinessProjectTransactionList project={project} onAddTransaction={() => setIsAddDialogOpen(true)} />
+          <BusinessProjectTransactionList project={project} />
         </div>
 
         <BusinessProjectDialog

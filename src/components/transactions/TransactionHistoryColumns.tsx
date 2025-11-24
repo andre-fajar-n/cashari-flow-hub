@@ -23,6 +23,7 @@ export interface TransactionHistoryColumnsProps {
   onEdit: (movement: MoneyMovementModel) => void;
   onDelete: (movement: MoneyMovementModel) => void;
   onRemoveFromBudget?: (transactionId: number) => void; // Optional: for budget detail page
+  onRemoveFromProject?: (transactionId: number) => void; // Optional: for project detail page
 }
 
 /**
@@ -32,6 +33,7 @@ export const getTransactionHistoryColumns = ({
   onEdit,
   onDelete,
   onRemoveFromBudget,
+  onRemoveFromProject,
 }: TransactionHistoryColumnsProps): ColumnDef<MoneyMovementModel>[] => [
   {
     accessorKey: "resource_type",
@@ -399,6 +401,16 @@ export const getTransactionHistoryColumns = ({
           label: "Hapus dari Budget",
           icon: X,
           onClick: (movement) => onRemoveFromBudget(movement.resource_id),
+          variant: "destructive",
+        });
+      }
+
+      // Remove from Project action (only when onRemoveFromProject is provided)
+      if (onRemoveFromProject) {
+        actions.push({
+          label: "Hapus dari Proyek",
+          icon: X,
+          onClick: (movement) => onRemoveFromProject(movement.resource_id),
           variant: "destructive",
         });
       }

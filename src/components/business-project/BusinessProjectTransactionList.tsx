@@ -1,51 +1,107 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { Plus, ArrowUpCircle, ArrowDownCircle, X } from "lucide-react";
 import { useBusinessProjectTransactions } from "@/hooks/queries/use-business-project-transactions";
-import { useBusinessProjectTransactionsPaginated } from "@/hooks/queries/paginated/use-business-project-transactions-paginated";
+import { useMoneyMovementsPaginatedByProject } from "@/hooks/queries/paginated/use-money-movements-paginated";
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
 import { BusinessProjectModel } from "@/models/business-projects";
-import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { useCategories } from "@/hooks/queries/use-categories";
 import { useWallets } from "@/hooks/queries/use-wallets";
-import { formatDate } from "@/lib/date";
+import { useTableState } from "@/hooks/use-table-state";
+import { SelectFilterConfig } from "@/components/ui/advanced-data-table/advanced-data-table-toolbar";
+import { TransactionHistoryTable } from "@/components/transactions/TransactionHistoryTable";
+import { getTransactionHistoryColumns } from "@/components/transactions/TransactionHistoryColumns";
+import TransactionDialog from "@/components/transactions/TransactionDialog";
+import ConfirmationModal from "@/components/ConfirmationModal";
+import { TransactionModel } from "@/models/transactions";
+import { MoneyMovementModel } from "@/models/money-movements";
+import { useState } from "react";
+import { MOVEMENT_TYPES } from "@/constants/enums";
+import { useDeleteTransaction, useTransactions } from "@/hooks/queries/use-transactions";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface BusinessProjectTransactionListProps {
   project: BusinessProjectModel;
-  onAddTransaction?: () => void;
 }
 
-const BusinessProjectTransactionList = ({ project, onAddTransaction }: BusinessProjectTransactionListProps) => {
-  const [page, setPage] = useState(1);
-  const [serverSearch, setServerSearch] = useState("");
-  const [serverFilters, setServerFilters] = useState<Record<string, any>>({});
-  const itemsPerPage = 10;
+const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionListProps) => {
+  const queryClient = useQueryClient();
+  const [transactionDialog, setTransactionDialog] = useState<{
+    open: boolean;
+    transaction?: TransactionModel;
+  }>({ open: false });
+  const [deleteModal, setDeleteModal] = useState<{
+    open: boolean;
+    item?: MoneyMovementModel;
+  }>({ open: false });
+
+  // Table state management using generic hook
+  const { state: tableState, actions: tableActions } = useTableState({
+    initialPage: 1,
+    initialPageSize: 10,
+  });
 
   const {
     data: projectTransactions,
     removeTransactionFromProject
   } = useBusinessProjectTransactions(project.id);
+  const { mutateAsync: deleteTransaction } = useDeleteTransaction();
 
-  const { data: paged, isLoading } = useBusinessProjectTransactionsPaginated({
-    projectId: project.id,
-    page,
-    itemsPerPage,
-    searchTerm: serverSearch,
-    filters: serverFilters
+  const { data: paged, isLoading: isLoadingMovements } = useMoneyMovementsPaginatedByProject(project.id, {
+    page: tableState.page,
+    itemsPerPage: tableState.pageSize,
+    searchTerm: tableState.searchTerm,
+    filters: tableState.filters
   });
+
+  const movements = paged?.data || [];
+  const totalCount = paged?.count || 0;
+
+  const transactionIds = movements?.filter(m => m.resource_type === MOVEMENT_TYPES.TRANSACTION).map(m => m.resource_id) || [];
+  const { data: transactions, isLoading: isTransactionsLoading } = useTransactions({ ids: transactionIds });
+  const transactionsGroupById = transactions?.reduce((acc, item) => {
+    acc[item.id] = item;
+    return acc;
+  }, {} as Record<number, TransactionModel>);
+
+  const isLoading = isLoadingMovements || isTransactionsLoading;
 
   const { data: categories } = useCategories();
   const { data: wallets } = useWallets();
-
-  const transactions = paged?.data || [];
 
   const handleRemoveTransaction = (transactionId: number) => {
     removeTransactionFromProject.mutate({
       projectId: project.id,
       transactionId
     });
+  };
+
+  const handleEditTransaction = (transaction: MoneyMovementModel) => {
+    setTransactionDialog({ open: true, transaction: transactionsGroupById[transaction.resource_id] });
+  };
+
+  const handleDeleteTransaction = (movement: MoneyMovementModel) => {
+    setDeleteModal({ open: true, item: movement });
+  };
+
+  const handleSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
+    setTransactionDialog({ open: false });
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteModal.item) return;
+
+    try {
+      deleteTransaction(deleteModal.item.resource_id);
+      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    } catch (error) {
+      console.error("Failed to delete transaction", error);
+    } finally {
+      setDeleteModal({ open: false });
+    }
   };
 
   // Calculate total amounts from all project transactions (not paginated)
@@ -61,100 +117,40 @@ const BusinessProjectTransactionList = ({ project, onAddTransaction }: BusinessP
 
   const netAmount = totalIncome - totalExpense;
 
-  // Render transaction item for DataTable
-  const renderTransactionItem = (item: any) => {
-    const transaction = item.transactions;
-    return (
-      <Card key={item.id} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 flex-1">
-            <div className="flex-shrink-0">
-              {transaction.categories?.is_income ? (
-                <ArrowUpCircle className="w-4 h-4 text-green-600" />
-              ) : (
-                <ArrowDownCircle className="w-4 h-4 text-red-600" />
-              )}
-            </div>
+  // Generate columns with remove from project action
+  const columns = getTransactionHistoryColumns({
+    onEdit: handleEditTransaction,
+    onDelete: handleDeleteTransaction,
+    onRemoveFromProject: handleRemoveTransaction, // Reuse for "Remove from Project"
+  });
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <p className="font-medium text-sm truncate">
-                  {transaction.categories?.name}
-                </p>
-              </div>
-              <div className="flex items-center gap-2 mb-1 text-s text-muted-foreground">
-                <p className="font-medium text-sm truncate">
-                  {transaction.description || 'No description'}
-                </p>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>{formatDate(transaction.date || '')}</span>
-                <span>•</span>
-                <span>{transaction.wallets?.name}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="text-right">
-              <AmountText
-                amount={transaction.categories?.is_income ? transaction.amount : -transaction.amount}
-                className="font-semibold text-sm"
-                showSign={true}
-              >
-                {formatAmountCurrency(transaction.amount || 0, transaction.wallets?.currency_code || "IDR")}
-              </AmountText>
-            </div>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleRemoveTransaction(transaction.id || 0)}
-              className="text-destructive hover:text-destructive h-8 w-8 p-0"
-            >
-              <X className="w-3 h-3" />
-            </Button>
-          </div>
-        </div>
-      </Card>
-    );
-  };
-
-  // Column filters for DataTable
-  const columnFilters: ColumnFilter[] = [
+  // Select filters configuration
+  const selectFilters: SelectFilterConfig[] = [
     {
-      field: "transactions.categories.is_income",
-      label: "Tipe",
-      type: "select",
-      options: [
-        { label: "Pemasukan", value: "true" },
-        { label: "Pengeluaran", value: "false" }
-      ]
-    },
-    {
-      field: "transactions.category_id",
+      key: "category_id",
       label: "Kategori",
-      type: "select",
+      placeholder: "Semua Kategori",
       options: categories?.map(category => ({
         label: category.name,
         value: category.id.toString()
       })) || []
     },
     {
-      field: "transactions.wallet_id",
+      key: "wallet_id",
       label: "Dompet",
-      type: "select",
+      placeholder: "Semua Dompet",
       options: wallets?.map(wallet => ({
         label: `${wallet.name} (${wallet.currency_code})`,
         value: wallet.id.toString()
       })) || []
     },
-    {
-      field: "transactions.date",
-      label: "Tanggal",
-      type: "date"
-    }
   ];
+
+  const dateRangeFilter = {
+    key: "date",
+    label: "Tanggal",
+    placeholder: "Pilih rentang tanggal",
+  };
 
   return (
     <div className="space-y-4">
@@ -192,34 +188,39 @@ const BusinessProjectTransactionList = ({ project, onAddTransaction }: BusinessP
       </div>
 
       {/* Transaction List */}
-      <DataTable
-        data={transactions}
+      <TransactionHistoryTable
+        columns={columns}
+        data={movements}
+        totalCount={totalCount}
         isLoading={isLoading}
-        searchPlaceholder="Cari transaksi dalam proyek..."
-        searchFields={["transactions.description", "transactions.amount"]}
-        columnFilters={columnFilters}
-        itemsPerPage={itemsPerPage}
-        serverMode
-        totalCount={paged?.count}
-        page={page}
-        onServerParamsChange={({ searchTerm, filters, page: nextPage }) => {
-          setServerSearch(searchTerm);
-          setServerFilters(filters);
-          setPage(nextPage);
-        }}
-        useUrlParams={true}
-        renderItem={renderTransactionItem}
-        emptyStateMessage="Belum ada transaksi di proyek ini"
-        title={`Transaksi dalam Proyek (${paged?.count || 0})`}
-        description={`Net: ${formatAmountCurrency(Math.abs(netAmount), "IDR")} ${netAmount >= 0 ? 'Profit' : 'Loss'}`}
-        headerActions={
-          onAddTransaction && (
-            <Button onClick={onAddTransaction} className="w-full sm:w-auto">
-              <Plus className="w-4 h-4 mr-2" />
-              Tambah Transaksi
-            </Button>
-          )
-        }
+        searchTerm={tableState.searchTerm}
+        onSearchChange={tableActions.handleSearchChange}
+        filters={tableState.filters}
+        onFiltersChange={tableActions.handleFiltersChange}
+        selectFilters={selectFilters}
+        dateRangeFilter={dateRangeFilter}
+        page={tableState.page}
+        pageSize={tableState.pageSize}
+        setPage={tableActions.handlePageChange}
+        setPageSize={tableActions.handlePageSizeChange}
+      />
+
+      <TransactionDialog
+        open={transactionDialog.open}
+        onOpenChange={(open) => setTransactionDialog({ open })}
+        transaction={transactionDialog.transaction}
+        onSuccess={handleSuccess}
+      />
+
+      <ConfirmationModal
+        open={deleteModal.open}
+        onOpenChange={(open) => setDeleteModal({ open })}
+        onConfirm={handleConfirmDelete}
+        title="Hapus Item"
+        description={`Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.`}
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        variant="destructive"
       />
     </div>
   );
