@@ -1,41 +1,66 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ArrowUpCircle, ArrowDownCircle, X } from "lucide-react";
 import { useDeleteBudgetItem } from "@/hooks/queries/use-budget-transactions";
-import { useBudgetTransactionsPaginated } from "@/hooks/queries/paginated/use-budget-transactions-paginated";
-import { formatAmountCurrency } from "@/lib/currency";
-import { AmountText } from "@/components/ui/amount-text";
-import { BudgetItemWithTransactions, BudgetModel } from "@/models/budgets";
-import { DataTable, ColumnFilter } from "@/components/ui/data-table";
+import { BudgetModel } from "@/models/budgets";
 import { useCategories } from "@/hooks/queries/use-categories";
 import { useWallets } from "@/hooks/queries/use-wallets";
-import { formatDate } from "@/lib/date";
+import { useTableState } from "@/hooks/use-table-state";
+import { SelectFilterConfig } from "@/components/ui/advanced-data-table/advanced-data-table-toolbar";
+import { TransactionHistoryTable } from "@/components/transactions/TransactionHistoryTable";
+import { getTransactionHistoryColumns } from "@/components/transactions/TransactionHistoryColumns";
+import { useMoneyMovementsPaginatedByBudget } from "@/hooks/queries/paginated/use-money-movements-paginated";
+import { useState } from "react";
+import { TransactionModel } from "@/models/transactions";
+import { MOVEMENT_TYPES } from "@/constants/enums";
+import { useDeleteTransaction, useTransactions } from "@/hooks/queries/use-transactions";
+import { MoneyMovementModel } from "@/models/money-movements";
+import TransactionDialog from "@/components/transactions/TransactionDialog";
+import { useQueryClient } from "@tanstack/react-query";
+import ConfirmationModal from "@/components/ConfirmationModal";
 
 interface BudgetTransactionListProps {
   budget: BudgetModel;
 }
 
 const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
-  const [page, setPage] = useState(1);
-  const [serverSearch, setServerSearch] = useState("");
-  const [serverFilters, setServerFilters] = useState<Record<string, any>>({});
-  const itemsPerPage = 10;
+  const queryClient = useQueryClient();
+  const [transactionDialog, setTransactionDialog] = useState<{
+    open: boolean;
+    transaction?: TransactionModel;
+  }>({ open: false });
+  const [deleteModal, setDeleteModal] = useState<{
+    open: boolean;
+    item?: MoneyMovementModel;
+  }>({ open: false });
+
+  // Table state management using generic hook
+  const { state: tableState, actions: tableActions } = useTableState({
+    initialPage: 1,
+    initialPageSize: 10,
+  });
 
   const removeTransactionFromBudget = useDeleteBudgetItem();
+  const { mutateAsync: deleteTransaction } = useDeleteTransaction();
 
-  const { data: paged, isLoading } = useBudgetTransactionsPaginated({
-    budgetId: budget.id,
-    page,
-    itemsPerPage,
-    searchTerm: serverSearch,
-    filters: serverFilters
+  const { data: paged, isLoading: isLoadingMovements } = useMoneyMovementsPaginatedByBudget(budget.id, {
+    page: tableState.page,
+    itemsPerPage: tableState.pageSize,
+    searchTerm: tableState.searchTerm,
+    filters: tableState.filters
   });
 
   const { data: categories } = useCategories();
   const { data: wallets } = useWallets();
 
-  const transactions = paged?.data || [];
+  const movements = paged?.data || [];
+  const totalCount = paged?.count || 0;
+
+  const transactionIds = movements?.filter(m => m.resource_type === MOVEMENT_TYPES.TRANSACTION).map(m => m.resource_id) || [];
+  const { data: transactions, isLoading: isTransactionsLoading } = useTransactions({ ids: transactionIds });
+  const transactionsGroupById = transactions?.reduce((acc, item) => {
+    acc[item.id] = item;
+    return acc;
+  }, {} as Record<number, TransactionModel>);
+
+  const isLoading = isLoadingMovements || isTransactionsLoading;
 
   const handleRemoveTransaction = (transactionId: number) => {
     removeTransactionFromBudget.mutateAsync({
@@ -44,156 +69,106 @@ const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
     })
   };
 
-  // Render transaction item for DataTable
-  const renderTransactionItem = (item: BudgetItemWithTransactions) => {
-    const isIncome = item.amount > 0;
-    const isExpense = item.amount < 0;
-    const isDifferentCurrency = item.exchange_rate !== 1;
-    const originalAmount = Math.abs(item.amount);
-    const convertedAmount = Math.abs(item.amount * item.exchange_rate);
-
-    return (
-      <Card key={item.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
-        <div className="flex items-center justify-between gap-4">
-          {/* Left section - Icon and transaction details */}
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="flex-shrink-0 mt-0.5">
-              {isIncome ? (
-                <ArrowUpCircle className="w-5 h-5 text-green-600" />
-              ) : isExpense ? (
-                <ArrowDownCircle className="w-5 h-5 text-red-600" />
-              ) : (
-                <div className="w-5 h-5 bg-gray-200 rounded-full" />
-              )}
-            </div>
-
-            <div className="flex-1 min-w-0 space-y-1">
-              {/* Category name */}
-              <div className="flex items-center gap-2">
-                <h4 className="font-semibold text-sm text-gray-900 truncate">
-                  {item.category_name}
-                </h4>
-              </div>
-
-              {/* Description */}
-              <p className="text-sm text-gray-600 truncate">
-                {item.description || 'Tanpa deskripsi'}
-              </p>
-
-              {/* Date and wallet info */}
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <span className="font-medium">{formatDate(item.date || '')}</span>
-                <span>•</span>
-                <span className="truncate">{item.wallet_name}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right section - Amount and actions */}
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <div className="text-right space-y-1">
-              {/* Main amount display */}
-              <div className="flex flex-col items-end">
-                <AmountText
-                  amount={item.amount}
-                  className="font-bold text-base"
-                  showSign={true}
-                >
-                  {formatAmountCurrency(originalAmount, item.original_currency_code)}
-                </AmountText>
-
-                {/* Show converted amount if different currency and rate is available */}
-                {isDifferentCurrency && item.exchange_rate && (
-                  <div className="flex flex-col items-end mt-1">
-                    <AmountText
-                      amount={item.amount}
-                      className="font-medium text-sm text-gray-600"
-                      showSign={true}
-                    >
-                      {formatAmountCurrency(convertedAmount, budget.currency_code)}
-                    </AmountText>
-                    <span className="text-xs text-gray-400 mt-0.5">
-                      (Rate: {item.exchange_rate?.toFixed(4)})
-                    </span>
-                  </div>
-                )}
-
-                {/* Show warning if rate is not available */}
-                {!item.exchange_rate && (
-                  <div className="flex flex-col items-end mt-1">
-                    <span className="text-xs text-yellow-600 mt-0.5">
-                      (Rate belum tersedia)
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Remove button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleRemoveTransaction(item.id)}
-              className="text-destructive hover:text-destructive hover:bg-red-50 h-8 w-8 p-0 mt-1"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </Card>
-    );
+  const handleEditTransaction = (transaction: MoneyMovementModel) => {
+    setTransactionDialog({ open: true, transaction: transactionsGroupById[transaction.resource_id] });
   };
 
-  // Column filters for DataTable
-  const columnFilters: ColumnFilter[] = [
+  const handleSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
+    setTransactionDialog({ open: false });
+  };
+
+  const handleDeleteTransaction = (movement: MoneyMovementModel) => {
+    setDeleteModal({ open: true, item: movement });
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteModal.item) return;
+
+    try {
+      deleteTransaction(deleteModal.item.resource_id);
+      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    } catch (error) {
+      console.error("Failed to delete transaction", error);
+    } finally {
+      setDeleteModal({ open: false });
+    }
+  };
+
+  // Generate columns with remove from budget action
+  const columns = getTransactionHistoryColumns({
+    onEdit: handleEditTransaction,
+    onDelete: handleDeleteTransaction,
+    onRemoveFromBudget: handleRemoveTransaction,
+  });
+
+  // Select filters configuration
+  const selectFilters: SelectFilterConfig[] = [
     {
-      field: "category_id",
+      key: "category_id",
       label: "Kategori",
-      type: "select",
+      placeholder: "Semua Kategori",
       options: categories?.map(category => ({
         label: category.name,
         value: category.id.toString()
       })) || []
     },
     {
-      field: "wallet_id",
+      key: "wallet_id",
       label: "Dompet",
-      type: "select",
+      placeholder: "Semua Dompet",
       options: wallets?.map(wallet => ({
         label: `${wallet.name} (${wallet.currency_code})`,
         value: wallet.id.toString()
       })) || []
     },
-    {
-      field: "date",
-      label: "Tanggal",
-      type: "date"
-    }
   ];
 
+  const dateRangeFilter = {
+    key: "date",
+    label: "Tanggal",
+    placeholder: "Pilih rentang tanggal",
+  };
+
   return (
-    <div className="space-y-6">
-      <DataTable
-        data={transactions}
+    <>
+      <TransactionHistoryTable
+        columns={columns}
+        data={movements}
+        totalCount={totalCount}
         isLoading={isLoading}
-        searchPlaceholder="Cari transaksi dalam budget..."
-        searchFields={["transactions.description", "transactions.amount"]}
-        columnFilters={columnFilters}
-        itemsPerPage={itemsPerPage}
-        serverMode
-        totalCount={paged?.count}
-        page={page}
-        onServerParamsChange={({ searchTerm, filters, page: nextPage }) => {
-          setServerSearch(searchTerm);
-          setServerFilters(filters);
-          setPage(nextPage);
-        }}
-        useUrlParams={true}
-        renderItem={renderTransactionItem}
-        emptyStateMessage="Belum ada transaksi dalam budget ini"
-        title={`Transaksi dalam Budget (${paged?.count || 0})`}
+        searchTerm={tableState.searchTerm}
+        onSearchChange={tableActions.setSearchTerm}
+        filters={tableState.filters}
+        onFiltersChange={tableActions.setFilters}
+        selectFilters={selectFilters}
+        dateRangeFilter={dateRangeFilter}
+        page={tableState.page}
+        pageSize={tableState.pageSize}
+        setPage={tableActions.setPage}
+        setPageSize={tableActions.setPageSize}
       />
-    </div>
+
+      <TransactionDialog
+        open={transactionDialog.open}
+        onOpenChange={(open) => setTransactionDialog({ open })}
+        transaction={transactionDialog.transaction}
+        onSuccess={handleSuccess}
+      />
+
+      <ConfirmationModal
+        open={deleteModal.open}
+        onOpenChange={(open) => setDeleteModal({ open })}
+        onConfirm={handleConfirmDelete}
+        title="Hapus Item"
+        description={`Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.`}
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        variant="destructive"
+      />
+    </>
   );
 };
 

@@ -187,6 +187,7 @@ const TransactionHistory = () => {
 
       // Refresh data
       setDeleteModal({ open: false });
+      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
     } catch (error) {
       console.error("Failed to delete item:", error);
     }

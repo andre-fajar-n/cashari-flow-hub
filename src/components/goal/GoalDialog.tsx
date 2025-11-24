@@ -93,7 +93,7 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
               name="target_amount"
               rules={{
                 required: "Jumlah target harus diisi",
-                min: { value: 1, message: "Jumlah harus lebih dari 0" }
+                min: { value: 0, message: "Jumlah harus lebih dari 0" }
               }}
               render={({ field }) => (
                 <FormItem>

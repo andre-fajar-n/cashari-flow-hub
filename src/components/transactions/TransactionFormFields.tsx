@@ -52,7 +52,7 @@ const TransactionFormFields = ({ control, wallets, categories }: TransactionForm
       <FormField
         control={control}
         name="amount"
-        rules={{ required: "Jumlah harus diisi", min: { value: 1, message: "Jumlah harus lebih dari 0" } }}
+        rules={{ required: "Jumlah harus diisi", min: { value: 0, message: "Jumlah harus lebih dari 0" } }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Jumlah</FormLabel>

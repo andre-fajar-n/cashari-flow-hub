@@ -10,7 +10,7 @@ import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handl
 import { useCreateInvestmentAsset, useUpdateInvestmentAsset } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
 import { InvestmentAssetModel } from "@/models/investment-assets";
-import { Dropdown } from "../ui/dropdown";
+import { Dropdown } from "@/components/ui/dropdown";
 
 interface InvestmentAssetDialogProps {
   open: boolean;

@@ -12,6 +12,7 @@ import {
   TrendingUp,
   CreditCard,
   Building2,
+  X,
 } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/date";
@@ -21,6 +22,7 @@ import { getTransactionTypeConfig } from "@/components/ui/transaction-items/util
 export interface TransactionHistoryColumnsProps {
   onEdit: (movement: MoneyMovementModel) => void;
   onDelete: (movement: MoneyMovementModel) => void;
+  onRemoveFromBudget?: (transactionId: number) => void; // Optional: for budget detail page
 }
 
 /**
@@ -29,6 +31,7 @@ export interface TransactionHistoryColumnsProps {
 export const getTransactionHistoryColumns = ({
   onEdit,
   onDelete,
+  onRemoveFromBudget,
 }: TransactionHistoryColumnsProps): ColumnDef<MoneyMovementModel>[] => [
   {
     accessorKey: "resource_type",
@@ -372,20 +375,33 @@ export const getTransactionHistoryColumns = ({
     cell: ({ row }) => {
       const movement = row.original;
 
-      const actions: RowAction<MoneyMovementModel>[] = [
-        {
-          label: "Edit",
-          icon: Edit,
-          onClick: onEdit,
-        },
-        {
-          label: "Hapus",
-          icon: Trash2,
-          onClick: onDelete,
+      const actions: RowAction<MoneyMovementModel>[] = [];
+
+      // Edit action (always available)
+      actions.push({
+        label: "Edit",
+        icon: Edit,
+        onClick: onEdit,
+      });
+
+      // Delete action (always available)
+      actions.push({
+        label: "Hapus Transaksi",
+        icon: Trash2,
+        onClick: onDelete,
+        variant: "destructive",
+        separator: true,
+      });
+
+      // Remove from Budget action (only when onRemoveFromBudget is provided)
+      if (onRemoveFromBudget) {
+        actions.push({
+          label: "Hapus dari Budget",
+          icon: X,
+          onClick: (movement) => onRemoveFromBudget(movement.resource_id),
           variant: "destructive",
-          separator: true,
-        },
-      ];
+        });
+      }
 
       return <DataTableRowActions item={movement} actions={actions} />;
     },

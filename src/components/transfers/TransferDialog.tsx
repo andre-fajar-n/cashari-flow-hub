@@ -151,7 +151,7 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
               <FormField
                 control={form.control}
                 name="from_amount"
-                rules={{ required: "Jumlah keluar harus diisi", min: { value: 1, message: "Harus lebih dari 0" } }}
+                rules={{ required: "Jumlah keluar harus diisi", min: { value: 0, message: "Harus lebih dari 0" } }}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Jumlah Keluar</FormLabel>
@@ -166,7 +166,7 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
               <FormField
                 control={form.control}
                 name="to_amount"
-                rules={{ required: "Jumlah masuk harus diisi", min: { value: 1, message: "Harus lebih dari 0" } }}
+                rules={{ required: "Jumlah masuk harus diisi", min: { value: 0, message: "Harus lebih dari 0" } }}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Jumlah Masuk</FormLabel>
