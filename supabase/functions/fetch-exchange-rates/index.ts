@@ -8,9 +8,9 @@ const supabase = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABA
 // API base URL
 const API_BASE = "https://api.twelvedata.com/exchange_rate";
 
-serve(async (req: any)=>{
+serve(async (req: any) => {
   try {
-    let { date } = await req.json().catch(()=>({
+    let { date } = await req.json().catch(() => ({
       date: null
     }));
 
@@ -33,7 +33,7 @@ serve(async (req: any)=>{
     }
 
     const symbols = [];
-    for (const task of tasks){
+    for (const task of tasks) {
       symbols.push(`${task.currency_code}/${task.base_currency_code}`);
     }
 
@@ -68,7 +68,7 @@ serve(async (req: any)=>{
         date: date
       });
     } else {
-      for (const currencyPair of symbols){
+      for (const currencyPair of symbols) {
         const splitSymbol = currencyPair.split("/");
         console.log("Multiple currency pair:", splitSymbol);
         const exchangeRate = json[currencyPair];
