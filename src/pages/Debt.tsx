@@ -134,7 +134,6 @@ const Debt = () => {
             onDelete={handleDeleteClick}
             onViewHistory={handleViewHistory}
             debtSummary={debtSummary}
-            baseCurrencyCode={userSettings?.base_currency_code || ''}
             selectFilters={selectFilters}
           />
         </div>

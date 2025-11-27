@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dropdown } from "@/components/ui/dropdown";
+import { InputNumber } from "@/components/ui/input-number";
 import { useCreateDebtHistory, useUpdateDebtHistory } from "@/hooks/queries/use-debt-histories";
 import { DebtHistoryFormData, defaultDebtHistoryFormValues } from "@/form-dto/debt-histories";
 import { useWallets } from "@/hooks/queries/use-wallets";
@@ -118,12 +119,10 @@ const DebtHistoryDialog = ({
                 <FormItem>
                   <FormLabel>Jumlah</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      placeholder="Masukkan jumlah"
+                    <InputNumber
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      onChange={(value) => field.onChange(value || 0)}
+                      value={field.value}
                     />
                   </FormControl>
                   <FormMessage />
