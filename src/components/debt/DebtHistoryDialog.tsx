@@ -44,29 +44,38 @@ const DebtHistoryDialog = ({
   const onSubmit = async (data: DebtHistoryFormData) => {
     setIsLoading(true);
 
-    if (history) {
-      updateDebtHistory.mutate({ id: history.id, ...data });
-    } else {
-      createDebtHistory.mutate(data);
+    try {
+      if (history) {
+        await updateDebtHistory.mutateAsync({ id: history.id, ...data });
+      } else {
+        await createDebtHistory.mutateAsync(data);
+      }
+      // Success will be handled by the useEffect below
+    } catch (error) {
+      // Error is already handled by the mutation hooks (toast)
+      // Just reset the loading state
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     if (open) {
       if (history) {
-        form.reset({
+        const resetValues = {
           debt_id: history.debt_id || debtId || 0,
           wallet_id: history.wallet_id ? history.wallet_id.toString() : "",
           category_id: history.category_id ? history.category_id.toString() : "",
           amount: history.amount || 0,
           date: history.date || new Date().toISOString().split("T")[0],
           description: history.description || "",
-        });
+        };
+        form.reset(resetValues);
       } else {
-        form.reset({
-          debt_id: debtId || 0,
+        const resetValues = {
           ...defaultDebtHistoryFormValues,
-        });
+          debt_id: debtId || 0,
+        };
+        form.reset(resetValues);
       }
     }
   }, [open, history, form, debtId]);
@@ -109,10 +118,10 @@ const DebtHistoryDialog = ({
                 <FormItem>
                   <FormLabel>Jumlah</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
+                    <Input
+                      type="number"
                       step="0.01"
-                      placeholder="Masukkan jumlah" 
+                      placeholder="Masukkan jumlah"
                       {...field}
                       onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                     />
@@ -127,10 +136,13 @@ const DebtHistoryDialog = ({
               name="wallet_id"
               label="Dompet"
               placeholder="Pilih dompet"
-              options={wallets?.map((wallet) => ({
-                value: wallet.id.toString(),
-                label: `${wallet.name} (${wallet.currency_code})`
-              })) || []}
+              options={[
+                { value: "none", label: "Pilih dompet" },
+                ...(wallets?.map((wallet) => ({
+                  value: wallet.id.toString(),
+                  label: `${wallet.name} (${wallet.currency_code})`
+                })) || [])
+              ]}
               rules={{ required: "Dompet harus dipilih" }}
             />
 
@@ -139,10 +151,13 @@ const DebtHistoryDialog = ({
               name="category_id"
               label="Kategori"
               placeholder="Pilih kategori"
-              options={categories?.map((category) => ({
-                value: category.id.toString(),
-                label: category.name
-              })) || []}
+              options={[
+                { value: "none", label: "Pilih kategori" },
+                ...(categories?.map((category) => ({
+                  value: category.id.toString(),
+                  label: category.name
+                })) || [])
+              ]}
               rules={{ required: "Kategori harus dipilih" }}
             />
 

@@ -2,41 +2,44 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, CheckCircle, Edit, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { ArrowLeft, CheckCircle, Plus, RotateCcw } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
-import { useDebtHistories } from "@/hooks/queries/use-debt-histories";
 import { useDebtDetail, useMarkDebtAsActive, useMarkDebtAsPaid } from "@/hooks/queries/use-debts";
 import { useDebtSummaryById } from "@/hooks/queries/use-debt-summary";
-import { DataTable, ColumnFilter } from "@/components/ui/data-table";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import DebtHistoryDialog from "@/components/debt/DebtHistoryDialog";
 import DebtSummaryCard from "@/components/debt/DebtSummaryCard";
-import { formatAmountCurrency } from "@/lib/currency";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { useDeleteDebtHistory } from "@/hooks/queries/use-debt-histories";
-import { AmountText } from "@/components/ui/amount-text";
+import DebtHistoryList from "@/components/debt/DebtHistoryList";
 import { DebtHistoryModel } from "@/models/debt-histories";
-import { formatDate } from "@/lib/date";
+import { useDeleteDebtHistory } from "@/hooks/queries/use-debt-histories";
+import { MoneyMovementModel } from "@/models/money-movements";
 
 const DebtHistory = () => {
   const [activeTab, setActiveTab] = useState("summary");
   const [isMarkPaidModalOpen, setIsMarkPaidModalOpen] = useState(false);
   const [isMarkActiveModalOpen, setIsMarkActiveModalOpen] = useState(false);
-  const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [historyToDelete, setHistoryToDelete] = useState<DebtHistoryModel | null>(null);
-  const [historyToEdit, setHistoryToEdit] = useState<DebtHistoryModel | null>(null);
+
+  // Unified dialog state for both add and edit
+  const [debtHistoryDialog, setDebtHistoryDialog] = useState<{
+    open: boolean;
+    history?: DebtHistoryModel;
+  }>({ open: false });
+
+  // Delete confirmation modal state
+  const [deleteModal, setDeleteModal] = useState<{
+    open: boolean;
+    item?: MoneyMovementModel;
+  }>({ open: false });
+
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const debtId = id ? parseInt(id) : 0;
-  const { data: histories, isLoading } = useDebtHistories({ debtId });
   const { data: debtSummary } = useDebtSummaryById(debtId);
   const markAsPaid = useMarkDebtAsPaid();
   const markAsActive = useMarkDebtAsActive();
-  const deleteDebtHistory = useDeleteDebtHistory();
   const { data: debt } = useDebtDetail(debtId);
+  const { mutateAsync: deleteDebtHistory } = useDeleteDebtHistory();
 
   const handleMarkAsPaid = () => {
     markAsPaid.mutate(debt.id);
@@ -46,20 +49,27 @@ const DebtHistory = () => {
     markAsActive.mutate(debt.id);
   };
 
-  const handleEdit = (history: DebtHistoryModel) => {
-    setIsHistoryDialogOpen(true);
-    setHistoryToEdit(history);
+  // Handler to open dialog for adding new history
+  const handleAddHistory = () => {
+    setDebtHistoryDialog({ open: true });
   };
 
-  const handleDeleteClick = (history: DebtHistoryModel) => {
-    setHistoryToDelete(history);
-    setIsDeleteModalOpen(true);
+  // Handler to open dialog for editing existing history
+  const handleEditHistory = (history: DebtHistoryModel) => {
+    setDebtHistoryDialog({ open: true, history });
   };
 
+  // Handler to open delete confirmation modal
+  const handleDeleteHistory = (item: MoneyMovementModel) => {
+    setDeleteModal({ open: true, item });
+  };
+
+  // Handler to confirm delete
   const handleConfirmDelete = () => {
-    if (historyToDelete) {
-      deleteDebtHistory.mutate(historyToDelete.id);
+    if (deleteModal.item) {
+      deleteDebtHistory(deleteModal.item.resource_id);
     }
+    setDeleteModal({ open: false });
   };
 
   if (!debt) {
@@ -77,76 +87,6 @@ const DebtHistory = () => {
       </ProtectedRoute>
     );
   }
-
-  const renderHistoryItem = (history: DebtHistoryModel) => (
-    <Card key={history.id}>
-      <CardContent className="p-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <AmountText
-                amount={history.categories?.is_income ? history.amount : -history.amount}
-                className="font-semibold text-lg"
-                showSign={!history.categories?.is_income}
-              >
-                {formatAmountCurrency(Math.abs(history.amount), history.wallets?.currency_code)}
-              </AmountText>
-              <Badge variant="outline">
-                {formatDate(history.date)}
-              </Badge>
-            </div>
-            
-            <div className="text-sm text-muted-foreground space-y-1">
-              <div>Dompet: {history.wallets?.name}</div>
-              <div>Kategori: {history.categories?.name}</div>
-              {history.description && (
-                <div>Deskripsi: {history.description}</div>
-              )}
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => handleEdit(history)}
-            >
-              <Edit className="w-3 h-3 mr-1" />
-              Edit
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => handleDeleteClick(history)}
-            >
-              <Trash2 className="w-3 h-3 mr-1" />
-              Hapus
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-
-  const columnFilters: ColumnFilter[] = [
-    {
-      field: "wallet_id",
-      label: "Dompet",
-      type: "select",
-      options: Array.from(
-        new Map(
-          histories?.map((h) => [h.wallet_id, {
-            label: h.wallets?.name,
-            value: h.wallet_id.toString()
-          }]) || []
-        ).values()
-      )
-    },
-    {
-      field: "date",
-      label: "Tanggal",
-      type: "daterange"
-    },
-  ];
 
   return (
     <ProtectedRoute>
@@ -180,7 +120,7 @@ const DebtHistory = () => {
                     <CheckCircle className="w-4 h-4 mr-2" />
                     Tandai Lunas
                   </Button>
-                  <Button onClick={() => setIsHistoryDialogOpen(true)}>
+                  <Button onClick={handleAddHistory}>
                     <Plus className="w-4 h-4 mr-2" />
                     Tambah History
                   </Button>
@@ -216,29 +156,34 @@ const DebtHistory = () => {
             </TabsContent>
 
             <TabsContent value="history" className="space-y-4">
-              <DataTable
-                data={histories || []}
-                isLoading={isLoading}
-                searchPlaceholder="Cari history pembayaran..."
-                searchFields={["description", "categories.name"]}
-                columnFilters={columnFilters}
-                renderItem={renderHistoryItem}
-                emptyStateMessage="Belum ada history pembayaran"
-                title="History Pembayaran"
-                description={`Daftar pembayaran untuk ${debt.name}`}
+              <DebtHistoryList
+                debt={debt}
+                onEditHistory={handleEditHistory}
+                onDeleteHistory={handleDeleteHistory}
               />
             </TabsContent>
           </Tabs>
         </div>
 
+        {/* Unified dialog for both add and edit */}
         <DebtHistoryDialog
-          open={isHistoryDialogOpen}
-          onOpenChange={setIsHistoryDialogOpen}
+          open={debtHistoryDialog.open}
+          onOpenChange={(open) => setDebtHistoryDialog({ open })}
           debtId={debtId}
-          history={historyToEdit}
-          onSuccess={() => {
-            // Data akan di-refresh otomatis oleh react-query
-          }}
+          history={debtHistoryDialog.history}
+          onSuccess={() => { }}
+        />
+
+        {/* Delete confirmation modal */}
+        <ConfirmationModal
+          open={deleteModal.open}
+          onOpenChange={(open) => setDeleteModal({ open })}
+          onConfirm={handleConfirmDelete}
+          title="Hapus Riwayat"
+          description={`Apakah Anda yakin ingin menghapus riwayat ini? Tindakan ini tidak dapat dibatalkan.`}
+          confirmText="Ya, Hapus"
+          cancelText="Batal"
+          variant="destructive"
         />
 
         <ConfirmationModal
@@ -259,17 +204,6 @@ const DebtHistory = () => {
           description="Apakah Anda yakin ingin menandai hutang/piutang ini sebagai aktif?"
           confirmText="Ya, Tandai Aktif"
           cancelText="Batal"
-        />
-
-        <ConfirmationModal
-          open={isDeleteModalOpen}
-          onOpenChange={setIsDeleteModalOpen}
-          onConfirm={handleConfirmDelete}
-          title="Hapus History Pembayaran"
-          description="Apakah Anda yakin ingin menghapus history pembayaran ini? Tindakan ini tidak dapat dibatalkan."
-          confirmText="Ya, Hapus"
-          cancelText="Batal"
-          variant="destructive"
         />
       </Layout>
     </ProtectedRoute>

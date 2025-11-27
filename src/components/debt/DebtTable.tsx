@@ -14,30 +14,29 @@ export interface DebtTableProps {
   debts: DebtModel[];
   isLoading: boolean;
   totalCount: number;
-  
+
   // Search
   searchTerm: string;
   onSearchChange: (search: string) => void;
-  
+
   // Filters
   filters: Record<string, any>;
   onFiltersChange: (filters: Record<string, any>) => void;
   selectFilters?: SelectFilterConfig[];
-  
+
   // Pagination
   page: number;
   pageSize: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
-  
+
   // Actions
   onEdit: (debt: DebtModel) => void;
   onDelete: (debtId: number) => void;
   onViewHistory: (debt: DebtModel) => void;
-  
+
   // Debt-specific data
   debtSummary?: DebtSummaryModel[];
-  baseCurrencyCode: string;
 }
 
 /**
@@ -62,7 +61,6 @@ export const DebtTable = ({
   onDelete,
   onViewHistory,
   debtSummary = [],
-  baseCurrencyCode,
 }: DebtTableProps) => {
   // Group debt summary by debt_id
   const groupedSummaryById = debtSummary.reduce((acc, item) => {
@@ -94,11 +92,10 @@ export const DebtTable = ({
       cell: ({ row }) => {
         const debt = row.original;
         return (
-          <span className={`text-xs px-2 py-1 rounded-md font-medium ${
-            debt.type === DEBT_TYPES.LOAN
-              ? 'bg-red-50 text-red-700'
-              : 'bg-green-50 text-green-700'
-          }`}>
+          <span className={`text-xs px-2 py-1 rounded-md font-medium ${debt.type === DEBT_TYPES.LOAN
+            ? 'bg-red-50 text-red-700'
+            : 'bg-green-50 text-green-700'
+            }`}>
             {debt.type === DEBT_TYPES.LOAN ? 'Hutang' : 'Piutang'}
           </span>
         );

@@ -20,6 +20,8 @@ import { MOVEMENT_TYPES } from "@/constants/enums";
 import { getTransactionTypeConfig } from "@/components/ui/transaction-items/utils";
 
 export interface TransactionHistoryColumnsProps {
+  hideResourceType?: boolean;
+  hideAdditionalInfo?: boolean;
   onEdit: (movement: MoneyMovementModel) => void;
   onDelete: (movement: MoneyMovementModel) => void;
   onRemoveFromBudget?: (transactionId: number) => void; // Optional: for budget detail page
@@ -30,12 +32,16 @@ export interface TransactionHistoryColumnsProps {
  * Generate column definitions for Transaction History table
  */
 export const getTransactionHistoryColumns = ({
+  hideResourceType,
+  hideAdditionalInfo,
   onEdit,
   onDelete,
   onRemoveFromBudget,
   onRemoveFromProject,
-}: TransactionHistoryColumnsProps): ColumnDef<MoneyMovementModel>[] => [
-  {
+}: TransactionHistoryColumnsProps): ColumnDef<MoneyMovementModel>[] => {
+  const columns = []
+
+  const resourceTypeColumn = {
     accessorKey: "resource_type",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Tipe" enableSorting={false} />
@@ -56,96 +62,100 @@ export const getTransactionHistoryColumns = ({
         </Badge>
       );
     },
-  },
-  {
-    accessorKey: "category_name",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Kategori" enableSorting={false} />
-    ),
-    enableSorting: false,
-    cell: ({ row }) => {
-      const movement = row.original;
-      const isIncome = movement.amount > 0;
-      const isExpense = movement.amount < 0;
-      const hasDescription = !!movement.description;
+  }
 
-      return (
-        <div className="flex items-start gap-3 min-w-0">
-          {/* Icon */}
-          <div className={`flex-shrink-0 p-2 rounded-full bg-gray-50 ${!hasDescription ? 'self-center' : ''}`}>
-            {isIncome ? (
-              <ArrowUpCircle className="w-5 h-5 text-green-600" />
-            ) : isExpense ? (
-              <ArrowDownCircle className="w-5 h-5 text-red-600" />
-            ) : (
-              <ArrowLeftRight className="w-5 h-5 text-blue-600" />
-            )}
-          </div>
+  const primaryColumns = [
+    {
+      accessorKey: "category_name",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Kategori" enableSorting={false} />
+      ),
+      enableSorting: false,
+      cell: ({ row }) => {
+        const movement = row.original;
+        const isIncome = movement.amount > 0;
+        const isExpense = movement.amount < 0;
+        const hasDescription = !!movement.description;
 
-          {/* Content */}
-          <div className={`flex-1 min-w-0 ${!hasDescription ? 'self-center' : ''}`}>
-            <div className="font-semibold text-gray-900 truncate">
-              {movement.category_name || "-"}
+        return (
+          <div className="flex items-start gap-3 min-w-0">
+            {/* Icon */}
+            <div className={`flex-shrink-0 p-2 rounded-full bg-gray-50 ${!hasDescription ? 'self-center' : ''}`}>
+              {isIncome ? (
+                <ArrowUpCircle className="w-5 h-5 text-green-600" />
+              ) : isExpense ? (
+                <ArrowDownCircle className="w-5 h-5 text-red-600" />
+              ) : (
+                <ArrowLeftRight className="w-5 h-5 text-blue-600" />
+              )}
             </div>
-            {hasDescription && (
-              <div className="text-sm text-gray-600 truncate mt-0.5">
-                {movement.description}
+
+            {/* Content */}
+            <div className={`flex-1 min-w-0 ${!hasDescription ? 'self-center' : ''}`}>
+              <div className="font-semibold text-gray-900 truncate">
+                {movement.category_name || "-"}
+              </div>
+              {hasDescription && (
+                <div className="text-sm text-gray-600 truncate mt-0.5">
+                  {movement.description}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "wallet_name",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Dompet" enableSorting={false} />
+      ),
+      enableSorting: false,
+      cell: ({ row }) => {
+        const movement = row.original;
+        const hasTransfer = movement.opposite_wallet_name || movement.opposite_goal_name;
+
+        return (
+          <div className="space-y-1">
+            {/* Primary Wallet/Goal */}
+            <div className="flex items-center gap-1.5">
+              <div className="font-medium text-gray-900 text-sm">
+                {movement.wallet_name || movement.goal_name || "-"}
+              </div>
+            </div>
+
+            {/* Transfer Info - Simple display */}
+            {hasTransfer && (
+              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                <ArrowLeftRight className="w-3 h-3" />
+                <span>
+                  {movement.amount > 0 ? "Dari" : "Ke"}{" "}
+                  {movement.opposite_wallet_name || movement.opposite_goal_name}
+                </span>
               </div>
             )}
           </div>
-        </div>
-      );
+        );
+      },
     },
-  },
-  {
-    accessorKey: "wallet_name",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Dompet" enableSorting={false} />
-    ),
-    enableSorting: false,
-    cell: ({ row }) => {
-      const movement = row.original;
-      const hasTransfer = movement.opposite_wallet_name || movement.opposite_goal_name;
-
-      return (
-        <div className="space-y-1">
-          {/* Primary Wallet/Goal */}
-          <div className="flex items-center gap-1.5">
-            <div className="font-medium text-gray-900 text-sm">
-              {movement.wallet_name || movement.goal_name || "-"}
-            </div>
+    {
+      accessorKey: "date",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Tanggal" enableSorting={false} />
+      ),
+      enableSorting: false,
+      cell: ({ row }) => {
+        const movement = row.original;
+        return (
+          <div className="text-sm text-gray-700 whitespace-nowrap">
+            {formatDate(movement.date)}
           </div>
+        );
+      },
+    },
+  ];
 
-          {/* Transfer Info - Simple display */}
-          {hasTransfer && (
-            <div className="flex items-center gap-1.5 text-xs text-gray-600">
-              <ArrowLeftRight className="w-3 h-3" />
-              <span>
-                {movement.amount > 0 ? "Dari" : "Ke"}{" "}
-                {movement.opposite_wallet_name || movement.opposite_goal_name}
-              </span>
-            </div>
-          )}
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: "date",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Tanggal" enableSorting={false} />
-    ),
-    enableSorting: false,
-    cell: ({ row }) => {
-      const movement = row.original;
-      return (
-        <div className="text-sm text-gray-700 whitespace-nowrap">
-          {formatDate(movement.date)}
-        </div>
-      );
-    },
-  },
-  {
+  const additionalInfoColumn = {
     id: "additional_info",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Info Tambahan" enableSorting={false} />
@@ -323,8 +333,9 @@ export const getTransactionHistoryColumns = ({
         </div>
       );
     },
-  },
-  {
+  }
+
+  const amountColumn = {
     accessorKey: "amount",
     header: ({ column }) => (
       <DataTableColumnHeader
@@ -341,8 +352,8 @@ export const getTransactionHistoryColumns = ({
       const colorClass = isIncome
         ? "text-green-600"
         : isExpense
-        ? "text-red-600"
-        : "text-blue-600";
+          ? "text-red-600"
+          : "text-blue-600";
 
       return (
         <div className="text-right">
@@ -370,8 +381,9 @@ export const getTransactionHistoryColumns = ({
         </div>
       );
     },
-  },
-  {
+  }
+
+  const actionColumn = {
     id: "actions",
     header: "Aksi",
     cell: ({ row }) => {
@@ -417,6 +429,20 @@ export const getTransactionHistoryColumns = ({
 
       return <DataTableRowActions item={movement} actions={actions} />;
     },
-  },
-];
+  };
+
+  if (!hideResourceType) {
+    columns.push(resourceTypeColumn);
+  }
+
+  columns.push(...primaryColumns);
+
+  if (!hideAdditionalInfo) {
+    columns.push(additionalInfoColumn);
+  }
+
+  columns.push(...[amountColumn, actionColumn]);
+
+  return columns;
+}
 

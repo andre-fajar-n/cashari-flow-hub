@@ -32,7 +32,10 @@ export const useDebtHistories = (params: DebtHistoryFilter = {}) => {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching debt histories:", error);
+        throw error;
+      }
       return data;
     },
     enabled: !!user && (!debtId || !!debtId) && (!ids || !!ids),
@@ -54,11 +57,16 @@ export const useCreateDebtHistory = () => {
           updated_at: null,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error creating debt history:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["debt-histories"] });
       queryClient.invalidateQueries({ queryKey: ["debts"] });
+      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
+      queryClient.invalidateQueries({ queryKey: ["debt-summary"] });
       toast({
         title: "Berhasil",
         description: "History hutang/piutang berhasil ditambahkan",
@@ -92,6 +100,8 @@ export const useDeleteDebtHistory = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["debt-histories"] });
       queryClient.invalidateQueries({ queryKey: ["debts"] });
+      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
+      queryClient.invalidateQueries({ queryKey: ["debt-summary"] });
       toast({
         title: "Berhasil",
         description: "History hutang/piutang berhasil dihapus",
@@ -128,6 +138,8 @@ export const useUpdateDebtHistory = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["debt-histories"] });
       queryClient.invalidateQueries({ queryKey: ["debts"] });
+      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
+      queryClient.invalidateQueries({ queryKey: ["debt-summary"] });
       toast({
         title: "Berhasil",
         description: "History hutang/piutang berhasil diperbarui",
