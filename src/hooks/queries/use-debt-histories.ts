@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { DebtHistoryFilter, DebtHistoryFormData } from "@/form-dto/debt-histories";
+import { DebtHistoryFilter, DebtHistorySubmitData } from "@/form-dto/debt-histories";
 import { DebtHistoryModel } from "@/models/debt-histories";
 
 export const useDebtHistories = (params: DebtHistoryFilter = {}) => {
@@ -48,7 +48,7 @@ export const useCreateDebtHistory = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (debtHistory: DebtHistoryFormData) => {
+    mutationFn: async (debtHistory: DebtHistorySubmitData) => {
       const { error } = await supabase
         .from("debt_histories")
         .insert({
@@ -123,7 +123,7 @@ export const useUpdateDebtHistory = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...debtHistory }: DebtHistoryFormData & { id: number }) => {
+    mutationFn: async ({ id, ...debtHistory }: DebtHistorySubmitData & { id: number }) => {
       const { error } = await supabase
         .from("debt_histories")
         .update({

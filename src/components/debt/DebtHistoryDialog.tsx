@@ -46,10 +46,18 @@ const DebtHistoryDialog = ({
     setIsLoading(true);
 
     try {
+      // Convert string IDs to numbers for API
+      const submitData = {
+        ...data,
+        debt_id: parseInt(data.debt_id),
+        wallet_id: parseInt(data.wallet_id),
+        category_id: parseInt(data.category_id),
+      };
+
       if (history) {
-        await updateDebtHistory.mutateAsync({ id: history.id, ...data });
+        await updateDebtHistory.mutateAsync({ id: history.id, ...submitData });
       } else {
-        await createDebtHistory.mutateAsync(data);
+        await createDebtHistory.mutateAsync(submitData);
       }
       // Success will be handled by the useEffect below
     } catch (error) {
@@ -63,7 +71,7 @@ const DebtHistoryDialog = ({
     if (open) {
       if (history) {
         const resetValues = {
-          debt_id: history.debt_id || debtId || 0,
+          debt_id: (history.debt_id || debtId)?.toString() || "",
           wallet_id: history.wallet_id ? history.wallet_id.toString() : "",
           category_id: history.category_id ? history.category_id.toString() : "",
           amount: history.amount || 0,
@@ -74,7 +82,7 @@ const DebtHistoryDialog = ({
       } else {
         const resetValues = {
           ...defaultDebtHistoryFormValues,
-          debt_id: debtId || 0,
+          debt_id: debtId?.toString() || "",
         };
         form.reset(resetValues);
       }
@@ -103,10 +111,13 @@ const DebtHistoryDialog = ({
                 name="debt_id"
                 label="Hutang/Piutang"
                 placeholder="Pilih hutang/piutang"
-                options={debts?.map((debt) => ({
-                  value: debt.id.toString(),
-                  label: `${debt.name} (${debt.type === 'loan' ? 'Hutang' : 'Piutang'})`
-                })) || []}
+                options={[
+                  { value: "none", label: "Pilih hutang/piutang" },
+                  ...(debts?.map((debt) => ({
+                    value: debt.id.toString(),
+                    label: `${debt.name} (${debt.type === 'loan' ? 'Hutang' : 'Piutang'})`
+                  })) || [])
+                ]}
                 rules={{ required: "Hutang/Piutang harus dipilih" }}
               />
             )}

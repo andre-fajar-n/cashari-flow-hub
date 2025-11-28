@@ -6,7 +6,11 @@ import { CategoryFormData } from "@/form-dto/categories";
 import { CategoryApplication } from "@/constants/enums";
 import { CategoryModel } from "@/models/categories";
 
-export const useCategories = (isIncome?: boolean, application?: CategoryApplication) => {
+export const useCategories = (
+  isIncome?: boolean,
+  application?: CategoryApplication,
+  excludeGeneralCategories?: boolean
+) => {
   const { user } = useAuth();
 
   return useQuery<CategoryModel[]>({
@@ -23,7 +27,11 @@ export const useCategories = (isIncome?: boolean, application?: CategoryApplicat
       }
 
       if (application) {
-        query = query.or("application.is.null,application.eq." + application);
+        var filters = "application.eq." + application;
+        if (!excludeGeneralCategories) {
+          filters += ",application.is.null";
+        }
+        query = query.or(filters);
       }
 
       const { data, error } = await query.order("name");
@@ -37,12 +45,9 @@ export const useCategories = (isIncome?: boolean, application?: CategoryApplicat
   });
 };
 
-export const useIncomeCategories = () => useCategories(true);
-export const useExpenseCategories = () => useCategories(false);
-
 export const useTransactionCategories = () => useCategories(undefined, 'transaction');
 export const useInvestmentCategories = () => useCategories(undefined, 'investment');
-export const useDebtCategories = () => useCategories(undefined, 'debt');
+export const useDebtCategories = () => useCategories(undefined, 'debt', true);
 
 export const useDeleteCategory = () => {
   const queryClient = useQueryClient();

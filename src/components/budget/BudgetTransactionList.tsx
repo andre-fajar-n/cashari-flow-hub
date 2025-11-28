@@ -1,6 +1,6 @@
 import { useDeleteBudgetItem } from "@/hooks/queries/use-budget-transactions";
 import { BudgetModel } from "@/models/budgets";
-import { useCategories } from "@/hooks/queries/use-categories";
+import { useTransactionCategories } from "@/hooks/queries/use-categories";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useTableState } from "@/hooks/use-table-state";
 import { SelectFilterConfig } from "@/components/ui/advanced-data-table/advanced-data-table-toolbar";
@@ -47,7 +47,7 @@ const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
     filters: tableState.filters
   });
 
-  const { data: categories } = useCategories();
+  const { data: categories } = useTransactionCategories();
   const { data: wallets } = useWallets();
 
   const movements = paged?.data || [];
@@ -102,6 +102,7 @@ const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
     onEdit: handleEditTransaction,
     onDelete: handleDeleteTransaction,
     onRemoveFromBudget: handleRemoveTransaction,
+    hideResourceType: true
   });
 
   // Select filters configuration

@@ -5,7 +5,7 @@ import { useMoneyMovementsPaginatedByProject } from "@/hooks/queries/paginated/u
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
 import { BusinessProjectModel } from "@/models/business-projects";
-import { useCategories } from "@/hooks/queries/use-categories";
+import { useTransactionCategories } from "@/hooks/queries/use-categories";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useTableState } from "@/hooks/use-table-state";
 import { SelectFilterConfig } from "@/components/ui/advanced-data-table/advanced-data-table-toolbar";
@@ -66,7 +66,7 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
 
   const isLoading = isLoadingMovements || isTransactionsLoading;
 
-  const { data: categories } = useCategories();
+  const { data: categories } = useTransactionCategories();
   const { data: wallets } = useWallets();
 
   const handleRemoveTransaction = (transactionId: number) => {
@@ -122,6 +122,7 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
     onEdit: handleEditTransaction,
     onDelete: handleDeleteTransaction,
     onRemoveFromProject: handleRemoveTransaction, // Reuse for "Remove from Project"
+    hideResourceType: true
   });
 
   // Select filters configuration

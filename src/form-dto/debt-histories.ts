@@ -1,5 +1,5 @@
 export interface DebtHistoryFormData {
-  debt_id: number;
+  debt_id: string;
   wallet_id: string;
   category_id: string;
   amount: number;
@@ -7,8 +7,17 @@ export interface DebtHistoryFormData {
   description?: string;
 }
 
+export interface DebtHistorySubmitData {
+  debt_id: number;
+  wallet_id: number;
+  category_id: number;
+  amount: number;
+  date: string;
+  description?: string;
+}
+
 export const defaultDebtHistoryFormValues: DebtHistoryFormData = {
-  debt_id: 0,
+  debt_id: "",
   wallet_id: "",
   category_id: "",
   amount: 0,
