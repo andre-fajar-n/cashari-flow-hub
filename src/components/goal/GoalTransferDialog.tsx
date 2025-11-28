@@ -59,10 +59,10 @@ const GoalTransferDialog = ({
   const amountFrom = form.watch("from_amount");
 
   // Filter assets based on selected instruments
-  const fromAssets = assets?.filter(asset => 
+  const fromAssets = assets?.filter(asset =>
     fromInstrumentId === 0 || asset.instrument_id === fromInstrumentId
   );
-  const toAssets = assets?.filter(asset => 
+  const toAssets = assets?.filter(asset =>
     toInstrumentId === 0 || asset.instrument_id === toInstrumentId
   );
 
@@ -73,7 +73,7 @@ const GoalTransferDialog = ({
     const fromWallet = wallets?.find(w => w.id === fromWalletId);
     const toWallet = wallets?.find(w => w.id === toWalletId);
     const isSameCurrency = fromWallet?.currency_code === toWallet?.currency_code;
-    
+
     if (isSameCurrency && amountFrom > 0) {
       form.setValue("to_amount", amountFrom);
     }
@@ -154,11 +154,11 @@ const GoalTransferDialog = ({
   };
 
   const modeConfig = transferConfig ? getTransferModeConfig(transferConfig.mode) : null;
-  const dialogTitle = transfer 
-    ? "Edit Transfer Goal" 
-    : transferConfig 
-      ? modeConfig?.title || "Transfer Goal Baru"
-      : "Transfer Goal Baru";
+  const dialogTitle = transfer
+    ? "Ubah Transfer Target"
+    : transferConfig
+      ? modeConfig?.title || "Transfer Target Baru"
+      : "Transfer Target Baru";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -193,7 +193,7 @@ const GoalTransferDialog = ({
                 Batal
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Menyimpan..." : transfer ? "Update" : "Simpan"}
+                {isLoading ? "Menyimpan..." : transfer ? "Perbarui" : "Simpan"}
               </Button>
             </div>
           </form>

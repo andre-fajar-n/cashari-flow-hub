@@ -23,7 +23,7 @@ const Auth = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 flex items-center justify-center">
-        <div className="text-blue-600">Loading...</div>
+        <div className="text-blue-600">Memuat...</div>
       </div>
     );
   }
@@ -37,13 +37,13 @@ const Auth = () => {
     const password = formData.get('password') as string;
 
     const { error } = await signIn(email, password);
-    
+
     if (error) {
       toast.error("Gagal masuk: " + error.message);
     } else {
       toast.success("Berhasil masuk!");
     }
-    
+
     setIsLoading(false);
   };
 
@@ -57,13 +57,13 @@ const Auth = () => {
     const name = formData.get('fullName') as string;
 
     const { error } = await signUp(email, password, name);
-    
+
     if (error) {
       toast.error("Gagal mendaftar: " + error.message);
     } else {
       toast.success("Berhasil mendaftar! Silakan cek email untuk verifikasi.");
     }
-    
+
     setIsLoading(false);
   };
 
@@ -87,7 +87,7 @@ const Auth = () => {
               <TabsTrigger value="login">Masuk</TabsTrigger>
               <TabsTrigger value="register">Daftar</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="login" className="space-y-4">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
@@ -101,7 +101,7 @@ const Auth = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">Kata Sandi</Label>
                   <Input
                     id="password"
                     name="password"
@@ -119,7 +119,7 @@ const Auth = () => {
                 </Button>
               </form>
             </TabsContent>
-            
+
             <TabsContent value="register" className="space-y-4">
               <form onSubmit={handleRegister} className="space-y-4">
                 <div className="space-y-2">
@@ -143,7 +143,7 @@ const Auth = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="registerPassword">Password</Label>
+                  <Label htmlFor="registerPassword">Kata Sandi</Label>
                   <Input
                     id="registerPassword"
                     name="registerPassword"

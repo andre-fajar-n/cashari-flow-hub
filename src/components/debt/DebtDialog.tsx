@@ -79,7 +79,7 @@ const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) =>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {debt ? "Edit Hutang/Piutang" : "Tambah Hutang/Piutang Baru"}
+            {debt ? "Ubah Hutang/Piutang" : "Tambah Hutang/Piutang Baru"}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -145,7 +145,7 @@ const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) =>
                 Batal
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Menyimpan..." : debt ? "Update" : "Simpan"}
+                {isLoading ? "Menyimpan..." : debt ? "Perbarui" : "Simpan"}
               </Button>
             </div>
           </form>

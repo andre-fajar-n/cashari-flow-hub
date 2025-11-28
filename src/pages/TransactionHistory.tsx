@@ -119,7 +119,7 @@ const TransactionHistory = () => {
   }, {} as Record<number, GoalInvestmentRecordModel>);
 
   const isLoading = isMovementsLoading || isDebtHistoriesLoading || isTransactionsLoading || isTransfersLoading || isGoalTransfersLoading ||
-                    isInvestmentRecordsLoading;
+    isInvestmentRecordsLoading;
 
   // Handle edit actions
   const handleEdit = (item: MoneyMovementModel) => {
@@ -133,15 +133,15 @@ const TransactionHistory = () => {
       case MOVEMENT_TYPES.GOAL_TRANSFER:
         setGoalTransferDialog({ open: true, transfer: goalTransfersGroupById[item.resource_id] });
         break;
-      case MOVEMENT_TYPES.INVESTMENT_GROWTH:;
+      case MOVEMENT_TYPES.INVESTMENT_GROWTH: ;
         setInvestmentDialog({
           open: true,
           record: investmentRecordsGroupById[item.resource_id],
         });
         break;
       case MOVEMENT_TYPES.DEBT_HISTORY:
-        setDebtHistoryDialog({ 
-          open: true, 
+        setDebtHistoryDialog({
+          open: true,
           history: debtHistoriesGroupById[item.resource_id]
         });
         break;
@@ -239,7 +239,7 @@ const TransactionHistory = () => {
       options: [
         { label: "Transaksi", value: "transactions" },
         { label: "Transfer", value: "transfers" },
-        { label: "Transfer Goal", value: "goal_transfers" },
+        { label: "Transfer Target", value: "goal_transfers" },
         { label: "Progres Investasi", value: "investment_growth" },
         { label: "Hutang/Piutang", value: "debt_histories" },
       ],
@@ -264,7 +264,7 @@ const TransactionHistory = () => {
     },
     {
       key: "goal_id",
-      label: "Goal",
+      label: "Target",
       options:
         goals?.map((goal) => ({
           label: goal.name,
@@ -361,7 +361,7 @@ const TransactionHistory = () => {
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.GOAL_TRANSFER)}>
                   <Plus className="w-4 h-4 mr-2" />
-                  Transfer Goal
+                  Transfer Target
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.INVESTMENT_GROWTH)}>
                   <Plus className="w-4 h-4 mr-2" />

@@ -393,7 +393,7 @@ export const getTransactionHistoryColumns = ({
 
       // Edit action (always available)
       actions.push({
-        label: "Edit",
+        label: "Ubah",
         icon: Edit,
         onClick: onEdit,
       });

@@ -54,7 +54,7 @@ const AssetDetail = () => {
   const { data: records, isLoading: isRecordsLoading } = useGoalInvestmentRecords({ assetId: parseInt(id!) });
 
   const isLoadingHistoryTab = isMovementsLoading || isTransfersLoading || isWalletsLoading || isGoalsLoading ||
-                              isRecordsLoading;
+    isRecordsLoading;
 
   const asset = assets?.find(a => a.id === parseInt(id!));
 
@@ -158,7 +158,7 @@ const AssetDetail = () => {
           onClick={() => handleEditValue(value)}
         >
           <Edit className="w-3 h-3 mr-1" />
-          Edit
+          Ubah
         </Button>
         <Button
           variant="outline"
@@ -203,7 +203,7 @@ const AssetDetail = () => {
             <div className="flex gap-2">
               <Button variant="outline" onClick={handleEdit}>
                 <Edit className="w-4 h-4 mr-2" />
-                Edit
+                Ubah
               </Button>
               <Button variant="outline" onClick={handleDeleteClick}>
                 <Trash2 className="w-4 h-4 mr-2" />

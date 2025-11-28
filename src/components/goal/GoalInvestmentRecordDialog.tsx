@@ -121,7 +121,7 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, instrumentId, 
       <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {record ? "Edit Investment Record" : "Update Progress Investasi"}
+            {record ? "Ubah Investment Record" : "Update Progress Investasi"}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -131,11 +131,11 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, instrumentId, 
               <Dropdown
                 control={form.control}
                 name="goal_id"
-                label="Goal"
-                placeholder="Pilih goal"
-                rules={{ required: "Goal harus dipilih" }}
+                label="Target"
+                placeholder="Pilih target"
+                rules={{ required: "Target harus dipilih" }}
                 options={[
-                  { value: "none", label: "Pilih goal" },
+                  { value: "none", label: "Pilih target" },
                   ...(goals?.map((goal) => ({
                     value: goal.id.toString(),
                     label: goal.name
@@ -149,10 +149,10 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, instrumentId, 
               <Dropdown
                 control={form.control}
                 name="wallet_id"
-                label="Wallet"
-                placeholder="Pilih Wallet"
+                label="Dompet"
+                placeholder="Pilih Dompet"
                 options={[
-                  { value: "none", label: "Pilih Wallet" },
+                  { value: "none", label: "Pilih Dompet" },
                   ...(wallets?.map((wallet) => ({
                     value: wallet.id.toString(),
                     label: wallet.name
@@ -257,10 +257,10 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, instrumentId, 
                           allowNull={true}
                           placeholder="Kosong untuk null"
                           className={`${field.value === null
-                              ? "bg-blue-50 border-blue-200 text-blue-700"
-                              : field.value === 0
-                                ? "bg-orange-50 border-orange-200 text-orange-700"
-                                : ""
+                            ? "bg-blue-50 border-blue-200 text-blue-700"
+                            : field.value === 0
+                              ? "bg-orange-50 border-orange-200 text-orange-700"
+                              : ""
                             }`}
                         />
                         {field.value === null && (
@@ -342,7 +342,7 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, instrumentId, 
                 Batal
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Menyimpan..." : record ? "Update" : "Simpan"}
+                {isLoading ? "Menyimpan..." : record ? "Perbarui" : "Simpan"}
               </Button>
             </div>
           </form>

@@ -109,7 +109,7 @@ const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogPro
             <FormField
               control={form.control}
               name="amount"
-              rules={{ 
+              rules={{
                 required: "Jumlah harus diisi",
                 min: { value: 0, message: "Jumlah tidak boleh negatif" }
               }}
@@ -174,7 +174,7 @@ const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogPro
                 Batal
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Menyimpan..." : budget ? "Update" : "Simpan"}
+                {isLoading ? "Menyimpan..." : budget ? "Perbarui" : "Simpan"}
               </Button>
             </div>
           </form>

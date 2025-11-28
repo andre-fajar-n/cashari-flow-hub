@@ -14,7 +14,7 @@ const Dashboard = () => {
       <Layout>
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dasbor</h1>
           <p className="text-gray-600">Selamat datang, {user?.email}</p>
         </div>
 

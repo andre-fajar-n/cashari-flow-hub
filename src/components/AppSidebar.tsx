@@ -32,7 +32,7 @@ const AppSidebar = () => {
   const { signOut } = useAuth();
 
   const mainMenuItems = [
-    { path: "/dashboard", label: "Dashboard", icon: Home },
+    { path: "/dashboard", label: "Dasbor", icon: Home },
     { path: "/settings", label: "Pengaturan", icon: Settings },
   ];
 
@@ -57,7 +57,7 @@ const AppSidebar = () => {
       <SidebarHeader className="border-b px-6 py-4">
         <h2 className="text-lg font-semibold">Cashari</h2>
       </SidebarHeader>
-      
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Menu Utama</SidebarGroupLabel>
@@ -68,8 +68,8 @@ const AppSidebar = () => {
                 const isActive = location.pathname === item.path;
                 return (
                   <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton 
-                      asChild 
+                    <SidebarMenuButton
+                      asChild
                       isActive={isActive}
                       onClick={() => navigate(item.path)}
                     >
@@ -94,8 +94,8 @@ const AppSidebar = () => {
                 const isActive = location.pathname === item.path;
                 return (
                   <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton 
-                      asChild 
+                    <SidebarMenuButton
+                      asChild
                       isActive={isActive}
                       onClick={() => navigate(item.path)}
                     >
@@ -120,8 +120,8 @@ const AppSidebar = () => {
                 const isActive = location.pathname === item.path;
                 return (
                   <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton 
-                      asChild 
+                    <SidebarMenuButton
+                      asChild
                       isActive={isActive}
                       onClick={() => navigate(item.path)}
                     >
@@ -146,8 +146,8 @@ const AppSidebar = () => {
                 const isActive = location.pathname === item.path;
                 return (
                   <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton 
-                      asChild 
+                    <SidebarMenuButton
+                      asChild
                       isActive={isActive}
                       onClick={() => navigate(item.path)}
                     >
@@ -165,9 +165,9 @@ const AppSidebar = () => {
       </SidebarContent>
 
       <SidebarFooter className="border-t p-4">
-        <Button 
-          onClick={signOut} 
-          variant="destructive" 
+        <Button
+          onClick={signOut}
+          variant="destructive"
           className="w-full flex items-center gap-2"
         >
           <LogOut className="w-4 h-4" />

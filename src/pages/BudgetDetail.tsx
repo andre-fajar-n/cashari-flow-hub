@@ -54,8 +54,8 @@ const BudgetDetail = () => {
         <Layout>
           <div className="text-center py-8">
             <p className="text-muted-foreground">Budget tidak ditemukan</p>
-            <Button 
-              onClick={() => navigate("/budget")} 
+            <Button
+              onClick={() => navigate("/budget")}
               className="mt-4"
               variant="outline"
             >
@@ -91,7 +91,7 @@ const BudgetDetail = () => {
                   <Plus className="w-4 h-4 mr-2" /> Tambah Transaksi
                 </Button>
                 <Button variant="outline" onClick={() => setIsEditDialogOpen(true)}>
-                  <Edit className="w-4 h-4 mr-2" /> Edit
+                  <Edit className="w-4 h-4 mr-2" /> Ubah
                 </Button>
                 <Button variant="destructive" onClick={() => setIsDeleteModalOpen(true)}>
                   <Trash2 className="w-4 h-4 mr-2" /> Hapus
@@ -161,7 +161,7 @@ const BudgetDetail = () => {
         </div>
 
         {/* Edit dialog */}
-        <BudgetDialog 
+        <BudgetDialog
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
           budget={budget}

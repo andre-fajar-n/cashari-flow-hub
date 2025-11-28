@@ -33,13 +33,12 @@ const GoalCard = ({ goal, totalAmount, onEdit, onDelete }: GoalCardProps) => {
           <div className="flex-1 min-w-0">
             <h3 className="font-bold text-xl sm:font-medium sm:text-sm text-gray-900 truncate mb-3 sm:mb-1">{goal.name}</h3>
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-2">
-              <span className={`text-sm sm:text-xs px-4 sm:px-2 py-2 sm:py-0.5 rounded-full sm:rounded-md font-bold sm:font-medium shadow-sm sm:shadow-none w-fit ${
-                goal.is_achieved
+              <span className={`text-sm sm:text-xs px-4 sm:px-2 py-2 sm:py-0.5 rounded-full sm:rounded-md font-bold sm:font-medium shadow-sm sm:shadow-none w-fit ${goal.is_achieved
                   ? 'bg-green-100 text-green-800 border border-green-200 sm:border-transparent'
                   : goal.is_active
-                  ? 'bg-blue-100 text-blue-800 border border-blue-200 sm:border-transparent'
-                  : 'bg-gray-100 text-gray-800 border border-gray-200 sm:border-transparent'
-              }`}>
+                    ? 'bg-blue-100 text-blue-800 border border-blue-200 sm:border-transparent'
+                    : 'bg-gray-100 text-gray-800 border border-gray-200 sm:border-transparent'
+                }`}>
                 {goal.is_achieved ? '🎉 Tercapai' : goal.is_active ? '🎯 Aktif' : '⏸️ Tidak Aktif'}
               </span>
               {goal.target_date && (
@@ -122,7 +121,7 @@ const GoalCard = ({ goal, totalAmount, onEdit, onDelete }: GoalCardProps) => {
             onClick={() => onEdit(goal)}
           >
             <Edit className="w-5 h-5 sm:w-3 sm:h-3 mr-2 sm:mr-1" />
-            Edit
+            Ubah
           </Button>
           <Button
             variant="destructive"

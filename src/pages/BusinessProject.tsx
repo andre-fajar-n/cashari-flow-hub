@@ -108,7 +108,7 @@ const BusinessProject = () => {
             onClick={() => handleEdit(project)}
           >
             <Edit className="w-3 h-3 mr-1" />
-            Edit
+            Ubah
           </Button>
           <Button
             variant="destructive"
@@ -155,7 +155,7 @@ const BusinessProject = () => {
           cancelText="Batal"
           variant="destructive"
         />
-        
+
         <DataTable
           data={projects}
           isLoading={isLoading}

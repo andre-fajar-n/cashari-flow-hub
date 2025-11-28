@@ -52,7 +52,7 @@ const Budget = () => {
       <ProtectedRoute>
         <Layout>
           <div className="text-center py-8">
-            <p className="text-muted-foreground">Loading...</p>
+            <p className="text-muted-foreground">Memuat...</p>
           </div>
         </Layout>
       </ProtectedRoute>)

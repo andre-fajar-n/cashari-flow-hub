@@ -108,7 +108,7 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{transfer ? "Edit Transfer" : "Tambah Transfer"}</DialogTitle>
+          <DialogTitle>{transfer ? "Ubah Transfer" : "Tambah Transfer"}</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>

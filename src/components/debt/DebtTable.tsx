@@ -197,7 +197,7 @@ export const DebtTable = ({
             onClick: onViewHistory,
           },
           {
-            label: "Edit",
+            label: "Ubah",
             icon: Edit,
             onClick: onEdit,
           },

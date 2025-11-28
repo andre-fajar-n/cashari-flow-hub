@@ -134,13 +134,12 @@ export const BudgetTable = ({
             {/* Progress Bar */}
             <div className="relative w-full h-5 bg-gray-100 rounded-full overflow-hidden">
               <div
-                className={`h-full transition-all duration-300 ${
-                  isOverBudget
+                className={`h-full transition-all duration-300 ${isOverBudget
                     ? 'bg-gradient-to-r from-red-500 to-red-600'
                     : spentPercentage > 80
                       ? 'bg-gradient-to-r from-yellow-400 to-yellow-500'
                       : 'bg-gradient-to-r from-green-500 to-green-600'
-                }`}
+                  }`}
                 style={{ width: `${Math.min(spentPercentage, 100)}%` }}
               />
               <div className="absolute inset-0 flex items-center justify-center">
@@ -182,7 +181,7 @@ export const BudgetTable = ({
             onClick: onView,
           },
           {
-            label: "Edit",
+            label: "Ubah",
             icon: Edit,
             onClick: onEdit,
           },

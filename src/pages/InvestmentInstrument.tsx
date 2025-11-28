@@ -67,11 +67,10 @@ const InvestmentInstrument = () => {
                   Unit: {instrument.unit_label}
                 </span>
               )}
-              <span className={`text-xs px-3 py-1 rounded-full font-medium w-fit ${
-                instrument.is_trackable
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-gray-100 text-gray-800'
-              }`}>
+              <span className={`text-xs px-3 py-1 rounded-full font-medium w-fit ${instrument.is_trackable
+                ? 'bg-green-100 text-green-800'
+                : 'bg-gray-100 text-gray-800'
+                }`}>
                 {instrument.is_trackable ? 'Dapat Dilacak' : 'Tidak Dapat Dilacak'}
               </span>
             </div>
@@ -95,7 +94,7 @@ const InvestmentInstrument = () => {
             onClick={() => handleEdit(instrument)}
           >
             <Edit className="w-3 h-3 sm:mr-1" />
-            Edit
+            Ubah
           </Button>
           <Button
             variant="destructive"

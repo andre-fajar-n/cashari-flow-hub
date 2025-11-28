@@ -53,43 +53,43 @@ const BusinessProjectDetail = () => {
           {/* Sticky Header */}
           <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
             <div className="flex items-center justify-between py-3">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate("/business-project")}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Kembali
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold">{project.name}</h1>
-                {project.description && (
-                  <p className="text-muted-foreground mt-1">{project.description}</p>
-                )}
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate("/business-project")}
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Kembali
+                </Button>
+                <div>
+                  <h1 className="text-2xl font-bold">{project.name}</h1>
+                  {project.description && (
+                    <p className="text-muted-foreground mt-1">{project.description}</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button onClick={() => setIsAddDialogOpen(true)}>
+                  <Plus className="w-4 h-4 mr-2" /> Tambah Transaksi
+                </Button>
+                <Button
+                  onClick={() => setIsEditDialogOpen(true)}
+                  variant="outline"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Ubah Proyek
+                </Button>
+                <Button
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  variant="destructive"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Hapus
+                </Button>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button onClick={() => setIsAddDialogOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" /> Tambah Transaksi
-              </Button>
-              <Button
-                onClick={() => setIsEditDialogOpen(true)}
-                variant="outline"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Proyek
-              </Button>
-              <Button
-                onClick={() => setIsDeleteModalOpen(true)}
-                variant="destructive"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Hapus
-              </Button>
-            </div>
           </div>
-            </div>
 
           {/* Project Info */}
           <Card className="p-6">

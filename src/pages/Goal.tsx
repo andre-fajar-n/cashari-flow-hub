@@ -66,7 +66,7 @@ const Goal = () => {
     setIsDialogOpen(true);
   };
 
-  const renderGoalItem = (goal: GoalModel) => {    
+  const renderGoalItem = (goal: GoalModel) => {
     return (
       <GoalCard
         key={goal.id}
@@ -125,13 +125,13 @@ const Goal = () => {
           open={isDeleteModalOpen}
           onOpenChange={setIsDeleteModalOpen}
           onConfirm={handleConfirmDelete}
-          title="Hapus Goal"
-          description="Apakah Anda yakin ingin menghapus goal ini? Tindakan ini tidak dapat dibatalkan."
+          title="Hapus Target"
+          description="Apakah Anda yakin ingin menghapus target ini? Tindakan ini tidak dapat dibatalkan."
           confirmText="Ya, Hapus"
           cancelText="Batal"
           variant="destructive"
         />
-        
+
         <DataTable
           data={goals}
           isLoading={isLoading}

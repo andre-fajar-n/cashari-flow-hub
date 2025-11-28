@@ -93,7 +93,7 @@ const DebtHistoryDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{(history ? "Edit" : "Tambah") + " History Pembayaran"}</DialogTitle>
+          <DialogTitle>{(history ? "Ubah" : "Tambah") + " History Pembayaran"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

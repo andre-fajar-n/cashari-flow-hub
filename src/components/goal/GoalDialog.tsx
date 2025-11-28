@@ -68,7 +68,7 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {goal ? "Edit Target" : "Tambah Target Baru"}
+            {goal ? "Ubah Target" : "Tambah Target Baru"}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -140,7 +140,7 @@ const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) =>
                 Batal
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Menyimpan..." : goal ? "Update" : "Simpan"}
+                {isLoading ? "Menyimpan..." : goal ? "Perbarui" : "Simpan"}
               </Button>
             </div>
           </form>
