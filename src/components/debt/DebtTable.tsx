@@ -159,7 +159,7 @@ export const DebtTable = ({
                 {debt.currency_code}
               </div>
               <Badge variant="secondary" className="bg-yellow-50 text-yellow-700 border-yellow-200 mt-1">
-                Rate belum tersedia
+                Kurs belum tersedia
               </Badge>
             </div>
           );

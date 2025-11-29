@@ -361,13 +361,20 @@ export const getTransactionHistoryColumns = ({
             {formatAmountCurrency(movement.amount, movement.currency_code)}
           </div>
 
-          {/* Exchange Rate Info */}
-          {movement.exchange_rate && movement.exchange_rate !== 1 && (
-            <div className="text-xs text-gray-500 mt-0.5">
-              {formatAmountCurrency(
-                movement.amount * movement.exchange_rate,
-                movement.base_currency_code || ""
+          {movement.exchange_rate ? (
+            <>
+              {movement.exchange_rate !== 1 && (
+                <div className="text-xs text-gray-500 mt-0.5">
+                  {formatAmountCurrency(
+                    movement.amount * movement.exchange_rate,
+                    movement.base_currency_code || ""
+                  )}
+                </div>
               )}
+            </>
+          ) : (
+            <div className="text-xs text-gray-500 mt-0.5">
+              Kurs tidak tersedia
             </div>
           )}
 

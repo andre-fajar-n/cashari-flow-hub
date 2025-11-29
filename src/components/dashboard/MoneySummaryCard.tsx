@@ -373,7 +373,7 @@ const MoneySummaryCard = ({
                       Total tidak dapat dihitung
                     </p>
                     <p className="text-xs text-amber-600">
-                      Exchange rate tidak tersedia untuk mata uang: {totalAmountCalculation.missingRates.join(', ')}
+                      kurs tidak tersedia untuk mata uang: {totalAmountCalculation.missingRates.join(', ')}
                     </p>
                   </div>
                 </div>

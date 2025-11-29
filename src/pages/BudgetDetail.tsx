@@ -114,7 +114,7 @@ const BudgetDetail = () => {
                 ) : (
                   <div className="flex justify-center gap-1 text-xs text-yellow-600 mt-1">
                     <AlertTriangle className="w-3 h-3" />
-                    <span>Exchange rate belum tersedia</span>
+                    <span>Kurs belum tersedia</span>
                   </div>
                 )}
               </div>

@@ -9,13 +9,11 @@ import Layout from "@/components/Layout";
 import { useDeleteBudget } from "@/hooks/queries/use-budgets";
 import { useBudgetsPaginated } from "@/hooks/queries/paginated/use-budgets-paginated";
 import { useBudgetSummary } from "@/hooks/queries/use-budget-summary";
-import { useCurrencies } from "@/hooks/queries/use-currencies";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { BudgetModel } from "@/models/budgets";
 import { useUserSettings } from "@/hooks/queries/use-user-settings";
 import { BudgetTable } from "@/components/budget/BudgetTable";
 import { useTableState } from "@/hooks/use-table-state";
-import { SelectFilterConfig } from "@/components/ui/advanced-data-table/advanced-data-table-toolbar";
 
 const Budget = () => {
   const queryClient = useQueryClient();
@@ -116,7 +114,6 @@ const Budget = () => {
             onDelete={handleDeleteClick}
             onView={handleView}
             budgetSummary={budgetSummary}
-            baseCurrencyCode={userSettings?.base_currency_code || ''}
           />
         </div>
 

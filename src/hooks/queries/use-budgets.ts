@@ -16,7 +16,7 @@ export const useBudgets = () => {
         .select("*")
         .eq("user_id", user?.id)
         .order("name");
-      
+
       if (error) throw error;
       return data;
     },
@@ -36,7 +36,7 @@ export const useBudget = (id: number) => {
         .eq("user_id", user?.id)
         .eq("id", id)
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -132,7 +132,8 @@ export const useUpdateBudget = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
-      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("budgets_paginated") });
+      queryClient.invalidateQueries({ queryKey: ["budget-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
       toast({
         title: "Berhasil",
         description: "Budget berhasil diperbarui",

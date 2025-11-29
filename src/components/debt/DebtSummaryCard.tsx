@@ -101,7 +101,7 @@ const DebtSummaryCard = ({ summaryData, showDetailedBreakdown = false, title = "
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-yellow-600" />
               <span className="text-sm text-yellow-700">
-                Tidak dapat menghitung total karena ada mata uang yang belum memiliki exchange rate
+                Tidak dapat menghitung total karena ada mata uang yang belum memiliki kurs
               </span>
             </div>
           </div>
@@ -116,7 +116,7 @@ const DebtSummaryCard = ({ summaryData, showDetailedBreakdown = false, title = "
                 <span className="text-sm font-medium">{group.currency_code}</span>
                 {renderNetAmountBadge(group.net_amount)}
               </div>
-              
+
               {showDetailedBreakdown && (
                 <div className="space-y-1 text-xs">
                   <div className="flex justify-between">
@@ -133,7 +133,7 @@ const DebtSummaryCard = ({ summaryData, showDetailedBreakdown = false, title = "
                   </div>
                 </div>
               )}
-              
+
               <div className="flex justify-between items-center text-sm border-t pt-1 mt-1">
                 <span className="font-medium">Net:</span>
                 <span className="font-bold">
@@ -152,7 +152,7 @@ const DebtSummaryCard = ({ summaryData, showDetailedBreakdown = false, title = "
               {!group.has_exchange_rate && group.currency_code !== group.base_currency_code && (
                 <div className="flex items-center gap-1 text-xs text-yellow-600 mt-1">
                   <AlertTriangle className="w-3 h-3" />
-                  <span>Exchange rate belum tersedia</span>
+                  <span>Kurs belum tersedia</span>
                 </div>
               )}
             </div>

@@ -35,7 +35,6 @@ export interface BudgetTableProps {
 
   // Budget-specific data
   budgetSummary?: BudgetSummary[];
-  baseCurrencyCode: string;
 }
 
 /**
@@ -60,7 +59,6 @@ export const BudgetTable = ({
   onDelete,
   onView,
   budgetSummary = [],
-  baseCurrencyCode,
 }: BudgetTableProps) => {
   // Group budget summary by budget_id
   const groupedSummaryById = budgetSummary.reduce((acc, item) => {
@@ -96,7 +94,7 @@ export const BudgetTable = ({
         return (
           <div className="space-y-1 text-right">
             <div className="font-bold text-gray-900">
-              {formatAmountCurrency(budget.amount, baseCurrencyCode)}
+              {formatAmountCurrency(budget.amount, budget.currency_code)}
             </div>
           </div>
         );
@@ -124,7 +122,7 @@ export const BudgetTable = ({
         if (!totalSpent.can_calculate) {
           return (
             <Badge variant="secondary" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-              Rate belum tersedia
+              Kurs tidak tersedia
             </Badge>
           );
         }
@@ -135,10 +133,10 @@ export const BudgetTable = ({
             <div className="relative w-full h-5 bg-gray-100 rounded-full overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 ${isOverBudget
-                    ? 'bg-gradient-to-r from-red-500 to-red-600'
-                    : spentPercentage > 80
-                      ? 'bg-gradient-to-r from-yellow-400 to-yellow-500'
-                      : 'bg-gradient-to-r from-green-500 to-green-600'
+                  ? 'bg-gradient-to-r from-red-500 to-red-600'
+                  : spentPercentage > 80
+                    ? 'bg-gradient-to-r from-yellow-400 to-yellow-500'
+                    : 'bg-gradient-to-r from-green-500 to-green-600'
                   }`}
                 style={{ width: `${Math.min(spentPercentage, 100)}%` }}
               />
@@ -154,13 +152,13 @@ export const BudgetTable = ({
               <div>
                 <span className="text-gray-600">Terpakai: </span>
                 <span className={`font-semibold ${isOverBudget ? 'text-red-700' : 'text-blue-700'}`}>
-                  {formatAmountCurrency(Math.abs(totalSpent.total_spent) || 0, baseCurrencyCode)}
+                  {formatAmountCurrency(Math.abs(totalSpent.total_spent) || 0, budget.currency_code)}
                 </span>
               </div>
               <div>
                 <span className="text-gray-600">{isOverBudget ? 'Berlebih: ' : 'Sisa: '}</span>
                 <span className={`font-semibold ${isOverBudget ? 'text-red-700' : 'text-green-700'}`}>
-                  {formatAmountCurrency(Math.abs(remainingBudget), baseCurrencyCode)}
+                  {formatAmountCurrency(Math.abs(remainingBudget), budget.currency_code)}
                 </span>
               </div>
             </div>

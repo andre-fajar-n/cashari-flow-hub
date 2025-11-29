@@ -90,7 +90,7 @@ export const ZakatInfo = ({ totalWealth, baseCurrency, canCalculateWealth }: Zak
             <div className="mt-4 flex items-center gap-2 text-amber-600">
               <AlertCircle className="w-4 h-4" />
               <span className="text-sm">
-                Tidak dapat menghitung zakat karena ada mata uang yang tidak memiliki exchange rate
+                Tidak dapat menghitung zakat karena ada mata uang yang tidak memiliki kurs
               </span>
             </div>
           </CollapsibleContent>
@@ -134,7 +134,7 @@ export const ZakatInfo = ({ totalWealth, baseCurrency, canCalculateWealth }: Zak
       </Collapsible>
     );
   }
-  
+
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
       <Card className="p-6">
@@ -190,79 +190,79 @@ export const ZakatInfo = ({ totalWealth, baseCurrency, canCalculateWealth }: Zak
                   <span className="text-sm font-medium text-muted-foreground">Nisab</span>
                 </div>
                 <div className="pl-6">
-              <div className="font-semibold">{zakatInfo.nisabText}</div>
-              <div className="text-sm text-muted-foreground">
-                {zakatInfo.nisabAmountText}
-              </div>
-              {goldPrice?.date && (
-                <div className="text-xs text-muted-foreground">
-                  Harga emas {formatDate(goldPrice.date)}: {formatAmountCurrency(goldPrice.rate, baseCurrency)}
+                  <div className="font-semibold">{zakatInfo.nisabText}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {zakatInfo.nisabAmountText}
+                  </div>
+                  {goldPrice?.date && (
+                    <div className="text-xs text-muted-foreground">
+                      Harga emas {formatDate(goldPrice.date)}: {formatAmountCurrency(goldPrice.rate, baseCurrency)}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">Status Zakat</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {zakatCalculation.isAboveNisab ? (
-                <>
-                  <CheckCircle className="w-4 h-4 text-green-600" />
-                  <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
-                    Wajib Zakat
-                  </Badge>
-                </>
-              ) : (
-                <>
-                  <AlertCircle className="w-4 h-4 text-amber-600" />
-                  <Badge variant="outline" className="border-amber-200 text-amber-800">
-                    Belum Mencapai Nisab
-                  </Badge>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-        
-        {/* Zakat Amount */}
-        {zakatCalculation.isAboveNisab && (
-          <div className="border-t pt-4">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Coins className="w-4 h-4 text-green-600" />
-                <span className="text-sm font-medium text-muted-foreground">Jumlah Zakat yang Harus Dibayar</span>
-              </div>
-              <div className="pl-6">
-                <div className="text-xl font-bold text-green-600">
-                  {zakatInfo.zakatAmountText}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-muted-foreground">Status Zakat</span>
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  2.5% dari total kekayaan
+                <div className="flex items-center gap-2">
+                  {zakatCalculation.isAboveNisab ? (
+                    <>
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
+                        Wajib Zakat
+                      </Badge>
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="w-4 h-4 text-amber-600" />
+                      <Badge variant="outline" className="border-amber-200 text-amber-800">
+                        Belum Mencapai Nisab
+                      </Badge>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
-        )}
-        
-        {/* Information Note */}
-        <div className="border-t pt-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <div className="flex items-start gap-2">
-              <Info className="w-4 h-4 text-blue-600 mt-0.5" />
-              <div className="text-sm text-blue-800">
-                <div className="font-medium mb-1">Catatan Penting:</div>
-                <ul className="space-y-1 text-xs">
-                  <li>• Zakat mal dihitung berdasarkan total kekayaan yang telah mencapai nisab</li>
-                  <li>• Nisab dihitung berdasarkan harga emas {zakatInfo.nisabText}</li>
-                  <li>• Zakat wajib dibayar sebesar 2.5% dari total kekayaan</li>
-                  <li>• Konsultasikan dengan ustadz/ulama untuk perhitungan yang lebih akurat</li>
-                </ul>
+
+            {/* Zakat Amount */}
+            {zakatCalculation.isAboveNisab && (
+              <div className="border-t pt-4">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Coins className="w-4 h-4 text-green-600" />
+                    <span className="text-sm font-medium text-muted-foreground">Jumlah Zakat yang Harus Dibayar</span>
+                  </div>
+                  <div className="pl-6">
+                    <div className="text-xl font-bold text-green-600">
+                      {zakatInfo.zakatAmountText}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      2.5% dari total kekayaan
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Information Note */}
+            <div className="border-t pt-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="flex items-start gap-2">
+                  <Info className="w-4 h-4 text-blue-600 mt-0.5" />
+                  <div className="text-sm text-blue-800">
+                    <div className="font-medium mb-1">Catatan Penting:</div>
+                    <ul className="space-y-1 text-xs">
+                      <li>• Zakat mal dihitung berdasarkan total kekayaan yang telah mencapai nisab</li>
+                      <li>• Nisab dihitung berdasarkan harga emas {zakatInfo.nisabText}</li>
+                      <li>• Zakat wajib dibayar sebesar 2.5% dari total kekayaan</li>
+                      <li>• Konsultasikan dengan ustadz/ulama untuk perhitungan yang lebih akurat</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
           </div>
         </CollapsibleContent>
       </Card>

@@ -14,16 +14,16 @@ export const InfoColumn = ({ data }: InfoColumnProps) => (
         {data.name}
       </Badge>
       {data.hasNullRate && (
-        <div title="Exchange rate tidak tersedia">
+        <div title="Kurs tidak tersedia">
           <AlertTriangle className="w-4 h-4 text-amber-500" />
         </div>
       )}
     </div>
-    
+
     {data.rate && data.rateDate && (
       <div className="text-xs text-muted-foreground">
-        <div>Rate per: {formatDate(data.rateDate)}</div>
-        <div>Rate: {data.rate.toLocaleString("id-ID", { maximumFractionDigits: 2 })}</div>
+        <div>Kurs per: {formatDate(data.rateDate)}</div>
+        <div>Kurs: {data.rate.toLocaleString("id-ID", { maximumFractionDigits: 2 })}</div>
       </div>
     )}
 
@@ -38,10 +38,10 @@ export const InfoColumn = ({ data }: InfoColumnProps) => (
         Unit: {data.unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })}
       </div>
     )}
-    
+
     {data.hasNullRate && (
       <div className="text-xs text-amber-600">
-        Rate tidak tersedia
+        Kurs tidak tersedia
       </div>
     )}
   </div>
