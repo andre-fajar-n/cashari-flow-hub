@@ -3,6 +3,18 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { rateConversion } from "../_shared/rate-conversion.ts";
 import { sleep } from "../_shared/utils.ts";
 
+/**
+ * ⚠️ DEPRECATION WARNING ⚠️
+ * 
+ * This function has scalability issues and may timeout for large datasets.
+ * 
+ * Please use the new queue-based system instead:
+ * 1. create-exchange-rate-jobs - Creates batch jobs
+ * 2. process-exchange-rate-job - Processes jobs individually
+ * 
+ * This function is kept for backward compatibility only.
+ */
+
 // Supabase client
 const supabase = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
 
