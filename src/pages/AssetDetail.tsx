@@ -10,23 +10,18 @@ import Layout from "@/components/Layout";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import AssetValueDialog from "@/components/investment/AssetValueDialog";
 import { useInvestmentAssets, useDeleteInvestmentAsset } from "@/hooks/queries/use-investment-assets";
-import { useInvestmentAssetValues, useDeleteInvestmentAssetValue } from "@/hooks/queries/use-investment-asset-values";
+import { useInvestmentAssetValues } from "@/hooks/queries/use-investment-asset-values";
 import InvestmentAssetDialog from "@/components/investment/InvestmentAssetDialog";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { DataTable } from "@/components/ui/data-table";
-import AmountText from "@/components/ui/amount-text";
 import { formatAmountCurrency } from "@/lib/currency";
 import AssetSummary from "@/components/investment/AssetSummary";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
-import MovementsDataTable from "@/components/shared/MovementsDataTable";
 import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
-import { useGoalTransfers } from "@/hooks/queries/use-goal-transfers";
 import { useWallets } from "@/hooks/queries/use-wallets";
-import { useGoals } from "@/hooks/queries/use-goals";
-import { useGoalInvestmentRecords } from "@/hooks/queries/use-goal-investment-records";
-import { InvestmentAssetValueModel } from "@/models/investment-asset-values";
 import { MoneyMovementModel } from "@/models/money-movements";
 import { formatDate } from "@/lib/date";
+import AssetValueHistoryList from "@/components/investment/AssetValueHistoryList";
+import AssetMovementList from "@/components/investment/AssetMovementList";
 
 const AssetDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -36,25 +31,13 @@ const AssetDetail = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isValueDialogOpen, setIsValueDialogOpen] = useState(false);
-  const [selectedAssetValue, setSelectedAssetValue] = useState<InvestmentAssetValueModel | undefined>(undefined);
   const [isRecordDialogOpen, setIsRecordDialogOpen] = useState(false);
-  const [deleteValueModal, setDeleteValueModal] = useState<{
-    open: boolean;
-    id: number | null;
-  }>({ open: false, id: null });
 
   const { mutate: deleteAsset } = useDeleteInvestmentAsset();
-  const { mutate: deleteAssetValue } = useDeleteInvestmentAssetValue();
   const { data: assets } = useInvestmentAssets();
-  const { data: assetValues, isLoading: isValuesLoading } = useInvestmentAssetValues(parseInt(id!));
-  const { data: movements, isLoading: isMovementsLoading } = useMoneyMovements({ assetId: parseInt(id!) });
-  const { data: transfers, isLoading: isTransfersLoading } = useGoalTransfers();
-  const { data: wallets, isLoading: isWalletsLoading } = useWallets();
-  const { data: goals, isLoading: isGoalsLoading } = useGoals();
-  const { data: records, isLoading: isRecordsLoading } = useGoalInvestmentRecords({ assetId: parseInt(id!) });
-
-  const isLoadingHistoryTab = isMovementsLoading || isTransfersLoading || isWalletsLoading || isGoalsLoading ||
-    isRecordsLoading;
+  const { data: assetValues } = useInvestmentAssetValues(parseInt(id!));
+  const { data: movements } = useMoneyMovements({ assetId: parseInt(id!) });
+  const { data: wallets } = useWallets();
 
   const asset = assets?.find(a => a.id === parseInt(id!));
 
@@ -96,33 +79,20 @@ const AssetDetail = () => {
   };
 
   const handleAddValue = () => {
-    setSelectedAssetValue(undefined);
     setIsValueDialogOpen(true);
   };
 
-  const handleEditValue = (assetValue: InvestmentAssetValueModel) => {
-    setSelectedAssetValue(assetValue);
-    setIsValueDialogOpen(true);
-  };
   const handleAddRecord = () => {
     setIsRecordDialogOpen(true);
   };
 
   const handleSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ["money_movements"] });
+    queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
     queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
     queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
-  };
-
-  const handleDeleteValueClick = (id: number) => {
-    setDeleteValueModal({ open: true, id });
-  };
-
-  const handleConfirmDeleteValue = () => {
-    if (deleteValueModal.id) {
-      deleteAssetValue(deleteValueModal.id);
-      setDeleteValueModal({ open: false, id: null });
-    }
+    queryClient.invalidateQueries({ queryKey: ["investment_asset_values"] });
+    queryClient.invalidateQueries({ queryKey: ["investment_asset_values_paginated"] });
   };
 
   // Prepare chart data
@@ -131,46 +101,6 @@ const AssetDetail = () => {
     value: value.value,
     fullDate: value.date
   })).reverse() || [];
-
-  // Prepare table data for asset values history
-  const valueHistoryTableData = assetValues || [];
-
-  const renderValueHistoryItem = (value: InvestmentAssetValueModel) => (
-    <div key={value.id} className="flex items-center justify-between p-4 border rounded-lg">
-      <div className="flex-1">
-        <div className="flex items-center gap-4">
-          <div>
-            <p className="font-medium">{formatDate(value.date)}</p>
-            <p className="text-sm text-muted-foreground">Tanggal</p>
-          </div>
-          <div>
-            <AmountText amount={value.value} showSign={true}>
-              {formatAmountCurrency(value.value, assetCurrencyCode)}
-            </AmountText>
-            <p className="text-sm text-muted-foreground">Nilai</p>
-          </div>
-        </div>
-      </div>
-      <div className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleEditValue(value)}
-        >
-          <Edit className="w-3 h-3 mr-1" />
-          Ubah
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleDeleteValueClick(value.id)}
-        >
-          <Trash2 className="w-3 h-3 mr-1" />
-          Hapus
-        </Button>
-      </div>
-    </div>
-  );
 
   return (
     <ProtectedRoute>
@@ -276,38 +206,7 @@ const AssetDetail = () => {
               )}
 
               {/* Value History Table */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5" />
-                    History Nilai Aset
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isValuesLoading ? (
-                    <div className="text-center py-8">
-                      <p>Memuat data...</p>
-                    </div>
-                  ) : valueHistoryTableData.length === 0 ? (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground mb-4">Belum ada history nilai aset</p>
-                      <Button onClick={handleAddValue}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Tambah Nilai Pertama
-                      </Button>
-                    </div>
-                  ) : (
-                    <DataTable
-                      data={valueHistoryTableData}
-                      isLoading={false}
-                      searchPlaceholder="Cari history nilai..."
-                      searchFields={["date"]}
-                      renderItem={renderValueHistoryItem}
-                      emptyStateMessage="Belum ada history nilai aset"
-                    />
-                  )}
-                </CardContent>
-              </Card>
+              <AssetValueHistoryList assetId={asset.id} currencyCode={assetCurrencyCode} />
             </TabsContent>
 
             <TabsContent value="summary" className="space-y-4">
@@ -315,24 +214,7 @@ const AssetDetail = () => {
             </TabsContent>
 
             <TabsContent value="movements" className="space-y-4">
-              {isLoadingHistoryTab ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">Memuat riwayat pergerakan dana...</p>
-                </div>
-              ) : (
-                <MovementsDataTable
-                  movements={movements || []}
-                  transfers={transfers || []}
-                  records={records || []}
-                  wallets={wallets || []}
-                  goals={goals || []}
-                  filterType="asset"
-                  title={`Riwayat Aset - ${asset.name}`}
-                  description="Kelola dan pantau semua pergerakan dana untuk aset ini"
-                  emptyMessage={`Belum ada riwayat pergerakan dana untuk aset ${asset.name}`}
-                  onSuccess={handleSuccess}
-                />
-              )}
+              <AssetMovementList assetId={asset.id} />
             </TabsContent>
           </Tabs>
 
@@ -348,17 +230,6 @@ const AssetDetail = () => {
             variant="destructive"
           />
 
-          <ConfirmationModal
-            open={deleteValueModal.open}
-            onOpenChange={(open) => setDeleteValueModal({ ...deleteValueModal, open })}
-            onConfirm={handleConfirmDeleteValue}
-            title="Hapus Nilai Aset"
-            description="Apakah Anda yakin ingin menghapus nilai aset ini? Tindakan ini tidak dapat dibatalkan."
-            confirmText="Ya, Hapus"
-            cancelText="Batal"
-            variant="destructive"
-          />
-
           <InvestmentAssetDialog
             open={isEditDialogOpen}
             onOpenChange={setIsEditDialogOpen}
@@ -368,8 +239,8 @@ const AssetDetail = () => {
           <AssetValueDialog
             open={isValueDialogOpen}
             onOpenChange={setIsValueDialogOpen}
-            assetValue={selectedAssetValue}
             assetId={asset.id}
+            onSuccess={handleSuccess}
           />
 
           <GoalInvestmentRecordDialog

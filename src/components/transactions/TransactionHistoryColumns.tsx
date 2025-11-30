@@ -381,7 +381,7 @@ export const getTransactionHistoryColumns = ({
           {/* Amount Unit (for investments) */}
           {movement.amount_unit && (
             <div className="text-xs text-gray-500 mt-0.5">
-              {movement.amount_unit.toLocaleString("id-ID")}{" "}
+              {movement.amount_unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })}{" "}
               {movement.unit_label || "tidak diketahui"}
             </div>
           )}

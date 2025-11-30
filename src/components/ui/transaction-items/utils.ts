@@ -29,14 +29,14 @@ export const getTransactionTypeConfig = (resourceType: string): TransactionTypeC
       };
     case MOVEMENT_TYPES.GOAL_TRANSFER:
       return {
-        text: "Transfer Goal",
+        text: "Transfer Target",
         icon: Target,
         variant: "outline" as const,
         className: "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
       };
     case MOVEMENT_TYPES.INVESTMENT_GROWTH:
       return {
-        text: "Pertumbuhan Investasi",
+        text: "Progres Investasi",
         icon: TrendingUp,
         variant: "outline" as const,
         className: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
