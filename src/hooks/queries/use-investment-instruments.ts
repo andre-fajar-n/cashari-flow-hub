@@ -16,8 +16,11 @@ export const useInvestmentInstruments = () => {
         .select("*")
         .eq("user_id", user?.id)
         .order("name");
-      
-      if (error) throw error;
+
+      if (error) {
+        console.error("Error fetching investment instruments:", error);
+        throw error;
+      }
       return data;
     },
     enabled: !!user,
@@ -37,7 +40,10 @@ export const useDeleteInvestmentInstrument = () => {
         .eq("user_id", user?.id)
         .eq("id", instrumentId);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error deleting investment instrument:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
@@ -68,7 +74,10 @@ export const useCreateInvestmentInstrument = () => {
         .from("investment_instruments")
         .insert({ ...instrument, user_id: user?.id, updated_at: null });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error creating investment instrument:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
@@ -104,7 +113,10 @@ export const useUpdateInvestmentInstrument = () => {
         .eq("user_id", user?.id)
         .eq("id", id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating investment instrument:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });

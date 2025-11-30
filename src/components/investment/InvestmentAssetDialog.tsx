@@ -128,7 +128,7 @@ const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: Investm
               placeholder="Pilih Instrumen"
               options={[
                 { value: "none", label: "Pilih Instrumen" },
-                ...instruments.map((instrument) => ({
+                ...(instruments || []).map((instrument) => ({
                   value: instrument.id.toString(),
                   label: instrument.name
                 }))
