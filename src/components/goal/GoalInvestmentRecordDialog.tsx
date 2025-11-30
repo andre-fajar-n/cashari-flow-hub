@@ -205,7 +205,7 @@ const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, instrumentId, 
                     name="asset_id"
                     label="Aset Investasi"
                     placeholder="Pilih Aset"
-                    disabled={!selectedInstrument}
+                    disabled={!selectedInstrument || filteredAssets.length === 0}
                     options={[
                       { value: "none", label: "Pilih Aset" },
                       ...filteredAssets.map((asset) => ({

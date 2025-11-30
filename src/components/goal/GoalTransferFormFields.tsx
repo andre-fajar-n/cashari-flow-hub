@@ -26,8 +26,11 @@ const GoalTransferFormFields = ({
   toAssets,
   transferConfig
 }: GoalTransferFormFieldsProps) => {
-  const { setValue } = useFormContext<GoalTransferFormData>();
+  const { setValue, watch } = useFormContext<GoalTransferFormData>();
   const modeConfig = transferConfig ? getTransferModeConfig(transferConfig.mode) : null;
+
+  const fromInstrumentId = watch("from_instrument_id");
+  const toInstrumentId = watch("to_instrument_id");
 
   return (
     <>
@@ -90,6 +93,7 @@ const GoalTransferFormFields = ({
               name="from_asset_id"
               label="Aset Asal"
               placeholder="Pilih aset asal"
+              disabled={fromInstrumentId === 0 || (fromAssets?.length || 0) === 0}
               options={[
                 { value: "0", label: "Tidak ada" },
                 ...(fromAssets?.map((asset) => ({
@@ -162,6 +166,7 @@ const GoalTransferFormFields = ({
               name="to_asset_id"
               label="Aset Tujuan"
               placeholder="Pilih aset tujuan"
+              disabled={toInstrumentId === 0 || (toAssets?.length || 0) === 0}
               options={[
                 { value: "0", label: "Tidak ada" },
                 ...(toAssets?.map((asset) => ({
