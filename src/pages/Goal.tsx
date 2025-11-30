@@ -7,12 +7,12 @@ import Layout from "@/components/Layout";
 import GoalDialog from "@/components/goal/GoalDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { GoalModel } from "@/models/goals";
-import { DataTable, ColumnFilter } from "@/components/ui/data-table";
-import GoalCard from "@/components/goal/GoalCard";
 import { useDeleteGoal } from "@/hooks/queries/use-goals";
 import { useGoalsPaginated } from "@/hooks/queries/paginated/use-goals-paginated";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { useMoneySummary } from "@/hooks/queries/use-money-summary";
+import { useTableState } from "@/hooks/use-table-state";
+import { GoalTable } from "@/components/goal/GoalTable";
 
 const Goal = () => {
   const queryClient = useQueryClient();
@@ -23,12 +23,22 @@ const Goal = () => {
 
   const { mutate: deleteGoal } = useDeleteGoal();
 
-  const [page, setPage] = useState(1);
-  const itemsPerPage = 10;
-  const [serverSearch, setServerSearch] = useState("");
-  const [serverFilters, setServerFilters] = useState<Record<string, any>>({});
-  const { data: paged, isLoading: isGoalsLoading } = useGoalsPaginated({ page, itemsPerPage, searchTerm: serverSearch, filters: serverFilters });
+  // Table state management using generic hook
+  const { state: tableState, actions: tableActions } = useTableState({
+    initialPage: 1,
+    initialPageSize: 10,
+  });
+
+  const { data: paged, isLoading: isGoalsLoading } = useGoalsPaginated({
+    page: tableState.page,
+    itemsPerPage: tableState.pageSize,
+    searchTerm: tableState.searchTerm,
+    filters: tableState.filters
+  });
+
   const goals = paged?.data || [];
+  const totalCount = paged?.count || 0;
+
   const { data: currencies, isLoading: isCurrencyLoading } = useCurrencies();
   const { data: goalFundsSummary, isLoading: isFundsSummaryLoading } = useMoneySummary({ investmentOnly: true });
 
@@ -66,61 +76,53 @@ const Goal = () => {
     setIsDialogOpen(true);
   };
 
-  const renderGoalItem = (goal: GoalModel) => {
-    return (
-      <GoalCard
-        key={goal.id}
-        goal={goal}
-        totalAmount={groupedByGoalId[goal.id]?.amount || 0}
-        onEdit={handleEdit}
-        onDelete={handleDeleteClick}
-      />
-    );
+  const handleSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ["goals_paginated"] });
+    queryClient.invalidateQueries({ queryKey: ["goals"] });
   };
 
-  const columnFilters: ColumnFilter[] = [
-    {
-      field: "is_achieved",
-      label: "Status Pencapaian",
-      type: "select",
-      options: [
-        { label: "Tercapai", value: "true" },
-        { label: "Belum Tercapai", value: "false" }
-      ]
-    },
-    {
-      field: "is_active",
-      label: "Status Aktif",
-      type: "select",
-      options: [
-        { label: "Aktif", value: "true" },
-        { label: "Tidak Aktif", value: "false" }
-      ]
-    },
-    {
-      field: "currency_code",
-      label: "Mata Uang",
-      type: "select",
-      options: currencies?.map(currency => ({
-        label: `${currency.code} (${currency.symbol})`,
-        value: currency.code
-      })) || []
-    },
-    {
-      field: "target_amount",
-      label: "Target Min",
-      type: "number"
-    },
-    {
-      field: "target_date",
-      label: "Tanggal Target",
-      type: "date"
-    }
-  ];
+  // Currency options for filter
+  const currencyOptions = currencies?.map(currency => ({
+    label: `${currency.code} (${currency.symbol})`,
+    value: currency.code
+  })) || [];
 
   return (
     <ProtectedRoute>
       <Layout>
+        <div className="space-y-4">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-bold">Manajemen Target</h1>
+              <p className="text-muted-foreground">Kelola target keuangan Anda</p>
+            </div>
+            <Button onClick={handleAddNew}>
+              <Plus className="w-4 h-4 mr-2" />
+              Tambah Target
+            </Button>
+          </div>
+
+          {/* Table */}
+          <GoalTable
+            data={goals}
+            totalCount={totalCount}
+            isLoading={isLoading}
+            searchTerm={tableState.searchTerm}
+            onSearchChange={tableActions.handleSearchChange}
+            filters={tableState.filters}
+            onFiltersChange={tableActions.handleFiltersChange}
+            page={tableState.page}
+            pageSize={tableState.pageSize}
+            onPageChange={tableActions.handlePageChange}
+            onPageSizeChange={tableActions.handlePageSizeChange}
+            onEdit={handleEdit}
+            onDelete={handleDeleteClick}
+            currencyOptions={currencyOptions}
+            goalFundsSummary={groupedByGoalId}
+          />
+        </div>
+
         <ConfirmationModal
           open={isDeleteModalOpen}
           onOpenChange={setIsDeleteModalOpen}
@@ -132,52 +134,11 @@ const Goal = () => {
           variant="destructive"
         />
 
-        <DataTable
-          data={goals}
-          isLoading={isLoading}
-          searchPlaceholder="Cari target..."
-          searchFields={["name", "currency_code"]}
-          columnFilters={columnFilters}
-          itemsPerPage={itemsPerPage}
-          serverMode
-          totalCount={paged?.count}
-          page={page}
-          onServerParamsChange={({ searchTerm, filters, page: nextPage }) => {
-            setServerSearch(searchTerm);
-            setServerFilters(filters);
-            setPage(nextPage);
-          }}
-          useUrlParams={true}
-          renderItem={renderGoalItem}
-          emptyStateMessage="Belum ada target yang dibuat"
-          title="Manajemen Target"
-          description="Kelola target keuangan Anda"
-          headerActions={
-            goals && goals.length > 0 && (
-              <Button onClick={handleAddNew} className="w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                Tambah Target
-              </Button>
-            )
-          }
-        />
-
-        {(!goals || goals.length === 0) && !isLoading && (
-          <div className="text-center py-8">
-            <Button onClick={handleAddNew} className="mt-4">
-              <Plus className="w-4 h-4 mr-2" />
-              Buat Target Pertama
-            </Button>
-          </div>
-        )}
-
         <GoalDialog
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
           goal={selectedGoal}
-          onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ["goals"] });
-          }}
+          onSuccess={handleSuccess}
         />
       </Layout>
     </ProtectedRoute>
