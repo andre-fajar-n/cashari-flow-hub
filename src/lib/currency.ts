@@ -1,3 +1,4 @@
 export const formatAmountCurrency = (amount: number, currencyCode: string = 'IDR') => {
-  return `${currencyCode === 'IDR' ? 'Rp' : currencyCode} ${amount.toLocaleString('id-ID')}`;
+  const isNegative = amount < 0;
+  return `${isNegative ? '-' : ''}${currencyCode} ${Math.abs(amount).toLocaleString('id-ID')}`;
 };
