@@ -112,13 +112,13 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
           className="font-semibold text-sm"
           showSign={true}
         >
-          {formatAmountCurrency(fund.amount, fund.original_currency_code)}
+          {formatAmountCurrency(fund.amount, fund.original_currency_code, fund.original_currency_symbol)}
         </AmountText>
         {fund.amount_unit !== null ? (
           <p className="text-xs text-muted-foreground">
             {fund.amount_unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })} {fund.unit_label || 'unit'}
           </p>
-        ): null}
+        ) : null}
       </div>
     </div>
   );
@@ -128,6 +128,7 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
     const instrumentKey = `${ns}${walletKey}-${instrumentName}`;
     const isExpanded = isGroupExpanded(instrumentKey);
     const currencyCode = funds[0]?.original_currency_code || 'unknown currency';
+    const currencySymbol = funds[0]?.original_currency_symbol || 'unknown currency';
 
     // Check if this instrument has any assets
     const hasAssets = funds.some(fund => fund.asset_name);
@@ -161,13 +162,13 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
                 className="font-semibold text-sm"
                 showSign={true}
               >
-                {formatAmountCurrency(instrumentTotal, currencyCode)}
+                {formatAmountCurrency(instrumentTotal, currencyCode, currencySymbol)}
               </AmountText>
               {fund.amount_unit !== null ? (
                 <p className="text-xs text-muted-foreground">
                   {fund.amount_unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })} {fund.unit_label || 'unit'}
                 </p>
-              ): null}
+              ) : null}
             </div>
           </div>
         </div>
@@ -213,7 +214,7 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
                   className="font-semibold text-sm"
                   showSign={true}
                 >
-                  {formatAmountCurrency(instrumentTotal, currencyCode)}
+                  {formatAmountCurrency(instrumentTotal, currencyCode, currencySymbol)}
                 </AmountText>
                 {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
               </div>
@@ -235,6 +236,7 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
     const isExpanded = isGroupExpanded(walletKeyScoped);
     const allFunds = (Object.values(instruments) as MoneySummaryModel[][]).flat();
     const currencyCode = allFunds[0]?.original_currency_code || 'unknown currency';
+    const currencySymbol = allFunds[0]?.original_currency_symbol || 'unknown currency';
 
     // Sort instruments by total amount
     const sortedInstruments = Object.keys(instruments).sort((a, b) => {
@@ -260,7 +262,7 @@ const GoalFundsSummary = ({ goalId }: GoalFundsSummaryProps) => {
                 className="font-semibold"
                 showSign={true}
               >
-                {formatAmountCurrency(walletTotal, currencyCode)}
+                {formatAmountCurrency(walletTotal, currencyCode, currencySymbol)}
               </AmountText>
               {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </div>

@@ -19,9 +19,10 @@ import { useDeleteInvestmentAssetValue } from "@/hooks/queries/use-investment-as
 interface AssetValueHistoryListProps {
   assetId: number;
   currencyCode: string;
+  currencySymbol: string;
 }
 
-const AssetValueHistoryList = ({ assetId, currencyCode }: AssetValueHistoryListProps) => {
+const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetValueHistoryListProps) => {
   const queryClient = useQueryClient();
   const { state: tableState, actions: tableActions } = useTableState({
     initialPage: 1,
@@ -93,8 +94,8 @@ const AssetValueHistoryList = ({ assetId, currencyCode }: AssetValueHistoryListP
       cell: ({ row }) => {
         const value = row.original.value;
         return (
-          <AmountText amount={value} showSign={true}>
-            {formatAmountCurrency(value, currencyCode)}
+          <AmountText amount={value}>
+            {formatAmountCurrency(value, currencyCode, currencySymbol)}
           </AmountText>
         );
       },

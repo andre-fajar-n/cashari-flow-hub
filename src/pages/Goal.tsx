@@ -13,6 +13,7 @@ import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { useMoneySummary } from "@/hooks/queries/use-money-summary";
 import { useTableState } from "@/hooks/use-table-state";
 import { GoalTable } from "@/components/goal/GoalTable";
+import { CurrencyModel } from "@/models/currencies";
 
 const Goal = () => {
   const queryClient = useQueryClient();
@@ -54,6 +55,10 @@ const Goal = () => {
     acc[item.goal_id].amount += item.amount || 0;
     return acc;
   }, {} as Record<number, { goal_id: number; amount: number }>);
+  const currenciesMap = (currencies ?? []).reduce((acc, currency) => {
+    acc[currency.code] = currency;
+    return acc;
+  }, {} as Record<string, CurrencyModel>);
 
   const handleEdit = (goal: GoalModel) => {
     setSelectedGoal(goal);
@@ -120,6 +125,7 @@ const Goal = () => {
             onDelete={handleDeleteClick}
             currencyOptions={currencyOptions}
             goalFundsSummary={groupedByGoalId}
+            currenciesMap={currenciesMap}
           />
         </div>
 

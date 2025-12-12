@@ -61,6 +61,8 @@ const AssetDetail = () => {
   const assetCurrencyCode = movements?.find((r: MoneyMovementModel) => (r.asset_id ?? r.asset?.id) === (asset?.id))?.currency_code
     || (wallets && wallets.length > 0 ? wallets[0].currency_code : undefined)
     || 'unknown currency';
+  const assetCurrencySymbol = movements?.find((r: MoneyMovementModel) => (r.asset_id ?? r.asset?.id) === (asset?.id))?.currency_symbol
+    || 'unknown currency';
 
   const handleEdit = () => {
     setIsEditDialogOpen(true);
@@ -180,11 +182,11 @@ const AssetDetail = () => {
                           <XAxis dataKey="date" padding={{ left: 30, right: 30 }} />
                           <YAxis
                             domain={['dataMin - dataMin * 0.05', 'dataMax + dataMax * 0.05']}
-                            tickFormatter={(value) => formatAmountCurrency(value, assetCurrencyCode)}
+                            tickFormatter={(value) => formatAmountCurrency(value, assetCurrencyCode, assetCurrencySymbol)}
                             width={100}
                           />
                           <Tooltip
-                            formatter={(value) => [formatAmountCurrency(Number(value), assetCurrencyCode), 'Nilai']}
+                            formatter={(value) => [formatAmountCurrency(Number(value), assetCurrencyCode, assetCurrencySymbol), 'Nilai']}
                             labelFormatter={(label) => {
                               const item = chartData.find(d => d.date === label);
                               return item ? formatDate(item.fullDate) : label;
@@ -206,7 +208,7 @@ const AssetDetail = () => {
               )}
 
               {/* Value History Table */}
-              <AssetValueHistoryList assetId={asset.id} currencyCode={assetCurrencyCode} />
+              <AssetValueHistoryList assetId={asset.id} currencyCode={assetCurrencyCode} currencySymbol={assetCurrencySymbol} />
             </TabsContent>
 
             <TabsContent value="summary" className="space-y-4">

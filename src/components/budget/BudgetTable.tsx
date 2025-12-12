@@ -7,6 +7,7 @@ import { formatDate } from "@/lib/date";
 import { formatAmountCurrency } from "@/lib/currency";
 import { calculateTotalSpentInBaseCurrency } from "@/lib/budget-summary";
 import { Badge } from "@/components/ui/badge";
+import { CurrencyModel } from "@/models/currencies";
 
 export interface BudgetTableProps {
   budgets: BudgetModel[];
@@ -34,7 +35,10 @@ export interface BudgetTableProps {
   onView: (budget: BudgetModel) => void;
 
   // Budget-specific data
-  budgetSummary?: BudgetSummary[];
+  budgetSummariesMap?: Record<number, BudgetSummary[]>;
+
+  // Currencies
+  currencyMap?: Record<string, CurrencyModel>;
 }
 
 /**
@@ -58,17 +62,9 @@ export const BudgetTable = ({
   onEdit,
   onDelete,
   onView,
-  budgetSummary = [],
+  budgetSummariesMap = {},
+  currencyMap = {},
 }: BudgetTableProps) => {
-  // Group budget summary by budget_id
-  const groupedSummaryById = budgetSummary.reduce((acc, item) => {
-    if (!acc[item.budget_id]) {
-      acc[item.budget_id] = [];
-    }
-    acc[item.budget_id].push(item);
-    return acc;
-  }, {} as Record<number, BudgetSummary[]>);
-
   const columns: ColumnDef<BudgetModel>[] = [
     {
       accessorKey: "nama",
@@ -94,7 +90,7 @@ export const BudgetTable = ({
         return (
           <div className="space-y-1 text-right">
             <div className="font-bold text-gray-900">
-              {formatAmountCurrency(budget.amount, budget.currency_code)}
+              {formatAmountCurrency(budget.amount, budget.currency_code, currencyMap[budget.currency_code]?.symbol)}
             </div>
           </div>
         );
@@ -105,7 +101,7 @@ export const BudgetTable = ({
       header: ({ column }) => <DataTableColumnHeader column={column} title="Status" className="justify-end" />,
       cell: ({ row }) => {
         const budget = row.original;
-        const summaries = groupedSummaryById[budget.id];
+        const summaries = budgetSummariesMap[budget.id];
         const totalSpent = summaries ? calculateTotalSpentInBaseCurrency(summaries) : null;
         const remainingBudget = budget.amount + (totalSpent?.total_spent || 0);
         const spentPercentage = budget.amount ? (Math.abs(totalSpent?.total_spent || 0) / budget.amount) * 100 : 0;
@@ -152,13 +148,13 @@ export const BudgetTable = ({
               <div>
                 <span className="text-gray-600">Terpakai: </span>
                 <span className={`font-semibold ${isOverBudget ? 'text-red-700' : 'text-blue-700'}`}>
-                  {formatAmountCurrency(Math.abs(totalSpent.total_spent) || 0, budget.currency_code)}
+                  {formatAmountCurrency(Math.abs(totalSpent.total_spent) || 0, budget.currency_code, currencyMap[budget.currency_code]?.symbol)}
                 </span>
               </div>
               <div>
                 <span className="text-gray-600">{isOverBudget ? 'Berlebih: ' : 'Sisa: '}</span>
                 <span className={`font-semibold ${isOverBudget ? 'text-red-700' : 'text-green-700'}`}>
-                  {formatAmountCurrency(Math.abs(remainingBudget), budget.currency_code)}
+                  {formatAmountCurrency(Math.abs(remainingBudget), budget.currency_code, currencyMap[budget.currency_code]?.symbol)}
                 </span>
               </div>
             </div>

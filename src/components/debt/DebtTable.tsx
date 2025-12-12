@@ -178,7 +178,7 @@ export const DebtTable = ({
               Total dalam {totalAmount.base_currency_code}
             </div>
             <div className={`text-lg font-bold ${colorClass}`}>
-              {formatAmountCurrency(balance, totalAmount.base_currency_code || '')}
+              {formatAmountCurrency(balance, totalAmount.base_currency_code, totalAmount.base_currency_symbol)}
             </div>
           </div>
         );

@@ -12,12 +12,12 @@ export const UnrealizedColumn = ({ data }: UnrealizedColumnProps) => (
       <div className="space-y-1">
         <div className={`font-semibold ${data.unrealizedAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
           {data.unrealizedAmount >= 0 ? '+' : ''}
-          {formatAmountCurrency(data.unrealizedAmount, data.currency)}
+          {formatAmountCurrency(data.unrealizedAmount, data.currency, data.currencySymbol)}
         </div>
         {data.showBaseCurrency && data.baseCurrency && data.exchangeRate && (
           <div className={`text-xs font-medium ${data.unrealizedAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {data.unrealizedAmount >= 0 ? '+' : ''}
-            {formatAmountCurrency(data.unrealizedAmount * data.exchangeRate, data.baseCurrency)}
+            {formatAmountCurrency(data.unrealizedAmount * data.exchangeRate, data.baseCurrency, data.baseCurrencySymbol)}
           </div>
         )}
       </div>

@@ -35,7 +35,7 @@ export const useAssetSummaries = () => {
 
           // Keep the latest asset value and date (assuming data is already sorted or we pick the most recent)
           if (summary.latest_asset_value_date &&
-              (!existing.latestAssetValueDate || summary.latest_asset_value_date > existing.latestAssetValueDate)) {
+            (!existing.latestAssetValueDate || summary.latest_asset_value_date > existing.latestAssetValueDate)) {
             existing.latestAssetValue = summary.latest_asset_value;
             existing.latestAssetValueDate = summary.latest_asset_value_date;
           }
@@ -51,7 +51,8 @@ export const useAssetSummaries = () => {
             latestAssetValueDate: summary.latest_asset_value_date,
             totalAmount,
             totalAmountUnit,
-            currencyCode: summary.original_currency_code || 'IDR',
+            currencyCode: summary.original_currency_code || '',
+            currencySymbol: summary.original_currency_symbol || '',
             averagePricePerUnit: null,
             currentAssetAmount: null,
             amountChange: null,

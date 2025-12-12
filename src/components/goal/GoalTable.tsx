@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { formatDate } from "@/lib/date";
 import { formatAmountCurrency } from "@/lib/currency";
+import { CurrencyModel } from "@/models/currencies";
 
 interface GoalTableProps {
   data: GoalModel[];
@@ -27,6 +28,7 @@ interface GoalTableProps {
   onDelete: (goalId: number) => void;
   currencyOptions: { label: string; value: string }[];
   goalFundsSummary: Record<number, { goal_id: number; amount: number }>;
+  currenciesMap: Record<string, CurrencyModel>;
 }
 
 export const GoalTable = ({
@@ -45,6 +47,7 @@ export const GoalTable = ({
   onDelete,
   currencyOptions,
   goalFundsSummary,
+  currenciesMap,
 }: GoalTableProps) => {
   const navigate = useNavigate();
 
@@ -98,7 +101,10 @@ export const GoalTable = ({
         const goal = row.original;
         const totalAmount = goalFundsSummary[goal.id]?.amount || 0;
         const percentage = Math.min((totalAmount / goal.target_amount) * 100, 100);
-        
+        const currency = currenciesMap[goal.currency_code];
+        const collectedAmount = formatAmountCurrency(totalAmount, currency.code, currency.symbol);
+        const targetAmount = formatAmountCurrency(goal.target_amount, currency.code, currency.symbol);
+
         return (
           <div className="flex flex-col gap-2 min-w-[200px]">
             <div className="flex items-center justify-between">
@@ -106,7 +112,7 @@ export const GoalTable = ({
                 {percentage.toFixed(1)}%
               </span>
               <span className="text-xs text-muted-foreground">
-                {formatAmountCurrency(totalAmount, goal.currency_code)} / {formatAmountCurrency(goal.target_amount, goal.currency_code)}
+                {collectedAmount} / {targetAmount}
               </span>
             </div>
             <Progress value={percentage} className="h-2" />
@@ -121,9 +127,10 @@ export const GoalTable = ({
       ),
       cell: ({ row }) => {
         const goal = row.original;
+        const currency = currenciesMap[goal.currency_code];
         return (
           <div className="font-semibold text-blue-600">
-            {formatAmountCurrency(goal.target_amount, goal.currency_code)}
+            {formatAmountCurrency(goal.target_amount, currency.code, currency.symbol)}
           </div>
         );
       },

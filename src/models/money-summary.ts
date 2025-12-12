@@ -4,8 +4,10 @@ export type MoneySummaryModel = Database["public"]["Views"]["money_summary"]["Ro
 
 export interface MoneySummaryGroupByCurrency {
   original_currency_code: string;
+  original_currency_symbol: string;
   amount: number;
   base_currency_code: string | null;
+  base_currency_symbol: string | null;
   latest_rate: number | null;
   latest_rate_date: string | null;
 }
@@ -18,9 +20,11 @@ export interface WalletSummary {
   calculatedAmount: number;
   unrealizedAmount: number;
   original_currency_code: string;
+  original_currency_symbol: string;
   latest_rate: number | null;
   latest_rate_date: string | null;
   base_currency_code: string | null;
+  base_currency_symbol: string | null;
   instruments: InstrumentSummary[];
 }
 
@@ -32,9 +36,11 @@ interface InstrumentSummary {
   calculatedAmount: number;
   unrealizedAmount: number;
   original_currency_code: string;
+  original_currency_symbol: string;
   latest_rate: number | null;
   latest_rate_date: string | null;
   base_currency_code: string | null;
+  base_currency_symbol: string | null;
   assets: AssetSummary[];
 }
 
@@ -47,10 +53,12 @@ interface AssetSummary {
   unrealizedAmount: number;
   amount_unit: number | null;
   original_currency_code: string;
+  original_currency_symbol: string;
   latest_asset_value: number | null;
   latest_asset_value_date: string | null;
   latest_rate: number | null;
   base_currency_code: string | null;
+  base_currency_symbol: string | null;
 }
 
 export interface AssetSummaryData {
@@ -61,6 +69,7 @@ export interface AssetSummaryData {
   totalAmount: number;
   totalAmountUnit: number;
   currencyCode: string;
+  currencySymbol: string;
   averagePricePerUnit: number | null;
   currentAssetAmount: number | null; // totalAmountUnit * latestAssetValue
   amountChange: number | null; // currentAssetAmount - totalAmount

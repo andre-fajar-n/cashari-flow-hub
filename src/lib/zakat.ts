@@ -17,6 +17,7 @@ export const ZAKAT_CONSTANTS = {
 export interface ZakatCalculation {
   totalWealth: number;
   baseCurrency: string;
+  baseCurrencySymbol: string;
   nisabInGrams: number;
   goldPricePerGram: number | null;
   nisabInBaseCurrency: number | null;
@@ -32,6 +33,7 @@ export interface ZakatCalculation {
 export const calculateZakatMal = (
   totalWealth: number,
   baseCurrency: string,
+  baseCurrencySymbol: string,
   goldPricePerGram: number | null,
   goldPriceDate?: string
 ): ZakatCalculation => {
@@ -52,6 +54,7 @@ export const calculateZakatMal = (
   return {
     totalWealth,
     baseCurrency,
+    baseCurrencySymbol,
     nisabInGrams,
     goldPricePerGram,
     nisabInBaseCurrency,
@@ -73,16 +76,17 @@ export const formatZakatInfo = (calculation: ZakatCalculation) => {
     zakatAmount,
     canCalculate,
     baseCurrency,
+    baseCurrencySymbol,
     goldPriceDate,
   } = calculation;
 
   return {
     nisabText: `${nisabInGrams} gram emas`,
-    nisabAmountText: nisabInBaseCurrency ? formatAmountCurrency(nisabInBaseCurrency, baseCurrency) : 'Tidak dapat dihitung',
+    nisabAmountText: nisabInBaseCurrency ? formatAmountCurrency(nisabInBaseCurrency, baseCurrency, baseCurrencySymbol) : 'Tidak dapat dihitung',
     statusText: canCalculate
       ? (isAboveNisab ? 'Wajib Zakat' : 'Belum Mencapai Nisab')
       : 'Tidak dapat dihitung (harga emas tidak tersedia)',
-    zakatAmountText: zakatAmount > 0 ? formatAmountCurrency(zakatAmount, baseCurrency) : '-',
+    zakatAmountText: zakatAmount > 0 ? formatAmountCurrency(zakatAmount, baseCurrency, baseCurrencySymbol) : '-',
     goldPriceDateText: goldPriceDate ? `per ${goldPriceDate}` : '',
   };
 };

@@ -15,7 +15,7 @@ export const useTransactions = (filter?: TransactionFilter) => {
         .select(`
           *,
           categories(id, name, is_income, parent_id, application),
-          wallets(id, name, currency_code, initial_amount),
+          wallets(id, name, currency_code, initial_amount, currencies(symbol)),
           budget_items(
             budget_id,
             budgets(name)

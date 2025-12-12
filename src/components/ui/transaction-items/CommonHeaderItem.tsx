@@ -35,13 +35,13 @@ const CommonHeaderItem = ({ movement }: CommonHeaderItemProps) => {
           amount={movement.amount}
           className="font-bold text-xl sm:text-lg"
         >
-          {formatAmountCurrency(movement.amount, movement.currency_code)}
+          {formatAmountCurrency(movement.amount, movement.currency_code, movement.currency_symbol)}
         </AmountText>
 
         {/* Currency */}
         {movement.exchange_rate && movement.exchange_rate !== 1 && (
           <p className="text-sm text-gray-500 mt-1">
-            {formatAmountCurrency(movement.amount * movement.exchange_rate, movement.base_currency_code)}
+            {formatAmountCurrency(movement.amount * movement.exchange_rate, movement.base_currency_code, movement.base_currency_symbol)}
           </p>
         )}
 

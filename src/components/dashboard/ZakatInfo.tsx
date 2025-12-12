@@ -11,10 +11,11 @@ import { formatAmountCurrency } from "@/lib/currency";
 interface ZakatInfoProps {
   totalWealth: number;
   baseCurrency: string;
+  baseCurrencySymbol: string;
   canCalculateWealth: boolean;
 }
 
-export const ZakatInfo = ({ totalWealth, baseCurrency, canCalculateWealth }: ZakatInfoProps) => {
+export const ZakatInfo = ({ totalWealth, baseCurrency, baseCurrencySymbol, canCalculateWealth }: ZakatInfoProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { data: goldPrice, isLoading: isLoadingGoldPrice } = useGoldPrice(baseCurrency);
 
@@ -22,6 +23,7 @@ export const ZakatInfo = ({ totalWealth, baseCurrency, canCalculateWealth }: Zak
   const zakatCalculation = calculateZakatMal(
     totalWealth,
     baseCurrency,
+    baseCurrencySymbol,
     goldPrice?.rate || null,
     goldPrice?.date
   );
@@ -196,7 +198,7 @@ export const ZakatInfo = ({ totalWealth, baseCurrency, canCalculateWealth }: Zak
                   </div>
                   {goldPrice?.date && (
                     <div className="text-xs text-muted-foreground">
-                      Harga emas {formatDate(goldPrice.date)}: {formatAmountCurrency(goldPrice.rate, baseCurrency)}
+                      Harga emas {formatDate(goldPrice.date)}: {formatAmountCurrency(goldPrice.rate, baseCurrency, baseCurrencySymbol)}
                     </div>
                   )}
                 </div>

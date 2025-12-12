@@ -358,7 +358,7 @@ export const getTransactionHistoryColumns = ({
       return (
         <div className="text-right">
           <div className={`font-bold text-base ${colorClass}`}>
-            {formatAmountCurrency(movement.amount, movement.currency_code)}
+            {formatAmountCurrency(movement.amount, movement.currency_code, movement.currency_symbol)}
           </div>
 
           {movement.exchange_rate ? (
@@ -367,7 +367,8 @@ export const getTransactionHistoryColumns = ({
                 <div className="text-xs text-gray-500 mt-0.5">
                   {formatAmountCurrency(
                     movement.amount * movement.exchange_rate,
-                    movement.base_currency_code || ""
+                    movement.base_currency_code || "",
+                    movement.base_currency_symbol || ""
                   )}
                 </div>
               )}

@@ -19,6 +19,7 @@ import { useState } from "react";
 import { MOVEMENT_TYPES } from "@/constants/enums";
 import { useDeleteTransaction, useTransactions } from "@/hooks/queries/use-transactions";
 import { useQueryClient } from "@tanstack/react-query";
+import { useUserSettings } from "@/hooks/queries/use-user-settings";
 
 interface BusinessProjectTransactionListProps {
   project: BusinessProjectModel;
@@ -47,6 +48,7 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
   } = useBusinessProjectTransactions(project.id);
   const { mutateAsync: deleteTransaction } = useDeleteTransaction();
 
+  const { data: userSettings, isLoading: isLoadingUserSettings } = useUserSettings();
   const { data: paged, isLoading: isLoadingMovements } = useMoneyMovementsPaginatedByProject(project.id, {
     page: tableState.page,
     itemsPerPage: tableState.pageSize,
@@ -64,7 +66,7 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
     return acc;
   }, {} as Record<number, TransactionModel>);
 
-  const isLoading = isLoadingMovements || isTransactionsLoading;
+  const isLoading = isLoadingMovements || isTransactionsLoading || isLoadingUserSettings;
 
   const { data: categories } = useTransactionCategories();
   const { data: wallets } = useWallets();
@@ -163,7 +165,7 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
             <span className="text-sm font-medium">Total Pemasukan</span>
           </div>
           <AmountText amount={totalIncome} className="text-lg font-bold mt-1" showSign={false}>
-            {formatAmountCurrency(totalIncome, "IDR")}
+            {formatAmountCurrency(totalIncome, userSettings?.base_currency_code, userSettings?.currencies?.symbol)}
           </AmountText>
         </Card>
 
@@ -173,7 +175,7 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
             <span className="text-sm font-medium">Total Pengeluaran</span>
           </div>
           <AmountText amount={-totalExpense} className="text-lg font-bold mt-1" showSign={false}>
-            {formatAmountCurrency(totalExpense, "IDR")}
+            {formatAmountCurrency(totalExpense, userSettings?.base_currency_code, userSettings?.currencies?.symbol)}
           </AmountText>
         </Card>
 
@@ -183,7 +185,7 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
             <span className="text-sm font-medium">Net</span>
           </div>
           <AmountText amount={netAmount} className="text-lg font-bold mt-1" showSign={true}>
-            {formatAmountCurrency(Math.abs(netAmount), "IDR")}
+            {formatAmountCurrency(Math.abs(netAmount), userSettings?.base_currency_code, userSettings?.currencies?.symbol)}
           </AmountText>
         </Card>
       </div>

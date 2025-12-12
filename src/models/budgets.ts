@@ -8,8 +8,10 @@ export type BudgetItemWithTransactions = Database["public"]["Views"]["budget_ite
 
 export interface BudgetSummaryGroupByCurrency {
   currency_code: string;
+  currency_symbol: string;
   total_spent: number;
   base_currency_code: string | null;
+  base_currency_symbol: string | null;
   total_spent_in_base_currency: number | null;
   has_exchange_rate: boolean;
 }

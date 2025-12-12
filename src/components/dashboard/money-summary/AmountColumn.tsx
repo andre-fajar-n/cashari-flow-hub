@@ -4,29 +4,33 @@ interface AmountColumnProps {
   label: string;
   amount: number;
   currency: string;
+  currencySymbol: string;
   baseCurrencyAmount?: number;
   baseCurrency?: string;
+  baseCurrencySymbol?: string;
   showBaseCurrency?: boolean;
   alignment?: "left" | "center" | "right";
 }
 
-export const AmountColumn = ({ 
-  label, 
-  amount, 
-  currency, 
-  baseCurrencyAmount, 
-  baseCurrency, 
+export const AmountColumn = ({
+  label,
+  amount,
+  currency,
+  currencySymbol,
+  baseCurrencyAmount,
+  baseCurrency,
+  baseCurrencySymbol,
   showBaseCurrency = false,
-  alignment = "center" 
+  alignment = "center"
 }: AmountColumnProps) => (
   <div className={`space-y-1 ${alignment === "center" ? "text-center" : alignment === "right" ? "text-right" : ""}`}>
     <div className="text-xs text-muted-foreground font-medium">{label}</div>
     <div className="font-semibold">
-      {formatAmountCurrency(amount, currency)}
+      {formatAmountCurrency(amount, currency, currencySymbol)}
     </div>
     {showBaseCurrency && baseCurrencyAmount !== undefined && baseCurrency && (
       <div className="text-xs text-muted-foreground">
-        {formatAmountCurrency(baseCurrencyAmount, baseCurrency)}
+        {formatAmountCurrency(baseCurrencyAmount, baseCurrency, baseCurrencySymbol)}
       </div>
     )}
   </div>

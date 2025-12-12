@@ -21,7 +21,8 @@ import { useMoneySummary } from "@/hooks/queries/use-money-summary";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
-import { useGoalInvestmentRecords } from "@/hooks/queries";
+import { useGoalInvestmentRecords } from "@/hooks/queries/use-goal-investment-records";
+import { useCurrencyDetail } from "@/hooks/queries/use-currencies";
 import { MOVEMENT_TYPES } from "@/constants/enums";
 
 const GoalDetail = () => {
@@ -43,9 +44,10 @@ const GoalDetail = () => {
   const { data: assets, isLoading: isAssetsLoading } = useInvestmentAssets();
   const { data: instruments, isLoading: isInstrumentsLoading } = useInvestmentInstruments();
   const { data: goalRecords, isLoading: isRecordsLoading } = useGoalInvestmentRecords();
+  const { data: currency, isLoading: isCurrencyLoading } = useCurrencyDetail(goal?.currency_code);
 
   const isLoading = isGoalLoading || isTransfersLoading || isMovementsLoading || isFundsSummaryLoading || isWalletsLoading ||
-                    isAssetsLoading || isInstrumentsLoading || isRecordsLoading;
+    isAssetsLoading || isInstrumentsLoading || isRecordsLoading || isCurrencyLoading;
 
   // Check loading states and goal existence before accessing goal properties
   if (!goal || isLoading) {
@@ -144,8 +146,8 @@ const GoalDetail = () => {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => navigate('/goal')}
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -213,7 +215,7 @@ const GoalDetail = () => {
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="history">Riwayat</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="overview" className="space-y-4">
               <GoalOverview
                 goal={goal}
@@ -221,6 +223,7 @@ const GoalDetail = () => {
                 percentage={percentage}
                 totalAmountRecord={totalAmountRecord}
                 totalAmountTransfer={totalAmountTransfer}
+                currency={currency}
               />
             </TabsContent>
 

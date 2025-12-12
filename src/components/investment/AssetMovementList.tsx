@@ -42,7 +42,7 @@ const AssetMovementList = ({ assetId }: AssetMovementListProps) => {
     item?: MoneyMovementModel;
   }>({ open: false });
 
-  const { data: paged, isLoading } = useMoneyMovementsPaginatedByAsset(assetId, {
+  const { data: paged, isLoading: isMovementsLoading } = useMoneyMovementsPaginatedByAsset(assetId, {
     page: tableState.page,
     itemsPerPage: tableState.pageSize,
     searchTerm: tableState.searchTerm,
@@ -72,6 +72,8 @@ const AssetMovementList = ({ assetId }: AssetMovementListProps) => {
     acc[item.id] = item;
     return acc;
   }, {} as Record<number, GoalInvestmentRecordModel>);
+
+  const isLoading = isMovementsLoading || isGoalTransfersLoading || isInvestmentRecordsLoading;
 
   const handleEdit = (item: MoneyMovementModel) => {
     switch (item.resource_type) {

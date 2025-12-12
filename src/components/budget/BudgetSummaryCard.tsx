@@ -70,17 +70,17 @@ const BudgetSummaryCard = ({ summaryData, showDetailedBreakdown = false, title =
                       </td>
                       <td className="px-3 py-2 text-center border-r">
                         <span className="font-medium text-red-600">
-                          {formatAmountCurrency(group.total_spent, group.currency_code)}
+                          {formatAmountCurrency(group.total_spent, group.currency_code, group.currency_symbol)}
                         </span>
                       </td>
                       <td className="px-3 py-2 text-center">
                         {group.has_exchange_rate && group.total_spent_in_base_currency !== null ? (
                           <span className="font-medium text-red-600">
-                            {formatAmountCurrency(group.total_spent_in_base_currency, group.base_currency_code || '')}
+                            {formatAmountCurrency(group.total_spent_in_base_currency, group.base_currency_code, group.base_currency_symbol)}
                           </span>
                         ) : group.currency_code === group.base_currency_code ? (
                           <span className="font-medium text-red-600">
-                            {formatAmountCurrency(group.total_spent, group.currency_code)}
+                            {formatAmountCurrency(group.total_spent, group.currency_code, group.currency_symbol)}
                           </span>
                         ) : (
                           <span className="text-xs text-gray-500">
@@ -104,7 +104,7 @@ const BudgetSummaryCard = ({ summaryData, showDetailedBreakdown = false, title =
                 Total Terpakai dalam {totalCalculation.base_currency_code}:
               </span>
               <span className="text-lg font-bold text-red-800">
-                {formatAmountCurrency(totalCalculation.total_spent || 0, totalCalculation.base_currency_code || '')}
+                {formatAmountCurrency(totalCalculation.total_spent || 0, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
               </span>
             </div>
           </div>
@@ -131,7 +131,7 @@ const BudgetSummaryCard = ({ summaryData, showDetailedBreakdown = false, title =
               <div key={group.currency_code} className="flex justify-between items-center">
                 <Badge variant="outline">{group.currency_code}</Badge>
                 <span className="font-medium text-red-600">
-                  {formatAmountCurrency(group.total_spent, group.currency_code)}
+                  {formatAmountCurrency(group.total_spent, group.currency_code, group.currency_symbol)}
                 </span>
               </div>
             ))}

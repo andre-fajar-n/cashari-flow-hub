@@ -13,14 +13,14 @@ export const useUserSettings = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_settings")
-        .select("*")
+        .select("*, currencies(symbol)")
         .eq("user_id", user?.id)
         .single();
-      
+
       if (error && error.code !== 'PGRST116') { // PGRST116 is "not found" error
         throw error;
       }
-      
+
       return data || null;
     },
     enabled: !!user,

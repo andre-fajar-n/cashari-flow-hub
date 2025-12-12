@@ -10,10 +10,11 @@ import { useDeleteBudget } from "@/hooks/queries/use-budgets";
 import { useBudgetsPaginated } from "@/hooks/queries/paginated/use-budgets-paginated";
 import { useBudgetSummary } from "@/hooks/queries/use-budget-summary";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { BudgetModel } from "@/models/budgets";
-import { useUserSettings } from "@/hooks/queries/use-user-settings";
+import { BudgetModel, BudgetSummary } from "@/models/budgets";
 import { BudgetTable } from "@/components/budget/BudgetTable";
 import { useTableState } from "@/hooks/use-table-state";
+import { useCurrencies } from "@/hooks/queries/use-currencies";
+import { CurrencyModel } from "@/models/currencies";
 
 const Budget = () => {
   const queryClient = useQueryClient();
@@ -40,10 +41,24 @@ const Budget = () => {
   const totalCount = paged?.count || 0;
 
   const { data: budgetSummary, isLoading: isLoadingBudgetSummary } = useBudgetSummary();
-  const { data: userSettings, isLoading: isLoadingUserSettings } = useUserSettings();
+  const { data: currencies, isLoading: isLoadingCurrencies } = useCurrencies({
+    codes: budgets.map((budget) => budget.currency_code),
+  });
+
+  const currencyMap = currencies?.reduce((acc, currency) => {
+    acc[currency.code] = currency;
+    return acc;
+  }, {} as Record<string, CurrencyModel>);
+  const budgetSummariesMap = budgetSummary?.reduce((acc, item) => {
+    if (!acc[item.budget_id]) {
+      acc[item.budget_id] = [];
+    }
+    acc[item.budget_id].push(item);
+    return acc;
+  }, {} as Record<number, BudgetSummary[]>);
 
   // Combine all loading states
-  const isLoading = isLoadingBudgets || isLoadingBudgetSummary || isLoadingUserSettings;
+  const isLoading = isLoadingBudgets || isLoadingBudgetSummary || isLoadingCurrencies;
 
   if (isLoading) {
     return (
@@ -113,7 +128,8 @@ const Budget = () => {
             onEdit={handleEdit}
             onDelete={handleDeleteClick}
             onView={handleView}
-            budgetSummary={budgetSummary}
+            budgetSummariesMap={budgetSummariesMap}
+            currencyMap={currencyMap}
           />
         </div>
 

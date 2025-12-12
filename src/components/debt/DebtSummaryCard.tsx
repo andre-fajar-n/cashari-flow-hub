@@ -73,20 +73,20 @@ const DebtSummaryCard = ({ summaryData, showDetailedBreakdown = false, title = "
               <div className="flex justify-between text-xs">
                 <span className="text-green-700">Pemasukan:</span>
                 <span className="font-medium text-green-800">
-                  {formatAmountCurrency(totalCalculation.total_income || 0, totalCalculation.base_currency_code)}
+                  {formatAmountCurrency(totalCalculation.total_income || 0, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
                 </span>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-red-700">Pengeluaran:</span>
                 <span className="font-medium text-red-800">
-                  {formatAmountCurrency(totalCalculation.total_outcome || 0, totalCalculation.base_currency_code)}
+                  {formatAmountCurrency(totalCalculation.total_outcome || 0, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
                 </span>
               </div>
               <div className="flex justify-between items-center text-sm border-t pt-1">
                 <span className="font-medium">Net:</span>
                 <div className="flex items-center gap-2">
                   <span className="font-bold">
-                    {formatAmountCurrency(totalCalculation.total_net || 0, totalCalculation.base_currency_code)}
+                    {formatAmountCurrency(totalCalculation.total_net || 0, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
                   </span>
                   {renderNetAmountBadge(totalCalculation.total_net || 0)}
                 </div>
@@ -122,13 +122,13 @@ const DebtSummaryCard = ({ summaryData, showDetailedBreakdown = false, title = "
                   <div className="flex justify-between">
                     <span className="text-green-700">Pemasukan:</span>
                     <span className="text-green-800 font-medium">
-                      {formatAmountCurrency(group.income_amount, group.currency_code)}
+                      {formatAmountCurrency(group.income_amount, group.currency_code, group.currency_symbol)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-red-700">Pengeluaran:</span>
                     <span className="text-red-800 font-medium">
-                      {formatAmountCurrency(group.outcome_amount, group.currency_code)}
+                      {formatAmountCurrency(group.outcome_amount, group.currency_code, group.currency_symbol)}
                     </span>
                   </div>
                 </div>
@@ -137,14 +137,14 @@ const DebtSummaryCard = ({ summaryData, showDetailedBreakdown = false, title = "
               <div className="flex justify-between items-center text-sm border-t pt-1 mt-1">
                 <span className="font-medium">Net:</span>
                 <span className="font-bold">
-                  {formatAmountCurrency(group.net_amount, group.currency_code)}
+                  {formatAmountCurrency(group.net_amount, group.currency_code, group.currency_symbol)}
                 </span>
               </div>
 
               {/* Show base currency equivalent if available */}
               {group.has_exchange_rate && group.net_amount_in_base_currency !== null && group.base_currency_code && group.currency_code !== group.base_currency_code && (
                 <div className="text-xs text-muted-foreground mt-1">
-                  ≈ {formatAmountCurrency(group.net_amount_in_base_currency, group.base_currency_code)}
+                  ≈ {formatAmountCurrency(group.net_amount_in_base_currency, group.base_currency_code, group.base_currency_symbol)}
                 </div>
               )}
 

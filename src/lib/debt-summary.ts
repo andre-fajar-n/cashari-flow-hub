@@ -5,18 +5,18 @@ export const calculateDebtSummary = (summaryData: DebtSummaryModel[]): DebtSumma
     const income = item.income_amount || 0;
     const outcome = item.outcome_amount || 0;
     const net_amount = income + outcome;
-    
+
     const incomeInBase = item.income_amount_in_base_currency;
     const outcomeInBase = item.outcome_amount_in_base_currency;
-    const net_amount_in_base_currency = 
-      incomeInBase !== null && outcomeInBase !== null 
-        ? incomeInBase + outcomeInBase 
+    const net_amount_in_base_currency =
+      incomeInBase !== null && outcomeInBase !== null
+        ? incomeInBase + outcomeInBase
         : null;
-    
-    const has_exchange_rate = 
-      item.base_currency_code !== null && 
+
+    const has_exchange_rate =
+      item.base_currency_code !== null &&
       item.currency_code !== item.base_currency_code &&
-      incomeInBase !== null && 
+      incomeInBase !== null &&
       outcomeInBase !== null;
 
     return {
@@ -33,14 +33,16 @@ export const groupDebtSummaryByCurrency = (summaryData: DebtSummaryModel[]): Deb
 
   summaryData.forEach(item => {
     const currency = item.currency_code || 'Unknown';
-    
+
     if (!currencyMap.has(currency)) {
       currencyMap.set(currency, {
         currency_code: currency,
+        currency_symbol: item.currency_symbol,
         income_amount: 0,
         outcome_amount: 0,
         net_amount: 0,
         base_currency_code: item.base_currency_code,
+        base_currency_symbol: item.base_currency_symbol,
         income_amount_in_base_currency: 0,
         outcome_amount_in_base_currency: 0,
         net_amount_in_base_currency: 0,
@@ -79,17 +81,20 @@ export const calculateTotalInBaseCurrency = (summaryData: DebtSummaryModel[]): {
   total_net: number | null;
   can_calculate: boolean;
   base_currency_code: string | null;
+  base_currency_symbol: string | null;
 } => {
   const groupedData = groupDebtSummaryByCurrency(summaryData);
-  
+
   let total_income = 0;
   let total_outcome = 0;
   let can_calculate = true;
   let base_currency_code: string | null = null;
+  let base_currency_symbol: string | null = null;
 
   for (const group of groupedData) {
     if (group.base_currency_code) {
       base_currency_code = group.base_currency_code;
+      base_currency_symbol = group.base_currency_symbol;
     }
 
     if (group.currency_code === group.base_currency_code) {
@@ -113,7 +118,8 @@ export const calculateTotalInBaseCurrency = (summaryData: DebtSummaryModel[]): {
       total_outcome: null,
       total_net: null,
       can_calculate: false,
-      base_currency_code
+      base_currency_code,
+      base_currency_symbol
     };
   }
 
@@ -122,6 +128,7 @@ export const calculateTotalInBaseCurrency = (summaryData: DebtSummaryModel[]): {
     total_outcome,
     total_net: total_income + total_outcome,
     can_calculate: true,
-    base_currency_code
+    base_currency_code,
+    base_currency_symbol
   };
 };

@@ -6,6 +6,7 @@ import { GoalModel } from "@/models/goals";
 import AmountText from "@/components/ui/amount-text";
 import GoalFundsSummary from "@/components/goal/GoalFundsSummary";
 import { formatDate } from "@/lib/date";
+import { CurrencyModel } from "@/models/currencies";
 
 interface GoalOverviewProps {
   goal: GoalModel;
@@ -13,9 +14,10 @@ interface GoalOverviewProps {
   percentage: number;
   totalAmountRecord: number;
   totalAmountTransfer: number;
+  currency: CurrencyModel
 }
 
-const GoalOverview = ({ goal, totalAmount, percentage, totalAmountRecord, totalAmountTransfer }: GoalOverviewProps) => {
+const GoalOverview = ({ goal, totalAmount, percentage, totalAmountRecord, totalAmountTransfer, currency }: GoalOverviewProps) => {
   return (
     <div className="space-y-4">
       <Card>
@@ -36,7 +38,7 @@ const GoalOverview = ({ goal, totalAmount, percentage, totalAmountRecord, totalA
             <div>
               <p className="text-sm text-muted-foreground">Progress Amount</p>
               <AmountText amount={totalAmount} showSign={true} className="text-xl font-semibold">
-                {formatAmountCurrency(Math.abs(totalAmount), goal.currency_code)}
+                {formatAmountCurrency(Math.abs(totalAmount), goal.currency_code, currency.symbol)}
               </AmountText>
             </div>
             <div>

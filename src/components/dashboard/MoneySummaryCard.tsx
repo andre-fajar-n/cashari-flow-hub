@@ -63,11 +63,13 @@ const MoneySummaryCard = ({
     } else {
       currencyMap.set(key, {
         original_currency_code: row.original_currency_code,
+        original_currency_symbol: row.original_currency_symbol,
         amount: actualAmount, // Keep for backward compatibility
         originalAmount: originalAmount,
         calculatedAmount: actualAmount,
         unrealizedAmount: 0, // Will be calculated after
         base_currency_code: row.base_currency_code,
+        base_currency_symbol: row.base_currency_symbol,
         latest_rate: row.latest_rate ?? null,
         latest_rate_date: row.latest_rate_date ?? null,
       });
@@ -150,9 +152,11 @@ const MoneySummaryCard = ({
           calculatedAmount: 0,
           unrealizedAmount: 0,
           original_currency_code: row.original_currency_code,
+          original_currency_symbol: row.original_currency_symbol,
           latest_rate: row.latest_rate,
           latest_rate_date: row.latest_rate_date,
           base_currency_code: row.base_currency_code,
+          base_currency_symbol: row.base_currency_symbol,
           instruments: []
         };
         walletMap.set(row.wallet_id, wallet);
@@ -178,8 +182,10 @@ const MoneySummaryCard = ({
           calculatedAmount: 0,
           unrealizedAmount: 0,
           original_currency_code: row.original_currency_code,
+          original_currency_symbol: row.original_currency_symbol,
           latest_rate: row.latest_rate,
           base_currency_code: row.base_currency_code,
+          base_currency_symbol: row.base_currency_symbol,
           latest_rate_date: row.latest_rate_date,
           assets: []
         };
@@ -205,10 +211,12 @@ const MoneySummaryCard = ({
           unrealizedAmount: 0,
           amount_unit: 0,
           original_currency_code: row.original_currency_code,
+          original_currency_symbol: row.original_currency_symbol,
           latest_asset_value: row.latest_asset_value,
           latest_asset_value_date: row.latest_asset_value_date,
           latest_rate: row.latest_rate,
-          base_currency_code: row.base_currency_code
+          base_currency_code: row.base_currency_code,
+          base_currency_symbol: row.base_currency_symbol,
         };
         instrument.assets.push(asset);
       }
@@ -343,7 +351,7 @@ const MoneySummaryCard = ({
                     Total dalam {userSettings.base_currency_code}:
                   </span>
                   <span className="text-lg font-bold text-green-800">
-                    {formatAmountCurrency(totalAmountCalculation.totalAmount, userSettings.base_currency_code)}
+                    {formatAmountCurrency(totalAmountCalculation.totalAmount, userSettings.base_currency_code, userSettings.currencies?.symbol)}
                   </span>
                 </div>
 
@@ -351,14 +359,14 @@ const MoneySummaryCard = ({
                 <div className="mt-3 space-y-1 text-sm">
                   <div className="flex justify-between text-green-600">
                     <span>Amount Awal:</span>
-                    <span>{formatAmountCurrency(totalAmountCalculation.totalOriginalAmount, userSettings.base_currency_code)}</span>
+                    <span>{formatAmountCurrency(totalAmountCalculation.totalOriginalAmount, userSettings.base_currency_code, userSettings.currencies?.symbol)}</span>
                   </div>
                   {totalAmountCalculation.totalUnrealizedAmount !== 0 && (
                     <div className={`flex justify-between font-medium ${totalAmountCalculation.totalUnrealizedAmount >= 0 ? 'text-green-700' : 'text-red-600'}`}>
                       <span>Total Unrealized:</span>
                       <span>
                         {totalAmountCalculation.totalUnrealizedAmount >= 0 ? '+' : ''}
-                        {formatAmountCurrency(totalAmountCalculation.totalUnrealizedAmount, userSettings.base_currency_code)}
+                        {formatAmountCurrency(totalAmountCalculation.totalUnrealizedAmount, userSettings.base_currency_code, userSettings.currencies?.symbol)}
                       </span>
                     </div>
                   )}
@@ -387,6 +395,7 @@ const MoneySummaryCard = ({
           <ZakatInfo
             totalWealth={totalAmountCalculation.totalAmount}
             baseCurrency={userSettings.base_currency_code}
+            baseCurrencySymbol={userSettings.currencies?.symbol}
             canCalculateWealth={totalAmountCalculation.canCalculate}
           />
         )}
@@ -404,7 +413,6 @@ const MoneySummaryCard = ({
                 const show_in_base_currency = currencyData?.latest_rate !== null;
                 const same_original_and_base_currency = currencyData.original_currency_code === currencyData.base_currency_code;
                 const hasNullRate = currencyData?.latest_rate === null && currencyData?.base_currency_code;
-                const hasNoAssetValue = currencyData.originalAmount === currencyData.calculatedAmount;
 
                 return (
                   <div key={currency} className="p-4 bg-blue-50 rounded-lg">
@@ -419,10 +427,11 @@ const MoneySummaryCard = ({
                         currencyData?.originalAmount || 0,
                         currencyData?.calculatedAmount || 0,
                         currency,
+                        currencyData?.original_currency_symbol,
                         currencyData?.base_currency_code,
+                        currencyData?.base_currency_symbol,
                         show_in_base_currency && !same_original_and_base_currency ? currencyData?.latest_rate : undefined
                       )}
-                      hasAsset={!hasNoAssetValue}
                     />
                   </div>
                 );
@@ -492,10 +501,11 @@ const MoneySummaryCard = ({
                                       asset?.originalAmount || instrument.originalAmount,
                                       asset?.calculatedAmount || instrument.calculatedAmount,
                                       asset?.original_currency_code || instrument.original_currency_code,
+                                      asset?.original_currency_symbol || instrument.original_currency_symbol,
                                       asset?.base_currency_code,
+                                      asset?.base_currency_symbol,
                                       asset && asset.latest_rate && asset.base_currency_code && asset.base_currency_code !== asset.original_currency_code ? asset.latest_rate : undefined
                                     )}
-                                    hasAsset={!!(asset && asset.latest_asset_value && asset.amount_unit)}
                                   />
                                 </div>
                               );
@@ -532,10 +542,11 @@ const MoneySummaryCard = ({
                                                 asset.originalAmount,
                                                 asset.calculatedAmount,
                                                 asset.original_currency_code,
+                                                asset.original_currency_symbol,
                                                 asset.base_currency_code,
+                                                asset.base_currency_symbol,
                                                 asset.latest_rate && asset.base_currency_code !== asset.original_currency_code ? asset.latest_rate : undefined
                                               )}
-                                              hasAsset={!!(asset.latest_asset_value && asset.amount_unit)}
                                             />
                                           </div>
                                         ))}

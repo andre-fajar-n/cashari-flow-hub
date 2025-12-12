@@ -38,23 +38,27 @@ export const WalletRow = ({ wallet, isExpanded }: WalletRowProps) => (
         label="Amount Awal"
         amount={wallet.originalAmount}
         currency={wallet.original_currency_code}
+        currencySymbol={wallet.original_currency_symbol}
         baseCurrencyAmount={wallet.latest_rate && wallet.base_currency_code !== wallet.original_currency_code ? wallet.originalAmount * wallet.latest_rate : undefined}
         baseCurrency={wallet.base_currency_code}
+        baseCurrencySymbol={wallet.base_currency_symbol}
         showBaseCurrency={wallet.latest_rate && wallet.base_currency_code !== wallet.original_currency_code}
       />
     )}
 
     {/* Column 3: Unrealized Amount */}
-    <UnrealizedColumn 
+    <UnrealizedColumn
       data={{
         originalAmount: wallet.originalAmount,
         calculatedAmount: wallet.calculatedAmount,
         unrealizedAmount: wallet.unrealizedAmount,
         currency: wallet.original_currency_code,
+        currencySymbol: wallet.original_currency_symbol,
         baseCurrency: wallet.base_currency_code,
+        baseCurrencySymbol: wallet.base_currency_symbol,
         exchangeRate: wallet.latest_rate || 0,
         showBaseCurrency: wallet.latest_rate && wallet.base_currency_code !== wallet.original_currency_code
-      }} 
+      }}
     />
 
     {/* Column 4: Calculated Amount */}
@@ -62,8 +66,10 @@ export const WalletRow = ({ wallet, isExpanded }: WalletRowProps) => (
       label="Amount Akhir"
       amount={wallet.calculatedAmount}
       currency={wallet.original_currency_code}
+      currencySymbol={wallet.original_currency_symbol}
       baseCurrencyAmount={wallet.latest_rate && wallet.base_currency_code !== wallet.original_currency_code ? wallet.calculatedAmount * wallet.latest_rate : undefined}
       baseCurrency={wallet.base_currency_code}
+      baseCurrencySymbol={wallet.base_currency_symbol}
       showBaseCurrency={wallet.latest_rate && wallet.base_currency_code !== wallet.original_currency_code}
     />
   </div>

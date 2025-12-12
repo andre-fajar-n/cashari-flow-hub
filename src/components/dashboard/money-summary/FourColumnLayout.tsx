@@ -6,13 +6,11 @@ import { InfoColumnData, AmountDisplayData } from "@/components/dashboard/money-
 interface FourColumnLayoutProps {
   infoData: InfoColumnData;
   amountData: AmountDisplayData;
-  hasAsset?: boolean;
 }
 
-export const FourColumnLayout = ({ 
-  infoData, 
-  amountData, 
-  hasAsset = false 
+export const FourColumnLayout = ({
+  infoData,
+  amountData,
 }: FourColumnLayoutProps) => (
   <div className="grid grid-cols-4 gap-3 items-start">
     <InfoColumn data={infoData} />
@@ -27,8 +25,10 @@ export const FourColumnLayout = ({
         label="Amount Awal"
         amount={amountData.originalAmount}
         currency={amountData.currency}
+        currencySymbol={amountData.currencySymbol}
         baseCurrencyAmount={amountData.showBaseCurrency ? amountData.originalAmount * (amountData.exchangeRate || 0) : undefined}
         baseCurrency={amountData.baseCurrency}
+        baseCurrencySymbol={amountData.baseCurrencySymbol}
         showBaseCurrency={amountData.showBaseCurrency}
       />
     )}
@@ -39,9 +39,11 @@ export const FourColumnLayout = ({
       label="Amount Akhir"
       amount={amountData.calculatedAmount}
       currency={amountData.currency}
+      currencySymbol={amountData.currencySymbol}
       baseCurrencyAmount={amountData.showBaseCurrency ? amountData.calculatedAmount * (amountData.exchangeRate || 0) : undefined}
       baseCurrency={amountData.baseCurrency}
+      baseCurrencySymbol={amountData.baseCurrencySymbol}
       showBaseCurrency={amountData.showBaseCurrency}
-    />    
+    />
   </div>
 );

@@ -21,11 +21,11 @@ interface BusinessProjectTransactionDialogProps {
   onSuccess?: () => void;
 }
 
-const BusinessProjectTransactionDialog = ({ 
-  open, 
-  onOpenChange, 
-  project, 
-  onSuccess 
+const BusinessProjectTransactionDialog = ({
+  open,
+  onOpenChange,
+  project,
+  onSuccess
 }: BusinessProjectTransactionDialogProps) => {
   const [selectedTransactionIds, setSelectedTransactionIds] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -36,9 +36,9 @@ const BusinessProjectTransactionDialog = ({
   };
 
   const { data: allTransactions } = useTransactions(filter);
-  const { 
-    data: projectTransactions, 
-    addTransactionsToProject 
+  const {
+    data: projectTransactions,
+    addTransactionsToProject
   } = useBusinessProjectTransactions(project?.id);
 
   // Get transactions that are not already in this project
@@ -127,13 +127,13 @@ const BusinessProjectTransactionDialog = ({
                 className="pl-9"
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="select-all"
                   checked={
-                    filteredTransactions.length > 0 && 
+                    filteredTransactions.length > 0 &&
                     selectedTransactionIds.length === filteredTransactions.length
                   }
                   onCheckedChange={handleSelectAll}
@@ -153,7 +153,7 @@ const BusinessProjectTransactionDialog = ({
             <ScrollArea className="h-[400px] border rounded-lg">
               {filteredTransactions.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground">
-                  {availableTransactions.length === 0 
+                  {availableTransactions.length === 0
                     ? "Semua transaksi sudah ada di proyek ini"
                     : "Tidak ada transaksi yang sesuai dengan pencarian"
                   }
@@ -169,7 +169,7 @@ const BusinessProjectTransactionDialog = ({
                         checked={selectedTransactionIds.includes(transaction.id)}
                         onCheckedChange={() => handleTransactionToggle(transaction.id)}
                       />
-                      
+
                       <div className="flex-shrink-0">
                         {transaction.categories?.is_income ? (
                           <ArrowUpCircle className="w-4 h-4 text-green-600" />
@@ -177,7 +177,7 @@ const BusinessProjectTransactionDialog = ({
                           <ArrowDownCircle className="w-4 h-4 text-red-600" />
                         )}
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm truncate">
                           {transaction.categories?.name}
@@ -193,14 +193,14 @@ const BusinessProjectTransactionDialog = ({
                           </p>
                         )}
                       </div>
-                      
+
                       <div className="text-right flex-shrink-0">
                         <AmountText
                           amount={transaction.categories?.is_income ? transaction.amount : -transaction.amount}
                           className="font-semibold text-sm"
                           showSign={true}
                         >
-                          {formatAmountCurrency(transaction.amount, transaction.wallets?.currency_code)}
+                          {formatAmountCurrency(transaction.amount, transaction.wallets?.currency_code, transaction.wallets?.currencies?.symbol)}
                         </AmountText>
                         <Badge variant="outline" className="mt-1 text-xs">
                           {transaction.wallets?.currency_code}
@@ -227,8 +227,8 @@ const BusinessProjectTransactionDialog = ({
             onClick={handleAddTransactions}
             disabled={selectedTransactionIds.length === 0 || isLoading}
           >
-            {isLoading 
-              ? "Menambahkan..." 
+            {isLoading
+              ? "Menambahkan..."
               : `Tambah ${selectedTransactionIds.length} Transaksi`
             }
           </Button>

@@ -4,7 +4,9 @@ export interface AmountDisplayData {
   calculatedAmount: number;
   unrealizedAmount: number;
   currency: string;
+  currencySymbol: string;
   baseCurrency?: string;
+  baseCurrencySymbol?: string;
   exchangeRate?: number;
   showBaseCurrency?: boolean;
 }

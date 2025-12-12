@@ -111,6 +111,7 @@ const AssetSummary = ({ assetId, assetName }: AssetSummaryProps) => {
   const totalAmount = Object.values(groupedRecords).reduce((sum, group) => sum + group.totalAmount, 0);
   const totalUnit = Object.values(groupedRecords).reduce((sum, group) => sum + group.totalUnit, 0);
   const currencyCode = assetRecords[0]?.original_currency_code || 'unknown currency';
+  const currencySymbol = assetRecords[0]?.original_currency_symbol || 'unknown currency';
 
   return (
     <Card>
@@ -127,9 +128,8 @@ const AssetSummary = ({ assetId, assetName }: AssetSummaryProps) => {
             <AmountText
               amount={totalAmount}
               className="text-2xl font-bold"
-              showSign={true}
             >
-              {formatAmountCurrency(totalAmount, currencyCode)}
+              {formatAmountCurrency(totalAmount, currencyCode, currencySymbol)}
             </AmountText>
             {totalUnit > 0 && (
               <p className="text-sm text-muted-foreground mt-1">
@@ -164,7 +164,7 @@ const AssetSummary = ({ assetId, assetName }: AssetSummaryProps) => {
                           amount={wallet.totalAmount}
                           className="font-semibold"
                         >
-                          {formatAmountCurrency(wallet.totalAmount, 'IDR')}
+                          {formatAmountCurrency(wallet.totalAmount, currencyCode, currencySymbol)}
                         </AmountText>
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </div>
@@ -188,7 +188,7 @@ const AssetSummary = ({ assetId, assetName }: AssetSummaryProps) => {
                                 amount={goal.totalAmount}
                                 className="font-semibold text-sm"
                               >
-                                {formatAmountCurrency(goal.totalAmount, 'IDR')}
+                                {formatAmountCurrency(goal.totalAmount, currencyCode, currencySymbol)}
                               </AmountText>
                               {goal.totalUnit > 0 && (
                                 <p className="text-xs text-muted-foreground">

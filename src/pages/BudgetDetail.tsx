@@ -16,6 +16,7 @@ import { formatDate } from "@/lib/date";
 import { useBudgetSummary } from "@/hooks/queries/use-budget-summary";
 import { calculateTotalSpentInBaseCurrency } from "@/lib/budget-summary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCurrencyDetail } from "@/hooks/queries/use-currencies";
 
 const BudgetDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +27,7 @@ const BudgetDetail = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const { data: budget } = useBudget(parseInt(id!));
+  const { data: currency } = useCurrencyDetail(budget?.currency_code || '');
   const { mutate: deleteBudget } = useDeleteBudget();
   const { data: budgetSummary } = useBudgetSummary(parseInt(id!));
 
@@ -103,13 +105,13 @@ const BudgetDetail = () => {
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 py-2 px-2 border-t">
               <div className="sm:text-center">
                 <p className="text-xs text-muted-foreground">Total Budget</p>
-                <p className="font-semibold">{formatAmountCurrency(budget.amount, budget.currency_code)}</p>
+                <p className="font-semibold">{formatAmountCurrency(budget.amount, budget.currency_code, currency?.symbol)}</p>
               </div>
               <div className="sm:text-center">
                 <p className="text-xs text-center text-muted-foreground">Terpakai</p>
                 {totalCalculation.can_calculate ? (
                   <AmountText amount={totalSpent} showSign className="font-semibold">
-                    {formatAmountCurrency(Math.abs(totalSpent), budget.currency_code)}
+                    {formatAmountCurrency(Math.abs(totalSpent), budget.currency_code, currency?.symbol)}
                   </AmountText>
                 ) : (
                   <div className="flex justify-center gap-1 text-xs text-yellow-600 mt-1">
@@ -121,7 +123,7 @@ const BudgetDetail = () => {
               <div className="sm:text-center">
                 <p className="text-xs text-muted-foreground">{remainingBudget >= 0 ? 'Sisa Budget' : 'Kelebihan'}</p>
                 <AmountText amount={remainingBudget} showSign className="font-semibold">
-                  {formatAmountCurrency(Math.abs(remainingBudget), budget.currency_code)}
+                  {formatAmountCurrency(Math.abs(remainingBudget), budget.currency_code, currency?.symbol)}
                 </AmountText>
               </div>
               <div className="sm:text-center">
