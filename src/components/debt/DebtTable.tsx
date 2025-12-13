@@ -9,6 +9,7 @@ import { formatAmountCurrency } from "@/lib/currency";
 import { calculateTotalInBaseCurrency } from "@/lib/debt-summary";
 import { Badge } from "@/components/ui/badge";
 import { DEBT_TYPES } from "@/constants/enums";
+import { UserSettingsModel } from "@/models/user-settings";
 
 export interface DebtTableProps {
   debts: DebtModel[];
@@ -37,6 +38,8 @@ export interface DebtTableProps {
 
   // Debt-specific data
   debtSummary?: DebtSummaryModel[];
+
+  userSettings: UserSettingsModel;
 }
 
 /**
@@ -61,6 +64,7 @@ export const DebtTable = ({
   onDelete,
   onViewHistory,
   debtSummary = [],
+  userSettings,
 }: DebtTableProps) => {
   // Group debt summary by debt_id
   const groupedSummaryById = debtSummary.reduce((acc, item) => {
@@ -143,7 +147,7 @@ export const DebtTable = ({
           return (
             <div className="text-right">
               <div className="text-sm font-medium text-gray-600">
-                {debt.currency_code}
+                {userSettings?.base_currency_code}
               </div>
               <Badge variant="secondary" className="bg-yellow-50 text-yellow-700 border-yellow-200 mt-1">
                 Belum ada transaksi
@@ -156,7 +160,7 @@ export const DebtTable = ({
           return (
             <div className="text-right">
               <div className="text-sm font-medium text-gray-600">
-                {debt.currency_code}
+                {userSettings?.base_currency_code}
               </div>
               <Badge variant="secondary" className="bg-yellow-50 text-yellow-700 border-yellow-200 mt-1">
                 Kurs belum tersedia

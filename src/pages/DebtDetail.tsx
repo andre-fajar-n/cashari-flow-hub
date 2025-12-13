@@ -20,6 +20,7 @@ import { formatDate } from "@/lib/date";
 import { AmountText } from "@/components/ui/amount-text";
 import { Badge } from "@/components/ui/badge";
 import { calculateTotalInBaseCurrency, calculateDebtProgress } from "@/lib/debt-summary";
+import { useUserSettings } from "@/hooks/queries/use-user-settings";
 
 const DebtHistory = () => {
   const [activeTab, setActiveTab] = useState("summary");
@@ -46,15 +47,22 @@ const DebtHistory = () => {
   const markAsActive = useMarkDebtAsActive();
   const { data: debt } = useDebtDetail(debtId);
   const { mutateAsync: deleteDebtHistory } = useDeleteDebtHistory();
-  const { data: currency } = useCurrencyDetail(debt?.currency_code || '');
+  const { data: userSettings } = useUserSettings();
 
   // Calculate totals and progress
   const totalCalculation = useMemo(() => {
     if (!debtSummary || debtSummary.length === 0) {
-      return { total_income: 0, total_outcome: 0, total_net: 0, can_calculate: true, base_currency_code: debt?.currency_code || null, base_currency_symbol: currency?.symbol || null };
+      return {
+        total_income: 0,
+        total_outcome: 0,
+        total_net: 0,
+        can_calculate: true,
+        base_currency_code: userSettings?.base_currency_code || null,
+        base_currency_symbol: userSettings?.currencies?.symbol || null
+      };
     }
     return calculateTotalInBaseCurrency(debtSummary);
-  }, [debtSummary, debt?.currency_code, currency?.symbol]);
+  }, [debtSummary, userSettings]);
 
   const progressCalculation = useMemo(() => {
     if (!debt || !totalCalculation.can_calculate) {
@@ -194,13 +202,13 @@ const DebtHistory = () => {
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 py-2 px-2 border-t">
                 <div className="sm:text-center">
                   <p className="text-xs text-muted-foreground">{labels.initial}</p>
-                  <p className="font-semibold">{formatAmountCurrency(progressCalculation.totalInitial, debt.currency_code, currency?.symbol)}</p>
+                  <p className="font-semibold">{formatAmountCurrency(progressCalculation.totalInitial, userSettings?.base_currency_code, userSettings?.currencies?.symbol)}</p>
                 </div>
                 <div className="sm:text-center">
                   <p className="text-xs text-center text-muted-foreground">{labels.paid}</p>
                   {totalCalculation.can_calculate ? (
                     <p className="font-semibold text-green-600">
-                      {formatAmountCurrency(progressCalculation.totalPaid, debt.currency_code, currency?.symbol)}
+                      {formatAmountCurrency(progressCalculation.totalPaid, userSettings?.base_currency_code, userSettings?.currencies?.symbol)}
                     </p>
                   ) : (
                     <div className="flex justify-center gap-1 text-xs text-yellow-600 mt-1">
@@ -212,7 +220,7 @@ const DebtHistory = () => {
                 <div className="sm:text-center">
                   <p className="text-xs text-muted-foreground">{labels.remaining}</p>
                   <AmountText amount={progressCalculation.remaining} showSign className="font-semibold">
-                    {formatAmountCurrency(Math.abs(progressCalculation.remaining), debt.currency_code, currency?.symbol)}
+                    {formatAmountCurrency(Math.abs(progressCalculation.remaining), userSettings?.base_currency_code, userSettings?.currencies?.symbol)}
                   </AmountText>
                 </div>
                 <div className="sm:text-center">

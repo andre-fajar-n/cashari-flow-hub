@@ -324,7 +324,6 @@ export type Database = {
       debts: {
         Row: {
           created_at: string | null
-          currency_code: string
           due_date: string | null
           id: number
           name: string
@@ -335,7 +334,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
-          currency_code: string
           due_date?: string | null
           id?: number
           name: string
@@ -346,7 +344,6 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
-          currency_code?: string
           due_date?: string | null
           id?: number
           name?: string
@@ -355,15 +352,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "debts_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "currencies"
-            referencedColumns: ["code"]
-          },
-        ]
+        Relationships: []
       }
       goal_investment_records: {
         Row: {

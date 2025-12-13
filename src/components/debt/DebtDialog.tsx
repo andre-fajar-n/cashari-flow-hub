@@ -38,7 +38,6 @@ const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) =>
         form.reset({
           name: debt.name || "",
           type: debt.type || DEBT_TYPES.LOAN,
-          currency_code: debt.currency_code || "",
           due_date: debt.due_date || "",
         });
       } else {
@@ -109,17 +108,6 @@ const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) =>
                 { value: DEBT_TYPES.BORROWED, label: "Piutang" }
               ]}
               rules={{ required: "Tipe harus dipilih" }}
-            />
-
-            <Dropdown
-              control={form.control}
-              name="currency_code"
-              label="Mata Uang"
-              placeholder="Pilih mata uang"
-              options={currencies?.map((currency) => ({
-                value: currency.code,
-                label: `${currency.code} - ${currency.name}`
-              })) || []}
             />
 
             <FormField

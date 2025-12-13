@@ -135,6 +135,7 @@ const Debt = () => {
             onViewHistory={handleViewHistory}
             debtSummary={debtSummary}
             selectFilters={selectFilters}
+            userSettings={userSettings}
           />
         </div>
 
