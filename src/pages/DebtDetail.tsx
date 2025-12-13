@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, CheckCircle, Plus, RotateCcw, Calendar, AlertTriangle } from "lucide-react";
+import { ArrowLeft, CheckCircle, Plus, RotateCcw, Calendar, AlertTriangle, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import { useDebtDetail, useMarkDebtAsActive, useMarkDebtAsPaid } from "@/hooks/queries/use-debts";
@@ -19,7 +19,7 @@ import { formatAmountCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/date";
 import { AmountText } from "@/components/ui/amount-text";
 import { Badge } from "@/components/ui/badge";
-import { calculateTotalInBaseCurrency, calculateDebtProgress } from "@/lib/debt-summary";
+import { calculateTotalInBaseCurrency, calculateDebtProgress, getDebtStatusBadge } from "@/lib/debt-summary";
 import { useUserSettings } from "@/hooks/queries/use-user-settings";
 
 const DebtHistory = () => {
@@ -146,8 +146,8 @@ const DebtHistory = () => {
       <Layout>
         <div className="space-y-6">
           {/* Sticky Header */}
-          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-            <div className="flex items-center justify-between py-3">
+          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-sm">
+            <div className="flex items-center justify-between py-4 px-1">
               <div className="flex items-center gap-4">
                 <Button variant="ghost" size="sm" onClick={() => navigate("/debt")}>
                   <ArrowLeft className="w-4 h-4 mr-2" /> Kembali
@@ -155,15 +155,15 @@ const DebtHistory = () => {
                 <div>
                   <div className="flex items-center gap-2">
                     <h1 className="text-2xl font-bold">{debt.name}</h1>
-                    <Badge variant={debt.status === 'active' ? 'default' : 'secondary'}>
+                    <Badge variant={debt.status === 'active' ? 'default' : 'secondary'} className="text-xs px-2.5 py-0.5">
                       {debt.status === 'active' ? 'Aktif' : 'Lunas'}
                     </Badge>
-                    <Badge variant="outline">
+                    <Badge variant="outline" className="text-xs px-2.5 py-0.5">
                       {debt.type === 'loan' ? 'Hutang' : 'Piutang'}
                     </Badge>
                   </div>
                   {debt.due_date && (
-                    <p className="text-muted-foreground mt-0.5 flex items-center gap-2">
+                    <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
                       <Calendar className="w-3.5 h-3.5" />
                       Jatuh Tempo: {formatDate(debt.due_date)}
                     </p>
@@ -197,35 +197,66 @@ const DebtHistory = () => {
               </div>
             </div>
 
-            {/* Compact stats */}
+            {/* Enhanced Stats Section */}
             {debtSummary && debtSummary.length > 0 && progressCalculation && (
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 py-2 px-2 border-t">
-                <div className="sm:text-center">
-                  <p className="text-xs text-muted-foreground">{labels.initial}</p>
-                  <p className="font-semibold">{formatAmountCurrency(progressCalculation.totalInitial, userSettings?.base_currency_code, userSettings?.currencies?.symbol)}</p>
-                </div>
-                <div className="sm:text-center">
-                  <p className="text-xs text-center text-muted-foreground">{labels.paid}</p>
-                  {totalCalculation.can_calculate ? (
-                    <p className="font-semibold text-green-600">
-                      {formatAmountCurrency(progressCalculation.totalPaid, userSettings?.base_currency_code, userSettings?.currencies?.symbol)}
-                    </p>
-                  ) : (
-                    <div className="flex justify-center gap-1 text-xs text-yellow-600 mt-1">
-                      <AlertTriangle className="w-3 h-3" />
-                      <span>Kurs belum tersedia</span>
+              <div className="border-t bg-muted/30">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 p-4">
+                  {/* Total Initial Amount */}
+                  <div className="bg-card rounded-lg border p-3 shadow-sm hover:shadow-md transition-shadow">
+                    <p className="text-xs font-medium text-muted-foreground mb-1">{labels.initial}</p>
+                    <p className="text-lg font-bold">{formatAmountCurrency(progressCalculation.totalInitial, userSettings?.base_currency_code, userSettings?.currencies?.symbol)}</p>
+                  </div>
+
+                  {/* Total Paid */}
+                  <div className="bg-card rounded-lg border p-3 shadow-sm hover:shadow-md transition-shadow">
+                    <p className="text-xs font-medium text-muted-foreground mb-1">{labels.paid}</p>
+                    {totalCalculation.can_calculate ? (
+                      <p className="text-lg font-bold text-green-600">
+                        {formatAmountCurrency(progressCalculation.totalPaid, userSettings?.base_currency_code, userSettings?.currencies?.symbol)}
+                      </p>
+                    ) : (
+                      <div className="flex items-center gap-1.5 text-xs text-yellow-600 mt-1">
+                        <AlertTriangle className="w-3.5 h-3.5" />
+                        <span>Kurs belum tersedia</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Remaining Amount */}
+                  <div className="bg-card rounded-lg border p-3 shadow-sm hover:shadow-md transition-shadow">
+                    <p className="text-xs font-medium text-muted-foreground mb-1">{labels.remaining}</p>
+                    <AmountText amount={progressCalculation.remaining} showSign className="text-lg font-bold">
+                      {formatAmountCurrency(Math.abs(progressCalculation.remaining), userSettings?.base_currency_code, userSettings?.currencies?.symbol)}
+                    </AmountText>
+                    {/* Status Badge */}
+                    <div className="mt-2">
+                      {(() => {
+                        const badgeInfo = getDebtStatusBadge(progressCalculation.remaining, debt.type);
+                        const IconComponent = badgeInfo.icon === 'up' ? TrendingUp : badgeInfo.icon === 'down' ? TrendingDown : Minus;
+                        return (
+                          <Badge variant={badgeInfo.variant} className={`${badgeInfo.className} text-xs`}>
+                            <IconComponent className="w-3 h-3 mr-1" />
+                            {badgeInfo.text}
+                          </Badge>
+                        );
+                      })()}
                     </div>
-                  )}
-                </div>
-                <div className="sm:text-center">
-                  <p className="text-xs text-muted-foreground">{labels.remaining}</p>
-                  <AmountText amount={progressCalculation.remaining} showSign className="font-semibold">
-                    {formatAmountCurrency(Math.abs(progressCalculation.remaining), userSettings?.base_currency_code, userSettings?.currencies?.symbol)}
-                  </AmountText>
-                </div>
-                <div className="sm:text-center">
-                  <p className="text-xs text-muted-foreground">Progress</p>
-                  <p className="font-semibold">{progressCalculation.progressPercentage.toFixed(1)}%</p>
+                  </div>
+
+                  {/* Progress */}
+                  <div className="bg-card rounded-lg border p-3 shadow-sm hover:shadow-md transition-shadow">
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Progress</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-lg font-bold">{progressCalculation.progressPercentage.toFixed(1)}%</p>
+                    </div>
+                    {/* Progress Bar */}
+                    <div className="mt-2 w-full bg-muted rounded-full h-1.5 overflow-hidden">
+                      <div
+                        className="h-full bg-primary transition-all duration-300 rounded-full"
+                        style={{ width: `${Math.min(progressCalculation.progressPercentage, 100)}%` }}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

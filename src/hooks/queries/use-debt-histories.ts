@@ -18,7 +18,7 @@ export const useDebtHistories = (params: DebtHistoryFilter = {}) => {
           *,
           wallets (id, name, currency_code, initial_amount),
           categories (id, name, is_income, application, parent_id),
-          debts (id, name, type, currency_code, due_date)
+          debts (id, name, type, due_date)
         `)
         .eq("user_id", user?.id)
         .order("date", { ascending: false });

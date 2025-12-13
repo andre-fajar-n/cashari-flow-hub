@@ -4,8 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, TrendingUp, TrendingDown, Minus, Calculator } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { DebtSummaryModel } from "@/models/debt-summary";
-import { groupDebtSummaryByCurrency, calculateTotalInBaseCurrency } from "@/lib/debt-summary";
-import AmountText from "../ui/amount-text";
+import { groupDebtSummaryByCurrency, calculateTotalInBaseCurrency, getDebtStatusBadge } from "@/lib/debt-summary";
+import AmountText from "@/components/ui/amount-text";
 
 interface DebtSummaryCardProps {
   summaryData: DebtSummaryModel[];
@@ -53,52 +53,15 @@ const DebtSummaryCard = ({
 
 
   const renderNetAmountBadge = (netAmount: number) => {
-    if (netAmount > 0) {
-      // Positive net amount
-      // For loan: still owe money (remaining debt)
-      // For borrowed: overpaid
-      if (debtType === 'loan') {
-        return (
-          <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200">
-            <TrendingUp className="w-3 h-3 mr-1" />
-            Kurang Bayar
-          </Badge>
-        );
-      } else {
-        return (
-          <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
-            <TrendingUp className="w-3 h-3 mr-1" />
-            Kelebihan Bayar
-          </Badge>
-        );
-      }
-    } else if (netAmount < 0) {
-      // Negative net amount
-      // For loan: overpaid
-      // For borrowed: still owed to us (remaining receivable)
-      if (debtType === 'loan') {
-        return (
-          <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
-            <TrendingDown className="w-3 h-3 mr-1" />
-            Kelebihan Bayar
-          </Badge>
-        );
-      } else {
-        return (
-          <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200">
-            <TrendingDown className="w-3 h-3 mr-1" />
-            Kurang Bayar
-          </Badge>
-        );
-      }
-    } else {
-      return (
-        <Badge variant="secondary" className="bg-gray-100 text-gray-800 border-gray-200">
-          <Minus className="w-3 h-3 mr-1" />
-          Pas
-        </Badge>
-      );
-    }
+    const badgeInfo = getDebtStatusBadge(netAmount, debtType);
+    const IconComponent = badgeInfo.icon === 'up' ? TrendingUp : badgeInfo.icon === 'down' ? TrendingDown : Minus;
+
+    return (
+      <Badge variant={badgeInfo.variant} className={badgeInfo.className}>
+        <IconComponent className="w-3 h-3 mr-1" />
+        {badgeInfo.text}
+      </Badge>
+    );
   };
 
   return (

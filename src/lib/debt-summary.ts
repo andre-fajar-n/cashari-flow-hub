@@ -134,17 +134,77 @@ export const calculateTotalInBaseCurrency = (summaryData: DebtSummaryModel[]): {
 };
 
 /**
+ * Get badge information for debt status based on net amount and debt type
+ */
+export const getDebtStatusBadge = (
+  netAmount: number,
+  debtType: 'loan' | 'borrowed'
+): {
+  variant: 'destructive' | 'default' | 'secondary';
+  className: string;
+  icon: 'up' | 'down' | 'neutral';
+  text: string;
+} => {
+  if (netAmount > 0) {
+    // Positive net amount
+    // For loan: still owe money (remaining debt)
+    // For borrowed: overpaid
+    if (debtType === 'loan') {
+      return {
+        variant: 'destructive',
+        className: 'bg-red-100 text-red-800 border-red-200',
+        icon: 'up',
+        text: 'Kurang Bayar'
+      };
+    } else {
+      return {
+        variant: 'default',
+        className: 'bg-green-100 text-green-800 border-green-200',
+        icon: 'up',
+        text: 'Kelebihan Bayar'
+      };
+    }
+  } else if (netAmount < 0) {
+    // Negative net amount
+    // For loan: overpaid
+    // For borrowed: still owed to us (remaining receivable)
+    if (debtType === 'loan') {
+      return {
+        variant: 'default',
+        className: 'bg-green-100 text-green-800 border-green-200',
+        icon: 'down',
+        text: 'Kelebihan Bayar'
+      };
+    } else {
+      return {
+        variant: 'destructive',
+        className: 'bg-red-100 text-red-800 border-red-200',
+        icon: 'down',
+        text: 'Kurang Bayar'
+      };
+    }
+  } else {
+    return {
+      variant: 'secondary',
+      className: 'bg-gray-100 text-gray-800 border-gray-200',
+      icon: 'neutral',
+      text: 'Pas'
+    };
+  }
+};
+
+/**
  * Calculate debt progress metrics based on debt type
  * 
  * For 'loan' (hutang - we borrowed money):
  * - totalInitial = income (money we received)
  * - totalPaid = absolute value of outcome (payments we made)
- * - remaining = totalInitial + outcome (outcome is negative, so this subtracts)
+ * - remaining = totalIncome + totalOutcome (net amount, matches summary tab)
  * 
  * For 'borrowed' (piutang - someone borrowed from us):
  * - totalInitial = absolute value of outcome (money we lent)
  * - totalPaid = income (repayments we received)
- * - remaining = totalInitial + income (income is positive but less than initial)
+ * - remaining = totalIncome + totalOutcome (net amount, matches summary tab)
  */
 export const calculateDebtProgress = (
   totalIncome: number,
@@ -158,19 +218,19 @@ export const calculateDebtProgress = (
 } => {
   let totalInitial: number;
   let totalPaid: number;
-  let remaining: number;
 
   if (debtType === 'loan') {
     // For loan: we received money (income) and we pay it back (outcome is negative)
     totalInitial = totalIncome;
     totalPaid = Math.abs(totalOutcome);
-    remaining = totalInitial + totalOutcome; // outcome is negative, so this subtracts
   } else {
     // For borrowed: we lent money (outcome is negative) and receive repayments (income)
     totalInitial = Math.abs(totalOutcome);
     totalPaid = totalIncome;
-    remaining = totalInitial + totalOutcome; // outcome is negative, income is positive
   }
+
+  // Use total_net calculation to match summary tab
+  const remaining = totalIncome + totalOutcome;
 
   const progressPercentage = totalInitial > 0 ? (totalPaid / totalInitial) * 100 : 0;
 
