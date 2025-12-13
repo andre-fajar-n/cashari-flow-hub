@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Calculator } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { groupBudgetSummaryByCurrency, calculateTotalSpentInBaseCurrency } from "@/lib/budget-summary";
@@ -8,11 +7,10 @@ import { BudgetSummary } from "@/models/budgets";
 
 interface BudgetSummaryCardProps {
   summaryData: BudgetSummary[];
-  showDetailedBreakdown?: boolean;
   title?: string;
 }
 
-const BudgetSummaryCard = ({ summaryData, showDetailedBreakdown = false, title = "Ringkasan Pengeluaran Budget" }: BudgetSummaryCardProps) => {
+const BudgetSummaryCard = ({ summaryData, title = "Ringkasan Pengeluaran Budget" }: BudgetSummaryCardProps) => {
   const groupedByCurrency = useMemo(() => groupBudgetSummaryByCurrency(summaryData), [summaryData]);
   const totalCalculation = useMemo(() => calculateTotalSpentInBaseCurrency(summaryData), [summaryData]);
 
@@ -39,7 +37,7 @@ const BudgetSummaryCard = ({ summaryData, showDetailedBreakdown = false, title =
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Currency breakdown table */}
-        {showDetailedBreakdown && groupedByCurrency.length > 0 && (
+        {groupedByCurrency.length > 0 && (
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-gray-700">Rincian per Mata Uang</h4>
             <div className="overflow-hidden rounded-lg border">
@@ -91,50 +89,41 @@ const BudgetSummaryCard = ({ summaryData, showDetailedBreakdown = false, title =
                     </tr>
                   ))}
                 </tbody>
+                {/* Total row as table footer */}
+                {totalCalculation.can_calculate && (
+                  <tfoot className="bg-red-50 border-t-2 border-red-200">
+                    <tr>
+                      <td className="px-3 py-3 font-bold text-red-900 border-r">
+                        Total dalam {totalCalculation.base_currency_code}
+                      </td>
+                      <td className="px-3 py-3 text-center border-r"></td>
+                      <td className="px-3 py-3 text-center">
+                        <span className="text-lg font-bold text-red-800">
+                          {formatAmountCurrency(totalCalculation.total_spent || 0, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
+                        </span>
+                      </td>
+                    </tr>
+                  </tfoot>
+                )}
               </table>
             </div>
-          </div>
-        )}
 
-        {/* Total calculation */}
-        {totalCalculation.can_calculate ? (
-          <div className="p-4 bg-red-50 rounded-lg border-l-4 border-l-red-500">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium text-red-700">
-                Total Terpakai dalam {totalCalculation.base_currency_code}:
-              </span>
-              <span className="text-lg font-bold text-red-800">
-                {formatAmountCurrency(totalCalculation.total_spent || 0, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
-              </span>
-            </div>
-          </div>
-        ) : (
-          <div className="p-4 bg-yellow-50 rounded-lg border-l-4 border-l-yellow-500">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-yellow-800">
-                  Tidak dapat menghitung total dalam mata uang dasar
-                </p>
-                <p className="text-xs text-yellow-700">
-                  Beberapa transaksi tidak memiliki kurs mata uang yang diperlukan untuk konversi.
-                </p>
+            {/* Warning if cannot calculate */}
+            {!totalCalculation.can_calculate && (
+              <div className="p-3 bg-yellow-50 rounded-lg border-l-4 border-l-yellow-500">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-yellow-800">
+                      Tidak dapat menghitung total dalam mata uang dasar
+                    </p>
+                    <p className="text-xs text-yellow-700">
+                      Beberapa transaksi tidak memiliki kurs mata uang yang diperlukan untuk konversi.
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
-
-        {/* Simple summary for non-detailed view */}
-        {!showDetailedBreakdown && (
-          <div className="space-y-2">
-            {groupedByCurrency.map((group) => (
-              <div key={group.currency_code} className="flex justify-between items-center">
-                <Badge variant="outline">{group.currency_code}</Badge>
-                <span className="font-medium text-red-600">
-                  {formatAmountCurrency(group.total_spent, group.currency_code, group.currency_symbol)}
-                </span>
-              </div>
-            ))}
+            )}
           </div>
         )}
       </CardContent>

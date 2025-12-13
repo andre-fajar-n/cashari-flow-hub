@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, CheckCircle, Plus, RotateCcw } from "lucide-react";
+import { ArrowLeft, CheckCircle, Plus, RotateCcw, Calendar, AlertTriangle } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import { useDebtDetail, useMarkDebtAsActive, useMarkDebtAsPaid } from "@/hooks/queries/use-debts";
@@ -14,6 +14,12 @@ import DebtHistoryList from "@/components/debt/DebtHistoryList";
 import { DebtHistoryModel } from "@/models/debt-histories";
 import { useDeleteDebtHistory } from "@/hooks/queries/use-debt-histories";
 import { MoneyMovementModel } from "@/models/money-movements";
+import { useCurrencyDetail } from "@/hooks/queries/use-currencies";
+import { formatAmountCurrency } from "@/lib/currency";
+import { formatDate } from "@/lib/date";
+import { AmountText } from "@/components/ui/amount-text";
+import { Badge } from "@/components/ui/badge";
+import { calculateTotalInBaseCurrency, calculateDebtProgress } from "@/lib/debt-summary";
 
 const DebtHistory = () => {
   const [activeTab, setActiveTab] = useState("summary");
@@ -40,6 +46,45 @@ const DebtHistory = () => {
   const markAsActive = useMarkDebtAsActive();
   const { data: debt } = useDebtDetail(debtId);
   const { mutateAsync: deleteDebtHistory } = useDeleteDebtHistory();
+  const { data: currency } = useCurrencyDetail(debt?.currency_code || '');
+
+  // Calculate totals and progress
+  const totalCalculation = useMemo(() => {
+    if (!debtSummary || debtSummary.length === 0) {
+      return { total_income: 0, total_outcome: 0, total_net: 0, can_calculate: true, base_currency_code: debt?.currency_code || null, base_currency_symbol: currency?.symbol || null };
+    }
+    return calculateTotalInBaseCurrency(debtSummary);
+  }, [debtSummary, debt?.currency_code, currency?.symbol]);
+
+  const progressCalculation = useMemo(() => {
+    if (!debt || !totalCalculation.can_calculate) {
+      return null;
+    }
+    return calculateDebtProgress(
+      totalCalculation.total_income || 0,
+      totalCalculation.total_outcome || 0,
+      debt.type
+    );
+  }, [debt, totalCalculation]);
+
+  // Labels based on debt type
+  const labels = useMemo(() => {
+    if (!debt) return { initial: '', paid: '', remaining: '' };
+
+    if (debt.type === 'loan') {
+      return {
+        initial: 'Total Hutang',
+        paid: 'Terbayar',
+        remaining: 'Sisa Hutang'
+      };
+    } else {
+      return {
+        initial: 'Total Piutang',
+        paid: 'Diterima',
+        remaining: 'Sisa Piutang'
+      };
+    }
+  }, [debt]);
 
   const handleMarkAsPaid = () => {
     markAsPaid.mutate(debt.id);
@@ -92,51 +137,91 @@ const DebtHistory = () => {
     <ProtectedRoute>
       <Layout>
         <div className="space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate("/debt")}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Kembali
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold">{debt.name}</h1>
-                <p className="text-muted-foreground">Detail Hutang/Piutang</p>
+          {/* Sticky Header */}
+          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+            <div className="flex items-center justify-between py-3">
+              <div className="flex items-center gap-4">
+                <Button variant="ghost" size="sm" onClick={() => navigate("/debt")}>
+                  <ArrowLeft className="w-4 h-4 mr-2" /> Kembali
+                </Button>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-2xl font-bold">{debt.name}</h1>
+                    <Badge variant={debt.status === 'active' ? 'default' : 'secondary'}>
+                      {debt.status === 'active' ? 'Aktif' : 'Lunas'}
+                    </Badge>
+                    <Badge variant="outline">
+                      {debt.type === 'loan' ? 'Hutang' : 'Piutang'}
+                    </Badge>
+                  </div>
+                  {debt.due_date && (
+                    <p className="text-muted-foreground mt-0.5 flex items-center gap-2">
+                      <Calendar className="w-3.5 h-3.5" />
+                      Jatuh Tempo: {formatDate(debt.due_date)}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="flex gap-2 pr-1">
+                {debt.status === 'active' ? (
+                  <>
+                    <Button onClick={handleAddHistory}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Tambah History
+                    </Button>
+                    <Button
+                      onClick={() => setIsMarkPaidModalOpen(true)}
+                      variant="outline"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Tandai Lunas
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    onClick={() => setIsMarkActiveModalOpen(true)}
+                    variant="outline"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-2" />
+                    Tandai Aktif
+                  </Button>
+                )}
               </div>
             </div>
 
-            {/* Action Buttons - Always visible above tabs */}
-            <div className="flex gap-2 justify-end">
-              {debt.status === 'active' ? (
-                <>
-                  <Button
-                    onClick={() => setIsMarkPaidModalOpen(true)}
-                    variant="outline"
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Tandai Lunas
-                  </Button>
-                  <Button onClick={handleAddHistory}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Tambah History
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  onClick={() => setIsMarkActiveModalOpen(true)}
-                  variant="outline"
-                >
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Tandai Aktif
-                </Button>
-              )}
-            </div>
+            {/* Compact stats */}
+            {debtSummary && debtSummary.length > 0 && progressCalculation && (
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 py-2 px-2 border-t">
+                <div className="sm:text-center">
+                  <p className="text-xs text-muted-foreground">{labels.initial}</p>
+                  <p className="font-semibold">{formatAmountCurrency(progressCalculation.totalInitial, debt.currency_code, currency?.symbol)}</p>
+                </div>
+                <div className="sm:text-center">
+                  <p className="text-xs text-center text-muted-foreground">{labels.paid}</p>
+                  {totalCalculation.can_calculate ? (
+                    <p className="font-semibold text-green-600">
+                      {formatAmountCurrency(progressCalculation.totalPaid, debt.currency_code, currency?.symbol)}
+                    </p>
+                  ) : (
+                    <div className="flex justify-center gap-1 text-xs text-yellow-600 mt-1">
+                      <AlertTriangle className="w-3 h-3" />
+                      <span>Kurs belum tersedia</span>
+                    </div>
+                  )}
+                </div>
+                <div className="sm:text-center">
+                  <p className="text-xs text-muted-foreground">{labels.remaining}</p>
+                  <AmountText amount={progressCalculation.remaining} showSign className="font-semibold">
+                    {formatAmountCurrency(Math.abs(progressCalculation.remaining), debt.currency_code, currency?.symbol)}
+                  </AmountText>
+                </div>
+                <div className="sm:text-center">
+                  <p className="text-xs text-muted-foreground">Progress</p>
+                  <p className="font-semibold">{progressCalculation.progressPercentage.toFixed(1)}%</p>
+                </div>
+              </div>
+            )}
           </div>
-
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -146,12 +231,16 @@ const DebtHistory = () => {
             </TabsList>
 
             <TabsContent value="summary" className="space-y-4">
-              {debtSummary && (
+              {debtSummary && debtSummary.length > 0 ? (
                 <DebtSummaryCard
                   summaryData={debtSummary}
-                  showDetailedBreakdown={true}
                   title={`Ringkasan ${debt.name}`}
+                  debtType={debt.type}
                 />
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Belum ada transaksi dalam {debt.type === 'loan' ? 'hutang' : 'piutang'} ini</p>
+                </div>
               )}
             </TabsContent>
 
@@ -180,7 +269,7 @@ const DebtHistory = () => {
           onOpenChange={(open) => setDeleteModal({ open })}
           onConfirm={handleConfirmDelete}
           title="Hapus Riwayat"
-          description={`Apakah Anda yakin ingin menghapus riwayat ini? Tindakan ini tidak dapat dibatalkan.`}
+          description={`Apakah Anda yakin ingin menghapus riwayat ini? Tindakan ini tidak dapat dibatalikan.`}
           confirmText="Ya, Hapus"
           cancelText="Batal"
           variant="destructive"

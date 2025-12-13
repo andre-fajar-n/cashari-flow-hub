@@ -145,7 +145,6 @@ const BudgetDetail = () => {
               {budgetSummary && budgetSummary.length > 0 ? (
                 <BudgetSummaryCard
                   summaryData={budgetSummary}
-                  showDetailedBreakdown={true}
                   title={`Ringkasan Pengeluaran - ${budget.name}`}
                 />
               ) : (

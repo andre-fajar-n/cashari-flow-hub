@@ -132,3 +132,52 @@ export const calculateTotalInBaseCurrency = (summaryData: DebtSummaryModel[]): {
     base_currency_symbol
   };
 };
+
+/**
+ * Calculate debt progress metrics based on debt type
+ * 
+ * For 'loan' (hutang - we borrowed money):
+ * - totalInitial = income (money we received)
+ * - totalPaid = absolute value of outcome (payments we made)
+ * - remaining = totalInitial + outcome (outcome is negative, so this subtracts)
+ * 
+ * For 'borrowed' (piutang - someone borrowed from us):
+ * - totalInitial = absolute value of outcome (money we lent)
+ * - totalPaid = income (repayments we received)
+ * - remaining = totalInitial + income (income is positive but less than initial)
+ */
+export const calculateDebtProgress = (
+  totalIncome: number,
+  totalOutcome: number,
+  debtType: 'loan' | 'borrowed'
+): {
+  totalInitial: number;
+  totalPaid: number;
+  remaining: number;
+  progressPercentage: number;
+} => {
+  let totalInitial: number;
+  let totalPaid: number;
+  let remaining: number;
+
+  if (debtType === 'loan') {
+    // For loan: we received money (income) and we pay it back (outcome is negative)
+    totalInitial = totalIncome;
+    totalPaid = Math.abs(totalOutcome);
+    remaining = totalInitial + totalOutcome; // outcome is negative, so this subtracts
+  } else {
+    // For borrowed: we lent money (outcome is negative) and receive repayments (income)
+    totalInitial = Math.abs(totalOutcome);
+    totalPaid = totalIncome;
+    remaining = totalInitial + totalOutcome; // outcome is negative, income is positive
+  }
+
+  const progressPercentage = totalInitial > 0 ? (totalPaid / totalInitial) * 100 : 0;
+
+  return {
+    totalInitial,
+    totalPaid,
+    remaining,
+    progressPercentage
+  };
+};
