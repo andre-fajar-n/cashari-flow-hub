@@ -37,23 +37,27 @@ export const InstrumentRow = ({ instrument, isExpanded }: InstrumentRowProps) =>
         label="Amount Awal"
         amount={instrument.originalAmount}
         currency={instrument.original_currency_code}
+        currencySymbol={instrument.original_currency_code}
         baseCurrencyAmount={instrument.latest_rate && instrument.base_currency_code !== instrument.original_currency_code ? instrument.originalAmount * instrument.latest_rate : undefined}
         baseCurrency={instrument.base_currency_code}
+        baseCurrencySymbol={instrument.base_currency_code}
         showBaseCurrency={instrument.latest_rate && instrument.base_currency_code !== instrument.original_currency_code}
       />
     )}
 
     {/* Column 3: Unrealized Amount */}
-    <UnrealizedColumn 
+    <UnrealizedColumn
       data={{
         originalAmount: instrument.originalAmount,
         calculatedAmount: instrument.calculatedAmount,
         unrealizedAmount: instrument.unrealizedAmount,
         currency: instrument.original_currency_code,
+        currencySymbol: instrument.original_currency_code,
         baseCurrency: instrument.base_currency_code,
+        baseCurrencySymbol: instrument.base_currency_code,
         exchangeRate: instrument.latest_rate || 0,
         showBaseCurrency: instrument.latest_rate && instrument.base_currency_code !== instrument.original_currency_code
-      }} 
+      }}
     />
 
     {/* Column 4: Calculated Amount */}
@@ -61,8 +65,10 @@ export const InstrumentRow = ({ instrument, isExpanded }: InstrumentRowProps) =>
       label="Amount Akhir"
       amount={instrument.calculatedAmount}
       currency={instrument.original_currency_code}
+      currencySymbol={instrument.original_currency_code}
       baseCurrencyAmount={instrument.latest_rate && instrument.base_currency_code !== instrument.original_currency_code ? instrument.calculatedAmount * instrument.latest_rate : undefined}
       baseCurrency={instrument.base_currency_code}
+      baseCurrencySymbol={instrument.base_currency_code}
       showBaseCurrency={instrument.latest_rate && instrument.base_currency_code !== instrument.original_currency_code}
     />
   </div>
