@@ -9,7 +9,7 @@ export const useMoneyMovements = (filter?: MoneyMovementFilter) => {
 
   return useQuery<MoneyMovementModel[]>({
     queryKey: ["money_movements", user?.id, filter],
-    queryFn: async () => {
+    queryFn: async (): Promise<MoneyMovementModel[]> => {
       let query = supabase
         .from("money_movements")
         .select(`
@@ -54,7 +54,7 @@ export const useMoneyMovements = (filter?: MoneyMovementFilter) => {
         console.error("Failed to fetch money movements", error);
         throw error;
       }
-      return data;
+      return (data || []) as MoneyMovementModel[];
     },
     enabled: !!user,
   });

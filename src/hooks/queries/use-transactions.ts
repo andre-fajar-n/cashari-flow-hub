@@ -3,13 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { TransactionFormData, TransactionFilter } from "@/form-dto/transactions";
+import { TransactionModel } from "@/models/transactions";
 
 export const useTransactions = (filter?: TransactionFilter) => {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<TransactionModel[]>({
     queryKey: ["transactions", user?.id, filter],
-    queryFn: async () => {
+    queryFn: async (): Promise<TransactionModel[]> => {
       let query = supabase
         .from("transactions")
         .select(`
@@ -46,7 +47,7 @@ export const useTransactions = (filter?: TransactionFilter) => {
         console.error("Failed to fetch transactions", error);
         throw error;
       }
-      return data;
+      return (data || []) as unknown as TransactionModel[];
     },
     enabled: !!user,
   });

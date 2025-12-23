@@ -13,12 +13,12 @@ export const useWallets = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("wallets")
-        .select("*")
+        .select("*, currency:currencies(*)")
         .eq("user_id", user?.id)
         .order("name");
       
       if (error) throw error;
-      return data;
+      return data as WalletModel[];
     },
     enabled: !!user,
   });

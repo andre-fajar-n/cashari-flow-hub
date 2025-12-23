@@ -11,7 +11,7 @@ export const useDebtHistories = (params: DebtHistoryFilter = {}) => {
 
   return useQuery<DebtHistoryModel[]>({
     queryKey: ["debt-histories", user?.id, debtId, ids],
-    queryFn: async () => {
+    queryFn: async (): Promise<DebtHistoryModel[]> => {
       let query = supabase
         .from("debt_histories")
         .select(`
@@ -36,7 +36,7 @@ export const useDebtHistories = (params: DebtHistoryFilter = {}) => {
         console.error("Error fetching debt histories:", error);
         throw error;
       }
-      return data;
+      return (data || []) as DebtHistoryModel[];
     },
     enabled: !!user && (!debtId || !!debtId) && (!ids || !!ids),
   });

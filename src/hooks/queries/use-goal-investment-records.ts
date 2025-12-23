@@ -4,13 +4,22 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { GoalInvestmentRecordFilter } from "@/form-dto/goal-investment-records";
+import { GoalInvestmentRecordModel } from "@/models/goal-investment-records";
+
+export type GoalInvestmentRecordWithRelations = GoalInvestmentRecordModel & {
+  goal?: { name: string } | null;
+  wallet?: { name: string; currency_code: string } | null;
+  category?: { name: string; is_income: boolean } | null;
+  instrument?: { name: string } | null;
+  asset?: { name: string; symbol: string | null } | null;
+};
 
 export const useGoalInvestmentRecords = (params?: GoalInvestmentRecordFilter) => {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<GoalInvestmentRecordWithRelations[]>({
     queryKey: ["goal_investment_records", user?.id, params],
-    queryFn: async () => {
+    queryFn: async (): Promise<GoalInvestmentRecordWithRelations[]> => {
       let query = supabase
         .from("goal_investment_records")
         .select(`
@@ -40,7 +49,7 @@ export const useGoalInvestmentRecords = (params?: GoalInvestmentRecordFilter) =>
         console.error("Failed to fetch goal investment records", error);
         throw error;
       }
-      return data;
+      return (data || []) as GoalInvestmentRecordWithRelations[];
     },
     enabled: !!user,
   });
