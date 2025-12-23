@@ -2,14 +2,29 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { BudgetItemWithTransactions } from "@/models/budgets";
 
-export const useBudgetTransactions = (budgetId: number) => {
+// Define the type for budget transactions from the view
+export type BudgetTransactionItem = {
+  id: number;
+  budget_id: number;
+  transaction_id: number;
+  created_at: string | null;
+  transactions: {
+    id: number;
+    amount: number;
+    date: string;
+    description: string | null;
+    categories: { name: string; is_income: boolean | null } | null;
+    wallets: { name: string; currency_code: string } | null;
+  };
+};
+
+export const useBudgetTransactions = (budgetId?: number) => {
   const { user } = useAuth();
 
-  return useQuery<BudgetItemWithTransactions[]>({
+  return useQuery<BudgetTransactionItem[]>({
     queryKey: ["budget-transactions", budgetId],
-    queryFn: async () => {
+    queryFn: async (): Promise<BudgetTransactionItem[]> => {
       if (!budgetId) return [];
 
       const { data, error } = await supabase
@@ -17,7 +32,7 @@ export const useBudgetTransactions = (budgetId: number) => {
         .select(`
           *,
           transactions!inner(
-            *,
+            id, amount, date, description,
             categories(name, is_income),
             wallets(name, currency_code)
           )
@@ -30,7 +45,7 @@ export const useBudgetTransactions = (budgetId: number) => {
         console.error("Failed to fetch budget transactions", error);
         throw error;
       }
-      return data;
+      return (data || []) as unknown as BudgetTransactionItem[];
     },
     enabled: !!user && !!budgetId,
   });

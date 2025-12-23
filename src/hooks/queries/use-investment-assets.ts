@@ -3,16 +3,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { AssetFormData } from "@/form-dto/investment-assets";
+import { InvestmentAssetModel } from "@/models/investment-assets";
 
 export const useInvestmentAssets = (instrumentId?: number) => {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<InvestmentAssetModel[]>({
     queryKey: ["investment_assets", user?.id, instrumentId],
-    queryFn: async () => {
+    queryFn: async (): Promise<InvestmentAssetModel[]> => {
       let query = supabase
         .from("investment_assets")
-        .select(`*, investment_instruments(name)`)
+        .select(`*, investment_instruments(*)`)
         .eq("user_id", user?.id);
 
       if (instrumentId) {
@@ -22,7 +23,7 @@ export const useInvestmentAssets = (instrumentId?: number) => {
       const { data, error } = await query.order("name");
 
       if (error) throw error;
-      return data;
+      return (data || []) as InvestmentAssetModel[];
     },
     enabled: !!user,
   });

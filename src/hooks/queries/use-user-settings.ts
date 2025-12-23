@@ -10,10 +10,10 @@ export const useUserSettings = () => {
 
   return useQuery<UserSettingsModel | null>({
     queryKey: ["user_settings", user?.id],
-    queryFn: async () => {
+    queryFn: async (): Promise<UserSettingsModel | null> => {
       const { data, error } = await supabase
         .from("user_settings")
-        .select("*, currencies(symbol)")
+        .select("*, currencies(*)")
         .eq("user_id", user?.id)
         .single();
 
@@ -21,7 +21,7 @@ export const useUserSettings = () => {
         throw error;
       }
 
-      return data || null;
+      return (data as UserSettingsModel) || null;
     },
     enabled: !!user,
   });

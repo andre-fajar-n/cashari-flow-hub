@@ -4,13 +4,14 @@ import { useAuth } from "@/hooks/use-auth";
 import { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { TransferFilter } from "@/form-dto/transfer";
+import { TransferModel } from "@/models/transfer";
 
 export const useTransfers = (params?: TransferFilter) => {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<TransferModel[]>({
     queryKey: ["transfers", user?.id, params],
-    queryFn: async () => {
+    queryFn: async (): Promise<TransferModel[]> => {
       let query = supabase
         .from("transfers")
         .select(`
@@ -31,7 +32,7 @@ export const useTransfers = (params?: TransferFilter) => {
         console.error("Failed to fetch transfers", error);
         throw error;
       }
-      return data;
+      return (data || []) as unknown as TransferModel[];
     },
     enabled: !!user && (!params?.ids || !!params?.ids),
   });

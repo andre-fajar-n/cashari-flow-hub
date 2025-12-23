@@ -4,13 +4,25 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { TablesInsert } from "@/integrations/supabase/types";
 import { GoalTransferFilter, GoalTransferFormData } from "@/form-dto/goal-transfers";
+import { GoalTransferModel } from "@/models/goal-transfers";
+
+export type GoalTransferWithRelations = GoalTransferModel & {
+  from_goal?: { name: string } | null;
+  to_goal?: { name: string } | null;
+  from_wallet?: { name: string } | null;
+  to_wallet?: { name: string } | null;
+  from_instrument?: { name: string } | null;
+  to_instrument?: { name: string } | null;
+  from_asset?: { name: string; symbol: string | null } | null;
+  to_asset?: { name: string; symbol: string | null } | null;
+};
 
 export const useGoalTransfers = (params?: GoalTransferFilter) => {
   const { user } = useAuth();
 
-  return useQuery({
+  return useQuery<GoalTransferWithRelations[]>({
     queryKey: ["goal_transfers", user?.id, params],
-    queryFn: async () => {
+    queryFn: async (): Promise<GoalTransferWithRelations[]> => {
       let query = supabase
         .from("goal_transfers")
         .select(`
@@ -36,7 +48,7 @@ export const useGoalTransfers = (params?: GoalTransferFilter) => {
         console.error("Failed to fetch goal transfers", error);
         throw error;
       }
-      return data;
+      return (data || []) as unknown as GoalTransferWithRelations[];
     },
     enabled: !!user,
   });
