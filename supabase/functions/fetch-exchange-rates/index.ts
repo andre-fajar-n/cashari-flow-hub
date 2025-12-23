@@ -3,7 +3,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { rateConversion } from "../_shared/rate-conversion.ts";
 
 // Supabase client
-const supabase = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL") ?? "",
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+);
 
 // API base URL
 const API_BASE = "https://api.twelvedata.com/exchange_rate";
@@ -21,7 +24,7 @@ serve(async (req: any) => {
     const { data: tasks, error: errorCurrencyPairs } = await supabase.from("currency_pairs").select("base_currency_code, currency_code");
     if (errorCurrencyPairs) {
       console.error("Failed to fetch currency_pairs", errorCurrencyPairs);
-      throw new Error(errorCurrencyPairs);
+      throw new Error(errorCurrencyPairs.message);
     }
 
     if (tasks.length === 0) {
@@ -86,12 +89,12 @@ serve(async (req: any) => {
       }
     }
 
-    const { errorUpsert } = await supabase.from("exchange_rates").upsert(dataToUpsert, {
+    const { error: errorUpsert } = await supabase.from("exchange_rates").upsert(dataToUpsert, {
       onConflict: "from_currency,to_currency,date"
     });
     if (errorUpsert) {
       console.error("Insert error", errorUpsert);
-      throw new Error(errorUpsert);
+      throw new Error(errorUpsert.message);
     }
 
     return new Response(JSON.stringify({

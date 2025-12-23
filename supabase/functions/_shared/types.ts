@@ -3,10 +3,5 @@
 
 export { };
 
-declare global {
-    const Deno: {
-        env: {
-            get(key: string): string | undefined;
-        };
-    };
-}
+// Deno types are provided globally by the runtime
+// No need to redeclare them
