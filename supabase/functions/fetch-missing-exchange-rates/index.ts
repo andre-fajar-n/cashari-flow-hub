@@ -16,7 +16,10 @@ import { sleep } from "../_shared/utils.ts";
  */
 
 // Supabase client
-const supabase = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
+const supabase = createClient(
+  Deno.env.get("SUPABASE_URL") ?? "",
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+);
 
 // API base URL
 const API_BASE = "https://api.twelvedata.com/exchange_rate";
@@ -126,7 +129,7 @@ serve(async (req: any) => {
     const { data: tasks, error: error } = await query;
     if (error) {
       console.error("Failed to fetch missing_exchange_rate", error);
-      throw new Error(error);
+      throw new Error(error.message);
     }
 
     // Group tasks by date

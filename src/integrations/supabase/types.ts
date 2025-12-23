@@ -10,31 +10,52 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
+      api_call_metrics: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          twelve_data_calls: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          twelve_data_calls?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          twelve_data_calls?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       budget_items: {
         Row: {
           budget_id: number
           created_at: string | null
           id: number
           transaction_id: number
-          updated_at: string | null
         }
         Insert: {
           budget_id: number
           created_at?: string | null
           id?: number
           transaction_id: number
-          updated_at?: string | null
         }
         Update: {
           budget_id?: number
           created_at?: string | null
           id?: number
           transaction_id?: number
-          updated_at?: string | null
         }
         Relationships: [
           {
@@ -186,8 +207,8 @@ export type Database = {
       categories: {
         Row: {
           application:
-          | Database["public"]["Enums"]["category_application"]
-          | null
+            | Database["public"]["Enums"]["category_application"]
+            | null
           created_at: string | null
           id: number
           is_income: boolean | null
@@ -198,8 +219,8 @@ export type Database = {
         }
         Insert: {
           application?:
-          | Database["public"]["Enums"]["category_application"]
-          | null
+            | Database["public"]["Enums"]["category_application"]
+            | null
           created_at?: string | null
           id?: number
           is_income?: boolean | null
@@ -210,8 +231,8 @@ export type Database = {
         }
         Update: {
           application?:
-          | Database["public"]["Enums"]["category_application"]
-          | null
+            | Database["public"]["Enums"]["category_application"]
+            | null
           created_at?: string | null
           id?: number
           is_income?: boolean | null
@@ -237,6 +258,7 @@ export type Database = {
           is_default: boolean | null
           name: string
           symbol: string
+          unit: string | null
           updated_at: string | null
           user_id: string
         }
@@ -246,6 +268,7 @@ export type Database = {
           is_default?: boolean | null
           name: string
           symbol: string
+          unit?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -255,6 +278,7 @@ export type Database = {
           is_default?: boolean | null
           name?: string
           symbol?: string
+          unit?: string | null
           updated_at?: string | null
           user_id?: string
         }
@@ -309,6 +333,13 @@ export type Database = {
             foreignKeyName: "debt_histories_debt_id_fkey"
             columns: ["debt_id"]
             isOneToOne: false
+            referencedRelation: "debt_summary"
+            referencedColumns: ["debt_id"]
+          },
+          {
+            foreignKeyName: "debt_histories_debt_id_fkey"
+            columns: ["debt_id"]
+            isOneToOne: false
             referencedRelation: "debts"
             referencedColumns: ["id"]
           },
@@ -353,6 +384,90 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      exchange_rate_jobs: {
+        Row: {
+          created_at: string
+          currency_pairs: string[]
+          date: string
+          error_message: string | null
+          id: string
+          max_retries: number
+          processed_at: string | null
+          retry_count: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency_pairs: string[]
+          date: string
+          error_message?: string | null
+          id?: string
+          max_retries?: number
+          processed_at?: string | null
+          retry_count?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency_pairs?: string[]
+          date?: string
+          error_message?: string | null
+          id?: string
+          max_retries?: number
+          processed_at?: string | null
+          retry_count?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      exchange_rates: {
+        Row: {
+          created_at: string
+          date: string
+          from_currency: string
+          id: number
+          rate: number
+          to_currency: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          from_currency: string
+          id?: number
+          rate: number
+          to_currency: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          from_currency?: string
+          id?: number
+          rate?: number
+          to_currency?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exchange_rates_from_currency_fkey"
+            columns: ["from_currency"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "exchange_rates_to_currency_fkey"
+            columns: ["to_currency"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       goal_investment_records: {
         Row: {
@@ -837,22 +952,21 @@ export type Database = {
       user_settings: {
         Row: {
           base_currency_code: string
-          created_at: string | null
+          created_at: string
           id: number
           updated_at: string | null
           user_id: string
-          currencies: Database["public"]["Tables"]["currencies"]["Row"]
         }
         Insert: {
-          base_currency_code: string
-          created_at?: string | null
+          base_currency_code?: string
+          created_at?: string
           id?: number
           updated_at?: string | null
           user_id: string
         }
         Update: {
           base_currency_code?: string
-          created_at?: string | null
+          created_at?: string
           id?: number
           updated_at?: string | null
           user_id?: string
@@ -861,7 +975,7 @@ export type Database = {
           {
             foreignKeyName: "user_settings_base_currency_code_fkey"
             columns: ["base_currency_code"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "currencies"
             referencedColumns: ["code"]
           },
@@ -907,96 +1021,54 @@ export type Database = {
       }
     }
     Views: {
-      debt_summary: {
+      budget_item_with_transactions: {
         Row: {
-          user_id: string | null
-          debt_id: number | null
-          debt_name: string | null
-          income_amount: number | null
-          outcome_amount: number | null
-          currency_code: string | null
-          currency_symbol: string | null
-          income_amount_in_base_currency: number | null
-          outcome_amount_in_base_currency: number | null
+          amount: number | null
           base_currency_code: string | null
           base_currency_symbol: string | null
+          budget_id: number | null
+          category_id: number | null
+          category_name: string | null
+          date: string | null
+          description: string | null
+          exchange_rate: number | null
+          id: number | null
+          original_currency_code: string | null
+          original_currency_symbol: string | null
+          transaction_id: number | null
+          user_id: string | null
+          wallet_id: number | null
+          wallet_name: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "debts_currency_code_fkey"
-            columns: ["currency_code"]
+            foreignKeyName: "budget_items_budget_id_fkey"
+            columns: ["budget_id"]
             isOneToOne: false
-            referencedRelation: "currencies"
-            referencedColumns: ["code"]
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "debts_base_currency_code_fkey"
+            foreignKeyName: "budget_items_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transaction_associations"
+            referencedColumns: ["transaction_id"]
+          },
+          {
+            foreignKeyName: "budget_items_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budgets_currency_code_fkey"
             columns: ["base_currency_code"]
             isOneToOne: false
             referencedRelation: "currencies"
             referencedColumns: ["code"]
           },
-        ]
-      }
-      budget_item_with_transactions: {
-        Row: {
-          user_id: string | null
-          id: number | null
-          budget_id: number | null
-          transaction_id: number | null
-          wallet_id: number | null
-          wallet_name: string | null
-          category_id: number | null
-          category_name: string | null
-          description: string | null
-          amount: number | null
-          original_currency_code: string | null
-          date: string | null
-          base_currency_code: string | null
-          exchange_rate: number | null
-        }
-      }
-      budget_summary: {
-        Row: {
-          user_id: string | null
-          budget_id: number | null
-          name: string | null
-          budget_amount: number | null
-          start_date: string | null
-          end_date: string | null
-          amount: number | null
-          original_currency_code: string | null
-          original_currency_symbol: string | null
-          amount_in_base_currency: number | null
-          base_currency_code: string | null
-          base_currency_symbol: string | null
-        }
-      }
-      money_summary: {
-        Row: {
-          wallet_id: number | null
-          wallet_name: string | null
-          goal_id: number | null
-          goal_name: string | null
-          instrument_id: number | null
-          instrument_name: string | null
-          asset_id: number | null
-          asset_name: string | null
-          asset_symbol: string | null
-          original_currency_code: string | null
-          original_currency_symbol: string | null
-          amount: number | null
-          base_currency_code: string | null
-          base_currency_symbol: string | null
-          latest_rate: number | null
-          latest_rate_date: string | null
-          amount_unit: number | null
-          latest_asset_value: number | null
-          latest_asset_value_date: string | null
-          user_id: string | null
-          unit_label: string | null
-        }
-        Relationships: [
           {
             foreignKeyName: "wallets_currency_code_fkey"
             columns: ["original_currency_code"]
@@ -1004,57 +1076,75 @@ export type Database = {
             referencedRelation: "currencies"
             referencedColumns: ["code"]
           },
+        ]
+      }
+      budget_summary: {
+        Row: {
+          amount: number | null
+          amount_in_base_currency: number | null
+          base_currency_code: string | null
+          base_currency_symbol: string | null
+          budget_amount: number | null
+          budget_id: number | null
+          end_date: string | null
+          name: string | null
+          original_currency_code: string | null
+          original_currency_symbol: string | null
+          start_date: string | null
+          user_id: string | null
+        }
+        Relationships: [
           {
-            foreignKeyName: "wallets_base_currency_code_fkey"
-            columns: ["base_currency_code"]
+            foreignKeyName: "budget_items_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallets_currency_code_fkey"
+            columns: ["original_currency_code"]
             isOneToOne: false
             referencedRelation: "currencies"
             referencedColumns: ["code"]
           },
         ]
       }
-      money_movements: {
+      currency_pairs: {
         Row: {
-          id: number | null
-          resource_id: number | null
-          resource_type: string | null
-          user_id: string | null
-          wallet_id: number | null
-          wallet_name: string | null
-          opposite_wallet_id: number | null
-          opposite_wallet_name: string | null
-          category_id: number | null
-          category_name: string | null
-          description: string | null
-          amount: number | null
+          base_currency_code: string | null
           currency_code: string | null
-          currency_symbol: string | null
-          date: string | null
-          goal_id: number | null
-          goal_name: string | null
-          opposite_goal_id: number | null
-          opposite_goal_name: string | null
-          instrument_id: number | null
-          instrument_name: string | null
-          opposite_instrument_id: number | null
-          opposite_instrument_name: string | null
-          asset_id: number | null
-          asset_name: string | null
-          opposite_asset_id: number | null
-          opposite_asset_name: string | null
-          amount_unit: number | null
-          unit_label: string | null
-          created_at: string | null
-          asset_symbol: string | null
-          opposite_asset_symbol: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_settings_base_currency_code_fkey"
+            columns: ["base_currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "wallets_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      debt_summary: {
+        Row: {
           base_currency_code: string | null
           base_currency_symbol: string | null
-          exchange_rate: number | null
-          budget_ids: number[] | null
-          budget_names_text: string | null
-          project_ids: number[] | null
-          business_project_names_text: string | null
+          currency_code: string | null
+          currency_symbol: string | null
+          debt_id: number | null
           debt_name: string | null
+          income_amount: number | null
+          income_amount_in_base_currency: number | null
+          outcome_amount: number | null
+          outcome_amount_in_base_currency: number | null
+          user_id: string | null
         }
         Relationships: [
           {
@@ -1065,6 +1155,101 @@ export type Database = {
             referencedColumns: ["code"]
           },
         ]
+      }
+      missing_exchange_rate: {
+        Row: {
+          base_currency_code: string | null
+          currency_code: string | null
+          date: string | null
+        }
+        Relationships: []
+      }
+      money_movements: {
+        Row: {
+          amount: number | null
+          amount_unit: number | null
+          asset_id: number | null
+          asset_name: string | null
+          asset_symbol: string | null
+          base_currency_code: string | null
+          base_currency_symbol: string | null
+          budget_ids: number[] | null
+          budget_names_text: string | null
+          business_project_names_text: string | null
+          category_id: number | null
+          category_name: string | null
+          created_at: string | null
+          currency_code: string | null
+          currency_symbol: string | null
+          date: string | null
+          debt_id: number | null
+          debt_name: string | null
+          description: string | null
+          exchange_rate: number | null
+          goal_id: number | null
+          goal_name: string | null
+          id: number | null
+          instrument_id: number | null
+          instrument_name: string | null
+          opposite_asset_id: number | null
+          opposite_asset_name: string | null
+          opposite_asset_symbol: string | null
+          opposite_goal_id: number | null
+          opposite_goal_name: string | null
+          opposite_instrument_id: number | null
+          opposite_instrument_name: string | null
+          opposite_wallet_id: number | null
+          opposite_wallet_name: string | null
+          project_ids: number[] | null
+          resource_id: number | null
+          resource_type: string | null
+          unit_label: string | null
+          user_id: string | null
+          wallet_id: number | null
+          wallet_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_settings_base_currency_code_fkey"
+            columns: ["base_currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "wallets_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      money_summary: {
+        Row: {
+          amount: number | null
+          amount_unit: number | null
+          asset_id: number | null
+          asset_name: string | null
+          asset_symbol: string | null
+          base_currency_code: string | null
+          base_currency_symbol: string | null
+          goal_id: number | null
+          goal_name: string | null
+          instrument_id: number | null
+          instrument_name: string | null
+          latest_asset_value: number | null
+          latest_asset_value_date: string | null
+          latest_rate: number | null
+          latest_rate_date: string | null
+          original_currency_code: string | null
+          original_currency_symbol: string | null
+          unit_label: string | null
+          user_id: string | null
+          wallet_id: number | null
+          wallet_name: string | null
+        }
+        Relationships: []
       }
       transaction_associations: {
         Row: {
@@ -1077,6 +1262,9 @@ export type Database = {
       }
     }
     Functions: {
+      get_twelve_data_calls_today: { Args: never; Returns: number }
+      increment_job_retry: { Args: { job_id: string }; Returns: undefined }
+      increment_twelve_data_calls: { Args: never; Returns: number }
       initialize_missing_user_data: {
         Args: { user_uuid?: string }
         Returns: undefined
@@ -1126,116 +1314,116 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-  : never = never,
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-  ? R
-  : never
+    ? R
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])
-  ? (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-      Row: infer R
-    }
-  ? R
-  : never
-  : never
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
+      Insert: infer I
+    }
+    ? I
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Update: infer U
-  }
-  ? U
-  : never
+      Update: infer U
+    }
+    ? U
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Update: infer U
-  }
-  ? U
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-  | keyof DefaultSchema["Enums"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-  : never
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-  | keyof DefaultSchema["CompositeTypes"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-  : never
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
 
 export const Constants = {
   public: {
