@@ -2,21 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { BudgetItemModel } from "@/models/budget-items";
-import { CategoryRelation } from "@/models/categories";
-import { WalletModel } from "@/models/wallets";
-
-// Type for budget transactions with relations - DRY using relation types
-export type BudgetTransactionItem = BudgetItemModel & {
-  transactions: {
-    id: number;
-    amount: number;
-    date: string;
-    description: string | null;
-    categories: Pick<CategoryRelation, "name" | "is_income"> | null;
-    wallets: Pick<WalletModel, "name" | "currency_code"> | null;
-  };
-};
+import { BudgetTransactionItem } from "@/models/budget-transactions";
 
 export const useBudgetTransactions = (budgetId?: number) => {
   const { user } = useAuth();
@@ -27,18 +13,11 @@ export const useBudgetTransactions = (budgetId?: number) => {
       if (!budgetId) return [];
 
       const { data, error } = await supabase
-        .from("budget_items")
-        .select(`
-          *,
-          transactions!inner(
-            id, amount, date, description,
-            categories(name, is_income),
-            wallets(name, currency_code)
-          )
-        `)
+        .from("budget_item_with_transactions")
+        .select("*")
         .eq("budget_id", budgetId)
-        .order("date", { ascending: false, referencedTable: "transactions" })
-        .order("created_at", { ascending: false, referencedTable: "transactions" });
+        .order("date", { ascending: false })
+        .order("id", { ascending: false });
 
       if (error) {
         console.error("Failed to fetch budget transactions", error);

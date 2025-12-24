@@ -6,9 +6,6 @@ import { TablesInsert } from "@/integrations/supabase/types";
 import { GoalTransferFilter, GoalTransferFormData } from "@/form-dto/goal-transfers";
 import { GoalTransferWithRelations } from "@/models/goal-transfers";
 
-// Re-export for backward compatibility
-export type { GoalTransferWithRelations } from "@/models/goal-transfers";
-
 export const useGoalTransfers = (params?: GoalTransferFilter) => {
   const { user } = useAuth();
 
