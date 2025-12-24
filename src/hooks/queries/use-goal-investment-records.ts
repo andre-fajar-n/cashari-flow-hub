@@ -6,9 +6,6 @@ import { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { GoalInvestmentRecordFilter } from "@/form-dto/goal-investment-records";
 import { GoalInvestmentRecordWithRelations } from "@/models/goal-investment-records";
 
-// Re-export for backward compatibility
-export type { GoalInvestmentRecordWithRelations } from "@/models/goal-investment-records";
-
 export const useGoalInvestmentRecords = (params?: GoalInvestmentRecordFilter) => {
   const { user } = useAuth();
 
