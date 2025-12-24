@@ -4,15 +4,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { GoalInvestmentRecordFilter } from "@/form-dto/goal-investment-records";
-import { GoalInvestmentRecordModel } from "@/models/goal-investment-records";
+import { GoalInvestmentRecordWithRelations } from "@/models/goal-investment-records";
 
-export type GoalInvestmentRecordWithRelations = GoalInvestmentRecordModel & {
-  goal?: { name: string } | null;
-  wallet?: { name: string; currency_code: string } | null;
-  category?: { name: string; is_income: boolean } | null;
-  instrument?: { name: string } | null;
-  asset?: { name: string; symbol: string | null } | null;
-};
+// Re-export for backward compatibility
+export type { GoalInvestmentRecordWithRelations } from "@/models/goal-investment-records";
 
 export const useGoalInvestmentRecords = (params?: GoalInvestmentRecordFilter) => {
   const { user } = useAuth();

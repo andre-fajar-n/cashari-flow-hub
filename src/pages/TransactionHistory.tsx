@@ -18,13 +18,13 @@ import DebtHistoryDialog from "@/components/debt/DebtHistoryDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useDeleteTransaction, useTransactions } from "@/hooks/queries/use-transactions";
 import { useDeleteTransfer, useTransfers } from "@/hooks/queries/use-transfers";
-import { useDeleteGoalTransfer, useGoalTransfers, GoalTransferWithRelations } from "@/hooks/queries/use-goal-transfers";
-import { useDeleteGoalInvestmentRecord, useGoalInvestmentRecords, GoalInvestmentRecordWithRelations } from "@/hooks/queries/use-goal-investment-records";
+import { useDeleteGoalTransfer, useGoalTransfers } from "@/hooks/queries/use-goal-transfers";
+import { useDeleteGoalInvestmentRecord, useGoalInvestmentRecords } from "@/hooks/queries/use-goal-investment-records";
 import { useDebtHistories, useDeleteDebtHistory } from "@/hooks/queries/use-debt-histories";
 import { TransactionModel } from "@/models/transactions";
 import { TransferModel } from "@/models/transfer";
-import { GoalTransferModel } from "@/models/goal-transfers";
-import { GoalInvestmentRecordModel } from "@/models/goal-investment-records";
+import { GoalTransferModel, GoalTransferWithRelations } from "@/models/goal-transfers";
+import { GoalInvestmentRecordModel, GoalInvestmentRecordWithRelations } from "@/models/goal-investment-records";
 import { DebtHistoryModel } from "@/models/debt-histories";
 import { MoneyMovementModel } from "@/models/money-movements";
 import { MOVEMENT_TYPES } from "@/constants/enums";
@@ -109,14 +109,14 @@ const TransactionHistory = () => {
   const goalTransfersGroupById = goalTransfers?.reduce((acc, item) => {
     acc[item.id] = item;
     return acc;
-  }, {} as Record<number, GoalTransferModel>);
+  }, {} as Record<number, GoalTransferWithRelations>);
 
   const investmentRecordIds = movements?.filter(m => m.resource_type === MOVEMENT_TYPES.INVESTMENT_GROWTH).map(m => m.resource_id) || [];
   const { data: investmentRecords, isLoading: isInvestmentRecordsLoading } = useGoalInvestmentRecords({ ids: investmentRecordIds });
   const investmentRecordsGroupById = investmentRecords?.reduce((acc, item) => {
     acc[item.id] = item;
     return acc;
-  }, {} as Record<number, GoalInvestmentRecordModel>);
+  }, {} as Record<number, GoalInvestmentRecordWithRelations>);
 
   const isLoading = isMovementsLoading || isDebtHistoriesLoading || isTransactionsLoading || isTransfersLoading || isGoalTransfersLoading ||
     isInvestmentRecordsLoading;

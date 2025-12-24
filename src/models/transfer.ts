@@ -1,13 +1,10 @@
 import { Database } from "@/integrations/supabase/types";
+import { WalletModel } from "@/models/wallets";
 
-export type TransferWalletPartial = {
-  id: number;
-  name: string;
-  currency_code: string;
-  initial_amount?: number | null;
-};
+// Partial wallet type for transfer relations - DRY using Pick<>
+export type TransferWalletRelation = Pick<WalletModel, "id" | "name" | "currency_code" | "initial_amount">;
 
 export type TransferModel = Database["public"]["Tables"]["transfers"]["Row"] & {
-  from_wallet?: TransferWalletPartial;
-  to_wallet?: TransferWalletPartial;
+  from_wallet?: TransferWalletRelation;
+  to_wallet?: TransferWalletRelation;
 };
