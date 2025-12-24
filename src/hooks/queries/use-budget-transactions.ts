@@ -2,20 +2,19 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { BudgetItemModel } from "@/models/budget-items";
+import { CategoryRelation } from "@/models/categories";
+import { WalletModel } from "@/models/wallets";
 
-// Define the type for budget transactions from the view
-export type BudgetTransactionItem = {
-  id: number;
-  budget_id: number;
-  transaction_id: number;
-  created_at: string | null;
+// Type for budget transactions with relations - DRY using relation types
+export type BudgetTransactionItem = BudgetItemModel & {
   transactions: {
     id: number;
     amount: number;
     date: string;
     description: string | null;
-    categories: { name: string; is_income: boolean | null } | null;
-    wallets: { name: string; currency_code: string } | null;
+    categories: Pick<CategoryRelation, "name" | "is_income"> | null;
+    wallets: Pick<WalletModel, "name" | "currency_code"> | null;
   };
 };
 
@@ -45,7 +44,7 @@ export const useBudgetTransactions = (budgetId?: number) => {
         console.error("Failed to fetch budget transactions", error);
         throw error;
       }
-      return (data || []) as unknown as BudgetTransactionItem[];
+      return (data || []) as BudgetTransactionItem[];
     },
     enabled: !!user && !!budgetId,
   });

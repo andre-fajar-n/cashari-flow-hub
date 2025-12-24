@@ -4,18 +4,10 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { TablesInsert } from "@/integrations/supabase/types";
 import { GoalTransferFilter, GoalTransferFormData } from "@/form-dto/goal-transfers";
-import { GoalTransferModel } from "@/models/goal-transfers";
+import { GoalTransferWithRelations } from "@/models/goal-transfers";
 
-export type GoalTransferWithRelations = GoalTransferModel & {
-  from_goal?: { name: string } | null;
-  to_goal?: { name: string } | null;
-  from_wallet?: { name: string } | null;
-  to_wallet?: { name: string } | null;
-  from_instrument?: { name: string } | null;
-  to_instrument?: { name: string } | null;
-  from_asset?: { name: string; symbol: string | null } | null;
-  to_asset?: { name: string; symbol: string | null } | null;
-};
+// Re-export for backward compatibility
+export type { GoalTransferWithRelations } from "@/models/goal-transfers";
 
 export const useGoalTransfers = (params?: GoalTransferFilter) => {
   const { user } = useAuth();
@@ -27,14 +19,14 @@ export const useGoalTransfers = (params?: GoalTransferFilter) => {
         .from("goal_transfers")
         .select(`
           *,
-          from_goal:from_goal_id(name),
-          to_goal:to_goal_id(name),
-          from_wallet:from_wallet_id(name),
-          to_wallet:to_wallet_id(name),
-          from_instrument:from_instrument_id(name),
-          to_instrument:to_instrument_id(name),
-          from_asset:from_asset_id(name, symbol),
-          to_asset:to_asset_id(name, symbol)
+          from_goal:goals!goal_transfers_from_goal_id_fkey(name),
+          to_goal:goals!goal_transfers_to_goal_id_fkey(name),
+          from_wallet:wallets!goal_transfers_from_wallet_id_fkey(name),
+          to_wallet:wallets!goal_transfers_to_wallet_id_fkey(name),
+          from_instrument:investment_instruments!goal_transfers_from_instrument_id_fkey(name),
+          to_instrument:investment_instruments!goal_transfers_to_instrument_id_fkey(name),
+          from_asset:investment_assets!goal_transfers_from_asset_id_fkey(name, symbol),
+          to_asset:investment_assets!goal_transfers_to_asset_id_fkey(name, symbol)
         `)
         .eq("user_id", user?.id)
         .order("date", { ascending: false });
