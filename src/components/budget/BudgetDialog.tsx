@@ -1,86 +1,33 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { useAuth } from "@/hooks/use-auth";
+import { UseFormReturn } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dropdown } from "@/components/ui/dropdown";
-import { BudgetFormData, defaultBudgetFormValues } from "@/form-dto/budget";
+import { BudgetFormData } from "@/form-dto/budget";
 import { InputNumber } from "@/components/ui/input-number";
-import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
-import { useCreateBudget, useUpdateBudget } from "@/hooks/queries/use-budgets";
-import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { BudgetModel } from "@/models/budgets";
+import { CurrencyModel } from "@/models/currencies";
+
 interface BudgetDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  form: UseFormReturn<BudgetFormData>;
+  isLoading: boolean;
+  onSubmit: (data: BudgetFormData) => void;
+  currencies?: CurrencyModel[];
   budget?: BudgetModel;
-  onSuccess?: () => void;
 }
 
-const BudgetDialog = ({ open, onOpenChange, budget, onSuccess }: BudgetDialogProps) => {
-  const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const updateBudget = useUpdateBudget();
-  const createBudget = useCreateBudget();
-  const { data: currencies } = useCurrencies();
-
-  const form = useForm<BudgetFormData>({
-    defaultValues: defaultBudgetFormValues,
-  });
-
-  // Use mutation callbacks utility
-  const { handleSuccess, handleError } = useMutationCallbacks({
-    setIsLoading,
-    onOpenChange,
-    onSuccess,
-    form,
-    queryKeysToInvalidate: QUERY_KEY_SETS.BUDGETS
-  });
-
-  const onSubmit = async (data: BudgetFormData) => {
-    if (!user) return;
-    setIsLoading(true);
-
-    if (budget) {
-      updateBudget.mutate({ id: budget.id, ...data }, {
-        onSuccess: handleSuccess,
-        onError: handleError
-      });
-    } else {
-      createBudget.mutate(data, {
-        onSuccess: handleSuccess,
-        onError: handleError
-      });
-    }
-  };
-
-  // Reset form when budget prop changes or dialog opens/closes
-  useEffect(() => {
-    if (open) {
-      if (budget) {
-        form.reset({
-          name: budget.name || "",
-          amount: budget.amount || 0,
-          currency_code: budget.currency_code || "",
-          start_date: budget.start_date || "",
-          end_date: budget.end_date || "",
-        });
-      } else {
-        form.reset(defaultBudgetFormValues);
-      }
-    }
-  }, [budget, open, form]);
-
-  useEffect(() => {
-    if (createBudget.isSuccess || updateBudget.isSuccess) {
-      onOpenChange(false);
-      onSuccess?.();
-      setIsLoading(false);
-    }
-  }, [createBudget.isSuccess, updateBudget.isSuccess]);
-
+const BudgetDialog = ({ 
+  open, 
+  onOpenChange, 
+  form, 
+  isLoading, 
+  onSubmit, 
+  currencies,
+  budget 
+}: BudgetDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">

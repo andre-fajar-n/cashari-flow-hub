@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -6,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import BudgetDialog from "@/components/budget/BudgetDialog";
 import Layout from "@/components/Layout";
-import { useDeleteBudget } from "@/hooks/queries/use-budgets";
+import { useCreateBudget, useUpdateBudget, useDeleteBudget } from "@/hooks/queries/use-budgets";
 import { useBudgetsPaginated } from "@/hooks/queries/paginated/use-budgets-paginated";
 import { useBudgetSummary } from "@/hooks/queries/use-budget-summary";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -15,6 +16,8 @@ import { BudgetTable } from "@/components/budget/BudgetTable";
 import { useTableState } from "@/hooks/use-table-state";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { CurrencyModel } from "@/models/currencies";
+import { BudgetFormData, defaultBudgetFormValues } from "@/form-dto/budget";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 
 const Budget = () => {
   const queryClient = useQueryClient();
@@ -22,8 +25,17 @@ const Budget = () => {
   const [budgetToDelete, setBudgetToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedBudget, setSelectedBudget] = useState<BudgetModel | undefined>(undefined);
+  const [isFormLoading, setIsFormLoading] = useState(false);
   const navigate = useNavigate();
+  
+  const createBudget = useCreateBudget();
+  const updateBudget = useUpdateBudget();
   const { mutate: deleteBudget } = useDeleteBudget();
+
+  // Form state managed at page level
+  const form = useForm<BudgetFormData>({
+    defaultValues: defaultBudgetFormValues,
+  });
 
   // Table state management using generic hook
   const { state: tableState, actions: tableActions } = useTableState({
@@ -59,6 +71,46 @@ const Budget = () => {
 
   // Combine all loading states
   const isLoading = isLoadingBudgets || isLoadingBudgetSummary || isLoadingCurrencies;
+
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (isDialogOpen) {
+      if (selectedBudget) {
+        form.reset({
+          name: selectedBudget.name || "",
+          amount: selectedBudget.amount || 0,
+          currency_code: selectedBudget.currency_code || "",
+          start_date: selectedBudget.start_date || "",
+          end_date: selectedBudget.end_date || "",
+        });
+      } else {
+        form.reset(defaultBudgetFormValues);
+      }
+    }
+  }, [selectedBudget, isDialogOpen, form]);
+
+  // Mutation callbacks
+  const { handleSuccess, handleError } = useMutationCallbacks({
+    setIsLoading: setIsFormLoading,
+    onOpenChange: setIsDialogOpen,
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.BUDGETS
+  });
+
+  const handleFormSubmit = (data: BudgetFormData) => {
+    setIsFormLoading(true);
+    if (selectedBudget) {
+      updateBudget.mutate({ id: selectedBudget.id, ...data }, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
+    } else {
+      createBudget.mutate(data, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -147,10 +199,11 @@ const Budget = () => {
         <BudgetDialog
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
+          form={form}
+          isLoading={isFormLoading}
+          onSubmit={handleFormSubmit}
+          currencies={currencies}
           budget={selectedBudget}
-          onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ["budgets"] });
-          }}
         />
       </Layout>
     </ProtectedRoute>

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -7,13 +8,15 @@ import Layout from "@/components/Layout";
 import GoalDialog from "@/components/goal/GoalDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { GoalModel } from "@/models/goals";
-import { useDeleteGoal } from "@/hooks/queries/use-goals";
+import { useCreateGoal, useUpdateGoal, useDeleteGoal } from "@/hooks/queries/use-goals";
 import { useGoalsPaginated } from "@/hooks/queries/paginated/use-goals-paginated";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { useMoneySummary } from "@/hooks/queries/use-money-summary";
 import { useTableState } from "@/hooks/use-table-state";
 import { GoalTable } from "@/components/goal/GoalTable";
 import { CurrencyModel } from "@/models/currencies";
+import { GoalFormData, defaultGoalFormValues } from "@/form-dto/goals";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 
 const Goal = () => {
   const queryClient = useQueryClient();
@@ -21,8 +24,16 @@ const Goal = () => {
   const [goalToDelete, setGoalToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<GoalModel | undefined>(undefined);
+  const [isFormLoading, setIsFormLoading] = useState(false);
 
+  const createGoal = useCreateGoal();
+  const updateGoal = useUpdateGoal();
   const { mutate: deleteGoal } = useDeleteGoal();
+
+  // Form state managed at page level
+  const form = useForm<GoalFormData>({
+    defaultValues: defaultGoalFormValues,
+  });
 
   // Table state management using generic hook
   const { state: tableState, actions: tableActions } = useTableState({
@@ -60,6 +71,45 @@ const Goal = () => {
     return acc;
   }, {} as Record<string, CurrencyModel>);
 
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (isDialogOpen) {
+      if (selectedGoal) {
+        form.reset({
+          name: selectedGoal.name || "",
+          target_amount: selectedGoal.target_amount || 0,
+          currency_code: selectedGoal.currency_code || "",
+          target_date: selectedGoal.target_date || "",
+        });
+      } else {
+        form.reset(defaultGoalFormValues);
+      }
+    }
+  }, [selectedGoal, isDialogOpen, form]);
+
+  // Mutation callbacks
+  const { handleSuccess, handleError } = useMutationCallbacks({
+    setIsLoading: setIsFormLoading,
+    onOpenChange: setIsDialogOpen,
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.GOALS
+  });
+
+  const handleFormSubmit = (data: GoalFormData) => {
+    setIsFormLoading(true);
+    if (selectedGoal) {
+      updateGoal.mutate({ id: selectedGoal.id, ...data }, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
+    } else {
+      createGoal.mutate(data, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
+    }
+  };
+
   const handleEdit = (goal: GoalModel) => {
     setSelectedGoal(goal);
     setIsDialogOpen(true);
@@ -79,11 +129,6 @@ const Goal = () => {
   const handleAddNew = () => {
     setSelectedGoal(undefined);
     setIsDialogOpen(true);
-  };
-
-  const handleSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ["goals_paginated"] });
-    queryClient.invalidateQueries({ queryKey: ["goals"] });
   };
 
   // Currency options for filter
@@ -143,8 +188,11 @@ const Goal = () => {
         <GoalDialog
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
+          form={form}
+          isLoading={isFormLoading}
+          onSubmit={handleFormSubmit}
+          currencies={currencies}
           goal={selectedGoal}
-          onSuccess={handleSuccess}
         />
       </Layout>
     </ProtectedRoute>

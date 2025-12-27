@@ -1,68 +1,33 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { useAuth } from "@/hooks/use-auth";
+import { UseFormReturn } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dropdown } from "@/components/ui/dropdown";
-import { defaultGoalFormValues, GoalFormData } from "@/form-dto/goals";
-import { useCreateGoal, useUpdateGoal } from "@/hooks/queries/use-goals";
-import { useCurrencies } from "@/hooks/queries/use-currencies";
+import { GoalFormData } from "@/form-dto/goals";
+import { CurrencyModel } from "@/models/currencies";
 import { GoalModel } from "@/models/goals";
 
 interface GoalDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  form: UseFormReturn<GoalFormData>;
+  isLoading: boolean;
+  onSubmit: (data: GoalFormData) => void;
+  currencies?: CurrencyModel[];
   goal?: GoalModel;
-  onSuccess?: () => void;
 }
 
-const GoalDialog = ({ open, onOpenChange, goal, onSuccess }: GoalDialogProps) => {
-  const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const createGoal = useCreateGoal();
-  const updateGoal = useUpdateGoal();
-  const { data: currencies } = useCurrencies();
-
-  const form = useForm<GoalFormData>({
-    defaultValues: defaultGoalFormValues,
-  });
-
-  const onSubmit = async (data: GoalFormData) => {
-    if (!user) return;
-    setIsLoading(true);
-    if (goal) {
-      updateGoal.mutate({ id: goal.id, ...data });
-    } else {
-      createGoal.mutate(data);
-    }
-  };
-
-  useEffect(() => {
-    if (open) {
-      if (goal) {
-        form.reset({
-          name: goal.name || "",
-          target_amount: goal.target_amount || 0,
-          currency_code: goal.currency_code || "",
-          target_date: goal.target_date || "",
-        });
-      } else {
-        form.reset(defaultGoalFormValues);
-      }
-    }
-  }, [goal, open, form]);
-
-  useEffect(() => {
-    if (createGoal.isSuccess || updateGoal.isSuccess) {
-      onOpenChange(false);
-      setIsLoading(false);
-      onSuccess?.();
-    }
-  }, [createGoal.isSuccess, updateGoal.isSuccess]);
-
+const GoalDialog = ({ 
+  open, 
+  onOpenChange, 
+  form, 
+  isLoading, 
+  onSubmit, 
+  currencies,
+  goal 
+}: GoalDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
