@@ -16,11 +16,10 @@ import { useNavigate } from "react-router-dom";
 import { formatDate } from "@/lib/date";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useDialogState } from "@/hooks/use-dialog-state";
+import { useDeleteConfirmation } from "@/hooks/use-delete-confirmation";
 
 const BusinessProject = () => {
   const navigate = useNavigate();
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [businessProjectToDelete, setBusinessProjectToDelete] = useState<number | null>(null);
   
   const createProject = useCreateBusinessProject();
   const updateProject = useUpdateBusinessProject();
@@ -50,6 +49,12 @@ const BusinessProject = () => {
     }),
   });
 
+  // Delete confirmation hook
+  const deleteConfirmation = useDeleteConfirmation<number>({
+    title: "Hapus Proyek Bisnis",
+    description: "Apakah Anda yakin ingin menghapus proyek ini? Tindakan ini tidak dapat dibatalkan.",
+  });
+
   // Mutation callbacks
   const { handleSuccess, handleError } = useMutationCallbacks({
     setIsLoading: dialog.setIsLoading,
@@ -77,15 +82,8 @@ const BusinessProject = () => {
     navigate(`/business-project/${project.id}`);
   };
 
-  const handleDeleteClick = (businessProjectId: number) => {
-    setBusinessProjectToDelete(businessProjectId);
-    setIsDeleteModalOpen(true);
-  };
-
   const handleConfirmDelete = () => {
-    if (businessProjectToDelete) {
-      deleteBusinessProject(businessProjectToDelete);
-    }
+    deleteConfirmation.handleConfirm((id) => deleteBusinessProject(id));
   };
 
   const renderProjectItem = (project: BusinessProjectModel) => (
@@ -148,7 +146,7 @@ const BusinessProject = () => {
             variant="destructive"
             size="sm"
             className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
-            onClick={() => handleDeleteClick(project.id)}
+            onClick={() => deleteConfirmation.openModal(project.id)}
           >
             <Trash2 className="w-3 h-3 mr-1" />
             Hapus
@@ -180,13 +178,13 @@ const BusinessProject = () => {
     <ProtectedRoute>
       <Layout>
         <ConfirmationModal
-          open={isDeleteModalOpen}
-          onOpenChange={setIsDeleteModalOpen}
+          open={deleteConfirmation.open}
+          onOpenChange={deleteConfirmation.onOpenChange}
           onConfirm={handleConfirmDelete}
-          title="Hapus Proyek Bisnis"
-          description="Apakah Anda yakin ingin menghapus proyek ini? Tindakan ini tidak dapat dibatalkan."
-          confirmText="Ya, Hapus"
-          cancelText="Batal"
+          title={deleteConfirmation.config.title}
+          description={deleteConfirmation.config.description}
+          confirmText={deleteConfirmation.config.confirmText}
+          cancelText={deleteConfirmation.config.cancelText}
           variant="destructive"
         />
 

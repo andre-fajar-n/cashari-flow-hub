@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -20,12 +19,11 @@ import { AssetFormData, defaultAssetFormValues } from "@/form-dto/investment-ass
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialogState } from "@/hooks/use-dialog-state";
+import { useDeleteConfirmation } from "@/hooks/use-delete-confirmation";
 
 const InvestmentAsset = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [investmentAssetToDelete, setInvestmentAssetToDelete] = useState<number | null>(null);
 
   const { mutate: deleteInvestmentAsset } = useDeleteInvestmentAsset();
   const createAsset = useCreateInvestmentAsset();
@@ -71,6 +69,12 @@ const InvestmentAsset = () => {
     }),
   });
 
+  // Delete confirmation hook
+  const deleteConfirmation = useDeleteConfirmation<number>({
+    title: "Hapus Aset Investasi",
+    description: "Apakah Anda yakin ingin menghapus aset investasi ini? Tindakan ini tidak dapat dibatalkan.",
+  });
+
   // Mutation callbacks
   const { handleSuccess, handleError } = useMutationCallbacks({
     setIsLoading: dialog.setIsLoading,
@@ -96,15 +100,8 @@ const InvestmentAsset = () => {
     }
   };
 
-  const handleDeleteClick = (investmentAssetId: number) => {
-    setInvestmentAssetToDelete(investmentAssetId);
-    setIsDeleteModalOpen(true);
-  };
-
   const handleConfirmDelete = () => {
-    if (investmentAssetToDelete) {
-      deleteInvestmentAsset(investmentAssetToDelete);
-    }
+    deleteConfirmation.handleConfirm((id) => deleteInvestmentAsset(id));
   };
 
   const handleViewHistory = (asset: InvestmentAssetModel) => {
@@ -115,7 +112,7 @@ const InvestmentAsset = () => {
   const columns = getInvestmentAssetColumns({
     assetSummaryGrouped,
     onEdit: dialog.openEdit,
-    onDelete: handleDeleteClick,
+    onDelete: deleteConfirmation.openModal,
     onViewHistory: handleViewHistory,
   });
 
@@ -123,13 +120,13 @@ const InvestmentAsset = () => {
     <ProtectedRoute>
       <Layout>
         <ConfirmationModal
-          open={isDeleteModalOpen}
-          onOpenChange={setIsDeleteModalOpen}
+          open={deleteConfirmation.open}
+          onOpenChange={deleteConfirmation.onOpenChange}
           onConfirm={handleConfirmDelete}
-          title="Hapus Aset Investasi"
-          description="Apakah Anda yakin ingin menghapus aset investasi ini? Tindakan ini tidak dapat dibatalkan."
-          confirmText="Ya, Hapus"
-          cancelText="Batal"
+          title={deleteConfirmation.config.title}
+          description={deleteConfirmation.config.description}
+          confirmText={deleteConfirmation.config.confirmText}
+          cancelText={deleteConfirmation.config.cancelText}
           variant="destructive"
         />
 
