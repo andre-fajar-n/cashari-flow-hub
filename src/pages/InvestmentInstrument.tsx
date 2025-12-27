@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Plus, TrendingUp, Edit, Trash2 } from "lucide-react";
@@ -6,19 +7,27 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import InvestmentInstrumentDialog from "@/components/investment/InvestmentInstrumentDialog";
 import Layout from "@/components/Layout";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { useDeleteInvestmentInstrument } from "@/hooks/queries/use-investment-instruments";
+import { useCreateInvestmentInstrument, useUpdateInvestmentInstrument, useDeleteInvestmentInstrument } from "@/hooks/queries/use-investment-instruments";
 import { useInvestmentInstrumentsPaginated } from "@/hooks/queries/paginated/use-investment-instruments-paginated";
 import { InvestmentInstrumentModel } from "@/models/investment-instruments";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
+import { InstrumentFormData, defaultInstrumentFormValues } from "@/form-dto/investment-instruments";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { useAuth } from "@/hooks/use-auth";
 
 const InvestmentInstrument = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [instrumentToDelete, setInstrumentToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedInstrument, setSelectedInstrument] = useState<InvestmentInstrumentModel | undefined>(undefined);
+  const [isFormLoading, setIsFormLoading] = useState(false);
+
   const { mutate: deleteInstrument } = useDeleteInvestmentInstrument();
+  const createInstrument = useCreateInvestmentInstrument();
+  const updateInstrument = useUpdateInvestmentInstrument();
 
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
@@ -26,6 +35,51 @@ const InvestmentInstrument = () => {
   const [serverFilters, setServerFilters] = useState<Record<string, any>>({});
   const { data: paged, isLoading } = useInvestmentInstrumentsPaginated({ page, itemsPerPage, searchTerm: serverSearch, filters: serverFilters });
   const instruments = paged?.data || [];
+
+  // Form
+  const form = useForm<InstrumentFormData>({
+    defaultValues: defaultInstrumentFormValues,
+  });
+
+  // Mutation callbacks
+  const { handleSuccess, handleError } = useMutationCallbacks({
+    setIsLoading: setIsFormLoading,
+    onOpenChange: setIsDialogOpen,
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_INSTRUMENTS
+  });
+
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (isDialogOpen) {
+      if (selectedInstrument) {
+        form.reset({
+          name: selectedInstrument.name || "",
+          unit_label: selectedInstrument.unit_label || "",
+          is_trackable: selectedInstrument.is_trackable ?? false,
+        });
+      } else {
+        form.reset(defaultInstrumentFormValues);
+      }
+    }
+  }, [isDialogOpen, selectedInstrument, form]);
+
+  const handleFormSubmit = (data: InstrumentFormData) => {
+    if (!user) return;
+    setIsFormLoading(true);
+
+    if (selectedInstrument) {
+      updateInstrument.mutate({ id: selectedInstrument.id, ...data }, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
+    } else {
+      createInstrument.mutate(data, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
+    }
+  };
 
   const handleEdit = (instrument: InvestmentInstrumentModel) => {
     setSelectedInstrument(instrument);
@@ -49,27 +103,27 @@ const InvestmentInstrument = () => {
   };
 
   const renderInstrumentItem = (instrument: InvestmentInstrumentModel) => (
-    <Card key={instrument.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+    <Card key={instrument.id} className="bg-card border border-border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
       <div className="space-y-3">
         {/* Header Section */}
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
-              <div className="p-1 bg-blue-100 rounded-full">
-                <TrendingUp className="w-4 h-4 text-blue-600" />
+              <div className="p-1 bg-primary/10 rounded-full">
+                <TrendingUp className="w-4 h-4 text-primary" />
               </div>
-              <h3 className="font-bold text-lg text-gray-900 truncate">{instrument.name}</h3>
+              <h3 className="font-bold text-lg text-foreground truncate">{instrument.name}</h3>
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               {instrument.unit_label && (
-                <span className="text-sm font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded-lg w-fit">
+                <span className="text-sm font-medium text-muted-foreground bg-muted px-2 py-1 rounded-lg w-fit">
                   Unit: {instrument.unit_label}
                 </span>
               )}
               <span className={`text-xs px-3 py-1 rounded-full font-medium w-fit ${instrument.is_trackable
-                ? 'bg-green-100 text-green-800'
-                : 'bg-gray-100 text-gray-800'
+                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                : 'bg-muted text-muted-foreground'
                 }`}>
                 {instrument.is_trackable ? 'Dapat Dilacak' : 'Tidak Dapat Dilacak'}
               </span>
@@ -78,7 +132,7 @@ const InvestmentInstrument = () => {
         </div>
 
         {/* Actions - Mobile responsive */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 pt-4 sm:pt-1 border-t-2 sm:border-t border-gray-100">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 pt-4 sm:pt-1 border-t-2 sm:border-t border-border">
           <Button
             variant="outline"
             size="lg"
@@ -183,10 +237,10 @@ const InvestmentInstrument = () => {
         <InvestmentInstrumentDialog
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
+          form={form}
+          isLoading={isFormLoading}
+          onSubmit={handleFormSubmit}
           instrument={selectedInstrument}
-          onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ["investment_instruments"] });
-          }}
         />
       </Layout>
     </ProtectedRoute>

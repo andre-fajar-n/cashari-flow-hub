@@ -10,9 +10,9 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import AssetValueDialog from "@/components/investment/AssetValueDialog";
-import { useInvestmentAssets, useDeleteInvestmentAsset } from "@/hooks/queries/use-investment-assets";
+import { useInvestmentAssets, useDeleteInvestmentAsset, useUpdateInvestmentAsset } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
-import { useInvestmentAssetValues } from "@/hooks/queries/use-investment-asset-values";
+import { useInvestmentAssetValues, useCreateInvestmentAssetValue, useUpdateInvestmentAssetValue } from "@/hooks/queries/use-investment-asset-values";
 import InvestmentAssetDialog from "@/components/investment/InvestmentAssetDialog";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { formatAmountCurrency } from "@/lib/currency";
@@ -29,6 +29,8 @@ import { formatDate } from "@/lib/date";
 import AssetValueHistoryList from "@/components/investment/AssetValueHistoryList";
 import AssetMovementList from "@/components/investment/AssetMovementList";
 import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData } from "@/form-dto/goal-investment-records";
+import { AssetFormData, defaultAssetFormValues } from "@/form-dto/investment-assets";
+import { AssetValueFormData, defaultAssetValueFormValues } from "@/form-dto/investment-asset-values";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -46,9 +48,17 @@ const AssetDetail = () => {
     record?: GoalInvestmentRecordModel;
   }>({ open: false });
 
+  const [isEditFormLoading, setIsEditFormLoading] = useState(false);
+  const [isValueFormLoading, setIsValueFormLoading] = useState(false);
   const [isRecordFormLoading, setIsRecordFormLoading] = useState(false);
 
   const { mutate: deleteAsset } = useDeleteInvestmentAsset();
+  const updateAsset = useUpdateInvestmentAsset();
+  const createAssetValue = useCreateInvestmentAssetValue();
+  const updateAssetValue = useUpdateInvestmentAssetValue();
+  const createRecord = useCreateGoalInvestmentRecord();
+  const updateRecord = useUpdateGoalInvestmentRecord();
+
   const { data: assets } = useInvestmentAssets();
   const { data: assetValues } = useInvestmentAssetValues(parseInt(id!));
   const { data: movements } = useMoneyMovements({ assetId: parseInt(id!) });
@@ -59,72 +69,63 @@ const AssetDetail = () => {
 
   const asset = assets?.find(a => a.id === parseInt(id!));
 
-  if (!asset) {
-    return (
-      <ProtectedRoute>
-        <Layout>
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Aset tidak ditemukan</p>
-            <Button onClick={() => navigate('/investment-asset')} className="mt-4">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Kembali ke Daftar Aset
-            </Button>
-          </div>
-        </Layout>
-      </ProtectedRoute>
-    );
-  }
+  // Forms
+  const editForm = useForm<AssetFormData>({
+    defaultValues: defaultAssetFormValues,
+  });
 
-  // Derive currency code from related wallet records (since assets no longer have currency_code)
-  const assetCurrencyCode = movements?.find((r: MoneyMovementModel) => (r.asset_id ?? r.asset?.id) === (asset?.id))?.currency_code
-    || (wallets && wallets.length > 0 ? wallets[0].currency_code : undefined)
-    || 'unknown currency';
-  const assetCurrencySymbol = movements?.find((r: MoneyMovementModel) => (r.asset_id ?? r.asset?.id) === (asset?.id))?.currency_symbol
-    || 'unknown currency';
+  const valueForm = useForm<AssetValueFormData>({
+    defaultValues: defaultAssetValueFormValues,
+  });
 
-  const handleEdit = () => {
-    setIsEditDialogOpen(true);
-  };
-
-  const handleDeleteClick = () => {
-    setIsDeleteModalOpen(true);
-  };
-
-  const handleConfirmDelete = () => {
-    deleteAsset(asset.id, {
-      onSuccess: () => {
-        navigate('/investment-asset');
-      }
-    });
-  };
-
-  const handleAddValue = () => {
-    setIsValueDialogOpen(true);
-  };
-
-  const handleAddRecord = () => {
-    setRecordDialog({ open: true });
-  };
-
-  const handleSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ["money_movements"] });
-    queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
-    queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
-    queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
-    queryClient.invalidateQueries({ queryKey: ["investment_asset_values"] });
-    queryClient.invalidateQueries({ queryKey: ["investment_asset_values_paginated"] });
-  };
-
-  // Form for GoalInvestmentRecordDialog
   const recordForm = useForm<GoalInvestmentRecordFormData>({
     defaultValues: defaultGoalInvestmentRecordFormData,
   });
 
-  // Mutations
-  const createRecord = useCreateGoalInvestmentRecord();
-  const updateRecord = useUpdateGoalInvestmentRecord();
+  // Mutation callbacks
+  const { handleSuccess: handleEditSuccess, handleError: handleEditError } = useMutationCallbacks({
+    setIsLoading: setIsEditFormLoading,
+    onOpenChange: setIsEditDialogOpen,
+    form: editForm,
+    queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_ASSETS
+  });
 
-  // Reset form when dialog opens
+  const { handleSuccess: handleValueSuccess, handleError: handleValueError } = useMutationCallbacks({
+    setIsLoading: setIsValueFormLoading,
+    onOpenChange: setIsValueDialogOpen,
+    form: valueForm,
+    queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_ASSET_VALUES
+  });
+
+  const { handleSuccess: handleRecordSuccess, handleError: handleRecordError } = useMutationCallbacks({
+    setIsLoading: setIsRecordFormLoading,
+    onOpenChange: (open) => setRecordDialog({ open }),
+    form: recordForm,
+    queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_RECORDS
+  });
+
+  // Reset edit form when dialog opens
+  useEffect(() => {
+    if (isEditDialogOpen && asset) {
+      editForm.reset({
+        name: asset.name || "",
+        symbol: asset.symbol || "",
+        instrument_id: asset.instrument_id || null,
+      });
+    }
+  }, [isEditDialogOpen, asset, editForm]);
+
+  // Reset value form when dialog opens
+  useEffect(() => {
+    if (isValueDialogOpen) {
+      valueForm.reset({
+        ...defaultAssetValueFormValues,
+        asset_id: parseInt(id!) || 0,
+      });
+    }
+  }, [isValueDialogOpen, id, valueForm]);
+
+  // Reset record form when dialog opens
   useEffect(() => {
     if (recordDialog.open) {
       const record = recordDialog.record;
@@ -151,13 +152,84 @@ const AssetDetail = () => {
     }
   }, [recordDialog.open, recordDialog.record, recordForm, asset]);
 
-  // Mutation callbacks
-  const { handleSuccess: handleRecordSuccess, handleError: handleRecordError } = useMutationCallbacks({
-    setIsLoading: setIsRecordFormLoading,
-    onOpenChange: (open) => setRecordDialog({ open }),
-    form: recordForm,
-    queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_RECORDS
-  });
+  if (!asset) {
+    return (
+      <ProtectedRoute>
+        <Layout>
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Aset tidak ditemukan</p>
+            <Button onClick={() => navigate('/investment-asset')} className="mt-4">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Kembali ke Daftar Aset
+            </Button>
+          </div>
+        </Layout>
+      </ProtectedRoute>
+    );
+  }
+
+  // Derive currency code from related wallet records (since assets no longer have currency_code)
+  const assetCurrencyCode = movements?.find((r: MoneyMovementModel) => (r.asset_id ?? r.asset?.id) === (asset?.id))?.currency_code
+    || (wallets && wallets.length > 0 ? wallets[0].currency_code : undefined)
+    || 'unknown currency';
+  const assetCurrencySymbol = movements?.find((r: MoneyMovementModel) => (r.asset_id ?? r.asset?.id) === (asset?.id))?.currency_symbol
+    || 'unknown currency';
+
+  const handleSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ["money_movements"] });
+    queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
+    queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
+    queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
+    queryClient.invalidateQueries({ queryKey: ["investment_asset_values"] });
+    queryClient.invalidateQueries({ queryKey: ["investment_asset_values_paginated"] });
+  };
+
+  const handleEdit = () => {
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = () => {
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    deleteAsset(asset.id, {
+      onSuccess: () => {
+        navigate('/investment-asset');
+      }
+    });
+  };
+
+  const handleAddValue = () => {
+    setIsValueDialogOpen(true);
+  };
+
+  const handleAddRecord = () => {
+    setRecordDialog({ open: true });
+  };
+
+  const handleEditFormSubmit = (data: AssetFormData) => {
+    if (!user || !asset) return;
+    setIsEditFormLoading(true);
+
+    updateAsset.mutate({ id: asset.id, ...data }, {
+      onSuccess: handleEditSuccess,
+      onError: handleEditError
+    });
+  };
+
+  const handleValueFormSubmit = (data: AssetValueFormData) => {
+    if (!user) return;
+    setIsValueFormLoading(true);
+
+    createAssetValue.mutate(data, {
+      onSuccess: () => {
+        handleValueSuccess();
+        handleSuccess();
+      },
+      onError: handleValueError
+    });
+  };
 
   const handleRecordFormSubmit = (data: GoalInvestmentRecordFormData) => {
     if (!user) return;
@@ -214,7 +286,7 @@ const AssetDetail = () => {
                 <h1 className="text-3xl font-bold flex items-center gap-2">
                   {asset.name}
                   {asset.symbol && (
-                    <span className="text-lg bg-blue-100 text-blue-800 px-3 py-1 rounded">
+                    <span className="text-lg bg-primary/10 text-primary px-3 py-1 rounded">
                       {asset.symbol}
                     </span>
                   )}
@@ -327,14 +399,19 @@ const AssetDetail = () => {
           <InvestmentAssetDialog
             open={isEditDialogOpen}
             onOpenChange={setIsEditDialogOpen}
+            form={editForm}
+            isLoading={isEditFormLoading}
+            onSubmit={handleEditFormSubmit}
             asset={asset}
+            instruments={instruments}
           />
 
           <AssetValueDialog
             open={isValueDialogOpen}
             onOpenChange={setIsValueDialogOpen}
-            assetId={asset.id}
-            onSuccess={handleSuccess}
+            form={valueForm}
+            isLoading={isValueFormLoading}
+            onSubmit={handleValueFormSubmit}
           />
 
           <GoalInvestmentRecordDialog

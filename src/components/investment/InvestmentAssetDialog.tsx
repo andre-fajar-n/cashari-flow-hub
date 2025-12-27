@@ -1,87 +1,32 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { useAuth } from "@/hooks/use-auth";
+import { UseFormReturn } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { AssetFormData, defaultAssetFormValues } from "@/form-dto/investment-assets";
-import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
-import { useCreateInvestmentAsset, useUpdateInvestmentAsset } from "@/hooks/queries/use-investment-assets";
-import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
+import { AssetFormData } from "@/form-dto/investment-assets";
 import { InvestmentAssetModel } from "@/models/investment-assets";
+import { InvestmentInstrumentModel } from "@/models/investment-instruments";
 import { Dropdown } from "@/components/ui/dropdown";
 
 interface InvestmentAssetDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  form: UseFormReturn<AssetFormData>;
+  isLoading: boolean;
+  onSubmit: (data: AssetFormData) => void;
   asset?: InvestmentAssetModel;
-  onSuccess?: () => void;
+  instruments?: InvestmentInstrumentModel[];
 }
 
-const InvestmentAssetDialog = ({ open, onOpenChange, asset, onSuccess }: InvestmentAssetDialogProps) => {
-  const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const createAsset = useCreateInvestmentAsset();
-  const updateAsset = useUpdateInvestmentAsset();
-
-  const form = useForm<AssetFormData>({
-    defaultValues: defaultAssetFormValues,
-  });
-
-  const { data: instruments } = useInvestmentInstruments();
-
-  // Use mutation callbacks utility
-  const { handleSuccess, handleError } = useMutationCallbacks({
-    setIsLoading,
-    onOpenChange,
-    onSuccess,
-    form,
-    queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_ASSETS
-  });
-
-  const onSubmit = async (data: AssetFormData) => {
-    if (!user) return;
-
-    setIsLoading(true);
-
-    if (asset) {
-      updateAsset.mutate({ id: asset.id, ...data }, {
-        onSuccess: handleSuccess,
-        onError: handleError
-      });
-    } else {
-      createAsset.mutate(data, {
-        onSuccess: handleSuccess,
-        onError: handleError
-      });
-    }
-  };
-
-  // Reset form when asset prop changes or dialog opens/closes
-  useEffect(() => {
-    if (open) {
-      if (asset) {
-        form.reset({
-          name: asset.name || "",
-          symbol: asset.symbol || "",
-          instrument_id: asset.instrument_id || null,
-        });
-      } else {
-        form.reset(defaultAssetFormValues);
-      }
-    }
-  }, [asset, open, form]);
-
-  useEffect(() => {
-    if (createAsset.isSuccess || updateAsset.isSuccess) {
-      onOpenChange(false);
-      form.reset();
-      onSuccess?.();
-      setIsLoading(false);
-    }
-  }, [createAsset.isSuccess, updateAsset.isSuccess]);
-
+const InvestmentAssetDialog = ({ 
+  open, 
+  onOpenChange, 
+  form, 
+  isLoading, 
+  onSubmit, 
+  asset, 
+  instruments 
+}: InvestmentAssetDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -9,23 +10,30 @@ import InvestmentAssetDialog from "@/components/investment/InvestmentAssetDialog
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { InvestmentAssetModel } from "@/models/investment-assets";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
-import { useDeleteInvestmentAsset } from "@/hooks/queries/use-investment-assets";
+import { useCreateInvestmentAsset, useUpdateInvestmentAsset, useDeleteInvestmentAsset } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentAssetsPaginated } from "@/hooks/queries/paginated/use-investment-assets-paginated";
 import { useAssetSummaries } from "@/hooks/queries/use-asset-summaries";
 import { useTableState } from "@/hooks/use-table-state";
 import { AssetSummaryData } from "@/models/money-summary";
 import { InvestmentAssetTable } from "@/components/investment/InvestmentAssetTable";
 import { getInvestmentAssetColumns } from "@/components/investment/InvestmentAssetColumns";
+import { AssetFormData, defaultAssetFormValues } from "@/form-dto/investment-assets";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { useAuth } from "@/hooks/use-auth";
 
 const InvestmentAsset = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [investmentAssetToDelete, setInvestmentAssetToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<InvestmentAssetModel | undefined>(undefined);
+  const [isFormLoading, setIsFormLoading] = useState(false);
 
   const { mutate: deleteInvestmentAsset } = useDeleteInvestmentAsset();
+  const createAsset = useCreateInvestmentAsset();
+  const updateAsset = useUpdateInvestmentAsset();
 
   // Table state management using generic hook
   const { state: tableState, actions: tableActions } = useTableState({
@@ -50,6 +58,51 @@ const InvestmentAsset = () => {
     acc[summary.assetId] = summary;
     return acc;
   }, {} as Record<number, AssetSummaryData>);
+
+  // Form
+  const form = useForm<AssetFormData>({
+    defaultValues: defaultAssetFormValues,
+  });
+
+  // Mutation callbacks
+  const { handleSuccess, handleError } = useMutationCallbacks({
+    setIsLoading: setIsFormLoading,
+    onOpenChange: setIsDialogOpen,
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_ASSETS
+  });
+
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (isDialogOpen) {
+      if (selectedAsset) {
+        form.reset({
+          name: selectedAsset.name || "",
+          symbol: selectedAsset.symbol || "",
+          instrument_id: selectedAsset.instrument_id || null,
+        });
+      } else {
+        form.reset(defaultAssetFormValues);
+      }
+    }
+  }, [isDialogOpen, selectedAsset, form]);
+
+  const handleFormSubmit = (data: AssetFormData) => {
+    if (!user) return;
+    setIsFormLoading(true);
+
+    if (selectedAsset) {
+      updateAsset.mutate({ id: selectedAsset.id, ...data }, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
+    } else {
+      createAsset.mutate(data, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
+    }
+  };
 
   const handleEdit = (asset: InvestmentAssetModel) => {
     setSelectedAsset(asset);
@@ -102,8 +155,8 @@ const InvestmentAsset = () => {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Aset Investasi</h1>
-              <p className="text-sm text-gray-600 mt-1">
+              <h1 className="text-2xl font-bold text-foreground">Aset Investasi</h1>
+              <p className="text-sm text-muted-foreground mt-1">
                 Kelola aset investasi dalam instrumen Anda
               </p>
             </div>
@@ -134,11 +187,11 @@ const InvestmentAsset = () => {
         <InvestmentAssetDialog
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
+          form={form}
+          isLoading={isFormLoading}
+          onSubmit={handleFormSubmit}
           asset={selectedAsset}
-          onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
-            queryClient.invalidateQueries({ queryKey: ["asset_summaries"] });
-          }}
+          instruments={instruments}
         />
       </Layout>
     </ProtectedRoute>

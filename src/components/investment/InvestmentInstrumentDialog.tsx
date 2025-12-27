@@ -1,67 +1,29 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { useAuth } from "@/hooks/use-auth";
+import { UseFormReturn } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { defaultInstrumentFormValues, InstrumentFormData } from "@/form-dto/investment-instruments";
-import { useCreateInvestmentInstrument, useUpdateInvestmentInstrument } from "@/hooks/queries/use-investment-instruments";
+import { InstrumentFormData } from "@/form-dto/investment-instruments";
 import { InvestmentInstrumentModel } from "@/models/investment-instruments";
 
 interface InvestmentInstrumentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  form: UseFormReturn<InstrumentFormData>;
+  isLoading: boolean;
+  onSubmit: (data: InstrumentFormData) => void;
   instrument?: InvestmentInstrumentModel;
-  onSuccess?: () => void;
 }
 
-const InvestmentInstrumentDialog = ({ open, onOpenChange, instrument, onSuccess }: InvestmentInstrumentDialogProps) => {
-  const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const createInstrument = useCreateInvestmentInstrument();
-  const updateInstrument = useUpdateInvestmentInstrument();
-
-  const form = useForm<InstrumentFormData>({
-    defaultValues: defaultInstrumentFormValues,
-  });
-
-  const onSubmit = async (data: InstrumentFormData) => {
-    if (!user) return;
-    
-    setIsLoading(true);
-    if (instrument) {
-      updateInstrument.mutate({ id: instrument.id, ...data });
-    } else {
-      createInstrument.mutate(data);
-    }
-  };
-
-  // Reset form when instrument prop changes or dialog opens/closes
-  useEffect(() => {
-    if (open) {
-      if (instrument) {
-        form.reset({
-          name: instrument.name || "",
-          unit_label: instrument.unit_label || "",
-          is_trackable: instrument.is_trackable ?? false,
-        });
-      } else {
-        form.reset(defaultInstrumentFormValues);
-      }
-    }
-  }, [instrument, open, form]);
-
-  useEffect(() => {
-    if (createInstrument.isSuccess || updateInstrument.isSuccess) {
-      onOpenChange(false);
-      form.reset();
-      setIsLoading(false);
-      onSuccess?.();
-    }
-  }, [createInstrument.isSuccess, updateInstrument.isSuccess]);
-
+const InvestmentInstrumentDialog = ({ 
+  open, 
+  onOpenChange, 
+  form, 
+  isLoading, 
+  onSubmit, 
+  instrument 
+}: InvestmentInstrumentDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -116,7 +78,7 @@ const InvestmentInstrumentDialog = ({ open, onOpenChange, instrument, onSuccess 
                     <FormLabel>
                       Dapat Dilacak
                     </FormLabel>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       Apakah nilai instrumen ini dapat dilacak atau dimonitor?
                     </p>
                   </div>

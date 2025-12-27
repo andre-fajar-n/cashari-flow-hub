@@ -136,6 +136,8 @@ export const QUERY_KEY_SETS = {
   TRANSFERS: ["transfers", "wallets"],
   GOAL_TRANSFERS: ["goal_transfers", "goals", "goal_movements", "wallets", "money_movements", "goal_investment_records"],
   INVESTMENT_ASSETS: ["investment_assets", "investment_asset_values", "goal_investment_records"],
+  INVESTMENT_ASSET_VALUES: ["investment_asset_values", "investment_asset_values_paginated"],
+  INVESTMENT_INSTRUMENTS: ["investment_instruments", "investment_instruments_paginated"],
   GOALS: ["goals", "goal_transfers", "goal_movements"],
   INVESTMENT_RECORDS: ["goal_investment_records", "goals", "investment_assets", "money_movements"],
 } as const;
