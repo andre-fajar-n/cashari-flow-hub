@@ -7,10 +7,13 @@ import BusinessProjectTransactionDialog from "@/components/business-project/Busi
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import BusinessProjectTransactionList from "@/components/business-project/BusinessProjectTransactionList";
-import { useBusinessProjectDetail } from "@/hooks/queries/use-business-projects";
-import { useState } from "react";
+import { useBusinessProjectDetail, useDeleteBusinessProject, useUpdateBusinessProject } from "@/hooks/queries/use-business-projects";
+import { useState, useEffect } from "react";
 import BusinessProjectDialog from "@/components/business-project/BusinessProjectDialog";
 import { formatDate } from "@/lib/date";
+import { useTransactions } from "@/hooks/queries/use-transactions";
+import { useBusinessProjectTransactions } from "@/hooks/queries/use-business-project-transactions";
+import { TransactionFilter } from "@/form-dto/transactions";
 
 const BusinessProjectDetail = () => {
   const { id } = useParams();
@@ -19,7 +22,84 @@ const BusinessProjectDetail = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
+  // State for BusinessProjectTransactionDialog
+  const [selectedTransactionIds, setSelectedTransactionIds] = useState<number[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isAddingTransactions, setIsAddingTransactions] = useState(false);
+
   const { data: project } = useBusinessProjectDetail(parseInt(id || "0"));
+  const { mutate: deleteProject } = useDeleteBusinessProject();
+  const { addTransactionsToProject } = useBusinessProjectTransactions(project?.id);
+
+  // Transactions data for the add dialog
+  const filter: TransactionFilter = {
+    startDate: project?.start_date,
+    endDate: project?.end_date
+  };
+  const { data: allTransactions } = useTransactions(filter);
+  const { data: projectTransactions } = useBusinessProjectTransactions(project?.id);
+
+  // Get transactions that are not already in this project
+  const availableTransactions = allTransactions?.filter(transaction => {
+    const isAlreadyInProject = projectTransactions?.some(
+      projectTrx => projectTrx.transaction_id === transaction.id
+    );
+    return !isAlreadyInProject;
+  }) || [];
+
+  // Filter transactions based on search query
+  const filteredTransactions = availableTransactions.filter(transaction => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      transaction.description?.toLowerCase().includes(searchLower) ||
+      transaction.categories?.name?.toLowerCase().includes(searchLower) ||
+      transaction.wallets?.name?.toLowerCase().includes(searchLower) ||
+      transaction.amount.toString().includes(searchQuery)
+    );
+  });
+
+  // Reset selection when dialog closes
+  useEffect(() => {
+    if (!isAddDialogOpen) {
+      setSelectedTransactionIds([]);
+      setSearchQuery("");
+    }
+  }, [isAddDialogOpen]);
+
+  const handleTransactionToggle = (transactionId: number) => {
+    setSelectedTransactionIds(prev => {
+      if (prev.includes(transactionId)) {
+        return prev.filter(id => id !== transactionId);
+      } else {
+        return [...prev, transactionId];
+      }
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedTransactionIds.length === filteredTransactions.length) {
+      setSelectedTransactionIds([]);
+    } else {
+      setSelectedTransactionIds(filteredTransactions.map(t => t.id));
+    }
+  };
+
+  const handleAddTransactionsSubmit = async () => {
+    if (!project || selectedTransactionIds.length === 0) return;
+
+    setIsAddingTransactions(true);
+    try {
+      await addTransactionsToProject.mutateAsync({
+        projectId: project.id,
+        transactionIds: selectedTransactionIds
+      });
+      setIsAddDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to add transactions to project", error);
+    } finally {
+      setIsAddingTransactions(false);
+    }
+  };
 
   if (!project) {
     return (
@@ -41,7 +121,7 @@ const BusinessProjectDetail = () => {
   }
 
   const handleDelete = () => {
-    // For now, deletion handled from list page with useDeleteBusinessProject; could be wired here similarly
+    deleteProject(project.id);
     setIsDeleteModalOpen(false);
     navigate("/business-project");
   };
@@ -138,6 +218,15 @@ const BusinessProjectDetail = () => {
           open={isAddDialogOpen}
           onOpenChange={setIsAddDialogOpen}
           project={project}
+          isLoading={isAddingTransactions}
+          selectedTransactionIds={selectedTransactionIds}
+          onTransactionToggle={handleTransactionToggle}
+          onSelectAll={handleSelectAll}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          filteredTransactions={filteredTransactions}
+          availableTransactionsCount={availableTransactions.length}
+          onSubmit={handleAddTransactionsSubmit}
         />
       </Layout>
     </ProtectedRoute>

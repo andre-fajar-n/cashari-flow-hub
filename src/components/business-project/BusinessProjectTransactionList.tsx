@@ -15,11 +15,15 @@ import TransactionDialog from "@/components/transactions/TransactionDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { TransactionModel } from "@/models/transactions";
 import { MoneyMovementModel } from "@/models/money-movements";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MOVEMENT_TYPES } from "@/constants/enums";
 import { useDeleteTransaction, useTransactions } from "@/hooks/queries/use-transactions";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUserSettings } from "@/hooks/queries/use-user-settings";
+import { useForm } from "react-hook-form";
+import { defaultTransactionFormValues, TransactionFormData } from "@/form-dto/transactions";
+import { useInsertTransactionWithRelations, useUpdateTransactionWithRelations } from "@/hooks/queries/use-transaction-with-relations";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 
 interface BusinessProjectTransactionListProps {
   project: BusinessProjectModel;
@@ -35,6 +39,7 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
     open: boolean;
     item?: MoneyMovementModel;
   }>({ open: false });
+  const [isFormLoading, setIsFormLoading] = useState(false);
 
   // Table state management using generic hook
   const { state: tableState, actions: tableActions } = useTableState({
@@ -47,6 +52,8 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
     removeTransactionFromProject
   } = useBusinessProjectTransactions(project.id);
   const { mutateAsync: deleteTransaction } = useDeleteTransaction();
+  const insertTransactionWithRelations = useInsertTransactionWithRelations();
+  const updateTransactionWithRelations = useUpdateTransactionWithRelations();
 
   const { data: userSettings, isLoading: isLoadingUserSettings } = useUserSettings();
   const { data: paged, isLoading: isLoadingMovements } = useMoneyMovementsPaginatedByProject(project.id, {
@@ -71,6 +78,62 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
   const { data: categories } = useTransactionCategories();
   const { data: wallets } = useWallets();
 
+  // Form state managed at list level
+  const form = useForm<TransactionFormData>({
+    defaultValues: defaultTransactionFormValues,
+  });
+
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (transactionDialog.open) {
+      const transaction = transactionDialog.transaction;
+      if (transaction) {
+        const budgetIds = transaction.budget_items?.map((item) => item.budget_id) || [];
+        const businessProjectIds = transaction.business_project_transactions?.map((item) => item.project_id) || [];
+        form.reset({
+          amount: transaction.amount || 0,
+          category_id: transaction.category_id ? transaction.category_id.toString() : null,
+          wallet_id: transaction.wallet_id ? transaction.wallet_id.toString() : null,
+          date: transaction.date || new Date().toISOString().split("T")[0],
+          description: transaction.description || "",
+          budget_ids: budgetIds,
+          business_project_ids: businessProjectIds,
+        });
+      } else {
+        form.reset(defaultTransactionFormValues);
+      }
+    }
+  }, [transactionDialog.open, transactionDialog.transaction, form]);
+
+  // Mutation callbacks
+  const { handleSuccess: mutationSuccess, handleError } = useMutationCallbacks({
+    setIsLoading: setIsFormLoading,
+    onOpenChange: (open) => setTransactionDialog({ open }),
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.TRANSACTIONS
+  });
+
+  const handleFormSubmit = (data: TransactionFormData) => {
+    setIsFormLoading(true);
+    const processedData = {
+      ...data,
+      category_id: data.category_id || "",
+      wallet_id: data.wallet_id || "",
+    };
+
+    if (transactionDialog.transaction) {
+      updateTransactionWithRelations.mutate({ id: transactionDialog.transaction.id, ...processedData }, {
+        onSuccess: mutationSuccess,
+        onError: handleError
+      });
+    } else {
+      insertTransactionWithRelations.mutate(processedData, {
+        onSuccess: mutationSuccess,
+        onError: handleError
+      });
+    }
+  };
+
   const handleRemoveTransaction = (transactionId: number) => {
     removeTransactionFromProject.mutate({
       projectId: project.id,
@@ -84,12 +147,6 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
 
   const handleDeleteTransaction = (movement: MoneyMovementModel) => {
     setDeleteModal({ open: true, item: movement });
-  };
-
-  const handleSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ["transactions"] });
-    queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
-    setTransactionDialog({ open: false });
   };
 
   const handleConfirmDelete = () => {
@@ -123,7 +180,7 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
   const columns = getTransactionHistoryColumns({
     onEdit: handleEditTransaction,
     onDelete: handleDeleteTransaction,
-    onRemoveFromProject: handleRemoveTransaction, // Reuse for "Remove from Project"
+    onRemoveFromProject: handleRemoveTransaction,
     hideResourceType: true
   });
 
@@ -211,8 +268,10 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
       <TransactionDialog
         open={transactionDialog.open}
         onOpenChange={(open) => setTransactionDialog({ open })}
+        form={form}
+        isLoading={isFormLoading}
+        onSubmit={handleFormSubmit}
         transaction={transactionDialog.transaction}
-        onSuccess={handleSuccess}
       />
 
       <ConfirmationModal
