@@ -1,3 +1,4 @@
+import { GoalInvestmentRecordModel } from "@/models/goal-investment-records";
 
 export interface GoalInvestmentRecordFormData {
   goal_id: number | null;
@@ -24,6 +25,23 @@ export const defaultGoalInvestmentRecordFormData: GoalInvestmentRecordFormData =
   description: "",
   is_valuation: false,
 };
+
+export const mapGoalInvestmentRecordToFormData = (
+  record: GoalInvestmentRecordModel,
+  instrumentId?: number | null,
+  assetId?: number | null
+): GoalInvestmentRecordFormData => ({
+  goal_id: record.goal_id,
+  instrument_id: instrumentId || record.instrument_id || null,
+  asset_id: assetId || record.asset_id || null,
+  wallet_id: record.wallet_id,
+  category_id: record.category_id,
+  amount: record.amount,
+  amount_unit: record.amount_unit,
+  date: record.date,
+  description: record.description || "",
+  is_valuation: record.is_valuation || false,
+});
 
 export interface GoalInvestmentRecordFilter {
   ids?: number[];

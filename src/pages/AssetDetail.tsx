@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -12,7 +12,7 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import AssetValueDialog from "@/components/investment/AssetValueDialog";
 import { useInvestmentAssets, useDeleteInvestmentAsset, useUpdateInvestmentAsset } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
-import { useInvestmentAssetValues, useCreateInvestmentAssetValue, useUpdateInvestmentAssetValue } from "@/hooks/queries/use-investment-asset-values";
+import { useInvestmentAssetValues, useCreateInvestmentAssetValue } from "@/hooks/queries/use-investment-asset-values";
 import InvestmentAssetDialog from "@/components/investment/InvestmentAssetDialog";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { formatAmountCurrency } from "@/lib/currency";
@@ -28,11 +28,13 @@ import { GoalInvestmentRecordModel } from "@/models/goal-investment-records";
 import { formatDate } from "@/lib/date";
 import AssetValueHistoryList from "@/components/investment/AssetValueHistoryList";
 import AssetMovementList from "@/components/investment/AssetMovementList";
-import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData } from "@/form-dto/goal-investment-records";
-import { AssetFormData, defaultAssetFormValues } from "@/form-dto/investment-assets";
+import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData, mapGoalInvestmentRecordToFormData } from "@/form-dto/goal-investment-records";
+import { AssetFormData, defaultAssetFormValues, mapAssetToFormData } from "@/form-dto/investment-assets";
 import { AssetValueFormData, defaultAssetValueFormValues } from "@/form-dto/investment-asset-values";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useAuth } from "@/hooks/use-auth";
+import { useDialogState } from "@/hooks/use-dialog-state";
+import { InvestmentAssetModel } from "@/models/investment-assets";
 
 const AssetDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -41,21 +43,11 @@ const AssetDetail = () => {
   const { user } = useAuth();
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isValueDialogOpen, setIsValueDialogOpen] = useState(false);
-  const [recordDialog, setRecordDialog] = useState<{
-    open: boolean;
-    record?: GoalInvestmentRecordModel;
-  }>({ open: false });
-
-  const [isEditFormLoading, setIsEditFormLoading] = useState(false);
-  const [isValueFormLoading, setIsValueFormLoading] = useState(false);
-  const [isRecordFormLoading, setIsRecordFormLoading] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<GoalInvestmentRecordModel | null>(null);
 
   const { mutate: deleteAsset } = useDeleteInvestmentAsset();
   const updateAsset = useUpdateInvestmentAsset();
   const createAssetValue = useCreateInvestmentAssetValue();
-  const updateAssetValue = useUpdateInvestmentAssetValue();
   const createRecord = useCreateGoalInvestmentRecord();
   const updateRecord = useUpdateGoalInvestmentRecord();
 
@@ -82,75 +74,49 @@ const AssetDetail = () => {
     defaultValues: defaultGoalInvestmentRecordFormData,
   });
 
+  // Dialog states using useDialogState hook
+  const editDialog = useDialogState<InvestmentAssetModel, AssetFormData>({
+    form: editForm,
+    defaultValues: defaultAssetFormValues,
+    mapDataToForm: mapAssetToFormData,
+  });
+
+  const valueDialog = useDialogState<null, AssetValueFormData>({
+    form: valueForm,
+    defaultValues: { ...defaultAssetValueFormValues, asset_id: parseInt(id!) || 0 },
+  });
+
+  const recordDialog = useDialogState<GoalInvestmentRecordModel, GoalInvestmentRecordFormData>({
+    form: recordForm,
+    defaultValues: {
+      ...defaultGoalInvestmentRecordFormData,
+      instrument_id: asset?.instrument_id || null,
+      asset_id: asset?.id || null,
+    },
+    mapDataToForm: (record) => mapGoalInvestmentRecordToFormData(record, asset?.instrument_id, asset?.id),
+  });
+
   // Mutation callbacks
   const { handleSuccess: handleEditSuccess, handleError: handleEditError } = useMutationCallbacks({
-    setIsLoading: setIsEditFormLoading,
-    onOpenChange: setIsEditDialogOpen,
+    setIsLoading: editDialog.setIsLoading,
+    onOpenChange: (open) => !open && editDialog.close(),
     form: editForm,
     queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_ASSETS
   });
 
   const { handleSuccess: handleValueSuccess, handleError: handleValueError } = useMutationCallbacks({
-    setIsLoading: setIsValueFormLoading,
-    onOpenChange: setIsValueDialogOpen,
+    setIsLoading: valueDialog.setIsLoading,
+    onOpenChange: (open) => !open && valueDialog.close(),
     form: valueForm,
     queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_ASSET_VALUES
   });
 
   const { handleSuccess: handleRecordSuccess, handleError: handleRecordError } = useMutationCallbacks({
-    setIsLoading: setIsRecordFormLoading,
-    onOpenChange: (open) => setRecordDialog({ open }),
+    setIsLoading: recordDialog.setIsLoading,
+    onOpenChange: (open) => !open && recordDialog.close(),
     form: recordForm,
     queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_RECORDS
   });
-
-  // Reset edit form when dialog opens
-  useEffect(() => {
-    if (isEditDialogOpen && asset) {
-      editForm.reset({
-        name: asset.name || "",
-        symbol: asset.symbol || "",
-        instrument_id: asset.instrument_id || null,
-      });
-    }
-  }, [isEditDialogOpen, asset, editForm]);
-
-  // Reset value form when dialog opens
-  useEffect(() => {
-    if (isValueDialogOpen) {
-      valueForm.reset({
-        ...defaultAssetValueFormValues,
-        asset_id: parseInt(id!) || 0,
-      });
-    }
-  }, [isValueDialogOpen, id, valueForm]);
-
-  // Reset record form when dialog opens
-  useEffect(() => {
-    if (recordDialog.open) {
-      const record = recordDialog.record;
-      if (record) {
-        recordForm.reset({
-          goal_id: record.goal_id,
-          instrument_id: asset?.instrument_id || null,
-          asset_id: asset?.id || null,
-          wallet_id: record.wallet_id,
-          category_id: record.category_id,
-          amount: record.amount,
-          amount_unit: record.amount_unit,
-          date: record.date,
-          description: record.description || "",
-          is_valuation: record.is_valuation || false,
-        });
-      } else {
-        recordForm.reset({
-          ...defaultGoalInvestmentRecordFormData,
-          instrument_id: asset?.instrument_id || null,
-          asset_id: asset?.id || null,
-        });
-      }
-    }
-  }, [recordDialog.open, recordDialog.record, recordForm, asset]);
 
   if (!asset) {
     return (
@@ -185,7 +151,7 @@ const AssetDetail = () => {
   };
 
   const handleEdit = () => {
-    setIsEditDialogOpen(true);
+    editDialog.openEdit(asset);
   };
 
   const handleDeleteClick = () => {
@@ -201,16 +167,17 @@ const AssetDetail = () => {
   };
 
   const handleAddValue = () => {
-    setIsValueDialogOpen(true);
+    valueDialog.openAdd();
   };
 
   const handleAddRecord = () => {
-    setRecordDialog({ open: true });
+    setSelectedRecord(null);
+    recordDialog.openAdd();
   };
 
   const handleEditFormSubmit = (data: AssetFormData) => {
     if (!user || !asset) return;
-    setIsEditFormLoading(true);
+    editDialog.setIsLoading(true);
 
     updateAsset.mutate({ id: asset.id, ...data }, {
       onSuccess: handleEditSuccess,
@@ -220,7 +187,7 @@ const AssetDetail = () => {
 
   const handleValueFormSubmit = (data: AssetValueFormData) => {
     if (!user) return;
-    setIsValueFormLoading(true);
+    valueDialog.setIsLoading(true);
 
     createAssetValue.mutate(data, {
       onSuccess: () => {
@@ -233,7 +200,7 @@ const AssetDetail = () => {
 
   const handleRecordFormSubmit = (data: GoalInvestmentRecordFormData) => {
     if (!user) return;
-    setIsRecordFormLoading(true);
+    recordDialog.setIsLoading(true);
 
     const submitData = {
       ...data,
@@ -242,8 +209,8 @@ const AssetDetail = () => {
       user_id: user.id,
     };
 
-    if (recordDialog.record) {
-      updateRecord.mutate({ id: recordDialog.record.id, ...submitData }, {
+    if (selectedRecord) {
+      updateRecord.mutate({ id: selectedRecord.id, ...submitData }, {
         onSuccess: () => {
           handleRecordSuccess();
           handleSuccess();
@@ -397,30 +364,30 @@ const AssetDetail = () => {
           />
 
           <InvestmentAssetDialog
-            open={isEditDialogOpen}
-            onOpenChange={setIsEditDialogOpen}
+            open={editDialog.open}
+            onOpenChange={(open) => !open && editDialog.close()}
             form={editForm}
-            isLoading={isEditFormLoading}
+            isLoading={editDialog.isLoading}
             onSubmit={handleEditFormSubmit}
-            asset={asset}
+            asset={editDialog.selectedData}
             instruments={instruments}
           />
 
           <AssetValueDialog
-            open={isValueDialogOpen}
-            onOpenChange={setIsValueDialogOpen}
+            open={valueDialog.open}
+            onOpenChange={(open) => !open && valueDialog.close()}
             form={valueForm}
-            isLoading={isValueFormLoading}
+            isLoading={valueDialog.isLoading}
             onSubmit={handleValueFormSubmit}
           />
 
           <GoalInvestmentRecordDialog
             open={recordDialog.open}
-            onOpenChange={(open) => setRecordDialog({ open })}
+            onOpenChange={(open) => !open && recordDialog.close()}
             form={recordForm}
-            isLoading={isRecordFormLoading}
+            isLoading={recordDialog.isLoading}
             onSubmit={handleRecordFormSubmit}
-            record={recordDialog.record}
+            record={selectedRecord ?? undefined}
             assetId={asset.id}
             instrumentId={asset.instrument_id}
             goals={goals}
