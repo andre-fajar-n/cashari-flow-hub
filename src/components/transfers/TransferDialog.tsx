@@ -1,36 +1,34 @@
-import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { useAuth } from "@/hooks/use-auth";
+import { useMemo, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useWallets } from "@/hooks/queries/use-wallets";
 import { Dropdown } from "@/components/ui/dropdown";
-import { defaultTransferFormData, TransferFormData } from "@/form-dto/transfer";
-import { useCreateTransfer, useUpdateTransfer } from "@/hooks/queries/use-transfers";
-import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { TransferFormData } from "@/form-dto/transfer";
 import { TransferModel } from "@/models/transfer";
+import { WalletModel } from "@/models/wallets";
+import { UseFormReturn } from "react-hook-form";
 
 interface TransferDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  form: UseFormReturn<TransferFormData>;
+  isLoading: boolean;
+  onSubmit: (data: TransferFormData) => void;
+  wallets?: WalletModel[];
   transfer?: TransferModel;
-  onSuccess?: () => void;
 }
 
-const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDialogProps) => {
-  const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const { data: wallets } = useWallets();
-  const updateTransfer = useUpdateTransfer();
-  const createTransfer = useCreateTransfer();
-
-  const form = useForm<TransferFormData>({
-    defaultValues: defaultTransferFormData,
-  });
-
+const TransferDialog = ({
+  open,
+  onOpenChange,
+  form,
+  isLoading,
+  onSubmit,
+  wallets,
+  transfer
+}: TransferDialogProps) => {
   const watchFromId = form.watch("from_wallet_id");
   const watchToId = form.watch("to_wallet_id");
   const watchAmountFrom = form.watch("from_amount");
@@ -45,64 +43,12 @@ const TransferDialog = ({ open, onOpenChange, transfer, onSuccess }: TransferDia
   );
   const isSameCurrency = fromWallet?.currency_code === toWallet?.currency_code;
 
-  // Reset form values when dialog opens and wallets ready
-  useEffect(() => {
-    if (!open || !wallets) return;
-
-    if (transfer) {
-      form.reset({
-        from_wallet_id: transfer.from_wallet_id?.toString() || null,
-        to_wallet_id: transfer.to_wallet_id?.toString() || null,
-        from_amount: transfer.from_amount || 0,
-        to_amount: transfer.to_amount || 0,
-        date: transfer.date || new Date().toISOString().split("T")[0],
-      });
-    } else {
-      form.reset(defaultTransferFormData);
-    }
-  }, [open, wallets, transfer, form]);
-
   // Sync to_amount if currency same
   useEffect(() => {
     if (isSameCurrency && watchAmountFrom > 0) {
       form.setValue("to_amount", watchAmountFrom);
     }
   }, [isSameCurrency, watchAmountFrom, form]);
-
-  // Use mutation callbacks utility
-  const { handleSuccess, handleError } = useMutationCallbacks({
-    setIsLoading,
-    onOpenChange,
-    onSuccess,
-    form,
-    queryKeysToInvalidate: QUERY_KEY_SETS.TRANSFERS
-  });
-
-  const onSubmit = async (data: TransferFormData) => {
-    if (!user) return;
-
-    setIsLoading(true);
-
-    const transferData = {
-      from_wallet_id: parseInt(data.from_wallet_id || "0"),
-      to_wallet_id: parseInt(data.to_wallet_id || "0"),
-      from_amount: data.from_amount,
-      to_amount: isSameCurrency ? data.from_amount : data.to_amount,
-      date: data.date,
-    };
-
-    if (transfer) {
-      updateTransfer.mutate({ id: transfer.id, ...transferData }, {
-        onSuccess: handleSuccess,
-        onError: handleError
-      });
-    } else {
-      createTransfer.mutate(transferData, {
-        onSuccess: handleSuccess,
-        onError: handleError
-      });
-    }
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

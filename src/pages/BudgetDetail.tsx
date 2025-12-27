@@ -20,6 +20,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurrencies, useCurrencyDetail } from "@/hooks/queries/use-currencies";
 import { BudgetFormData, defaultBudgetFormValues } from "@/form-dto/budget";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { useTransactions } from "@/hooks/queries/use-transactions";
+import { useBudgetTransactions, useCreateBudgetItem } from "@/hooks/queries/use-budget-transactions";
+import { TransactionFilter } from "@/form-dto/transactions";
 
 const BudgetDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -29,6 +32,11 @@ const BudgetDetail = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isFormLoading, setIsFormLoading] = useState(false);
+  
+  // State for BudgetTransactionDialog
+  const [selectedTransactionIds, setSelectedTransactionIds] = useState<number[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isAddingTransactions, setIsAddingTransactions] = useState(false);
 
   const { data: budget } = useBudget(parseInt(id!));
   const { data: currency } = useCurrencyDetail(budget?.currency_code || '');
@@ -36,6 +44,77 @@ const BudgetDetail = () => {
   const updateBudget = useUpdateBudget();
   const { mutate: deleteBudget } = useDeleteBudget();
   const { data: budgetSummary } = useBudgetSummary(parseInt(id!));
+  const addTransactionsToBudget = useCreateBudgetItem();
+
+  // Transactions data for the add dialog
+  const filter: TransactionFilter = {
+    startDate: budget?.start_date,
+    endDate: budget?.end_date
+  };
+  const { data: allTransactions } = useTransactions(filter);
+  const { data: budgetTransactions } = useBudgetTransactions(budget?.id);
+
+  // Get transactions that are not already in this budget
+  const availableTransactions = allTransactions?.filter(transaction => {
+    const isAlreadyInBudget = budgetTransactions?.some(
+      budgetTrx => budgetTrx.transaction_id === transaction.id
+    );
+    return !isAlreadyInBudget;
+  }) || [];
+
+  // Filter transactions based on search query
+  const filteredTransactions = availableTransactions.filter(transaction => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      transaction.description?.toLowerCase().includes(searchLower) ||
+      transaction.categories?.name?.toLowerCase().includes(searchLower) ||
+      transaction.wallets?.name?.toLowerCase().includes(searchLower) ||
+      transaction.amount.toString().includes(searchQuery)
+    );
+  });
+
+  // Reset selection when dialog closes
+  useEffect(() => {
+    if (!isAddDialogOpen) {
+      setSelectedTransactionIds([]);
+      setSearchQuery("");
+    }
+  }, [isAddDialogOpen]);
+
+  const handleTransactionToggle = (transactionId: number) => {
+    setSelectedTransactionIds(prev => {
+      if (prev.includes(transactionId)) {
+        return prev.filter(id => id !== transactionId);
+      } else {
+        return [...prev, transactionId];
+      }
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedTransactionIds.length === filteredTransactions.length) {
+      setSelectedTransactionIds([]);
+    } else {
+      setSelectedTransactionIds(filteredTransactions.map(t => t.id));
+    }
+  };
+
+  const handleAddTransactionsSubmit = async () => {
+    if (!budget || selectedTransactionIds.length === 0) return;
+
+    setIsAddingTransactions(true);
+    try {
+      await addTransactionsToBudget.mutateAsync({
+        budgetId: budget.id,
+        transactionIds: selectedTransactionIds
+      });
+      setIsAddDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to add transactions to budget", error);
+    } finally {
+      setIsAddingTransactions(false);
+    }
+  };
 
   // Form state managed at page level
   const form = useForm<BudgetFormData>({
@@ -227,6 +306,15 @@ const BudgetDetail = () => {
           open={isAddDialogOpen}
           onOpenChange={setIsAddDialogOpen}
           budget={budget}
+          isLoading={isAddingTransactions}
+          selectedTransactionIds={selectedTransactionIds}
+          onTransactionToggle={handleTransactionToggle}
+          onSelectAll={handleSelectAll}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          filteredTransactions={filteredTransactions}
+          availableTransactionsCount={availableTransactions.length}
+          onSubmit={handleAddTransactionsSubmit}
         />
       </Layout>
     </ProtectedRoute>

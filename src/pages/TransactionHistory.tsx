@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
 import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
@@ -17,10 +18,11 @@ import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDi
 import DebtHistoryDialog from "@/components/debt/DebtHistoryDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useDeleteTransaction, useTransactions } from "@/hooks/queries/use-transactions";
-import { useDeleteTransfer, useTransfers } from "@/hooks/queries/use-transfers";
+import { useDeleteTransfer, useTransfers, useCreateTransfer, useUpdateTransfer } from "@/hooks/queries/use-transfers";
 import { useDeleteGoalTransfer, useGoalTransfers } from "@/hooks/queries/use-goal-transfers";
 import { useDeleteGoalInvestmentRecord, useGoalInvestmentRecords } from "@/hooks/queries/use-goal-investment-records";
 import { useDebtHistories, useDeleteDebtHistory } from "@/hooks/queries/use-debt-histories";
+import { useWallets } from "@/hooks/queries/use-wallets";
 import { TransactionModel } from "@/models/transactions";
 import { TransferModel } from "@/models/transfer";
 import { GoalTransferModel, GoalTransferWithRelations } from "@/models/goal-transfers";
@@ -32,10 +34,16 @@ import { useMoneyMovementsPaginated } from "@/hooks/queries/paginated/use-money-
 import { useTableState } from "@/hooks/use-table-state";
 import { TransactionHistoryTable } from "@/components/transactions/TransactionHistoryTable";
 import { getTransactionHistoryColumns } from "@/components/transactions/TransactionHistoryColumns";
-import { useBudgets, useBusinessProjects, useCategories, useDebts, useGoals, useInvestmentAssets, useInvestmentInstruments, useWallets } from "@/hooks/queries";
+import { useBudgets, useBusinessProjects, useCategories, useDebts, useGoals, useInvestmentAssets, useInvestmentInstruments } from "@/hooks/queries";
+import { defaultTransactionFormValues, TransactionFormData } from "@/form-dto/transactions";
+import { defaultTransferFormData, TransferFormData } from "@/form-dto/transfer";
+import { useInsertTransactionWithRelations, useUpdateTransactionWithRelations } from "@/hooks/queries/use-transaction-with-relations";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { useAuth } from "@/hooks/use-auth";
 
 const TransactionHistory = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   // Table state management using generic hook
   const { state: tableState, actions: tableActions } = useTableState({
@@ -73,6 +81,19 @@ const TransactionHistory = () => {
     open: boolean;
     item?: MoneyMovementModel;
   }>({ open: false });
+
+  // Form loading states
+  const [isTransactionFormLoading, setIsTransactionFormLoading] = useState(false);
+  const [isTransferFormLoading, setIsTransferFormLoading] = useState(false);
+
+  // Form states
+  const transactionForm = useForm<TransactionFormData>({
+    defaultValues: defaultTransactionFormValues,
+  });
+
+  const transferForm = useForm<TransferFormData>({
+    defaultValues: defaultTransferFormData,
+  });
 
   const { data: paged, isLoading: isMovementsLoading } = useMoneyMovementsPaginated({
     page: tableState.page,
@@ -120,6 +141,120 @@ const TransactionHistory = () => {
 
   const isLoading = isMovementsLoading || isDebtHistoriesLoading || isTransactionsLoading || isTransfersLoading || isGoalTransfersLoading ||
     isInvestmentRecordsLoading;
+
+  const { data: wallets } = useWallets();
+
+  // Mutations
+  const insertTransactionWithRelations = useInsertTransactionWithRelations();
+  const updateTransactionWithRelations = useUpdateTransactionWithRelations();
+  const createTransfer = useCreateTransfer();
+  const updateTransfer = useUpdateTransfer();
+
+  // Reset transaction form when dialog opens
+  useEffect(() => {
+    if (transactionDialog.open) {
+      const transaction = transactionDialog.transaction;
+      if (transaction) {
+        const budgetIds = transaction.budget_items?.map((item) => item.budget_id) || [];
+        const businessProjectIds = transaction.business_project_transactions?.map((item) => item.project_id) || [];
+        transactionForm.reset({
+          amount: transaction.amount || 0,
+          category_id: transaction.category_id ? transaction.category_id.toString() : null,
+          wallet_id: transaction.wallet_id ? transaction.wallet_id.toString() : null,
+          date: transaction.date || new Date().toISOString().split("T")[0],
+          description: transaction.description || "",
+          budget_ids: budgetIds,
+          business_project_ids: businessProjectIds,
+        });
+      } else {
+        transactionForm.reset(defaultTransactionFormValues);
+      }
+    }
+  }, [transactionDialog.open, transactionDialog.transaction, transactionForm]);
+
+  // Reset transfer form when dialog opens
+  useEffect(() => {
+    if (transferDialog.open && wallets) {
+      const transfer = transferDialog.transfer;
+      if (transfer) {
+        transferForm.reset({
+          from_wallet_id: transfer.from_wallet_id?.toString() || null,
+          to_wallet_id: transfer.to_wallet_id?.toString() || null,
+          from_amount: transfer.from_amount || 0,
+          to_amount: transfer.to_amount || 0,
+          date: transfer.date || new Date().toISOString().split("T")[0],
+        });
+      } else {
+        transferForm.reset(defaultTransferFormData);
+      }
+    }
+  }, [transferDialog.open, transferDialog.transfer, transferForm, wallets]);
+
+  // Transaction mutation callbacks
+  const { handleSuccess: handleTransactionSuccess, handleError: handleTransactionError } = useMutationCallbacks({
+    setIsLoading: setIsTransactionFormLoading,
+    onOpenChange: (open) => setTransactionDialog({ open }),
+    form: transactionForm,
+    queryKeysToInvalidate: QUERY_KEY_SETS.TRANSACTIONS
+  });
+
+  // Transfer mutation callbacks
+  const { handleSuccess: handleTransferSuccess, handleError: handleTransferError } = useMutationCallbacks({
+    setIsLoading: setIsTransferFormLoading,
+    onOpenChange: (open) => setTransferDialog({ open }),
+    form: transferForm,
+    queryKeysToInvalidate: QUERY_KEY_SETS.TRANSFERS
+  });
+
+  const handleTransactionFormSubmit = (data: TransactionFormData) => {
+    setIsTransactionFormLoading(true);
+    const processedData = {
+      ...data,
+      category_id: data.category_id || "",
+      wallet_id: data.wallet_id || "",
+    };
+
+    if (transactionDialog.transaction) {
+      updateTransactionWithRelations.mutate({ id: transactionDialog.transaction.id, ...processedData }, {
+        onSuccess: handleTransactionSuccess,
+        onError: handleTransactionError
+      });
+    } else {
+      insertTransactionWithRelations.mutate(processedData, {
+        onSuccess: handleTransactionSuccess,
+        onError: handleTransactionError
+      });
+    }
+  };
+
+  const handleTransferFormSubmit = (data: TransferFormData) => {
+    if (!user) return;
+    setIsTransferFormLoading(true);
+
+    const fromWallet = wallets?.find(w => w.id.toString() === data.from_wallet_id);
+    const toWallet = wallets?.find(w => w.id.toString() === data.to_wallet_id);
+    const isSameCurrency = fromWallet?.currency_code === toWallet?.currency_code;
+
+    const transferData = {
+      from_wallet_id: parseInt(data.from_wallet_id || "0"),
+      to_wallet_id: parseInt(data.to_wallet_id || "0"),
+      from_amount: data.from_amount,
+      to_amount: isSameCurrency ? data.from_amount : data.to_amount,
+      date: data.date,
+    };
+
+    if (transferDialog.transfer) {
+      updateTransfer.mutate({ id: transferDialog.transfer.id, ...transferData }, {
+        onSuccess: handleTransferSuccess,
+        onError: handleTransferError
+      });
+    } else {
+      createTransfer.mutate(transferData, {
+        onSuccess: handleTransferSuccess,
+        onError: handleTransferError
+      });
+    }
+  };
 
   // Handle edit actions
   const handleEdit = (item: MoneyMovementModel) => {
@@ -215,7 +350,6 @@ const TransactionHistory = () => {
   };
 
   const { data: categories } = useCategories();
-  const { data: wallets } = useWallets();
   const { data: goals } = useGoals();
   const { data: instruments } = useInvestmentInstruments();
   const { data: assets } = useInvestmentAssets();
@@ -397,15 +531,20 @@ const TransactionHistory = () => {
           <TransactionDialog
             open={transactionDialog.open}
             onOpenChange={(open) => setTransactionDialog({ open })}
+            form={transactionForm}
+            isLoading={isTransactionFormLoading}
+            onSubmit={handleTransactionFormSubmit}
             transaction={transactionDialog.transaction}
-            onSuccess={handleSuccess}
           />
 
           <TransferDialog
             open={transferDialog.open}
             onOpenChange={(open) => setTransferDialog({ open })}
+            form={transferForm}
+            isLoading={isTransferFormLoading}
+            onSubmit={handleTransferFormSubmit}
+            wallets={wallets}
             transfer={transferDialog.transfer}
-            onSuccess={handleSuccess}
           />
 
           <GoalTransferDialog

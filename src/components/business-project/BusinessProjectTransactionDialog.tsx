@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -6,104 +5,45 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
-import { useTransactions } from "@/hooks/queries/use-transactions";
-import { useBusinessProjectTransactions } from "@/hooks/queries/use-business-project-transactions";
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
 import { BusinessProjectModel } from "@/models/business-projects";
-import { TransactionFilter } from "@/form-dto/transactions";
+import { TransactionModel } from "@/models/transactions";
 import { formatDate } from "@/lib/date";
 
 interface BusinessProjectTransactionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   project: BusinessProjectModel | null;
-  onSuccess?: () => void;
+  isLoading: boolean;
+  // Selection state from parent
+  selectedTransactionIds: number[];
+  onTransactionToggle: (transactionId: number) => void;
+  onSelectAll: () => void;
+  // Search state from parent
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  // Transactions data from parent
+  filteredTransactions: TransactionModel[];
+  availableTransactionsCount: number;
+  // Submit handler
+  onSubmit: () => void;
 }
 
 const BusinessProjectTransactionDialog = ({
   open,
   onOpenChange,
   project,
-  onSuccess
+  isLoading,
+  selectedTransactionIds,
+  onTransactionToggle,
+  onSelectAll,
+  searchQuery,
+  onSearchChange,
+  filteredTransactions,
+  availableTransactionsCount,
+  onSubmit,
 }: BusinessProjectTransactionDialogProps) => {
-  const [selectedTransactionIds, setSelectedTransactionIds] = useState<number[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const filter: TransactionFilter = {
-    startDate: project?.start_date,
-    endDate: project?.end_date
-  };
-
-  const { data: allTransactions } = useTransactions(filter);
-  const {
-    data: projectTransactions,
-    addTransactionsToProject
-  } = useBusinessProjectTransactions(project?.id);
-
-  // Get transactions that are not already in this project
-  const availableTransactions = allTransactions?.filter(transaction => {
-    const isAlreadyInProject = projectTransactions?.some(
-      projectTrx => projectTrx.transaction_id === transaction.id
-    );
-    return !isAlreadyInProject;
-  }) || [];
-
-  // Filter transactions based on search query
-  const filteredTransactions = availableTransactions.filter(transaction => {
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      transaction.description?.toLowerCase().includes(searchLower) ||
-      transaction.categories?.name?.toLowerCase().includes(searchLower) ||
-      transaction.wallets?.name?.toLowerCase().includes(searchLower) ||
-      transaction.amount.toString().includes(searchQuery)
-    );
-  });
-
-  // Reset selected transactions when dialog opens/closes
-  useEffect(() => {
-    if (!open) {
-      setSelectedTransactionIds([]);
-      setSearchQuery("");
-    }
-  }, [open]);
-
-  const handleTransactionToggle = (transactionId: number) => {
-    setSelectedTransactionIds(prev => {
-      if (prev.includes(transactionId)) {
-        return prev.filter(id => id !== transactionId);
-      } else {
-        return [...prev, transactionId];
-      }
-    });
-  };
-
-  const handleSelectAll = () => {
-    if (selectedTransactionIds.length === filteredTransactions.length) {
-      setSelectedTransactionIds([]);
-    } else {
-      setSelectedTransactionIds(filteredTransactions.map(t => t.id));
-    }
-  };
-
-  const handleAddTransactions = async () => {
-    if (!project || selectedTransactionIds.length === 0) return;
-
-    setIsLoading(true);
-    try {
-      await addTransactionsToProject.mutateAsync({
-        projectId: project.id,
-        transactionIds: selectedTransactionIds
-      });
-      onOpenChange(false);
-      onSuccess?.();
-    } catch (error) {
-      console.error("Failed to add transactions to business project", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   if (!project) return null;
 
   return (
@@ -123,7 +63,7 @@ const BusinessProjectTransactionDialog = ({
               <Input
                 placeholder="Cari transaksi..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => onSearchChange(e.target.value)}
                 className="pl-9"
               />
             </div>
@@ -136,7 +76,7 @@ const BusinessProjectTransactionDialog = ({
                     filteredTransactions.length > 0 &&
                     selectedTransactionIds.length === filteredTransactions.length
                   }
-                  onCheckedChange={handleSelectAll}
+                  onCheckedChange={onSelectAll}
                 />
                 <label htmlFor="select-all" className="text-sm font-medium">
                   Pilih Semua ({filteredTransactions.length} transaksi)
@@ -153,7 +93,7 @@ const BusinessProjectTransactionDialog = ({
             <ScrollArea className="h-[400px] border rounded-lg">
               {filteredTransactions.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground">
-                  {availableTransactions.length === 0
+                  {availableTransactionsCount === 0
                     ? "Semua transaksi sudah ada di proyek ini"
                     : "Tidak ada transaksi yang sesuai dengan pencarian"
                   }
@@ -167,7 +107,7 @@ const BusinessProjectTransactionDialog = ({
                     >
                       <Checkbox
                         checked={selectedTransactionIds.includes(transaction.id)}
-                        onCheckedChange={() => handleTransactionToggle(transaction.id)}
+                        onCheckedChange={() => onTransactionToggle(transaction.id)}
                       />
 
                       <div className="flex-shrink-0">
@@ -224,7 +164,7 @@ const BusinessProjectTransactionDialog = ({
             Batal
           </Button>
           <Button
-            onClick={handleAddTransactions}
+            onClick={onSubmit}
             disabled={selectedTransactionIds.length === 0 || isLoading}
           >
             {isLoading
