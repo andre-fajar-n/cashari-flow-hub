@@ -18,20 +18,20 @@ import { useBudgetSummary } from "@/hooks/queries/use-budget-summary";
 import { calculateTotalSpentInBaseCurrency } from "@/lib/budget-summary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurrencies, useCurrencyDetail } from "@/hooks/queries/use-currencies";
-import { BudgetFormData, defaultBudgetFormValues } from "@/form-dto/budget";
+import { BudgetFormData, defaultBudgetFormValues, mapBudgetToFormData } from "@/form-dto/budget";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useTransactions } from "@/hooks/queries/use-transactions";
 import { useBudgetTransactions, useCreateBudgetItem } from "@/hooks/queries/use-budget-transactions";
 import { TransactionFilter } from "@/form-dto/transactions";
+import { useDialogState } from "@/hooks/use-dialog-state";
+import { BudgetModel } from "@/models/budgets";
 
 const BudgetDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("summary");
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isFormLoading, setIsFormLoading] = useState(false);
   
   // State for BudgetTransactionDialog
   const [selectedTransactionIds, setSelectedTransactionIds] = useState<number[]>([]);
@@ -45,6 +45,18 @@ const BudgetDetail = () => {
   const { mutate: deleteBudget } = useDeleteBudget();
   const { data: budgetSummary } = useBudgetSummary(parseInt(id!));
   const addTransactionsToBudget = useCreateBudgetItem();
+
+  // Form state managed at page level
+  const form = useForm<BudgetFormData>({
+    defaultValues: defaultBudgetFormValues,
+  });
+
+  // Use dialog state hook for budget edit dialog
+  const budgetDialog = useDialogState<BudgetModel, BudgetFormData>({
+    form,
+    defaultValues: defaultBudgetFormValues,
+    mapDataToForm: mapBudgetToFormData,
+  });
 
   // Transactions data for the add dialog
   const filter: TransactionFilter = {
@@ -116,40 +128,25 @@ const BudgetDetail = () => {
     }
   };
 
-  // Form state managed at page level
-  const form = useForm<BudgetFormData>({
-    defaultValues: defaultBudgetFormValues,
-  });
-
-  // Reset form when dialog opens
-  useEffect(() => {
-    if (isEditDialogOpen && budget) {
-      form.reset({
-        name: budget.name || "",
-        amount: budget.amount || 0,
-        currency_code: budget.currency_code || "",
-        start_date: budget.start_date || "",
-        end_date: budget.end_date || "",
-      });
-    }
-  }, [budget, isEditDialogOpen, form]);
-
   // Mutation callbacks
   const { handleSuccess, handleError } = useMutationCallbacks({
-    setIsLoading: setIsFormLoading,
-    onOpenChange: setIsEditDialogOpen,
+    setIsLoading: budgetDialog.setIsLoading,
+    onOpenChange: (open) => !open && budgetDialog.close(),
     form,
     queryKeysToInvalidate: QUERY_KEY_SETS.BUDGETS
   });
 
   const handleFormSubmit = (data: BudgetFormData) => {
     if (!budget) return;
-    setIsFormLoading(true);
+    budgetDialog.setIsLoading(true);
     updateBudget.mutate({ id: budget.id, ...data }, {
-      onSuccess: handleSuccess,
+      onSuccess: () => {
+        budgetDialog.handleSuccess();
+      },
       onError: handleError
     });
   };
+
 
   // Calculate total spent from budget summary
   const totalCalculation = useMemo(() => {
@@ -212,7 +209,7 @@ const BudgetDetail = () => {
                 <Button onClick={() => setIsAddDialogOpen(true)}>
                   <Plus className="w-4 h-4 mr-2" /> Tambah Transaksi
                 </Button>
-                <Button variant="outline" onClick={() => setIsEditDialogOpen(true)}>
+                <Button variant="outline" onClick={() => budget && budgetDialog.openEdit(budget)}>
                   <Edit className="w-4 h-4 mr-2" /> Ubah
                 </Button>
                 <Button variant="destructive" onClick={() => setIsDeleteModalOpen(true)}>
@@ -283,10 +280,10 @@ const BudgetDetail = () => {
 
         {/* Edit dialog */}
         <BudgetDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
+          open={budgetDialog.open}
+          onOpenChange={(open) => !open && budgetDialog.close()}
           form={form}
-          isLoading={isFormLoading}
+          isLoading={budgetDialog.isLoading}
           onSubmit={handleFormSubmit}
           currencies={currencies}
           budget={budget}

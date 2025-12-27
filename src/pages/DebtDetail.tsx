@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -23,28 +23,21 @@ import { AmountText } from "@/components/ui/amount-text";
 import { Badge } from "@/components/ui/badge";
 import { calculateTotalInBaseCurrency, calculateDebtProgress, getDebtStatusBadge } from "@/lib/debt-summary";
 import { useUserSettings } from "@/hooks/queries/use-user-settings";
-import { DebtHistoryFormData, defaultDebtHistoryFormValues } from "@/form-dto/debt-histories";
+import { DebtHistoryFormData, defaultDebtHistoryFormValues, mapDebtHistoryToFormData } from "@/form-dto/debt-histories";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useAuth } from "@/hooks/use-auth";
+import { useDialogState } from "@/hooks/use-dialog-state";
 
 const DebtHistory = () => {
   const [activeTab, setActiveTab] = useState("summary");
   const [isMarkPaidModalOpen, setIsMarkPaidModalOpen] = useState(false);
   const [isMarkActiveModalOpen, setIsMarkActiveModalOpen] = useState(false);
 
-  // Unified dialog state for both add and edit
-  const [debtHistoryDialog, setDebtHistoryDialog] = useState<{
-    open: boolean;
-    history?: DebtHistoryModel;
-  }>({ open: false });
-
   // Delete confirmation modal state
   const [deleteModal, setDeleteModal] = useState<{
     open: boolean;
     item?: MoneyMovementModel;
   }>({ open: false });
-
-  const [isFormLoading, setIsFormLoading] = useState(false);
 
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -58,6 +51,22 @@ const DebtHistory = () => {
   const { data: userSettings } = useUserSettings();
   const { data: wallets } = useWallets();
   const { data: categories } = useCategories();
+
+  // Form for DebtHistoryDialog
+  const historyForm = useForm<DebtHistoryFormData>({
+    defaultValues: defaultDebtHistoryFormValues,
+  });
+
+  // Use dialog state hook for debt history dialog
+  const historyDialog = useDialogState<DebtHistoryModel, DebtHistoryFormData>({
+    form: historyForm,
+    defaultValues: { ...defaultDebtHistoryFormValues, debt_id: debtId.toString() },
+    mapDataToForm: mapDebtHistoryToFormData,
+  });
+
+  // Mutations
+  const createHistory = useCreateDebtHistory();
+  const updateHistory = useUpdateDebtHistory();
 
   // Calculate totals and progress
   const totalCalculation = useMemo(() => {
@@ -114,12 +123,12 @@ const DebtHistory = () => {
 
   // Handler to open dialog for adding new history
   const handleAddHistory = () => {
-    setDebtHistoryDialog({ open: true });
+    historyDialog.openAdd();
   };
 
   // Handler to open dialog for editing existing history
   const handleEditHistory = (history: DebtHistoryModel) => {
-    setDebtHistoryDialog({ open: true, history });
+    historyDialog.openEdit(history);
   };
 
   // Handler to open delete confirmation modal
@@ -135,48 +144,17 @@ const DebtHistory = () => {
     setDeleteModal({ open: false });
   };
 
-  // Form for DebtHistoryDialog
-  const historyForm = useForm<DebtHistoryFormData>({
-    defaultValues: defaultDebtHistoryFormValues,
-  });
-
-  // Mutations
-  const createHistory = useCreateDebtHistory();
-  const updateHistory = useUpdateDebtHistory();
-
-  // Reset form when dialog opens
-  useEffect(() => {
-    if (debtHistoryDialog.open) {
-      const history = debtHistoryDialog.history;
-      if (history) {
-        historyForm.reset({
-          debt_id: history.debt_id.toString(),
-          wallet_id: history.wallet_id.toString(),
-          category_id: history.category_id.toString(),
-          amount: history.amount,
-          date: history.date,
-          description: history.description || "",
-        });
-      } else {
-        historyForm.reset({
-          ...defaultDebtHistoryFormValues,
-          debt_id: debtId.toString(),
-        });
-      }
-    }
-  }, [debtHistoryDialog.open, debtHistoryDialog.history, historyForm, debtId]);
-
   // Mutation callbacks
   const { handleSuccess: handleHistorySuccess, handleError: handleHistoryError } = useMutationCallbacks({
-    setIsLoading: setIsFormLoading,
-    onOpenChange: (open) => setDebtHistoryDialog({ open }),
+    setIsLoading: historyDialog.setIsLoading,
+    onOpenChange: (open) => !open && historyDialog.close(),
     form: historyForm,
     queryKeysToInvalidate: QUERY_KEY_SETS.DEBTS
   });
 
   const handleHistoryFormSubmit = (data: DebtHistoryFormData) => {
     if (!user) return;
-    setIsFormLoading(true);
+    historyDialog.setIsLoading(true);
 
     const submitData = {
       debt_id: parseInt(data.debt_id) || debtId,
@@ -188,18 +166,19 @@ const DebtHistory = () => {
       user_id: user.id,
     };
 
-    if (debtHistoryDialog.history) {
-      updateHistory.mutate({ id: debtHistoryDialog.history.id, ...submitData }, {
-        onSuccess: handleHistorySuccess,
+    if (historyDialog.selectedData) {
+      updateHistory.mutate({ id: historyDialog.selectedData.id, ...submitData }, {
+        onSuccess: () => historyDialog.handleSuccess(),
         onError: handleHistoryError
       });
     } else {
       createHistory.mutate(submitData, {
-        onSuccess: handleHistorySuccess,
+        onSuccess: () => historyDialog.handleSuccess(),
         onError: handleHistoryError
       });
     }
   };
+
 
   if (!debt) {
     return (
@@ -371,12 +350,12 @@ const DebtHistory = () => {
 
         {/* Unified dialog for both add and edit */}
         <DebtHistoryDialog
-          open={debtHistoryDialog.open}
-          onOpenChange={(open) => setDebtHistoryDialog({ open })}
+          open={historyDialog.open}
+          onOpenChange={(open) => !open && historyDialog.close()}
           form={historyForm}
-          isLoading={isFormLoading}
+          isLoading={historyDialog.isLoading}
           onSubmit={handleHistoryFormSubmit}
-          history={debtHistoryDialog.history}
+          history={historyDialog.selectedData}
           wallets={wallets}
           categories={categories}
         />

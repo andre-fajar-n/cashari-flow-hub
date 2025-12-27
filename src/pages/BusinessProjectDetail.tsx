@@ -8,23 +8,23 @@ import BusinessProjectTransactionDialog from "@/components/business-project/Busi
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import BusinessProjectTransactionList from "@/components/business-project/BusinessProjectTransactionList";
-import { useBusinessProjectDetail, useDeleteBusinessProject, useCreateBusinessProject, useUpdateBusinessProject } from "@/hooks/queries/use-business-projects";
+import { useBusinessProjectDetail, useDeleteBusinessProject, useUpdateBusinessProject } from "@/hooks/queries/use-business-projects";
 import { useState, useEffect } from "react";
 import BusinessProjectDialog from "@/components/business-project/BusinessProjectDialog";
 import { formatDate } from "@/lib/date";
 import { useTransactions } from "@/hooks/queries/use-transactions";
 import { useBusinessProjectTransactions } from "@/hooks/queries/use-business-project-transactions";
 import { TransactionFilter } from "@/form-dto/transactions";
-import { BusinessProjectFormData, defaultBusinessProjectFormValues } from "@/form-dto/business-projects";
+import { BusinessProjectFormData, defaultBusinessProjectFormValues, mapBusinessProjectToFormData } from "@/form-dto/business-projects";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { useDialogState } from "@/hooks/use-dialog-state";
+import { BusinessProjectModel } from "@/models/business-projects";
 
 const BusinessProjectDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isFormLoading, setIsFormLoading] = useState(false);
 
   // State for BusinessProjectTransactionDialog
   const [selectedTransactionIds, setSelectedTransactionIds] = useState<number[]>([]);
@@ -41,31 +41,26 @@ const BusinessProjectDetail = () => {
     defaultValues: defaultBusinessProjectFormValues,
   });
 
-  // Reset form when dialog opens
-  useEffect(() => {
-    if (isEditDialogOpen && project) {
-      form.reset({
-        name: project.name || "",
-        description: project.description || "",
-        start_date: project.start_date || "",
-        end_date: project.end_date || "",
-      });
-    }
-  }, [project, isEditDialogOpen, form]);
+  // Use dialog state hook for project edit dialog
+  const projectDialog = useDialogState<BusinessProjectModel, BusinessProjectFormData>({
+    form,
+    defaultValues: defaultBusinessProjectFormValues,
+    mapDataToForm: mapBusinessProjectToFormData,
+  });
 
   // Mutation callbacks
   const { handleSuccess, handleError } = useMutationCallbacks({
-    setIsLoading: setIsFormLoading,
-    onOpenChange: setIsEditDialogOpen,
+    setIsLoading: projectDialog.setIsLoading,
+    onOpenChange: (open) => !open && projectDialog.close(),
     form,
     queryKeysToInvalidate: QUERY_KEY_SETS.BUSINESS_PROJECTS
   });
 
   const handleFormSubmit = (data: BusinessProjectFormData) => {
     if (!project) return;
-    setIsFormLoading(true);
+    projectDialog.setIsLoading(true);
     updateProject.mutate({ id: project.id, ...data }, {
-      onSuccess: handleSuccess,
+      onSuccess: () => projectDialog.handleSuccess(),
       onError: handleError
     });
   };
@@ -193,7 +188,7 @@ const BusinessProjectDetail = () => {
                   <Plus className="w-4 h-4 mr-2" /> Tambah Transaksi
                 </Button>
                 <Button
-                  onClick={() => setIsEditDialogOpen(true)}
+                  onClick={() => project && projectDialog.openEdit(project)}
                   variant="outline"
                 >
                   <Edit className="w-4 h-4 mr-2" />
@@ -237,10 +232,10 @@ const BusinessProjectDetail = () => {
         </div>
 
         <BusinessProjectDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
+          open={projectDialog.open}
+          onOpenChange={(open) => !open && projectDialog.close()}
           form={form}
-          isLoading={isFormLoading}
+          isLoading={projectDialog.isLoading}
           onSubmit={handleFormSubmit}
           project={project}
         />
