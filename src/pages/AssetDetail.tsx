@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +11,7 @@ import Layout from "@/components/Layout";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import AssetValueDialog from "@/components/investment/AssetValueDialog";
 import { useInvestmentAssets, useDeleteInvestmentAsset } from "@/hooks/queries/use-investment-assets";
+import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
 import { useInvestmentAssetValues } from "@/hooks/queries/use-investment-asset-values";
 import InvestmentAssetDialog from "@/components/investment/InvestmentAssetDialog";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -18,26 +20,42 @@ import AssetSummary from "@/components/investment/AssetSummary";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
 import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
 import { useWallets } from "@/hooks/queries/use-wallets";
+import { useGoals } from "@/hooks/queries/use-goals";
+import { useCategories } from "@/hooks/queries/use-categories";
+import { useCreateGoalInvestmentRecord, useUpdateGoalInvestmentRecord } from "@/hooks/queries/use-goal-investment-records";
 import { MoneyMovementModel } from "@/models/money-movements";
+import { GoalInvestmentRecordModel } from "@/models/goal-investment-records";
 import { formatDate } from "@/lib/date";
 import AssetValueHistoryList from "@/components/investment/AssetValueHistoryList";
 import AssetMovementList from "@/components/investment/AssetMovementList";
+import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData } from "@/form-dto/goal-investment-records";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { useAuth } from "@/hooks/use-auth";
 
 const AssetDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isValueDialogOpen, setIsValueDialogOpen] = useState(false);
-  const [isRecordDialogOpen, setIsRecordDialogOpen] = useState(false);
+  const [recordDialog, setRecordDialog] = useState<{
+    open: boolean;
+    record?: GoalInvestmentRecordModel;
+  }>({ open: false });
+
+  const [isRecordFormLoading, setIsRecordFormLoading] = useState(false);
 
   const { mutate: deleteAsset } = useDeleteInvestmentAsset();
   const { data: assets } = useInvestmentAssets();
   const { data: assetValues } = useInvestmentAssetValues(parseInt(id!));
   const { data: movements } = useMoneyMovements({ assetId: parseInt(id!) });
   const { data: wallets } = useWallets();
+  const { data: goals } = useGoals();
+  const { data: instruments } = useInvestmentInstruments();
+  const { data: categories } = useCategories();
 
   const asset = assets?.find(a => a.id === parseInt(id!));
 
@@ -85,7 +103,7 @@ const AssetDetail = () => {
   };
 
   const handleAddRecord = () => {
-    setIsRecordDialogOpen(true);
+    setRecordDialog({ open: true });
   };
 
   const handleSuccess = () => {
@@ -95,6 +113,80 @@ const AssetDetail = () => {
     queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
     queryClient.invalidateQueries({ queryKey: ["investment_asset_values"] });
     queryClient.invalidateQueries({ queryKey: ["investment_asset_values_paginated"] });
+  };
+
+  // Form for GoalInvestmentRecordDialog
+  const recordForm = useForm<GoalInvestmentRecordFormData>({
+    defaultValues: defaultGoalInvestmentRecordFormData,
+  });
+
+  // Mutations
+  const createRecord = useCreateGoalInvestmentRecord();
+  const updateRecord = useUpdateGoalInvestmentRecord();
+
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (recordDialog.open) {
+      const record = recordDialog.record;
+      if (record) {
+        recordForm.reset({
+          goal_id: record.goal_id,
+          instrument_id: asset?.instrument_id || null,
+          asset_id: asset?.id || null,
+          wallet_id: record.wallet_id,
+          category_id: record.category_id,
+          amount: record.amount,
+          amount_unit: record.amount_unit,
+          date: record.date,
+          description: record.description || "",
+          is_valuation: record.is_valuation || false,
+        });
+      } else {
+        recordForm.reset({
+          ...defaultGoalInvestmentRecordFormData,
+          instrument_id: asset?.instrument_id || null,
+          asset_id: asset?.id || null,
+        });
+      }
+    }
+  }, [recordDialog.open, recordDialog.record, recordForm, asset]);
+
+  // Mutation callbacks
+  const { handleSuccess: handleRecordSuccess, handleError: handleRecordError } = useMutationCallbacks({
+    setIsLoading: setIsRecordFormLoading,
+    onOpenChange: (open) => setRecordDialog({ open }),
+    form: recordForm,
+    queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_RECORDS
+  });
+
+  const handleRecordFormSubmit = (data: GoalInvestmentRecordFormData) => {
+    if (!user) return;
+    setIsRecordFormLoading(true);
+
+    const submitData = {
+      ...data,
+      instrument_id: asset?.instrument_id || data.instrument_id,
+      asset_id: asset?.id || data.asset_id,
+      user_id: user.id,
+    };
+
+    if (recordDialog.record) {
+      updateRecord.mutate({ id: recordDialog.record.id, ...submitData }, {
+        onSuccess: () => {
+          handleRecordSuccess();
+          handleSuccess();
+        },
+        onError: handleRecordError
+      });
+    } else {
+      createRecord.mutate(submitData, {
+        onSuccess: () => {
+          handleRecordSuccess();
+          handleSuccess();
+        },
+        onError: handleRecordError
+      });
+    }
   };
 
   // Prepare chart data
@@ -246,11 +338,19 @@ const AssetDetail = () => {
           />
 
           <GoalInvestmentRecordDialog
-            open={isRecordDialogOpen}
-            onOpenChange={setIsRecordDialogOpen}
+            open={recordDialog.open}
+            onOpenChange={(open) => setRecordDialog({ open })}
+            form={recordForm}
+            isLoading={isRecordFormLoading}
+            onSubmit={handleRecordFormSubmit}
+            record={recordDialog.record}
             assetId={asset.id}
             instrumentId={asset.instrument_id}
-            onSuccess={handleSuccess}
+            goals={goals}
+            instruments={instruments}
+            assets={assets}
+            wallets={wallets}
+            categories={categories}
           />
         </div>
       </Layout>

@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, CheckCircle, Plus, RotateCcw, Calendar, AlertTriangle, TrendingUp, TrendingDown, Minus } from "lucide-react";
@@ -12,15 +13,19 @@ import DebtSummaryCard from "@/components/debt/DebtSummaryCard";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import DebtHistoryList from "@/components/debt/DebtHistoryList";
 import { DebtHistoryModel } from "@/models/debt-histories";
-import { useDeleteDebtHistory } from "@/hooks/queries/use-debt-histories";
+import { useCreateDebtHistory, useDeleteDebtHistory, useUpdateDebtHistory } from "@/hooks/queries/use-debt-histories";
+import { useWallets } from "@/hooks/queries/use-wallets";
+import { useCategories } from "@/hooks/queries/use-categories";
 import { MoneyMovementModel } from "@/models/money-movements";
-import { useCurrencyDetail } from "@/hooks/queries/use-currencies";
 import { formatAmountCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/date";
 import { AmountText } from "@/components/ui/amount-text";
 import { Badge } from "@/components/ui/badge";
 import { calculateTotalInBaseCurrency, calculateDebtProgress, getDebtStatusBadge } from "@/lib/debt-summary";
 import { useUserSettings } from "@/hooks/queries/use-user-settings";
+import { DebtHistoryFormData, defaultDebtHistoryFormValues } from "@/form-dto/debt-histories";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { useAuth } from "@/hooks/use-auth";
 
 const DebtHistory = () => {
   const [activeTab, setActiveTab] = useState("summary");
@@ -39,8 +44,11 @@ const DebtHistory = () => {
     item?: MoneyMovementModel;
   }>({ open: false });
 
+  const [isFormLoading, setIsFormLoading] = useState(false);
+
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const debtId = id ? parseInt(id) : 0;
   const { data: debtSummary } = useDebtSummaryById(debtId);
   const markAsPaid = useMarkDebtAsPaid();
@@ -48,6 +56,8 @@ const DebtHistory = () => {
   const { data: debt } = useDebtDetail(debtId);
   const { mutateAsync: deleteDebtHistory } = useDeleteDebtHistory();
   const { data: userSettings } = useUserSettings();
+  const { data: wallets } = useWallets();
+  const { data: categories } = useCategories();
 
   // Calculate totals and progress
   const totalCalculation = useMemo(() => {
@@ -123,6 +133,72 @@ const DebtHistory = () => {
       deleteDebtHistory(deleteModal.item.resource_id);
     }
     setDeleteModal({ open: false });
+  };
+
+  // Form for DebtHistoryDialog
+  const historyForm = useForm<DebtHistoryFormData>({
+    defaultValues: defaultDebtHistoryFormValues,
+  });
+
+  // Mutations
+  const createHistory = useCreateDebtHistory();
+  const updateHistory = useUpdateDebtHistory();
+
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (debtHistoryDialog.open) {
+      const history = debtHistoryDialog.history;
+      if (history) {
+        historyForm.reset({
+          debt_id: history.debt_id.toString(),
+          wallet_id: history.wallet_id.toString(),
+          category_id: history.category_id.toString(),
+          amount: history.amount,
+          date: history.date,
+          description: history.description || "",
+        });
+      } else {
+        historyForm.reset({
+          ...defaultDebtHistoryFormValues,
+          debt_id: debtId.toString(),
+        });
+      }
+    }
+  }, [debtHistoryDialog.open, debtHistoryDialog.history, historyForm, debtId]);
+
+  // Mutation callbacks
+  const { handleSuccess: handleHistorySuccess, handleError: handleHistoryError } = useMutationCallbacks({
+    setIsLoading: setIsFormLoading,
+    onOpenChange: (open) => setDebtHistoryDialog({ open }),
+    form: historyForm,
+    queryKeysToInvalidate: QUERY_KEY_SETS.DEBTS
+  });
+
+  const handleHistoryFormSubmit = (data: DebtHistoryFormData) => {
+    if (!user) return;
+    setIsFormLoading(true);
+
+    const submitData = {
+      debt_id: parseInt(data.debt_id) || debtId,
+      wallet_id: parseInt(data.wallet_id),
+      category_id: parseInt(data.category_id),
+      amount: data.amount,
+      date: data.date,
+      description: data.description || "",
+      user_id: user.id,
+    };
+
+    if (debtHistoryDialog.history) {
+      updateHistory.mutate({ id: debtHistoryDialog.history.id, ...submitData }, {
+        onSuccess: handleHistorySuccess,
+        onError: handleHistoryError
+      });
+    } else {
+      createHistory.mutate(submitData, {
+        onSuccess: handleHistorySuccess,
+        onError: handleHistoryError
+      });
+    }
   };
 
   if (!debt) {
@@ -297,9 +373,12 @@ const DebtHistory = () => {
         <DebtHistoryDialog
           open={debtHistoryDialog.open}
           onOpenChange={(open) => setDebtHistoryDialog({ open })}
-          debtId={debtId}
+          form={historyForm}
+          isLoading={isFormLoading}
+          onSubmit={handleHistoryFormSubmit}
           history={debtHistoryDialog.history}
-          onSuccess={() => { }}
+          wallets={wallets}
+          categories={categories}
         />
 
         {/* Delete confirmation modal */}

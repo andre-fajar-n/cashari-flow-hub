@@ -19,9 +19,9 @@ import DebtHistoryDialog from "@/components/debt/DebtHistoryDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useDeleteTransaction, useTransactions } from "@/hooks/queries/use-transactions";
 import { useDeleteTransfer, useTransfers, useCreateTransfer, useUpdateTransfer } from "@/hooks/queries/use-transfers";
-import { useDeleteGoalTransfer, useGoalTransfers } from "@/hooks/queries/use-goal-transfers";
-import { useDeleteGoalInvestmentRecord, useGoalInvestmentRecords } from "@/hooks/queries/use-goal-investment-records";
-import { useDebtHistories, useDeleteDebtHistory } from "@/hooks/queries/use-debt-histories";
+import { useCreateGoalTransfer, useDeleteGoalTransfer, useGoalTransfers, useUpdateGoalTransfer } from "@/hooks/queries/use-goal-transfers";
+import { useCreateGoalInvestmentRecord, useDeleteGoalInvestmentRecord, useGoalInvestmentRecords, useUpdateGoalInvestmentRecord } from "@/hooks/queries/use-goal-investment-records";
+import { useCreateDebtHistory, useDebtHistories, useDeleteDebtHistory, useUpdateDebtHistory } from "@/hooks/queries/use-debt-histories";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { TransactionModel } from "@/models/transactions";
 import { TransferModel } from "@/models/transfer";
@@ -37,6 +37,9 @@ import { getTransactionHistoryColumns } from "@/components/transactions/Transact
 import { useBudgets, useBusinessProjects, useCategories, useDebts, useGoals, useInvestmentAssets, useInvestmentInstruments } from "@/hooks/queries";
 import { defaultTransactionFormValues, TransactionFormData } from "@/form-dto/transactions";
 import { defaultTransferFormData, TransferFormData } from "@/form-dto/transfer";
+import { defaultGoalTransferFormData, GoalTransferFormData } from "@/form-dto/goal-transfers";
+import { defaultGoalInvestmentRecordFormData, GoalInvestmentRecordFormData } from "@/form-dto/goal-investment-records";
+import { defaultDebtHistoryFormValues, DebtHistoryFormData } from "@/form-dto/debt-histories";
 import { useInsertTransactionWithRelations, useUpdateTransactionWithRelations } from "@/hooks/queries/use-transaction-with-relations";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useAuth } from "@/hooks/use-auth";
@@ -85,6 +88,9 @@ const TransactionHistory = () => {
   // Form loading states
   const [isTransactionFormLoading, setIsTransactionFormLoading] = useState(false);
   const [isTransferFormLoading, setIsTransferFormLoading] = useState(false);
+  const [isGoalTransferFormLoading, setIsGoalTransferFormLoading] = useState(false);
+  const [isInvestmentFormLoading, setIsInvestmentFormLoading] = useState(false);
+  const [isDebtHistoryFormLoading, setIsDebtHistoryFormLoading] = useState(false);
 
   // Form states
   const transactionForm = useForm<TransactionFormData>({
@@ -93,6 +99,18 @@ const TransactionHistory = () => {
 
   const transferForm = useForm<TransferFormData>({
     defaultValues: defaultTransferFormData,
+  });
+
+  const goalTransferForm = useForm<GoalTransferFormData>({
+    defaultValues: defaultGoalTransferFormData,
+  });
+
+  const investmentRecordForm = useForm<GoalInvestmentRecordFormData>({
+    defaultValues: defaultGoalInvestmentRecordFormData,
+  });
+
+  const debtHistoryForm = useForm<DebtHistoryFormData>({
+    defaultValues: defaultDebtHistoryFormValues,
   });
 
   const { data: paged, isLoading: isMovementsLoading } = useMoneyMovementsPaginated({
@@ -190,6 +208,74 @@ const TransactionHistory = () => {
     }
   }, [transferDialog.open, transferDialog.transfer, transferForm, wallets]);
 
+  // Reset goal transfer form when dialog opens
+  useEffect(() => {
+    if (goalTransferDialog.open) {
+      const transfer = goalTransferDialog.transfer;
+      if (transfer) {
+        goalTransferForm.reset({
+          from_wallet_id: transfer.from_wallet_id || 0,
+          from_goal_id: transfer.from_goal_id || 0,
+          from_instrument_id: transfer.from_instrument_id || 0,
+          from_asset_id: transfer.from_asset_id || 0,
+          to_wallet_id: transfer.to_wallet_id || 0,
+          to_goal_id: transfer.to_goal_id || 0,
+          to_instrument_id: transfer.to_instrument_id || 0,
+          to_asset_id: transfer.to_asset_id || 0,
+          from_amount: transfer.from_amount || 0,
+          to_amount: transfer.to_amount || 0,
+          from_amount_unit: transfer.from_amount_unit,
+          to_amount_unit: transfer.to_amount_unit,
+          date: transfer.date || new Date().toISOString().split("T")[0],
+        });
+      } else {
+        goalTransferForm.reset(defaultGoalTransferFormData);
+      }
+    }
+  }, [goalTransferDialog.open, goalTransferDialog.transfer, goalTransferForm]);
+
+  // Reset investment record form when dialog opens
+  useEffect(() => {
+    if (investmentDialog.open) {
+      const record = investmentDialog.record;
+      if (record) {
+        investmentRecordForm.reset({
+          goal_id: record.goal_id,
+          instrument_id: record.instrument_id,
+          asset_id: record.asset_id,
+          wallet_id: record.wallet_id,
+          category_id: record.category_id,
+          amount: record.amount,
+          amount_unit: record.amount_unit,
+          date: record.date,
+          description: record.description || "",
+          is_valuation: record.is_valuation || false,
+        });
+      } else {
+        investmentRecordForm.reset(defaultGoalInvestmentRecordFormData);
+      }
+    }
+  }, [investmentDialog.open, investmentDialog.record, investmentRecordForm]);
+
+  // Reset debt history form when dialog opens
+  useEffect(() => {
+    if (debtHistoryDialog.open) {
+      const history = debtHistoryDialog.history;
+      if (history) {
+        debtHistoryForm.reset({
+          debt_id: history.debt_id.toString(),
+          wallet_id: history.wallet_id.toString(),
+          category_id: history.category_id.toString(),
+          amount: history.amount,
+          date: history.date,
+          description: history.description || "",
+        });
+      } else {
+        debtHistoryForm.reset(defaultDebtHistoryFormValues);
+      }
+    }
+  }, [debtHistoryDialog.open, debtHistoryDialog.history, debtHistoryForm]);
+
   // Transaction mutation callbacks
   const { handleSuccess: handleTransactionSuccess, handleError: handleTransactionError } = useMutationCallbacks({
     setIsLoading: setIsTransactionFormLoading,
@@ -205,6 +291,38 @@ const TransactionHistory = () => {
     form: transferForm,
     queryKeysToInvalidate: QUERY_KEY_SETS.TRANSFERS
   });
+
+  // Goal transfer mutation callbacks
+  const { handleSuccess: handleGoalTransferSuccess, handleError: handleGoalTransferError } = useMutationCallbacks({
+    setIsLoading: setIsGoalTransferFormLoading,
+    onOpenChange: (open) => setGoalTransferDialog({ open }),
+    form: goalTransferForm,
+    queryKeysToInvalidate: QUERY_KEY_SETS.GOAL_TRANSFERS
+  });
+
+  // Investment record mutation callbacks
+  const { handleSuccess: handleInvestmentSuccess, handleError: handleInvestmentError } = useMutationCallbacks({
+    setIsLoading: setIsInvestmentFormLoading,
+    onOpenChange: (open) => setInvestmentDialog({ open }),
+    form: investmentRecordForm,
+    queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_RECORDS
+  });
+
+  // Debt history mutation callbacks
+  const { handleSuccess: handleDebtHistorySuccess, handleError: handleDebtHistoryError } = useMutationCallbacks({
+    setIsLoading: setIsDebtHistoryFormLoading,
+    onOpenChange: (open) => setDebtHistoryDialog({ open }),
+    form: debtHistoryForm,
+    queryKeysToInvalidate: QUERY_KEY_SETS.DEBTS
+  });
+
+  // Additional mutations
+  const createGoalTransfer = useCreateGoalTransfer();
+  const updateGoalTransfer = useUpdateGoalTransfer();
+  const createInvestmentRecord = useCreateGoalInvestmentRecord();
+  const updateInvestmentRecord = useUpdateGoalInvestmentRecord();
+  const createDebtHistory = useCreateDebtHistory();
+  const updateDebtHistory = useUpdateDebtHistory();
 
   const handleTransactionFormSubmit = (data: TransactionFormData) => {
     setIsTransactionFormLoading(true);
@@ -252,6 +370,71 @@ const TransactionHistory = () => {
       createTransfer.mutate(transferData, {
         onSuccess: handleTransferSuccess,
         onError: handleTransferError
+      });
+    }
+  };
+
+  const handleGoalTransferFormSubmit = (data: GoalTransferFormData) => {
+    if (!user) return;
+    setIsGoalTransferFormLoading(true);
+
+    const submitData = { ...data, user_id: user.id };
+
+    if (goalTransferDialog.transfer) {
+      updateGoalTransfer.mutate({ id: goalTransferDialog.transfer.id, ...submitData }, {
+        onSuccess: handleGoalTransferSuccess,
+        onError: handleGoalTransferError
+      });
+    } else {
+      createGoalTransfer.mutate(submitData, {
+        onSuccess: handleGoalTransferSuccess,
+        onError: handleGoalTransferError
+      });
+    }
+  };
+
+  const handleInvestmentFormSubmit = (data: GoalInvestmentRecordFormData) => {
+    if (!user) return;
+    setIsInvestmentFormLoading(true);
+
+    const submitData = { ...data, user_id: user.id };
+
+    if (investmentDialog.record) {
+      updateInvestmentRecord.mutate({ id: investmentDialog.record.id, ...submitData }, {
+        onSuccess: handleInvestmentSuccess,
+        onError: handleInvestmentError
+      });
+    } else {
+      createInvestmentRecord.mutate(submitData, {
+        onSuccess: handleInvestmentSuccess,
+        onError: handleInvestmentError
+      });
+    }
+  };
+
+  const handleDebtHistoryFormSubmit = (data: DebtHistoryFormData) => {
+    if (!user) return;
+    setIsDebtHistoryFormLoading(true);
+
+    const submitData = {
+      debt_id: parseInt(data.debt_id),
+      wallet_id: parseInt(data.wallet_id),
+      category_id: parseInt(data.category_id),
+      amount: data.amount,
+      date: data.date,
+      description: data.description || "",
+      user_id: user.id,
+    };
+
+    if (debtHistoryDialog.history) {
+      updateDebtHistory.mutate({ id: debtHistoryDialog.history.id, ...submitData }, {
+        onSuccess: handleDebtHistorySuccess,
+        onError: handleDebtHistoryError
+      });
+    } else {
+      createDebtHistory.mutate(submitData, {
+        onSuccess: handleDebtHistorySuccess,
+        onError: handleDebtHistoryError
       });
     }
   };
@@ -550,24 +733,41 @@ const TransactionHistory = () => {
           <GoalTransferDialog
             open={goalTransferDialog.open}
             onOpenChange={(open) => setGoalTransferDialog({ open })}
+            form={goalTransferForm}
+            isLoading={isGoalTransferFormLoading}
+            onSubmit={handleGoalTransferFormSubmit}
             transfer={goalTransferDialog.transfer}
-            onSuccess={handleSuccess}
+            wallets={wallets}
+            goals={goals}
+            instruments={instruments}
+            assets={assets}
           />
 
           <GoalInvestmentRecordDialog
             open={investmentDialog.open}
             onOpenChange={(open) => setInvestmentDialog({ open })}
+            form={investmentRecordForm}
+            isLoading={isInvestmentFormLoading}
+            onSubmit={handleInvestmentFormSubmit}
             record={investmentDialog.record}
-            onSuccess={handleSuccess}
+            goals={goals}
+            instruments={instruments}
+            assets={assets}
+            wallets={wallets}
+            categories={categories}
           />
 
           <DebtHistoryDialog
             open={debtHistoryDialog.open}
             onOpenChange={(open) => setDebtHistoryDialog({ open })}
-            debtId={debtHistoryDialog.history?.debt_id}
+            form={debtHistoryForm}
+            isLoading={isDebtHistoryFormLoading}
+            onSubmit={handleDebtHistoryFormSubmit}
             history={debtHistoryDialog.history}
             showDebtSelection={true}
-            onSuccess={handleSuccess}
+            wallets={wallets}
+            categories={categories}
+            debts={debts}
           />
 
           <ConfirmationModal
