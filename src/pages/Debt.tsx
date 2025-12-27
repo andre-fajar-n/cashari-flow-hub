@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -19,11 +18,10 @@ import { useUserSettings } from "@/hooks/queries/use-user-settings";
 import { DebtFormData, defaultDebtFormValues } from "@/form-dto/debts";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useDialogState } from "@/hooks/use-dialog-state";
+import { useDeleteConfirmation } from "@/hooks/use-delete-confirmation";
 
 const Debt = () => {
   const navigate = useNavigate();
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [debtToDelete, setDebtToDelete] = useState<DebtModel | null>(null);
 
   const createDebt = useCreateDebt();
   const updateDebt = useUpdateDebt();
@@ -65,10 +63,11 @@ const Debt = () => {
 
   const isLoading = isLoadingDebts || isLoadingDebtSummary || isLoadingUserSettings;
 
-  const debtGroupedById = debts.reduce((acc, item) => {
-    acc[item.id] = item;
-    return acc;
-  }, {} as Record<number, DebtModel>);
+  // Delete confirmation hook
+  const deleteConfirmation = useDeleteConfirmation<number>({
+    title: "Hapus Hutang/Piutang",
+    description: "Apakah Anda yakin ingin menghapus hutang/piutang ini? Tindakan ini tidak dapat dibatalkan.",
+  });
 
   // Mutation callbacks
   const { handleSuccess, handleError } = useMutationCallbacks({
@@ -93,18 +92,8 @@ const Debt = () => {
     }
   };
 
-  const handleDeleteClick = (debtId: number) => {
-    const debt = debtGroupedById[debtId];
-    if (debt) {
-      setDebtToDelete(debt);
-      setIsDeleteModalOpen(true);
-    }
-  };
-
   const handleConfirmDelete = () => {
-    if (debtToDelete) {
-      deleteDebt(debtToDelete.id);
-    }
+    deleteConfirmation.handleConfirm((id) => deleteDebt(id));
   };
 
   const handleViewHistory = (debt: DebtModel) => {
@@ -163,7 +152,7 @@ const Debt = () => {
             onSearchChange={tableActions.handleSearchChange}
             onFiltersChange={tableActions.handleFiltersChange}
             onEdit={dialog.openEdit}
-            onDelete={handleDeleteClick}
+            onDelete={deleteConfirmation.openModal}
             onViewHistory={handleViewHistory}
             debtSummary={debtSummary}
             selectFilters={selectFilters}
@@ -172,13 +161,13 @@ const Debt = () => {
         </div>
 
         <ConfirmationModal
-          open={isDeleteModalOpen}
-          onOpenChange={setIsDeleteModalOpen}
+          open={deleteConfirmation.open}
+          onOpenChange={deleteConfirmation.onOpenChange}
           onConfirm={handleConfirmDelete}
-          title="Hapus Hutang/Piutang"
-          description="Apakah Anda yakin ingin menghapus hutang/piutang ini? Tindakan ini tidak dapat dibatalkan."
-          confirmText="Ya, Hapus"
-          cancelText="Batal"
+          title={deleteConfirmation.config.title}
+          description={deleteConfirmation.config.description}
+          confirmText={deleteConfirmation.config.confirmText}
+          cancelText={deleteConfirmation.config.cancelText}
           variant="destructive"
         />
 

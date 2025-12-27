@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -17,11 +16,9 @@ import { CurrencyModel } from "@/models/currencies";
 import { GoalFormData, defaultGoalFormValues } from "@/form-dto/goals";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useDialogState } from "@/hooks/use-dialog-state";
+import { useDeleteConfirmation } from "@/hooks/use-delete-confirmation";
 
 const Goal = () => {
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [goalToDelete, setGoalToDelete] = useState<number | null>(null);
-
   const createGoal = useCreateGoal();
   const updateGoal = useUpdateGoal();
   const { mutate: deleteGoal } = useDeleteGoal();
@@ -79,6 +76,12 @@ const Goal = () => {
     return acc;
   }, {} as Record<string, CurrencyModel>);
 
+  // Delete confirmation hook
+  const deleteConfirmation = useDeleteConfirmation<number>({
+    title: "Hapus Target",
+    description: "Apakah Anda yakin ingin menghapus target ini? Tindakan ini tidak dapat dibatalkan.",
+  });
+
   // Mutation callbacks
   const { handleSuccess, handleError } = useMutationCallbacks({
     setIsLoading: dialog.setIsLoading,
@@ -102,15 +105,8 @@ const Goal = () => {
     }
   };
 
-  const handleDeleteClick = (goalId: number) => {
-    setGoalToDelete(goalId);
-    setIsDeleteModalOpen(true);
-  };
-
   const handleConfirmDelete = () => {
-    if (goalToDelete) {
-      deleteGoal(goalToDelete);
-    }
+    deleteConfirmation.handleConfirm((id) => deleteGoal(id));
   };
 
   // Currency options for filter
@@ -149,7 +145,7 @@ const Goal = () => {
             onPageChange={tableActions.handlePageChange}
             onPageSizeChange={tableActions.handlePageSizeChange}
             onEdit={dialog.openEdit}
-            onDelete={handleDeleteClick}
+            onDelete={deleteConfirmation.openModal}
             currencyOptions={currencyOptions}
             goalFundsSummary={groupedByGoalId}
             currenciesMap={currenciesMap}
@@ -157,13 +153,13 @@ const Goal = () => {
         </div>
 
         <ConfirmationModal
-          open={isDeleteModalOpen}
-          onOpenChange={setIsDeleteModalOpen}
+          open={deleteConfirmation.open}
+          onOpenChange={deleteConfirmation.onOpenChange}
           onConfirm={handleConfirmDelete}
-          title="Hapus Target"
-          description="Apakah Anda yakin ingin menghapus target ini? Tindakan ini tidak dapat dibatalkan."
-          confirmText="Ya, Hapus"
-          cancelText="Batal"
+          title={deleteConfirmation.config.title}
+          description={deleteConfirmation.config.description}
+          confirmText={deleteConfirmation.config.confirmText}
+          cancelText={deleteConfirmation.config.cancelText}
           variant="destructive"
         />
 

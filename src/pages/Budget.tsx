@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -18,10 +17,9 @@ import { CurrencyModel } from "@/models/currencies";
 import { BudgetFormData, defaultBudgetFormValues } from "@/form-dto/budget";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useDialogState } from "@/hooks/use-dialog-state";
+import { useDeleteConfirmation } from "@/hooks/use-delete-confirmation";
 
 const Budget = () => {
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [budgetToDelete, setBudgetToDelete] = useState<number | null>(null);
   const navigate = useNavigate();
   
   const createBudget = useCreateBudget();
@@ -81,6 +79,12 @@ const Budget = () => {
   // Combine all loading states
   const isLoading = isLoadingBudgets || isLoadingBudgetSummary || isLoadingCurrencies;
 
+  // Delete confirmation hook
+  const deleteConfirmation = useDeleteConfirmation<number>({
+    title: "Hapus Budget",
+    description: "Apakah Anda yakin ingin menghapus budget ini? Tindakan ini tidak dapat dibatalkan.",
+  });
+
   // Mutation callbacks
   const { handleSuccess, handleError } = useMutationCallbacks({
     setIsLoading: dialog.setIsLoading,
@@ -119,15 +123,8 @@ const Budget = () => {
     navigate(`/budget/${budget.id}`);
   };
 
-  const handleDeleteClick = (budgetId: number) => {
-    setBudgetToDelete(budgetId);
-    setIsDeleteModalOpen(true);
-  };
-
   const handleConfirmDelete = () => {
-    if (budgetToDelete) {
-      deleteBudget(budgetToDelete);
-    }
+    deleteConfirmation.handleConfirm((id) => deleteBudget(id));
   };
 
   return (
@@ -160,7 +157,7 @@ const Budget = () => {
             onSearchChange={tableActions.handleSearchChange}
             onFiltersChange={tableActions.handleFiltersChange}
             onEdit={dialog.openEdit}
-            onDelete={handleDeleteClick}
+            onDelete={deleteConfirmation.openModal}
             onView={handleView}
             budgetSummariesMap={budgetSummariesMap}
             currencyMap={currencyMap}
@@ -168,13 +165,13 @@ const Budget = () => {
         </div>
 
         <ConfirmationModal
-          open={isDeleteModalOpen}
-          onOpenChange={setIsDeleteModalOpen}
+          open={deleteConfirmation.open}
+          onOpenChange={deleteConfirmation.onOpenChange}
           onConfirm={handleConfirmDelete}
-          title="Hapus Budget"
-          description="Apakah Anda yakin ingin menghapus budget ini? Tindakan ini tidak dapat dibatalkan."
-          confirmText="Ya, Hapus"
-          cancelText="Batal"
+          title={deleteConfirmation.config.title}
+          description={deleteConfirmation.config.description}
+          confirmText={deleteConfirmation.config.confirmText}
+          cancelText={deleteConfirmation.config.cancelText}
           variant="destructive"
         />
 

@@ -15,11 +15,10 @@ import { InstrumentFormData, defaultInstrumentFormValues } from "@/form-dto/inve
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialogState } from "@/hooks/use-dialog-state";
+import { useDeleteConfirmation } from "@/hooks/use-delete-confirmation";
 
 const InvestmentInstrument = () => {
   const { user } = useAuth();
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [instrumentToDelete, setInstrumentToDelete] = useState<number | null>(null);
 
   const { mutate: deleteInstrument } = useDeleteInvestmentInstrument();
   const createInstrument = useCreateInvestmentInstrument();
@@ -48,6 +47,12 @@ const InvestmentInstrument = () => {
     }),
   });
 
+  // Delete confirmation hook
+  const deleteConfirmation = useDeleteConfirmation<number>({
+    title: "Hapus Instrumen Investasi",
+    description: "Apakah Anda yakin ingin menghapus instrumen investasi ini? Tindakan ini tidak dapat dibatalkan.",
+  });
+
   // Mutation callbacks
   const { handleSuccess, handleError } = useMutationCallbacks({
     setIsLoading: dialog.setIsLoading,
@@ -73,15 +78,8 @@ const InvestmentInstrument = () => {
     }
   };
 
-  const handleDeleteClick = (instrumentId: number) => {
-    setInstrumentToDelete(instrumentId);
-    setIsDeleteModalOpen(true);
-  };
-
   const handleConfirmDelete = () => {
-    if (instrumentToDelete) {
-      deleteInstrument(instrumentToDelete);
-    }
+    deleteConfirmation.handleConfirm((id) => deleteInstrument(id));
   };
 
   const renderInstrumentItem = (instrument: InvestmentInstrumentModel) => (
@@ -136,7 +134,7 @@ const InvestmentInstrument = () => {
             variant="destructive"
             size="lg"
             className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
-            onClick={() => handleDeleteClick(instrument.id)}
+            onClick={() => deleteConfirmation.openModal(instrument.id)}
           >
             <Trash2 className="w-3 h-3 sm:mr-1" />
             Hapus
@@ -167,13 +165,13 @@ const InvestmentInstrument = () => {
     <ProtectedRoute>
       <Layout>
         <ConfirmationModal
-          open={isDeleteModalOpen}
-          onOpenChange={setIsDeleteModalOpen}
+          open={deleteConfirmation.open}
+          onOpenChange={deleteConfirmation.onOpenChange}
           onConfirm={handleConfirmDelete}
-          title="Hapus Instrumen Investasi"
-          description="Apakah Anda yakin ingin menghapus instrumen investasi ini? Tindakan ini tidak dapat dibatalkan."
-          confirmText="Ya, Hapus"
-          cancelText="Batal"
+          title={deleteConfirmation.config.title}
+          description={deleteConfirmation.config.description}
+          confirmText={deleteConfirmation.config.confirmText}
+          cancelText={deleteConfirmation.config.cancelText}
           variant="destructive"
         />
 
