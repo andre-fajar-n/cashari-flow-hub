@@ -27,8 +27,10 @@ import { useCurrencies, useCurrencyDetail } from "@/hooks/queries/use-currencies
 import { useInvestmentCategories } from "@/hooks/queries/use-categories";
 import { MOVEMENT_TYPES } from "@/constants/enums";
 import { GoalFormData, defaultGoalFormValues, mapGoalToFormData } from "@/form-dto/goals";
-import { GoalTransferFormData, defaultGoalTransferFormData } from "@/form-dto/goal-transfers";
-import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData } from "@/form-dto/goal-investment-records";
+import { GoalTransferFormData, defaultGoalTransferFormData, mapGoalTransferToFormData } from "@/form-dto/goal-transfers";
+import { GoalTransferModel } from "@/models/goal-transfers";
+import { GoalInvestmentRecordModel } from "@/models/goal-investment-records";
+import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData, mapGoalInvestmentRecordToFormData } from "@/form-dto/goal-investment-records";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useDialogState } from "@/hooks/use-dialog-state";
 import { GoalModel } from "@/models/goals";
@@ -38,11 +40,7 @@ const GoalDetail = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
-  const [isRecordDialogOpen, setIsRecordDialogOpen] = useState(false);
   const [transferConfig, setTransferConfig] = useState<GoalTransferConfig | undefined>(undefined);
-  const [isTransferFormLoading, setIsTransferFormLoading] = useState(false);
-  const [isRecordFormLoading, setIsRecordFormLoading] = useState(false);
 
   const updateGoal = useUpdateGoal();
   const createGoalTransfer = useCreateGoalTransfer();
@@ -74,42 +72,52 @@ const GoalDetail = () => {
     defaultValues: defaultGoalInvestmentRecordFormData,
   });
 
-  // Use dialog state hook for goal edit dialog
+  // Use dialog state hooks
   const goalDialog = useDialogState<GoalModel, GoalFormData>({
     form,
     defaultValues: defaultGoalFormValues,
     mapDataToForm: mapGoalToFormData,
   });
 
+  const transferDialog = useDialogState<GoalTransferModel, GoalTransferFormData>({
+    form: transferForm,
+    defaultValues: defaultGoalTransferFormData,
+    mapDataToForm: mapGoalTransferToFormData,
+  });
+
+  const recordDialog = useDialogState<GoalInvestmentRecordModel, GoalInvestmentRecordFormData>({
+    form: recordForm,
+    defaultValues: defaultGoalInvestmentRecordFormData,
+    mapDataToForm: mapGoalInvestmentRecordToFormData,
+  });
+
   const isLoading = isGoalLoading || isTransfersLoading || isMovementsLoading || isFundsSummaryLoading || isWalletsLoading ||
     isAssetsLoading || isInstrumentsLoading || isRecordsLoading || isCurrencyLoading;
 
-  // Reset transfer form when dialog opens
+  // Reset transfer form when dialog opens with specific config
   useEffect(() => {
-    if (isTransferDialogOpen) {
+    if (transferDialog.open && transferConfig) {
       const goalId = parseInt(id!);
-      if (transferConfig?.mode === 'add_to_goal') {
+      if (transferConfig.mode === 'add_to_goal') {
         transferForm.reset({ ...defaultGoalTransferFormData, to_goal_id: goalId });
-      } else if (transferConfig?.mode === 'take_from_goal') {
+      } else if (transferConfig.mode === 'take_from_goal') {
         transferForm.reset({ ...defaultGoalTransferFormData, from_goal_id: goalId });
-      } else if (transferConfig?.mode === 'transfer_between_goals') {
+      } else if (transferConfig.mode === 'transfer_between_goals') {
         transferForm.reset({ ...defaultGoalTransferFormData, from_goal_id: goalId });
-      } else if (transferConfig?.mode === 'transfer_with_same_goals') {
+      } else if (transferConfig.mode === 'transfer_with_same_goals') {
         transferForm.reset({ ...defaultGoalTransferFormData, from_goal_id: goalId, to_goal_id: goalId });
-      } else {
-        transferForm.reset(defaultGoalTransferFormData);
       }
     }
-  }, [isTransferDialogOpen, transferConfig, id, transferForm]);
+  }, [transferDialog.open, transferConfig, id, transferForm]);
 
   // Reset record form when dialog opens
   useEffect(() => {
-    if (isRecordDialogOpen && goal) {
+    if (recordDialog.open && goal) {
       recordForm.reset({ ...defaultGoalInvestmentRecordFormData, goal_id: goal.id });
     }
-  }, [isRecordDialogOpen, goal, recordForm]);
+  }, [recordDialog.open, goal, recordForm]);
 
-  // Mutation callbacks for goal dialog
+  // Mutation callbacks
   const { handleError: handleGoalError } = useMutationCallbacks({
     setIsLoading: goalDialog.setIsLoading,
     onOpenChange: (open) => !open && goalDialog.close(),
@@ -117,16 +125,16 @@ const GoalDetail = () => {
     queryKeysToInvalidate: QUERY_KEY_SETS.GOALS
   });
 
-  const { handleSuccess: handleTransferSuccess, handleError: handleTransferError } = useMutationCallbacks({
-    setIsLoading: setIsTransferFormLoading,
-    onOpenChange: setIsTransferDialogOpen,
+  const { handleError: handleTransferError } = useMutationCallbacks({
+    setIsLoading: transferDialog.setIsLoading,
+    onOpenChange: (open) => !open && transferDialog.close(),
     form: transferForm,
     queryKeysToInvalidate: QUERY_KEY_SETS.GOAL_TRANSFERS
   });
 
-  const { handleSuccess: handleRecordSuccess, handleError: handleRecordError } = useMutationCallbacks({
-    setIsLoading: setIsRecordFormLoading,
-    onOpenChange: setIsRecordDialogOpen,
+  const { handleError: handleRecordError } = useMutationCallbacks({
+    setIsLoading: recordDialog.setIsLoading,
+    onOpenChange: (open) => !open && recordDialog.close(),
     form: recordForm,
     queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_RECORDS
   });
@@ -141,7 +149,7 @@ const GoalDetail = () => {
   };
 
   const handleTransferFormSubmit = (data: GoalTransferFormData) => {
-    setIsTransferFormLoading(true);
+    transferDialog.setIsLoading(true);
     const transferData = {
       from_wallet_id: data.from_wallet_id > 0 ? data.from_wallet_id : null,
       from_goal_id: data.from_goal_id > 0 ? data.from_goal_id : null,
@@ -158,13 +166,16 @@ const GoalDetail = () => {
       date: data.date,
     };
     createGoalTransfer.mutate(transferData, {
-      onSuccess: handleTransferSuccess,
+      onSuccess: () => {
+        transferDialog.handleSuccess();
+        setTransferConfig(undefined);
+      },
       onError: handleTransferError
     });
   };
 
   const handleRecordFormSubmit = (data: GoalInvestmentRecordFormData) => {
-    setIsRecordFormLoading(true);
+    recordDialog.setIsLoading(true);
     const cleanData = { ...data };
     cleanData.wallet_id = data.wallet_id || null;
     cleanData.category_id = data.category_id || null;
@@ -172,7 +183,7 @@ const GoalDetail = () => {
     if (!data.asset_id) cleanData.asset_id = null;
     cleanData.amount_unit = data.amount_unit;
     createRecord.mutate(cleanData, {
-      onSuccess: handleRecordSuccess,
+      onSuccess: () => recordDialog.handleSuccess(),
       onError: handleRecordError
     });
   };
@@ -234,39 +245,28 @@ const GoalDetail = () => {
   };
 
   const handleAddRecord = () => {
-    setIsRecordDialogOpen(true);
+    recordDialog.openAdd();
+  };
+
+  const openTransferWithConfig = (config: GoalTransferConfig) => {
+    setTransferConfig(config);
+    transferDialog.openAdd();
   };
 
   const handleAddToGoal = () => {
-    setTransferConfig({
-      mode: 'add_to_goal',
-      goalId: goal.id,
-    });
-    setIsTransferDialogOpen(true);
+    openTransferWithConfig({ mode: 'add_to_goal', goalId: goal.id });
   };
 
   const handleTakeFromGoal = () => {
-    setTransferConfig({
-      mode: 'take_from_goal',
-      goalId: goal.id,
-    });
-    setIsTransferDialogOpen(true);
+    openTransferWithConfig({ mode: 'take_from_goal', goalId: goal.id });
   };
 
   const handleTransferBetweenGoals = () => {
-    setTransferConfig({
-      mode: 'transfer_between_goals',
-      goalId: goal.id,
-    });
-    setIsTransferDialogOpen(true);
+    openTransferWithConfig({ mode: 'transfer_between_goals', goalId: goal.id });
   };
 
   const handleTransferBetweenInstrumentsOrAssets = () => {
-    setTransferConfig({
-      mode: 'transfer_with_same_goals',
-      goalId: goal.id,
-    });
-    setIsTransferDialogOpen(true);
+    openTransferWithConfig({ mode: 'transfer_with_same_goals', goalId: goal.id });
   };
 
   return (
@@ -397,15 +397,15 @@ const GoalDetail = () => {
           />
 
           <GoalTransferDialog
-            open={isTransferDialogOpen}
+            open={transferDialog.open}
             onOpenChange={(open) => {
-              setIsTransferDialogOpen(open);
               if (!open) {
+                transferDialog.close();
                 setTransferConfig(undefined);
               }
             }}
             form={transferForm}
-            isLoading={isTransferFormLoading}
+            isLoading={transferDialog.isLoading}
             onSubmit={handleTransferFormSubmit}
             transferConfig={transferConfig}
             wallets={wallets}
@@ -415,10 +415,10 @@ const GoalDetail = () => {
           />
 
           <GoalInvestmentRecordDialog
-            open={isRecordDialogOpen}
-            onOpenChange={setIsRecordDialogOpen}
+            open={recordDialog.open}
+            onOpenChange={(open) => !open && recordDialog.close()}
             form={recordForm}
-            isLoading={isRecordFormLoading}
+            isLoading={recordDialog.isLoading}
             onSubmit={handleRecordFormSubmit}
             goalId={goal.id}
             goals={goal ? [goal] : []}
