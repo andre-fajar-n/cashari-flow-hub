@@ -17,15 +17,18 @@ import ConfirmationModal from "@/components/ConfirmationModal";
 import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
 import MovementsDataTable from "@/components/shared/MovementsDataTable";
 import { useDeleteGoal, useGoalDetail, useUpdateGoal } from "@/hooks/queries/use-goals";
-import { useGoalTransfers } from "@/hooks/queries/use-goal-transfers";
+import { useGoalTransfers, useCreateGoalTransfer, useUpdateGoalTransfer } from "@/hooks/queries/use-goal-transfers";
+import { useGoalInvestmentRecords, useCreateGoalInvestmentRecord, useUpdateGoalInvestmentRecord } from "@/hooks/queries/use-goal-investment-records";
 import { useMoneySummary } from "@/hooks/queries/use-money-summary";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
-import { useGoalInvestmentRecords } from "@/hooks/queries/use-goal-investment-records";
 import { useCurrencies, useCurrencyDetail } from "@/hooks/queries/use-currencies";
+import { useInvestmentCategories } from "@/hooks/queries/use-categories";
 import { MOVEMENT_TYPES } from "@/constants/enums";
 import { GoalFormData, defaultGoalFormValues } from "@/form-dto/goals";
+import { GoalTransferFormData, defaultGoalTransferFormData } from "@/form-dto/goal-transfers";
+import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData } from "@/form-dto/goal-investment-records";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 
 const GoalDetail = () => {
@@ -38,8 +41,14 @@ const GoalDetail = () => {
   const [isRecordDialogOpen, setIsRecordDialogOpen] = useState(false);
   const [transferConfig, setTransferConfig] = useState<GoalTransferConfig | undefined>(undefined);
   const [isFormLoading, setIsFormLoading] = useState(false);
+  const [isTransferFormLoading, setIsTransferFormLoading] = useState(false);
+  const [isRecordFormLoading, setIsRecordFormLoading] = useState(false);
 
   const updateGoal = useUpdateGoal();
+  const createGoalTransfer = useCreateGoalTransfer();
+  const updateGoalTransfer = useUpdateGoalTransfer();
+  const createRecord = useCreateGoalInvestmentRecord();
+  const updateRecord = useUpdateGoalInvestmentRecord();
   const { mutate: deleteGoal } = useDeleteGoal();
   const { data: goal, isLoading: isGoalLoading } = useGoalDetail(parseInt(id!));
   const { data: goalTransfers, isLoading: isTransfersLoading } = useGoalTransfers();
@@ -51,16 +60,24 @@ const GoalDetail = () => {
   const { data: goalRecords, isLoading: isRecordsLoading } = useGoalInvestmentRecords();
   const { data: currency, isLoading: isCurrencyLoading } = useCurrencyDetail(goal?.currency_code);
   const { data: currencies } = useCurrencies();
+  const { data: investmentCategories } = useInvestmentCategories();
+  const { data: goals } = useGoalDetail(parseInt(id!));
 
-  // Form state managed at page level
+  // Form states managed at page level
   const form = useForm<GoalFormData>({
     defaultValues: defaultGoalFormValues,
+  });
+  const transferForm = useForm<GoalTransferFormData>({
+    defaultValues: defaultGoalTransferFormData,
+  });
+  const recordForm = useForm<GoalInvestmentRecordFormData>({
+    defaultValues: defaultGoalInvestmentRecordFormData,
   });
 
   const isLoading = isGoalLoading || isTransfersLoading || isMovementsLoading || isFundsSummaryLoading || isWalletsLoading ||
     isAssetsLoading || isInstrumentsLoading || isRecordsLoading || isCurrencyLoading;
 
-  // Reset form when dialog opens
+  // Reset goal form when dialog opens
   useEffect(() => {
     if (isDialogOpen && goal) {
       form.reset({
@@ -72,6 +89,31 @@ const GoalDetail = () => {
     }
   }, [goal, isDialogOpen, form]);
 
+  // Reset transfer form when dialog opens
+  useEffect(() => {
+    if (isTransferDialogOpen) {
+      const goalId = parseInt(id!);
+      if (transferConfig?.mode === 'add_to_goal') {
+        transferForm.reset({ ...defaultGoalTransferFormData, to_goal_id: goalId });
+      } else if (transferConfig?.mode === 'take_from_goal') {
+        transferForm.reset({ ...defaultGoalTransferFormData, from_goal_id: goalId });
+      } else if (transferConfig?.mode === 'transfer_between_goals') {
+        transferForm.reset({ ...defaultGoalTransferFormData, from_goal_id: goalId });
+      } else if (transferConfig?.mode === 'transfer_with_same_goals') {
+        transferForm.reset({ ...defaultGoalTransferFormData, from_goal_id: goalId, to_goal_id: goalId });
+      } else {
+        transferForm.reset(defaultGoalTransferFormData);
+      }
+    }
+  }, [isTransferDialogOpen, transferConfig, id, transferForm]);
+
+  // Reset record form when dialog opens
+  useEffect(() => {
+    if (isRecordDialogOpen && goal) {
+      recordForm.reset({ ...defaultGoalInvestmentRecordFormData, goal_id: goal.id });
+    }
+  }, [isRecordDialogOpen, goal, recordForm]);
+
   // Mutation callbacks
   const { handleSuccess, handleError } = useMutationCallbacks({
     setIsLoading: setIsFormLoading,
@@ -80,12 +122,63 @@ const GoalDetail = () => {
     queryKeysToInvalidate: QUERY_KEY_SETS.GOALS
   });
 
+  const { handleSuccess: handleTransferSuccess, handleError: handleTransferError } = useMutationCallbacks({
+    setIsLoading: setIsTransferFormLoading,
+    onOpenChange: setIsTransferDialogOpen,
+    form: transferForm,
+    queryKeysToInvalidate: QUERY_KEY_SETS.GOAL_TRANSFERS
+  });
+
+  const { handleSuccess: handleRecordSuccess, handleError: handleRecordError } = useMutationCallbacks({
+    setIsLoading: setIsRecordFormLoading,
+    onOpenChange: setIsRecordDialogOpen,
+    form: recordForm,
+    queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_RECORDS
+  });
+
   const handleFormSubmit = (data: GoalFormData) => {
     if (!goal) return;
     setIsFormLoading(true);
     updateGoal.mutate({ id: goal.id, ...data }, {
       onSuccess: handleSuccess,
       onError: handleError
+    });
+  };
+
+  const handleTransferFormSubmit = (data: GoalTransferFormData) => {
+    setIsTransferFormLoading(true);
+    const transferData = {
+      from_wallet_id: data.from_wallet_id > 0 ? data.from_wallet_id : null,
+      from_goal_id: data.from_goal_id > 0 ? data.from_goal_id : null,
+      from_instrument_id: data.from_instrument_id > 0 ? data.from_instrument_id : null,
+      from_asset_id: data.from_asset_id > 0 ? data.from_asset_id : null,
+      to_wallet_id: data.to_wallet_id > 0 ? data.to_wallet_id : null,
+      to_goal_id: data.to_goal_id > 0 ? data.to_goal_id : null,
+      to_instrument_id: data.to_instrument_id > 0 ? data.to_instrument_id : null,
+      to_asset_id: data.to_asset_id > 0 ? data.to_asset_id : null,
+      from_amount: data.from_amount,
+      to_amount: data.to_amount,
+      from_amount_unit: data.from_amount_unit || null,
+      to_amount_unit: data.to_amount_unit || null,
+      date: data.date,
+    };
+    createGoalTransfer.mutate(transferData, {
+      onSuccess: handleTransferSuccess,
+      onError: handleTransferError
+    });
+  };
+
+  const handleRecordFormSubmit = (data: GoalInvestmentRecordFormData) => {
+    setIsRecordFormLoading(true);
+    const cleanData = { ...data };
+    cleanData.wallet_id = data.wallet_id || null;
+    cleanData.category_id = data.category_id || null;
+    if (!data.instrument_id) cleanData.instrument_id = null;
+    if (!data.asset_id) cleanData.asset_id = null;
+    cleanData.amount_unit = data.amount_unit;
+    createRecord.mutate(cleanData, {
+      onSuccess: handleRecordSuccess,
+      onError: handleRecordError
     });
   };
 
@@ -314,13 +407,28 @@ const GoalDetail = () => {
                 setTransferConfig(undefined);
               }
             }}
+            form={transferForm}
+            isLoading={isTransferFormLoading}
+            onSubmit={handleTransferFormSubmit}
             transferConfig={transferConfig}
+            wallets={wallets}
+            goals={goal ? [goal] : []}
+            instruments={instruments}
+            assets={assets}
           />
 
           <GoalInvestmentRecordDialog
             open={isRecordDialogOpen}
             onOpenChange={setIsRecordDialogOpen}
+            form={recordForm}
+            isLoading={isRecordFormLoading}
+            onSubmit={handleRecordFormSubmit}
             goalId={goal.id}
+            goals={goal ? [goal] : []}
+            instruments={instruments}
+            assets={assets}
+            wallets={wallets}
+            categories={investmentCategories}
           />
         </div>
       </Layout>

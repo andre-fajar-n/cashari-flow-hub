@@ -1,62 +1,47 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { useAuth } from "@/hooks/use-auth";
+import { UseFormReturn } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import GoalTransferFormFields from "@/components/goal/GoalTransferFormFields";
 import GoalTransferAmountFields from "@/components/goal/GoalTransferAmountFields";
 import { GoalTransferConfig, getTransferModeConfig } from "@/components/goal/GoalTransferModes";
-import { defaultGoalTransferFormData, GoalTransferFormData } from "@/form-dto/goal-transfers";
-import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
-import { useCreateGoalTransfer, useUpdateGoalTransfer } from "@/hooks/queries/use-goal-transfers";
-import { useGoals } from "@/hooks/queries/use-goals";
-import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
-import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
-import { useWallets } from "@/hooks/queries/use-wallets";
+import { GoalTransferFormData } from "@/form-dto/goal-transfers";
 import { GoalTransferModel } from "@/models/goal-transfers";
+import { GoalModel } from "@/models/goals";
+import { WalletModel } from "@/models/wallets";
+import { InvestmentInstrumentModel } from "@/models/investment-instruments";
+import { InvestmentAssetModel } from "@/models/investment-assets";
 
 interface GoalTransferDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  form: UseFormReturn<GoalTransferFormData>;
+  isLoading: boolean;
+  onSubmit: (data: GoalTransferFormData) => void;
   transfer?: GoalTransferModel;
-  onSuccess?: () => void;
   transferConfig?: GoalTransferConfig;
+  // Data props
+  wallets?: WalletModel[];
+  goals?: GoalModel[];
+  instruments?: InvestmentInstrumentModel[];
+  assets?: InvestmentAssetModel[];
 }
 
 const GoalTransferDialog = ({
   open,
   onOpenChange,
+  form,
+  isLoading,
+  onSubmit,
   transfer,
-  onSuccess,
-  transferConfig
+  transferConfig,
+  wallets,
+  goals,
+  instruments,
+  assets
 }: GoalTransferDialogProps) => {
-  const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const createTransfer = useCreateGoalTransfer();
-  const updateTransfer = useUpdateGoalTransfer();
-
-  const form = useForm<GoalTransferFormData>({
-    defaultValues: defaultGoalTransferFormData,
-  });
-
-  // Use mutation callbacks utility
-  const { handleSuccess, handleError } = useMutationCallbacks({
-    setIsLoading,
-    onOpenChange,
-    onSuccess,
-    form,
-    queryKeysToInvalidate: QUERY_KEY_SETS.GOAL_TRANSFERS
-  });
-
-  const { data: wallets } = useWallets();
-  const { data: goals } = useGoals();
-  const { data: instruments } = useInvestmentInstruments();
-  const { data: assets } = useInvestmentAssets();
-
   const fromInstrumentId = form.watch("from_instrument_id");
   const toInstrumentId = form.watch("to_instrument_id");
-  const amountFrom = form.watch("from_amount");
 
   // Filter assets based on selected instruments
   const fromAssets = assets?.filter(asset =>
@@ -65,93 +50,6 @@ const GoalTransferDialog = ({
   const toAssets = assets?.filter(asset =>
     toInstrumentId === 0 || asset.instrument_id === toInstrumentId
   );
-
-  // Auto-populate to_amount when same currency
-  useEffect(() => {
-    const fromWalletId = form.watch("from_wallet_id");
-    const toWalletId = form.watch("to_wallet_id");
-    const fromWallet = wallets?.find(w => w.id === fromWalletId);
-    const toWallet = wallets?.find(w => w.id === toWalletId);
-    const isSameCurrency = fromWallet?.currency_code === toWallet?.currency_code;
-
-    if (isSameCurrency && amountFrom > 0) {
-      form.setValue("to_amount", amountFrom);
-    }
-  }, [amountFrom, form, wallets]);
-
-  // Set prefilled values based on transfer config
-  useEffect(() => {
-    if (transferConfig && open) {
-      const goalId = transferConfig.goalId;
-
-      if (transferConfig.mode === 'add_to_goal') {
-        form.setValue("to_goal_id", goalId);
-      } else if (transferConfig.mode === 'take_from_goal') {
-        form.setValue("from_goal_id", goalId);
-      } else if (transferConfig.mode === 'transfer_between_goals') {
-        form.setValue("from_goal_id", goalId);
-      } else if (transferConfig.mode === 'transfer_with_same_goals') {
-        form.setValue("from_goal_id", goalId);
-        form.setValue("to_goal_id", goalId);
-      }
-    }
-  }, [transferConfig, open, form]);
-
-  // Fill form when editing existing transfer
-  useEffect(() => {
-    if (transfer && open) {
-      form.setValue("from_wallet_id", transfer.from_wallet_id || 0);
-      form.setValue("from_goal_id", transfer.from_goal_id || 0);
-      form.setValue("from_instrument_id", transfer.from_instrument_id || 0);
-      form.setValue("from_asset_id", transfer.from_asset_id || 0);
-      form.setValue("to_wallet_id", transfer.to_wallet_id || 0);
-      form.setValue("to_goal_id", transfer.to_goal_id || 0);
-      form.setValue("to_instrument_id", transfer.to_instrument_id || 0);
-      form.setValue("to_asset_id", transfer.to_asset_id || 0);
-      form.setValue("from_amount", transfer.from_amount);
-      form.setValue("to_amount", transfer.to_amount);
-      form.setValue("from_amount_unit", transfer.from_amount_unit);
-      form.setValue("to_amount_unit", transfer.to_amount_unit);
-      form.setValue("date", transfer.date);
-    } else if (!transfer && !transferConfig && open) {
-      // Reset form when creating new transfer
-      form.reset(defaultGoalTransferFormData);
-    }
-  }, [transfer, transferConfig, open, form]);
-
-  const onSubmit = async (data: GoalTransferFormData) => {
-    if (!user) return;
-
-    setIsLoading(true);
-
-    const transferData = {
-      from_wallet_id: data.from_wallet_id > 0 ? data.from_wallet_id : null,
-      from_goal_id: data.from_goal_id > 0 ? data.from_goal_id : null,
-      from_instrument_id: data.from_instrument_id > 0 ? data.from_instrument_id : null,
-      from_asset_id: data.from_asset_id > 0 ? data.from_asset_id : null,
-      to_wallet_id: data.to_wallet_id > 0 ? data.to_wallet_id : null,
-      to_goal_id: data.to_goal_id > 0 ? data.to_goal_id : null,
-      to_instrument_id: data.to_instrument_id > 0 ? data.to_instrument_id : null,
-      to_asset_id: data.to_asset_id > 0 ? data.to_asset_id : null,
-      from_amount: data.from_amount,
-      to_amount: data.to_amount,
-      from_amount_unit: data.from_amount_unit || null,
-      to_amount_unit: data.to_amount_unit || null,
-      date: data.date,
-    };
-
-    if (transfer) {
-      updateTransfer.mutate({ id: transfer.id, ...transferData }, {
-        onSuccess: handleSuccess,
-        onError: handleError
-      });
-    } else {
-      createTransfer.mutate(transferData, {
-        onSuccess: handleSuccess,
-        onError: handleError
-      });
-    }
-  };
 
   const modeConfig = transferConfig ? getTransferModeConfig(transferConfig.mode) : null;
   const dialogTitle = transfer

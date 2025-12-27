@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { UseFormReturn } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,114 +6,52 @@ import { InputNumber } from "@/components/ui/input-number";
 import { Textarea } from "@/components/ui/textarea";
 import { Dropdown } from "@/components/ui/dropdown";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData } from "@/form-dto/goal-investment-records";
-import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
-import { useCreateGoalInvestmentRecord, useUpdateGoalInvestmentRecord } from "@/hooks/queries/use-goal-investment-records";
-import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
-import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
-import { useWallets } from "@/hooks/queries/use-wallets";
-import { useInvestmentCategories } from "@/hooks/queries/use-categories";
-import { useGoals } from "@/hooks/queries/use-goals";
+import { GoalInvestmentRecordFormData } from "@/form-dto/goal-investment-records";
 import { GoalInvestmentRecordModel } from "@/models/goal-investment-records";
+import { GoalModel } from "@/models/goals";
+import { WalletModel } from "@/models/wallets";
+import { CategoryModel } from "@/models/categories";
+import { InvestmentInstrumentModel } from "@/models/investment-instruments";
+import { InvestmentAssetModel } from "@/models/investment-assets";
 
 interface GoalInvestmentRecordDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  goalId?: number;
+  form: UseFormReturn<GoalInvestmentRecordFormData>;
+  isLoading: boolean;
+  onSubmit: (data: GoalInvestmentRecordFormData) => void;
+  record?: GoalInvestmentRecordModel | null;
+  // Control visibility
+  goalId?: number; // Pre-filled goal ID (hides goal selector)
   instrumentId?: number; // Pre-filled instrument ID (hides instrument selector)
   assetId?: number; // Pre-filled asset ID (hides asset selector)
-  record?: GoalInvestmentRecordModel | null;
-  onSuccess?: () => void;
+  // Data props
+  goals?: GoalModel[];
+  instruments?: InvestmentInstrumentModel[];
+  assets?: InvestmentAssetModel[];
+  wallets?: WalletModel[];
+  categories?: CategoryModel[];
 }
 
-const GoalInvestmentRecordDialog = ({ open, onOpenChange, goalId, instrumentId, assetId, record, onSuccess }: GoalInvestmentRecordDialogProps) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const createRecord = useCreateGoalInvestmentRecord();
-  const updateRecord = useUpdateGoalInvestmentRecord();
-  const { data: instruments } = useInvestmentInstruments();
-  const { data: assets } = useInvestmentAssets();
-  const { data: wallets } = useWallets();
-  const { data: categories } = useInvestmentCategories();
-  const { data: goals } = useGoals();
-
-  const form = useForm<GoalInvestmentRecordFormData>({
-    defaultValues: {
-      ...defaultGoalInvestmentRecordFormData,
-      goal_id: goalId || record?.goal_id || null,
-      instrument_id: instrumentId || record?.instrument_id || null,
-      asset_id: assetId || record?.asset_id || null,
-    },
-  });
-
-  // Use mutation callbacks utility
-  const { handleSuccess, handleError } = useMutationCallbacks({
-    setIsLoading,
-    onOpenChange,
-    onSuccess,
-    form,
-    queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_RECORDS
-  });
-
+const GoalInvestmentRecordDialog = ({
+  open,
+  onOpenChange,
+  form,
+  isLoading,
+  onSubmit,
+  record,
+  goalId,
+  instrumentId,
+  assetId,
+  goals,
+  instruments,
+  assets,
+  wallets,
+  categories
+}: GoalInvestmentRecordDialogProps) => {
   const selectedInstrument = form.watch("instrument_id");
 
   const filteredAssets = assets?.filter(asset => asset.instrument_id === selectedInstrument) || [];
-
-  // Fill form when editing existing record
-  useEffect(() => {
-    if (record && open) {
-      form.setValue("goal_id", record.goal_id || null);
-      form.setValue("instrument_id", record.instrument_id || null);
-      form.setValue("asset_id", record.asset_id || null);
-      form.setValue("wallet_id", record.wallet_id || null);
-      form.setValue("category_id", record.category_id || null);
-      form.setValue("amount", record.amount);
-      form.setValue("amount_unit", record.amount_unit);
-      form.setValue("date", record.date);
-      form.setValue("description", record.description || "");
-      form.setValue("is_valuation", record.is_valuation || false);
-    } else if (!record && open) {
-      // Reset form when creating new record
-      form.reset({
-        ...defaultGoalInvestmentRecordFormData,
-        goal_id: goalId || null,
-        instrument_id: instrumentId || null,
-        asset_id: assetId || null,
-      });
-    }
-  }, [record, open, form, goalId, assetId]);
-
-  const onSubmit = async (data: GoalInvestmentRecordFormData) => {
-    setIsLoading(true);
-
-    // Remove fields that should be null when not applicable
-    const cleanData = { ...data };
-
-    cleanData.wallet_id = data.wallet_id || null;
-    cleanData.category_id = data.category_id || null;
-
-    if (!data.instrument_id) {
-      cleanData.instrument_id = null;
-    }
-
-    if (!data.asset_id) {
-      cleanData.asset_id = null;
-    }
-
-    // Keep amount_unit as is (can be 0 or null)
-    cleanData.amount_unit = data.amount_unit;
-
-    if (record) {
-      updateRecord.mutate({ id: record.id, ...cleanData }, {
-        onSuccess: handleSuccess,
-        onError: handleError
-      });
-    } else {
-      createRecord.mutate(cleanData, {
-        onSuccess: handleSuccess,
-        onError: handleError
-      });
-    }
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
