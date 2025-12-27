@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { ColumnDef } from "@tanstack/react-table";
@@ -14,7 +13,7 @@ import { formatDate } from "@/lib/date";
 import { formatAmountCurrency } from "@/lib/currency";
 import AmountText from "@/components/ui/amount-text";
 import AssetValueDialog from "@/components/investment/AssetValueDialog";
-import ConfirmationModal from "@/components/ConfirmationModal";
+import { DeleteConfirmationModal, useDeleteConfirmation } from "@/components/DeleteConfirmationModal";
 import { useDeleteInvestmentAssetValue, useCreateInvestmentAssetValue, useUpdateInvestmentAssetValue } from "@/hooks/queries/use-investment-asset-values";
 import { AssetValueFormData, defaultAssetValueFormValues, mapAssetValueToFormData } from "@/form-dto/investment-asset-values";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
@@ -35,10 +34,11 @@ const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetV
     initialPageSize: 10,
   });
 
-  const [deleteModal, setDeleteModal] = useState<{
-    open: boolean;
-    id: number | null;
-  }>({ open: false, id: null });
+  // Delete confirmation hook
+  const deleteConfirmation = useDeleteConfirmation<number>({
+    title: "Hapus Nilai Aset",
+    description: "Apakah Anda yakin ingin menghapus nilai aset ini? Tindakan ini tidak dapat dibatalkan.",
+  });
 
   const { data: paged, isLoading } = useInvestmentAssetValuesPaginatedByAsset(assetId, {
     page: tableState.page,
@@ -92,19 +92,16 @@ const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetV
   };
 
   const handleDeleteClick = (value: InvestmentAssetValueModel) => {
-    setDeleteModal({ open: true, id: value.id });
+    deleteConfirmation.openModal(value.id);
   };
 
-  const handleConfirmDelete = () => {
-    if (deleteModal.id) {
-      deleteAssetValue(deleteModal.id, {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ["investment_asset_values_paginated"] });
-          queryClient.invalidateQueries({ queryKey: ["investment_asset_values"] });
-          setDeleteModal({ open: false, id: null });
-        }
-      });
-    }
+  const handleConfirmDelete = (id: number) => {
+    deleteAssetValue(id, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["investment_asset_values_paginated"] });
+        queryClient.invalidateQueries({ queryKey: ["investment_asset_values"] });
+      }
+    });
   };
 
   const columns: ColumnDef<InvestmentAssetValueModel>[] = [
@@ -196,15 +193,9 @@ const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetV
         assetValue={valueDialog.selectedData}
       />
 
-      <ConfirmationModal
-        open={deleteModal.open}
-        onOpenChange={(open) => setDeleteModal({ ...deleteModal, open })}
+      <DeleteConfirmationModal
+        deleteConfirmation={deleteConfirmation}
         onConfirm={handleConfirmDelete}
-        title="Hapus Nilai Aset"
-        description="Apakah Anda yakin ingin menghapus nilai aset ini? Tindakan ini tidak dapat dibatalkan."
-        confirmText="Ya, Hapus"
-        cancelText="Batal"
-        variant="destructive"
       />
     </>
   );

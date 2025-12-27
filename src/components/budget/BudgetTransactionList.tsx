@@ -7,14 +7,13 @@ import { SelectFilterConfig } from "@/components/ui/advanced-data-table/advanced
 import { TransactionHistoryTable } from "@/components/transactions/TransactionHistoryTable";
 import { getTransactionHistoryColumns } from "@/components/transactions/TransactionHistoryColumns";
 import { useMoneyMovementsPaginatedByBudget } from "@/hooks/queries/paginated/use-money-movements-paginated";
-import { useState } from "react";
 import { TransactionModel } from "@/models/transactions";
 import { MOVEMENT_TYPES } from "@/constants/enums";
 import { useDeleteTransaction, useTransactions } from "@/hooks/queries/use-transactions";
 import { MoneyMovementModel } from "@/models/money-movements";
 import TransactionDialog from "@/components/transactions/TransactionDialog";
 import { useQueryClient } from "@tanstack/react-query";
-import ConfirmationModal from "@/components/ConfirmationModal";
+import { DeleteConfirmationModal, useDeleteConfirmation } from "@/components/DeleteConfirmationModal";
 import { useForm } from "react-hook-form";
 import { defaultTransactionFormValues, TransactionFormData, mapTransactionToFormData } from "@/form-dto/transactions";
 import { useInsertTransactionWithRelations, useUpdateTransactionWithRelations } from "@/hooks/queries/use-transaction-with-relations";
@@ -27,10 +26,11 @@ interface BudgetTransactionListProps {
 
 const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
   const queryClient = useQueryClient();
-  const [deleteModal, setDeleteModal] = useState<{
-    open: boolean;
-    item?: MoneyMovementModel;
-  }>({ open: false });
+  // Delete confirmation hook
+  const deleteConfirmation = useDeleteConfirmation<MoneyMovementModel>({
+    title: "Hapus Transaksi",
+    description: "Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.",
+  });
 
   // Table state management using generic hook
   const { state: tableState, actions: tableActions } = useTableState({
@@ -121,20 +121,16 @@ const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
   };
 
   const handleDeleteTransaction = (movement: MoneyMovementModel) => {
-    setDeleteModal({ open: true, item: movement });
+    deleteConfirmation.openModal(movement);
   };
 
-  const handleConfirmDelete = () => {
-    if (!deleteModal.item) return;
-
+  const handleConfirmDelete = (item: MoneyMovementModel) => {
     try {
-      deleteTransaction(deleteModal.item.resource_id);
+      deleteTransaction(item.resource_id);
       queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
     } catch (error) {
       console.error("Failed to delete transaction", error);
-    } finally {
-      setDeleteModal({ open: false });
     }
   };
 
@@ -202,15 +198,9 @@ const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
         transaction={transactionDialog.selectedData}
       />
 
-      <ConfirmationModal
-        open={deleteModal.open}
-        onOpenChange={(open) => setDeleteModal({ open })}
+      <DeleteConfirmationModal
+        deleteConfirmation={deleteConfirmation}
         onConfirm={handleConfirmDelete}
-        title="Hapus Item"
-        description={`Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.`}
-        confirmText="Ya, Hapus"
-        cancelText="Batal"
-        variant="destructive"
       />
     </>
   );
