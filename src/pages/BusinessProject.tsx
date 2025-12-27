@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Plus, Calendar, Edit, Trash2, Eye } from "lucide-react";
@@ -15,14 +15,12 @@ import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { formatDate } from "@/lib/date";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { useDialogState } from "@/hooks/use-dialog-state";
 
 const BusinessProject = () => {
   const navigate = useNavigate();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [businessProjectToDelete, setBusinessProjectToDelete] = useState<number | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<BusinessProjectModel | undefined>(undefined);
-  const [isFormLoading, setIsFormLoading] = useState(false);
   
   const createProject = useCreateBusinessProject();
   const updateProject = useUpdateBusinessProject();
@@ -40,34 +38,30 @@ const BusinessProject = () => {
     defaultValues: defaultBusinessProjectFormValues,
   });
 
-  // Reset form when dialog opens
-  useEffect(() => {
-    if (isDialogOpen) {
-      if (selectedProject) {
-        form.reset({
-          name: selectedProject.name || "",
-          description: selectedProject.description || "",
-          start_date: selectedProject.start_date || "",
-          end_date: selectedProject.end_date || "",
-        });
-      } else {
-        form.reset(defaultBusinessProjectFormValues);
-      }
-    }
-  }, [selectedProject, isDialogOpen, form]);
+  // Dialog state using reusable hook
+  const dialog = useDialogState<BusinessProjectModel, BusinessProjectFormData>({
+    form,
+    defaultValues: defaultBusinessProjectFormValues,
+    mapDataToForm: (project) => ({
+      name: project.name || "",
+      description: project.description || "",
+      start_date: project.start_date || "",
+      end_date: project.end_date || "",
+    }),
+  });
 
   // Mutation callbacks
   const { handleSuccess, handleError } = useMutationCallbacks({
-    setIsLoading: setIsFormLoading,
-    onOpenChange: setIsDialogOpen,
+    setIsLoading: dialog.setIsLoading,
+    onOpenChange: (open) => !open && dialog.close(),
     form,
     queryKeysToInvalidate: QUERY_KEY_SETS.BUSINESS_PROJECTS
   });
 
   const handleFormSubmit = (data: BusinessProjectFormData) => {
-    setIsFormLoading(true);
-    if (selectedProject) {
-      updateProject.mutate({ id: selectedProject.id, ...data }, {
+    dialog.setIsLoading(true);
+    if (dialog.selectedData) {
+      updateProject.mutate({ id: dialog.selectedData.id, ...data }, {
         onSuccess: handleSuccess,
         onError: handleError
       });
@@ -83,11 +77,6 @@ const BusinessProject = () => {
     navigate(`/business-project/${project.id}`);
   };
 
-  const handleEdit = (project: BusinessProjectModel) => {
-    setSelectedProject(project);
-    setIsDialogOpen(true);
-  };
-
   const handleDeleteClick = (businessProjectId: number) => {
     setBusinessProjectToDelete(businessProjectId);
     setIsDeleteModalOpen(true);
@@ -97,11 +86,6 @@ const BusinessProject = () => {
     if (businessProjectToDelete) {
       deleteBusinessProject(businessProjectToDelete);
     }
-  };
-
-  const handleAddNew = () => {
-    setSelectedProject(undefined);
-    setIsDialogOpen(true);
   };
 
   const renderProjectItem = (project: BusinessProjectModel) => (
@@ -155,7 +139,7 @@ const BusinessProject = () => {
             variant="outline"
             size="sm"
             className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
-            onClick={() => handleEdit(project)}
+            onClick={() => dialog.openEdit(project)}
           >
             <Edit className="w-3 h-3 mr-1" />
             Ubah
@@ -227,7 +211,7 @@ const BusinessProject = () => {
           description="Kelola proyek bisnis dan investasi Anda"
           headerActions={
             projects && projects.length > 0 && (
-              <Button onClick={handleAddNew} className="w-full sm:w-auto">
+              <Button onClick={dialog.openAdd} className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Tambah Proyek
               </Button>
@@ -237,7 +221,7 @@ const BusinessProject = () => {
 
         {(!projects || projects.length === 0) && !isLoading && (
           <div className="text-center py-8">
-            <Button onClick={handleAddNew} className="mt-4">
+            <Button onClick={dialog.openAdd} className="mt-4">
               <Plus className="w-4 h-4 mr-2" />
               Buat Proyek Pertama
             </Button>
@@ -245,12 +229,12 @@ const BusinessProject = () => {
         )}
 
         <BusinessProjectDialog
-          open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
+          open={dialog.open}
+          onOpenChange={(open) => !open && dialog.close()}
           form={form}
-          isLoading={isFormLoading}
+          isLoading={dialog.isLoading}
           onSubmit={handleFormSubmit}
-          project={selectedProject}
+          project={dialog.selectedData}
         />
       </Layout>
     </ProtectedRoute>

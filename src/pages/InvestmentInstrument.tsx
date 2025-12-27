@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Plus, TrendingUp, Edit, Trash2 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -15,15 +14,12 @@ import { Card } from "@/components/ui/card";
 import { InstrumentFormData, defaultInstrumentFormValues } from "@/form-dto/investment-instruments";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useAuth } from "@/hooks/use-auth";
+import { useDialogState } from "@/hooks/use-dialog-state";
 
 const InvestmentInstrument = () => {
-  const queryClient = useQueryClient();
   const { user } = useAuth();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [instrumentToDelete, setInstrumentToDelete] = useState<number | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedInstrument, setSelectedInstrument] = useState<InvestmentInstrumentModel | undefined>(undefined);
-  const [isFormLoading, setIsFormLoading] = useState(false);
 
   const { mutate: deleteInstrument } = useDeleteInvestmentInstrument();
   const createInstrument = useCreateInvestmentInstrument();
@@ -41,35 +37,31 @@ const InvestmentInstrument = () => {
     defaultValues: defaultInstrumentFormValues,
   });
 
+  // Dialog state using reusable hook
+  const dialog = useDialogState<InvestmentInstrumentModel, InstrumentFormData>({
+    form,
+    defaultValues: defaultInstrumentFormValues,
+    mapDataToForm: (instrument) => ({
+      name: instrument.name || "",
+      unit_label: instrument.unit_label || "",
+      is_trackable: instrument.is_trackable ?? false,
+    }),
+  });
+
   // Mutation callbacks
   const { handleSuccess, handleError } = useMutationCallbacks({
-    setIsLoading: setIsFormLoading,
-    onOpenChange: setIsDialogOpen,
+    setIsLoading: dialog.setIsLoading,
+    onOpenChange: (open) => !open && dialog.close(),
     form,
     queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_INSTRUMENTS
   });
 
-  // Reset form when dialog opens
-  useEffect(() => {
-    if (isDialogOpen) {
-      if (selectedInstrument) {
-        form.reset({
-          name: selectedInstrument.name || "",
-          unit_label: selectedInstrument.unit_label || "",
-          is_trackable: selectedInstrument.is_trackable ?? false,
-        });
-      } else {
-        form.reset(defaultInstrumentFormValues);
-      }
-    }
-  }, [isDialogOpen, selectedInstrument, form]);
-
   const handleFormSubmit = (data: InstrumentFormData) => {
     if (!user) return;
-    setIsFormLoading(true);
+    dialog.setIsLoading(true);
 
-    if (selectedInstrument) {
-      updateInstrument.mutate({ id: selectedInstrument.id, ...data }, {
+    if (dialog.selectedData) {
+      updateInstrument.mutate({ id: dialog.selectedData.id, ...data }, {
         onSuccess: handleSuccess,
         onError: handleError
       });
@@ -81,11 +73,6 @@ const InvestmentInstrument = () => {
     }
   };
 
-  const handleEdit = (instrument: InvestmentInstrumentModel) => {
-    setSelectedInstrument(instrument);
-    setIsDialogOpen(true);
-  };
-
   const handleDeleteClick = (instrumentId: number) => {
     setInstrumentToDelete(instrumentId);
     setIsDeleteModalOpen(true);
@@ -95,11 +82,6 @@ const InvestmentInstrument = () => {
     if (instrumentToDelete) {
       deleteInstrument(instrumentToDelete);
     }
-  };
-
-  const handleAddNew = () => {
-    setSelectedInstrument(undefined);
-    setIsDialogOpen(true);
   };
 
   const renderInstrumentItem = (instrument: InvestmentInstrumentModel) => (
@@ -145,7 +127,7 @@ const InvestmentInstrument = () => {
             variant="outline"
             size="lg"
             className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
-            onClick={() => handleEdit(instrument)}
+            onClick={() => dialog.openEdit(instrument)}
           >
             <Edit className="w-3 h-3 sm:mr-1" />
             Ubah
@@ -217,7 +199,7 @@ const InvestmentInstrument = () => {
           description="Kelola jenis instrumen investasi Anda"
           headerActions={
             instruments && instruments.length > 0 && (
-              <Button onClick={handleAddNew} className="w-full sm:w-auto">
+              <Button onClick={dialog.openAdd} className="w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Tambah Instrumen
               </Button>
@@ -227,7 +209,7 @@ const InvestmentInstrument = () => {
 
         {(!instruments || instruments.length === 0) && !isLoading && (
           <div className="text-center py-8">
-            <Button onClick={handleAddNew} className="mt-4">
+            <Button onClick={dialog.openAdd} className="mt-4">
               <Plus className="w-4 h-4 mr-2" />
               Tambah Instrumen Pertama
             </Button>
@@ -235,12 +217,12 @@ const InvestmentInstrument = () => {
         )}
 
         <InvestmentInstrumentDialog
-          open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
+          open={dialog.open}
+          onOpenChange={(open) => !open && dialog.close()}
           form={form}
-          isLoading={isFormLoading}
+          isLoading={dialog.isLoading}
           onSubmit={handleFormSubmit}
-          instrument={selectedInstrument}
+          instrument={dialog.selectedData}
         />
       </Layout>
     </ProtectedRoute>

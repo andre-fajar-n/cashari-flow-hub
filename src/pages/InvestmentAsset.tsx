@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -20,16 +19,13 @@ import { getInvestmentAssetColumns } from "@/components/investment/InvestmentAss
 import { AssetFormData, defaultAssetFormValues } from "@/form-dto/investment-assets";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useAuth } from "@/hooks/use-auth";
+import { useDialogState } from "@/hooks/use-dialog-state";
 
 const InvestmentAsset = () => {
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [investmentAssetToDelete, setInvestmentAssetToDelete] = useState<number | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedAsset, setSelectedAsset] = useState<InvestmentAssetModel | undefined>(undefined);
-  const [isFormLoading, setIsFormLoading] = useState(false);
 
   const { mutate: deleteInvestmentAsset } = useDeleteInvestmentAsset();
   const createAsset = useCreateInvestmentAsset();
@@ -64,35 +60,31 @@ const InvestmentAsset = () => {
     defaultValues: defaultAssetFormValues,
   });
 
+  // Dialog state using reusable hook
+  const dialog = useDialogState<InvestmentAssetModel, AssetFormData>({
+    form,
+    defaultValues: defaultAssetFormValues,
+    mapDataToForm: (asset) => ({
+      name: asset.name || "",
+      symbol: asset.symbol || "",
+      instrument_id: asset.instrument_id || null,
+    }),
+  });
+
   // Mutation callbacks
   const { handleSuccess, handleError } = useMutationCallbacks({
-    setIsLoading: setIsFormLoading,
-    onOpenChange: setIsDialogOpen,
+    setIsLoading: dialog.setIsLoading,
+    onOpenChange: (open) => !open && dialog.close(),
     form,
     queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_ASSETS
   });
 
-  // Reset form when dialog opens
-  useEffect(() => {
-    if (isDialogOpen) {
-      if (selectedAsset) {
-        form.reset({
-          name: selectedAsset.name || "",
-          symbol: selectedAsset.symbol || "",
-          instrument_id: selectedAsset.instrument_id || null,
-        });
-      } else {
-        form.reset(defaultAssetFormValues);
-      }
-    }
-  }, [isDialogOpen, selectedAsset, form]);
-
   const handleFormSubmit = (data: AssetFormData) => {
     if (!user) return;
-    setIsFormLoading(true);
+    dialog.setIsLoading(true);
 
-    if (selectedAsset) {
-      updateAsset.mutate({ id: selectedAsset.id, ...data }, {
+    if (dialog.selectedData) {
+      updateAsset.mutate({ id: dialog.selectedData.id, ...data }, {
         onSuccess: handleSuccess,
         onError: handleError
       });
@@ -102,11 +94,6 @@ const InvestmentAsset = () => {
         onError: handleError
       });
     }
-  };
-
-  const handleEdit = (asset: InvestmentAssetModel) => {
-    setSelectedAsset(asset);
-    setIsDialogOpen(true);
   };
 
   const handleDeleteClick = (investmentAssetId: number) => {
@@ -120,11 +107,6 @@ const InvestmentAsset = () => {
     }
   };
 
-  const handleAddNew = () => {
-    setSelectedAsset(undefined);
-    setIsDialogOpen(true);
-  };
-
   const handleViewHistory = (asset: InvestmentAssetModel) => {
     navigate(`/investment-asset/${asset.id}`);
   };
@@ -132,7 +114,7 @@ const InvestmentAsset = () => {
   // Generate columns using separated column definitions
   const columns = getInvestmentAssetColumns({
     assetSummaryGrouped,
-    onEdit: handleEdit,
+    onEdit: dialog.openEdit,
     onDelete: handleDeleteClick,
     onViewHistory: handleViewHistory,
   });
@@ -160,7 +142,7 @@ const InvestmentAsset = () => {
                 Kelola aset investasi dalam instrumen Anda
               </p>
             </div>
-            <Button onClick={handleAddNew} className="w-full sm:w-auto">
+            <Button onClick={dialog.openAdd} className="w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" />
               Tambah Aset
             </Button>
@@ -185,12 +167,12 @@ const InvestmentAsset = () => {
         </div>
 
         <InvestmentAssetDialog
-          open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
+          open={dialog.open}
+          onOpenChange={(open) => !open && dialog.close()}
           form={form}
-          isLoading={isFormLoading}
+          isLoading={dialog.isLoading}
           onSubmit={handleFormSubmit}
-          asset={selectedAsset}
+          asset={dialog.selectedData}
           instruments={instruments}
         />
       </Layout>

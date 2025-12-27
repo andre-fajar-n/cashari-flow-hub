@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -18,14 +17,11 @@ import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { CurrencyModel } from "@/models/currencies";
 import { BudgetFormData, defaultBudgetFormValues } from "@/form-dto/budget";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { useDialogState } from "@/hooks/use-dialog-state";
 
 const Budget = () => {
-  const queryClient = useQueryClient();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [budgetToDelete, setBudgetToDelete] = useState<number | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedBudget, setSelectedBudget] = useState<BudgetModel | undefined>(undefined);
-  const [isFormLoading, setIsFormLoading] = useState(false);
   const navigate = useNavigate();
   
   const createBudget = useCreateBudget();
@@ -35,6 +31,19 @@ const Budget = () => {
   // Form state managed at page level
   const form = useForm<BudgetFormData>({
     defaultValues: defaultBudgetFormValues,
+  });
+
+  // Dialog state using reusable hook
+  const dialog = useDialogState<BudgetModel, BudgetFormData>({
+    form,
+    defaultValues: defaultBudgetFormValues,
+    mapDataToForm: (budget) => ({
+      name: budget.name || "",
+      amount: budget.amount || 0,
+      currency_code: budget.currency_code || "",
+      start_date: budget.start_date || "",
+      end_date: budget.end_date || "",
+    }),
   });
 
   // Table state management using generic hook
@@ -72,35 +81,18 @@ const Budget = () => {
   // Combine all loading states
   const isLoading = isLoadingBudgets || isLoadingBudgetSummary || isLoadingCurrencies;
 
-  // Reset form when dialog opens
-  useEffect(() => {
-    if (isDialogOpen) {
-      if (selectedBudget) {
-        form.reset({
-          name: selectedBudget.name || "",
-          amount: selectedBudget.amount || 0,
-          currency_code: selectedBudget.currency_code || "",
-          start_date: selectedBudget.start_date || "",
-          end_date: selectedBudget.end_date || "",
-        });
-      } else {
-        form.reset(defaultBudgetFormValues);
-      }
-    }
-  }, [selectedBudget, isDialogOpen, form]);
-
   // Mutation callbacks
   const { handleSuccess, handleError } = useMutationCallbacks({
-    setIsLoading: setIsFormLoading,
-    onOpenChange: setIsDialogOpen,
+    setIsLoading: dialog.setIsLoading,
+    onOpenChange: (open) => !open && dialog.close(),
     form,
     queryKeysToInvalidate: QUERY_KEY_SETS.BUDGETS
   });
 
   const handleFormSubmit = (data: BudgetFormData) => {
-    setIsFormLoading(true);
-    if (selectedBudget) {
-      updateBudget.mutate({ id: selectedBudget.id, ...data }, {
+    dialog.setIsLoading(true);
+    if (dialog.selectedData) {
+      updateBudget.mutate({ id: dialog.selectedData.id, ...data }, {
         onSuccess: handleSuccess,
         onError: handleError
       });
@@ -123,11 +115,6 @@ const Budget = () => {
       </ProtectedRoute>)
   }
 
-  const handleEdit = (budget: BudgetModel) => {
-    setSelectedBudget(budget);
-    setIsDialogOpen(true);
-  };
-
   const handleView = (budget: BudgetModel) => {
     navigate(`/budget/${budget.id}`);
   };
@@ -143,11 +130,6 @@ const Budget = () => {
     }
   };
 
-  const handleAddNew = () => {
-    setSelectedBudget(undefined);
-    setIsDialogOpen(true);
-  };
-
   return (
     <ProtectedRoute>
       <Layout>
@@ -158,7 +140,7 @@ const Budget = () => {
               <h1 className="text-2xl font-bold text-gray-900">Manajemen Budget</h1>
               <p className="text-sm text-muted-foreground mt-1">Kelola anggaran keuangan Anda</p>
             </div>
-            <Button onClick={handleAddNew}>
+            <Button onClick={dialog.openAdd}>
               <Plus className="w-4 h-4 mr-2" />
               Tambah Budget
             </Button>
@@ -177,7 +159,7 @@ const Budget = () => {
             onPageSizeChange={tableActions.handlePageSizeChange}
             onSearchChange={tableActions.handleSearchChange}
             onFiltersChange={tableActions.handleFiltersChange}
-            onEdit={handleEdit}
+            onEdit={dialog.openEdit}
             onDelete={handleDeleteClick}
             onView={handleView}
             budgetSummariesMap={budgetSummariesMap}
@@ -197,13 +179,13 @@ const Budget = () => {
         />
 
         <BudgetDialog
-          open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
+          open={dialog.open}
+          onOpenChange={(open) => !open && dialog.close()}
           form={form}
-          isLoading={isFormLoading}
+          isLoading={dialog.isLoading}
           onSubmit={handleFormSubmit}
           currencies={currencies}
-          budget={selectedBudget}
+          budget={dialog.selectedData}
         />
       </Layout>
     </ProtectedRoute>

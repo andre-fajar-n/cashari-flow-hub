@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -17,14 +16,11 @@ import { GoalTable } from "@/components/goal/GoalTable";
 import { CurrencyModel } from "@/models/currencies";
 import { GoalFormData, defaultGoalFormValues } from "@/form-dto/goals";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { useDialogState } from "@/hooks/use-dialog-state";
 
 const Goal = () => {
-  const queryClient = useQueryClient();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [goalToDelete, setGoalToDelete] = useState<number | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedGoal, setSelectedGoal] = useState<GoalModel | undefined>(undefined);
-  const [isFormLoading, setIsFormLoading] = useState(false);
 
   const createGoal = useCreateGoal();
   const updateGoal = useUpdateGoal();
@@ -33,6 +29,18 @@ const Goal = () => {
   // Form state managed at page level
   const form = useForm<GoalFormData>({
     defaultValues: defaultGoalFormValues,
+  });
+
+  // Dialog state using reusable hook
+  const dialog = useDialogState<GoalModel, GoalFormData>({
+    form,
+    defaultValues: defaultGoalFormValues,
+    mapDataToForm: (goal) => ({
+      name: goal.name || "",
+      target_amount: goal.target_amount || 0,
+      currency_code: goal.currency_code || "",
+      target_date: goal.target_date || "",
+    }),
   });
 
   // Table state management using generic hook
@@ -71,34 +79,18 @@ const Goal = () => {
     return acc;
   }, {} as Record<string, CurrencyModel>);
 
-  // Reset form when dialog opens
-  useEffect(() => {
-    if (isDialogOpen) {
-      if (selectedGoal) {
-        form.reset({
-          name: selectedGoal.name || "",
-          target_amount: selectedGoal.target_amount || 0,
-          currency_code: selectedGoal.currency_code || "",
-          target_date: selectedGoal.target_date || "",
-        });
-      } else {
-        form.reset(defaultGoalFormValues);
-      }
-    }
-  }, [selectedGoal, isDialogOpen, form]);
-
   // Mutation callbacks
   const { handleSuccess, handleError } = useMutationCallbacks({
-    setIsLoading: setIsFormLoading,
-    onOpenChange: setIsDialogOpen,
+    setIsLoading: dialog.setIsLoading,
+    onOpenChange: (open) => !open && dialog.close(),
     form,
     queryKeysToInvalidate: QUERY_KEY_SETS.GOALS
   });
 
   const handleFormSubmit = (data: GoalFormData) => {
-    setIsFormLoading(true);
-    if (selectedGoal) {
-      updateGoal.mutate({ id: selectedGoal.id, ...data }, {
+    dialog.setIsLoading(true);
+    if (dialog.selectedData) {
+      updateGoal.mutate({ id: dialog.selectedData.id, ...data }, {
         onSuccess: handleSuccess,
         onError: handleError
       });
@@ -110,11 +102,6 @@ const Goal = () => {
     }
   };
 
-  const handleEdit = (goal: GoalModel) => {
-    setSelectedGoal(goal);
-    setIsDialogOpen(true);
-  };
-
   const handleDeleteClick = (goalId: number) => {
     setGoalToDelete(goalId);
     setIsDeleteModalOpen(true);
@@ -124,11 +111,6 @@ const Goal = () => {
     if (goalToDelete) {
       deleteGoal(goalToDelete);
     }
-  };
-
-  const handleAddNew = () => {
-    setSelectedGoal(undefined);
-    setIsDialogOpen(true);
   };
 
   // Currency options for filter
@@ -147,7 +129,7 @@ const Goal = () => {
               <h1 className="text-2xl font-bold">Manajemen Target</h1>
               <p className="text-muted-foreground">Kelola target keuangan Anda</p>
             </div>
-            <Button onClick={handleAddNew}>
+            <Button onClick={dialog.openAdd}>
               <Plus className="w-4 h-4 mr-2" />
               Tambah Target
             </Button>
@@ -166,7 +148,7 @@ const Goal = () => {
             pageSize={tableState.pageSize}
             onPageChange={tableActions.handlePageChange}
             onPageSizeChange={tableActions.handlePageSizeChange}
-            onEdit={handleEdit}
+            onEdit={dialog.openEdit}
             onDelete={handleDeleteClick}
             currencyOptions={currencyOptions}
             goalFundsSummary={groupedByGoalId}
@@ -186,13 +168,13 @@ const Goal = () => {
         />
 
         <GoalDialog
-          open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
+          open={dialog.open}
+          onOpenChange={(open) => !open && dialog.close()}
           form={form}
-          isLoading={isFormLoading}
+          isLoading={dialog.isLoading}
           onSubmit={handleFormSubmit}
           currencies={currencies}
-          goal={selectedGoal}
+          goal={dialog.selectedData}
         />
       </Layout>
     </ProtectedRoute>
