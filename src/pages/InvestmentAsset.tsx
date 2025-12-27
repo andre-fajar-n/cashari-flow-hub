@@ -5,7 +5,7 @@ import { Plus } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import InvestmentAssetDialog from "@/components/investment/InvestmentAssetDialog";
-import ConfirmationModal from "@/components/ConfirmationModal";
+import { DeleteConfirmationModal, useDeleteConfirmation } from "@/components/DeleteConfirmationModal";
 import { InvestmentAssetModel } from "@/models/investment-assets";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
 import { useCreateInvestmentAsset, useUpdateInvestmentAsset, useDeleteInvestmentAsset } from "@/hooks/queries/use-investment-assets";
@@ -19,7 +19,6 @@ import { AssetFormData, defaultAssetFormValues } from "@/form-dto/investment-ass
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialogState } from "@/hooks/use-dialog-state";
-import { useDeleteConfirmation } from "@/hooks/use-delete-confirmation";
 
 const InvestmentAsset = () => {
   const navigate = useNavigate();
@@ -100,10 +99,6 @@ const InvestmentAsset = () => {
     }
   };
 
-  const handleConfirmDelete = () => {
-    deleteConfirmation.handleConfirm((id) => deleteInvestmentAsset(id));
-  };
-
   const handleViewHistory = (asset: InvestmentAssetModel) => {
     navigate(`/investment-asset/${asset.id}`);
   };
@@ -119,15 +114,9 @@ const InvestmentAsset = () => {
   return (
     <ProtectedRoute>
       <Layout>
-        <ConfirmationModal
-          open={deleteConfirmation.open}
-          onOpenChange={deleteConfirmation.onOpenChange}
-          onConfirm={handleConfirmDelete}
-          title={deleteConfirmation.config.title}
-          description={deleteConfirmation.config.description}
-          confirmText={deleteConfirmation.config.confirmText}
-          cancelText={deleteConfirmation.config.cancelText}
-          variant="destructive"
+        <DeleteConfirmationModal
+          deleteConfirmation={deleteConfirmation}
+          onConfirm={(id) => deleteInvestmentAsset(id)}
         />
 
         <div className="space-y-4">

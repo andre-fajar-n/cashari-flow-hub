@@ -5,7 +5,7 @@ import { Plus, Calendar, Edit, Trash2, Eye } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import BusinessProjectDialog from "@/components/business-project/BusinessProjectDialog";
-import ConfirmationModal from "@/components/ConfirmationModal";
+import { DeleteConfirmationModal, useDeleteConfirmation } from "@/components/DeleteConfirmationModal";
 import { useCreateBusinessProject, useUpdateBusinessProject, useDeleteBusinessProject } from "@/hooks/queries/use-business-projects";
 import { useBusinessProjectsPaginated } from "@/hooks/queries/paginated/use-business-projects-paginated";
 import { BusinessProjectModel } from "@/models/business-projects";
@@ -16,7 +16,6 @@ import { useNavigate } from "react-router-dom";
 import { formatDate } from "@/lib/date";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useDialogState } from "@/hooks/use-dialog-state";
-import { useDeleteConfirmation } from "@/hooks/use-delete-confirmation";
 
 const BusinessProject = () => {
   const navigate = useNavigate();
@@ -82,9 +81,6 @@ const BusinessProject = () => {
     navigate(`/business-project/${project.id}`);
   };
 
-  const handleConfirmDelete = () => {
-    deleteConfirmation.handleConfirm((id) => deleteBusinessProject(id));
-  };
 
   const renderProjectItem = (project: BusinessProjectModel) => (
     <Card key={project.id} className="bg-white border border-gray-200 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
@@ -177,15 +173,9 @@ const BusinessProject = () => {
   return (
     <ProtectedRoute>
       <Layout>
-        <ConfirmationModal
-          open={deleteConfirmation.open}
-          onOpenChange={deleteConfirmation.onOpenChange}
-          onConfirm={handleConfirmDelete}
-          title={deleteConfirmation.config.title}
-          description={deleteConfirmation.config.description}
-          confirmText={deleteConfirmation.config.confirmText}
-          cancelText={deleteConfirmation.config.cancelText}
-          variant="destructive"
+        <DeleteConfirmationModal
+          deleteConfirmation={deleteConfirmation}
+          onConfirm={(id) => deleteBusinessProject(id)}
         />
 
         <DataTable

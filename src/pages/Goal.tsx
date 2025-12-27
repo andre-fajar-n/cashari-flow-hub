@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import GoalDialog from "@/components/goal/GoalDialog";
-import ConfirmationModal from "@/components/ConfirmationModal";
+import { DeleteConfirmationModal, useDeleteConfirmation } from "@/components/DeleteConfirmationModal";
 import { GoalModel } from "@/models/goals";
 import { useCreateGoal, useUpdateGoal, useDeleteGoal } from "@/hooks/queries/use-goals";
 import { useGoalsPaginated } from "@/hooks/queries/paginated/use-goals-paginated";
@@ -16,7 +16,6 @@ import { CurrencyModel } from "@/models/currencies";
 import { GoalFormData, defaultGoalFormValues } from "@/form-dto/goals";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useDialogState } from "@/hooks/use-dialog-state";
-import { useDeleteConfirmation } from "@/hooks/use-delete-confirmation";
 
 const Goal = () => {
   const createGoal = useCreateGoal();
@@ -105,9 +104,6 @@ const Goal = () => {
     }
   };
 
-  const handleConfirmDelete = () => {
-    deleteConfirmation.handleConfirm((id) => deleteGoal(id));
-  };
 
   // Currency options for filter
   const currencyOptions = currencies?.map(currency => ({
@@ -152,15 +148,9 @@ const Goal = () => {
           />
         </div>
 
-        <ConfirmationModal
-          open={deleteConfirmation.open}
-          onOpenChange={deleteConfirmation.onOpenChange}
-          onConfirm={handleConfirmDelete}
-          title={deleteConfirmation.config.title}
-          description={deleteConfirmation.config.description}
-          confirmText={deleteConfirmation.config.confirmText}
-          cancelText={deleteConfirmation.config.cancelText}
-          variant="destructive"
+        <DeleteConfirmationModal
+          deleteConfirmation={deleteConfirmation}
+          onConfirm={(id) => deleteGoal(id)}
         />
 
         <GoalDialog

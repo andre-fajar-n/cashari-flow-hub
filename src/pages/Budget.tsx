@@ -8,7 +8,7 @@ import Layout from "@/components/Layout";
 import { useCreateBudget, useUpdateBudget, useDeleteBudget } from "@/hooks/queries/use-budgets";
 import { useBudgetsPaginated } from "@/hooks/queries/paginated/use-budgets-paginated";
 import { useBudgetSummary } from "@/hooks/queries/use-budget-summary";
-import ConfirmationModal from "@/components/ConfirmationModal";
+import { DeleteConfirmationModal, useDeleteConfirmation } from "@/components/DeleteConfirmationModal";
 import { BudgetModel, BudgetSummary } from "@/models/budgets";
 import { BudgetTable } from "@/components/budget/BudgetTable";
 import { useTableState } from "@/hooks/use-table-state";
@@ -17,7 +17,6 @@ import { CurrencyModel } from "@/models/currencies";
 import { BudgetFormData, defaultBudgetFormValues } from "@/form-dto/budget";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useDialogState } from "@/hooks/use-dialog-state";
-import { useDeleteConfirmation } from "@/hooks/use-delete-confirmation";
 
 const Budget = () => {
   const navigate = useNavigate();
@@ -123,9 +122,6 @@ const Budget = () => {
     navigate(`/budget/${budget.id}`);
   };
 
-  const handleConfirmDelete = () => {
-    deleteConfirmation.handleConfirm((id) => deleteBudget(id));
-  };
 
   return (
     <ProtectedRoute>
@@ -164,15 +160,9 @@ const Budget = () => {
           />
         </div>
 
-        <ConfirmationModal
-          open={deleteConfirmation.open}
-          onOpenChange={deleteConfirmation.onOpenChange}
-          onConfirm={handleConfirmDelete}
-          title={deleteConfirmation.config.title}
-          description={deleteConfirmation.config.description}
-          confirmText={deleteConfirmation.config.confirmText}
-          cancelText={deleteConfirmation.config.cancelText}
-          variant="destructive"
+        <DeleteConfirmationModal
+          deleteConfirmation={deleteConfirmation}
+          onConfirm={(id) => deleteBudget(id)}
         />
 
         <BudgetDialog

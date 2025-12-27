@@ -5,7 +5,7 @@ import { Plus, TrendingUp, Edit, Trash2 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import InvestmentInstrumentDialog from "@/components/investment/InvestmentInstrumentDialog";
 import Layout from "@/components/Layout";
-import ConfirmationModal from "@/components/ConfirmationModal";
+import { DeleteConfirmationModal, useDeleteConfirmation } from "@/components/DeleteConfirmationModal";
 import { useCreateInvestmentInstrument, useUpdateInvestmentInstrument, useDeleteInvestmentInstrument } from "@/hooks/queries/use-investment-instruments";
 import { useInvestmentInstrumentsPaginated } from "@/hooks/queries/paginated/use-investment-instruments-paginated";
 import { InvestmentInstrumentModel } from "@/models/investment-instruments";
@@ -15,7 +15,6 @@ import { InstrumentFormData, defaultInstrumentFormValues } from "@/form-dto/inve
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialogState } from "@/hooks/use-dialog-state";
-import { useDeleteConfirmation } from "@/hooks/use-delete-confirmation";
 
 const InvestmentInstrument = () => {
   const { user } = useAuth();
@@ -78,9 +77,6 @@ const InvestmentInstrument = () => {
     }
   };
 
-  const handleConfirmDelete = () => {
-    deleteConfirmation.handleConfirm((id) => deleteInstrument(id));
-  };
 
   const renderInstrumentItem = (instrument: InvestmentInstrumentModel) => (
     <Card key={instrument.id} className="bg-card border border-border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
@@ -164,15 +160,9 @@ const InvestmentInstrument = () => {
   return (
     <ProtectedRoute>
       <Layout>
-        <ConfirmationModal
-          open={deleteConfirmation.open}
-          onOpenChange={deleteConfirmation.onOpenChange}
-          onConfirm={handleConfirmDelete}
-          title={deleteConfirmation.config.title}
-          description={deleteConfirmation.config.description}
-          confirmText={deleteConfirmation.config.confirmText}
-          cancelText={deleteConfirmation.config.cancelText}
-          variant="destructive"
+        <DeleteConfirmationModal
+          deleteConfirmation={deleteConfirmation}
+          onConfirm={(id) => deleteInstrument(id)}
         />
 
         <DataTable

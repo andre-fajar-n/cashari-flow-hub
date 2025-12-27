@@ -6,7 +6,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import DebtDialog from "@/components/debt/DebtDialog";
 import { DEBT_TYPES } from "@/constants/enums";
-import ConfirmationModal from "@/components/ConfirmationModal";
+import { DeleteConfirmationModal, useDeleteConfirmation } from "@/components/DeleteConfirmationModal";
 import { useCreateDebt, useUpdateDebt, useDeleteDebt } from "@/hooks/queries/use-debts";
 import { useDebtsPaginated } from "@/hooks/queries/paginated/use-debts-paginated";
 import { useDebtSummary } from "@/hooks/queries/use-debt-summary";
@@ -18,7 +18,6 @@ import { useUserSettings } from "@/hooks/queries/use-user-settings";
 import { DebtFormData, defaultDebtFormValues } from "@/form-dto/debts";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useDialogState } from "@/hooks/use-dialog-state";
-import { useDeleteConfirmation } from "@/hooks/use-delete-confirmation";
 
 const Debt = () => {
   const navigate = useNavigate();
@@ -92,9 +91,6 @@ const Debt = () => {
     }
   };
 
-  const handleConfirmDelete = () => {
-    deleteConfirmation.handleConfirm((id) => deleteDebt(id));
-  };
 
   const handleViewHistory = (debt: DebtModel) => {
     navigate(`/debt/${debt.id}`);
@@ -160,15 +156,9 @@ const Debt = () => {
           />
         </div>
 
-        <ConfirmationModal
-          open={deleteConfirmation.open}
-          onOpenChange={deleteConfirmation.onOpenChange}
-          onConfirm={handleConfirmDelete}
-          title={deleteConfirmation.config.title}
-          description={deleteConfirmation.config.description}
-          confirmText={deleteConfirmation.config.confirmText}
-          cancelText={deleteConfirmation.config.cancelText}
-          variant="destructive"
+        <DeleteConfirmationModal
+          deleteConfirmation={deleteConfirmation}
+          onConfirm={(id) => deleteDebt(id)}
         />
 
         <DebtDialog
