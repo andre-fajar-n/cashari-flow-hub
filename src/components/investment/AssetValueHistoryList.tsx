@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { ColumnDef } from "@tanstack/react-table";
@@ -16,9 +16,10 @@ import AmountText from "@/components/ui/amount-text";
 import AssetValueDialog from "@/components/investment/AssetValueDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useDeleteInvestmentAssetValue, useCreateInvestmentAssetValue, useUpdateInvestmentAssetValue } from "@/hooks/queries/use-investment-asset-values";
-import { AssetValueFormData, defaultAssetValueFormValues } from "@/form-dto/investment-asset-values";
+import { AssetValueFormData, defaultAssetValueFormValues, mapAssetValueToFormData } from "@/form-dto/investment-asset-values";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useAuth } from "@/hooks/use-auth";
+import { useDialogState } from "@/hooks/use-dialog-state";
 
 interface AssetValueHistoryListProps {
   assetId: number;
@@ -34,17 +35,10 @@ const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetV
     initialPageSize: 10,
   });
 
-  const [valueDialog, setValueDialog] = useState<{
-    open: boolean;
-    value?: InvestmentAssetValueModel;
-  }>({ open: false });
-
   const [deleteModal, setDeleteModal] = useState<{
     open: boolean;
     id: number | null;
   }>({ open: false, id: null });
-
-  const [isFormLoading, setIsFormLoading] = useState(false);
 
   const { data: paged, isLoading } = useInvestmentAssetValuesPaginatedByAsset(assetId, {
     page: tableState.page,
@@ -62,41 +56,30 @@ const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetV
 
   // Form
   const form = useForm<AssetValueFormData>({
-    defaultValues: defaultAssetValueFormValues,
+    defaultValues: { ...defaultAssetValueFormValues, asset_id: assetId },
+  });
+
+  // Dialog state using hook
+  const valueDialog = useDialogState<InvestmentAssetValueModel, AssetValueFormData>({
+    form,
+    defaultValues: { ...defaultAssetValueFormValues, asset_id: assetId },
+    mapDataToForm: mapAssetValueToFormData,
   });
 
   // Mutation callbacks
   const { handleSuccess: handleMutationSuccess, handleError } = useMutationCallbacks({
-    setIsLoading: setIsFormLoading,
-    onOpenChange: (open) => setValueDialog({ open }),
+    setIsLoading: valueDialog.setIsLoading,
+    onOpenChange: (open) => !open && valueDialog.close(),
     form,
     queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_ASSET_VALUES
   });
 
-  // Reset form when dialog opens
-  useEffect(() => {
-    if (valueDialog.open) {
-      if (valueDialog.value) {
-        form.reset({
-          asset_id: valueDialog.value.asset_id,
-          value: valueDialog.value.value,
-          date: valueDialog.value.date,
-        });
-      } else {
-        form.reset({
-          ...defaultAssetValueFormValues,
-          asset_id: assetId,
-        });
-      }
-    }
-  }, [valueDialog.open, valueDialog.value, form, assetId]);
-
   const handleFormSubmit = (data: AssetValueFormData) => {
     if (!user) return;
-    setIsFormLoading(true);
+    valueDialog.setIsLoading(true);
 
-    if (valueDialog.value) {
-      updateAssetValue.mutate({ id: valueDialog.value.id, ...data }, {
+    if (valueDialog.selectedData) {
+      updateAssetValue.mutate({ id: valueDialog.selectedData.id, ...data }, {
         onSuccess: handleMutationSuccess,
         onError: handleError
       });
@@ -106,10 +89,6 @@ const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetV
         onError: handleError
       });
     }
-  };
-
-  const handleEdit = (value: InvestmentAssetValueModel) => {
-    setValueDialog({ open: true, value });
   };
 
   const handleDeleteClick = (value: InvestmentAssetValueModel) => {
@@ -160,7 +139,7 @@ const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetV
           {
             label: "Edit",
             icon: Edit,
-            onClick: handleEdit,
+            onClick: valueDialog.openEdit,
           },
           {
             label: "Hapus",
@@ -210,11 +189,11 @@ const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetV
 
       <AssetValueDialog
         open={valueDialog.open}
-        onOpenChange={(open) => setValueDialog({ open })}
+        onOpenChange={(open) => !open && valueDialog.close()}
         form={form}
-        isLoading={isFormLoading}
+        isLoading={valueDialog.isLoading}
         onSubmit={handleFormSubmit}
-        assetValue={valueDialog.value}
+        assetValue={valueDialog.selectedData}
       />
 
       <ConfirmationModal
