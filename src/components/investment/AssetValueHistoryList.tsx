@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
 import { ColumnDef } from "@tanstack/react-table";
 import { Edit, Trash2 } from "lucide-react";
 import { useInvestmentAssetValuesPaginatedByAsset } from "@/hooks/queries/paginated/use-investment-asset-values-paginated";
@@ -14,7 +15,10 @@ import { formatAmountCurrency } from "@/lib/currency";
 import AmountText from "@/components/ui/amount-text";
 import AssetValueDialog from "@/components/investment/AssetValueDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { useDeleteInvestmentAssetValue } from "@/hooks/queries/use-investment-asset-values";
+import { useDeleteInvestmentAssetValue, useCreateInvestmentAssetValue, useUpdateInvestmentAssetValue } from "@/hooks/queries/use-investment-asset-values";
+import { AssetValueFormData, defaultAssetValueFormValues } from "@/form-dto/investment-asset-values";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { useAuth } from "@/hooks/use-auth";
 
 interface AssetValueHistoryListProps {
   assetId: number;
@@ -24,6 +28,7 @@ interface AssetValueHistoryListProps {
 
 const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetValueHistoryListProps) => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const { state: tableState, actions: tableActions } = useTableState({
     initialPage: 1,
     initialPageSize: 10,
@@ -39,6 +44,8 @@ const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetV
     id: number | null;
   }>({ open: false, id: null });
 
+  const [isFormLoading, setIsFormLoading] = useState(false);
+
   const { data: paged, isLoading } = useInvestmentAssetValuesPaginatedByAsset(assetId, {
     page: tableState.page,
     itemsPerPage: tableState.pageSize,
@@ -47,9 +54,59 @@ const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetV
   });
 
   const { mutate: deleteAssetValue } = useDeleteInvestmentAssetValue();
+  const createAssetValue = useCreateInvestmentAssetValue();
+  const updateAssetValue = useUpdateInvestmentAssetValue();
 
   const values = paged?.data || [];
   const totalCount = paged?.count || 0;
+
+  // Form
+  const form = useForm<AssetValueFormData>({
+    defaultValues: defaultAssetValueFormValues,
+  });
+
+  // Mutation callbacks
+  const { handleSuccess: handleMutationSuccess, handleError } = useMutationCallbacks({
+    setIsLoading: setIsFormLoading,
+    onOpenChange: (open) => setValueDialog({ open }),
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_ASSET_VALUES
+  });
+
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (valueDialog.open) {
+      if (valueDialog.value) {
+        form.reset({
+          asset_id: valueDialog.value.asset_id,
+          value: valueDialog.value.value,
+          date: valueDialog.value.date,
+        });
+      } else {
+        form.reset({
+          ...defaultAssetValueFormValues,
+          asset_id: assetId,
+        });
+      }
+    }
+  }, [valueDialog.open, valueDialog.value, form, assetId]);
+
+  const handleFormSubmit = (data: AssetValueFormData) => {
+    if (!user) return;
+    setIsFormLoading(true);
+
+    if (valueDialog.value) {
+      updateAssetValue.mutate({ id: valueDialog.value.id, ...data }, {
+        onSuccess: handleMutationSuccess,
+        onError: handleError
+      });
+    } else {
+      createAssetValue.mutate(data, {
+        onSuccess: handleMutationSuccess,
+        onError: handleError
+      });
+    }
+  };
 
   const handleEdit = (value: InvestmentAssetValueModel) => {
     setValueDialog({ open: true, value });
@@ -69,11 +126,6 @@ const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetV
         }
       });
     }
-  };
-
-  const handleSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ["investment_asset_values_paginated"] });
-    queryClient.invalidateQueries({ queryKey: ["investment_asset_values"] });
   };
 
   const columns: ColumnDef<InvestmentAssetValueModel>[] = [
@@ -159,9 +211,10 @@ const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetV
       <AssetValueDialog
         open={valueDialog.open}
         onOpenChange={(open) => setValueDialog({ open })}
+        form={form}
+        isLoading={isFormLoading}
+        onSubmit={handleFormSubmit}
         assetValue={valueDialog.value}
-        assetId={assetId}
-        onSuccess={handleSuccess}
       />
 
       <ConfirmationModal
@@ -179,4 +232,3 @@ const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetV
 };
 
 export default AssetValueHistoryList;
-
