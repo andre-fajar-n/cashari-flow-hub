@@ -27,6 +27,7 @@ import { MoneyMovementModel } from "@/models/money-movements";
 import { GoalInvestmentRecordModel } from "@/models/goal-investment-records";
 import { formatDate } from "@/lib/date";
 import AssetValueHistoryList from "@/components/investment/AssetValueHistoryList";
+import PageLoading from "@/components/PageLoading";
 import AssetMovementList from "@/components/investment/AssetMovementList";
 import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData, mapGoalInvestmentRecordToFormData } from "@/form-dto/goal-investment-records";
 import { AssetFormData, defaultAssetFormValues, mapAssetToFormData } from "@/form-dto/investment-assets";
@@ -122,9 +123,9 @@ const AssetDetail = () => {
     return (
       <ProtectedRoute>
         <Layout>
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Aset tidak ditemukan</p>
-            <Button onClick={() => navigate('/investment-asset')} className="mt-4">
+          <div className="flex flex-col items-center justify-center py-16">
+            <p className="text-muted-foreground mb-4">Aset tidak ditemukan</p>
+            <Button onClick={() => navigate('/investment-asset')} variant="outline">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Kembali ke Daftar Aset
             </Button>

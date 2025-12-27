@@ -11,6 +11,7 @@ import BudgetDialog from "@/components/budget/BudgetDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import BudgetTransactionDialog from "@/components/budget/BudgetTransactionDialog";
 import BudgetSummaryCard from "@/components/budget/BudgetSummaryCard";
+import PageLoading from "@/components/PageLoading";
 import { AmountText } from "@/components/ui/amount-text";
 import { formatAmountCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/date";
@@ -171,13 +172,10 @@ const BudgetDetail = () => {
     return (
       <ProtectedRoute>
         <Layout>
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Budget tidak ditemukan</p>
-            <Button
-              onClick={() => navigate("/budget")}
-              className="mt-4"
-              variant="outline"
-            >
+          <div className="flex flex-col items-center justify-center py-16">
+            <p className="text-muted-foreground mb-4">Budget tidak ditemukan</p>
+            <Button onClick={() => navigate("/budget")} variant="outline">
+              <ArrowLeft className="w-4 h-4 mr-2" />
               Kembali ke Daftar Budget
             </Button>
           </div>
