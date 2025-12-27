@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -19,15 +18,12 @@ import { SelectFilterConfig } from "@/components/ui/advanced-data-table/advanced
 import { useUserSettings } from "@/hooks/queries/use-user-settings";
 import { DebtFormData, defaultDebtFormValues } from "@/form-dto/debts";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { useDialogState } from "@/hooks/use-dialog-state";
 
 const Debt = () => {
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [debtToDelete, setDebtToDelete] = useState<DebtModel | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedDebt, setSelectedDebt] = useState<DebtModel | undefined>(undefined);
-  const [isFormLoading, setIsFormLoading] = useState(false);
 
   const createDebt = useCreateDebt();
   const updateDebt = useUpdateDebt();
@@ -36,6 +32,17 @@ const Debt = () => {
   // Form state managed at page level
   const form = useForm<DebtFormData>({
     defaultValues: defaultDebtFormValues,
+  });
+
+  // Dialog state using reusable hook
+  const dialog = useDialogState<DebtModel, DebtFormData>({
+    form,
+    defaultValues: defaultDebtFormValues,
+    mapDataToForm: (debt) => ({
+      name: debt.name || "",
+      type: debt.type || DEBT_TYPES.LOAN,
+      due_date: debt.due_date || "",
+    }),
   });
 
   // Table state management using generic hook
@@ -63,33 +70,18 @@ const Debt = () => {
     return acc;
   }, {} as Record<number, DebtModel>);
 
-  // Reset form when dialog opens
-  useEffect(() => {
-    if (isDialogOpen) {
-      if (selectedDebt) {
-        form.reset({
-          name: selectedDebt.name || "",
-          type: selectedDebt.type || DEBT_TYPES.LOAN,
-          due_date: selectedDebt.due_date || "",
-        });
-      } else {
-        form.reset(defaultDebtFormValues);
-      }
-    }
-  }, [selectedDebt, isDialogOpen, form]);
-
   // Mutation callbacks
   const { handleSuccess, handleError } = useMutationCallbacks({
-    setIsLoading: setIsFormLoading,
-    onOpenChange: setIsDialogOpen,
+    setIsLoading: dialog.setIsLoading,
+    onOpenChange: (open) => !open && dialog.close(),
     form,
     queryKeysToInvalidate: QUERY_KEY_SETS.DEBTS
   });
 
   const handleFormSubmit = (data: DebtFormData) => {
-    setIsFormLoading(true);
-    if (selectedDebt) {
-      updateDebt.mutate({ id: selectedDebt.id, ...data }, {
+    dialog.setIsLoading(true);
+    if (dialog.selectedData) {
+      updateDebt.mutate({ id: dialog.selectedData.id, ...data }, {
         onSuccess: handleSuccess,
         onError: handleError
       });
@@ -99,11 +91,6 @@ const Debt = () => {
         onError: handleError
       });
     }
-  };
-
-  const handleEdit = (debt: DebtModel) => {
-    setSelectedDebt(debt);
-    setIsDialogOpen(true);
   };
 
   const handleDeleteClick = (debtId: number) => {
@@ -118,11 +105,6 @@ const Debt = () => {
     if (debtToDelete) {
       deleteDebt(debtToDelete.id);
     }
-  };
-
-  const handleAddNew = () => {
-    setSelectedDebt(undefined);
-    setIsDialogOpen(true);
   };
 
   const handleViewHistory = (debt: DebtModel) => {
@@ -161,7 +143,7 @@ const Debt = () => {
               <h1 className="text-2xl font-bold text-gray-900">Manajemen Hutang/Piutang</h1>
               <p className="text-sm text-muted-foreground mt-1">Kelola hutang dan piutang Anda</p>
             </div>
-            <Button onClick={handleAddNew}>
+            <Button onClick={dialog.openAdd}>
               <Plus className="w-4 h-4 mr-2" />
               Tambah Hutang/Piutang
             </Button>
@@ -180,7 +162,7 @@ const Debt = () => {
             onPageSizeChange={tableActions.handlePageSizeChange}
             onSearchChange={tableActions.handleSearchChange}
             onFiltersChange={tableActions.handleFiltersChange}
-            onEdit={handleEdit}
+            onEdit={dialog.openEdit}
             onDelete={handleDeleteClick}
             onViewHistory={handleViewHistory}
             debtSummary={debtSummary}
@@ -201,12 +183,12 @@ const Debt = () => {
         />
 
         <DebtDialog
-          open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
+          open={dialog.open}
+          onOpenChange={(open) => !open && dialog.close()}
           form={form}
-          isLoading={isFormLoading}
+          isLoading={dialog.isLoading}
           onSubmit={handleFormSubmit}
-          debt={selectedDebt}
+          debt={dialog.selectedData}
         />
       </Layout>
     </ProtectedRoute>
