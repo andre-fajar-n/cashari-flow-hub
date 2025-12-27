@@ -7,7 +7,7 @@ import { SelectFilterConfig } from "@/components/ui/advanced-data-table/advanced
 import { TransactionHistoryTable } from "@/components/transactions/TransactionHistoryTable";
 import { getTransactionHistoryColumns } from "@/components/transactions/TransactionHistoryColumns";
 import { useMoneyMovementsPaginatedByBudget } from "@/hooks/queries/paginated/use-money-movements-paginated";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { TransactionModel } from "@/models/transactions";
 import { MOVEMENT_TYPES } from "@/constants/enums";
 import { useDeleteTransaction, useTransactions } from "@/hooks/queries/use-transactions";
@@ -16,9 +16,10 @@ import TransactionDialog from "@/components/transactions/TransactionDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useForm } from "react-hook-form";
-import { defaultTransactionFormValues, TransactionFormData } from "@/form-dto/transactions";
+import { defaultTransactionFormValues, TransactionFormData, mapTransactionToFormData } from "@/form-dto/transactions";
 import { useInsertTransactionWithRelations, useUpdateTransactionWithRelations } from "@/hooks/queries/use-transaction-with-relations";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { useDialogState } from "@/hooks/use-dialog-state";
 
 interface BudgetTransactionListProps {
   budget: BudgetModel;
@@ -26,15 +27,10 @@ interface BudgetTransactionListProps {
 
 const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
   const queryClient = useQueryClient();
-  const [transactionDialog, setTransactionDialog] = useState<{
-    open: boolean;
-    transaction?: TransactionModel;
-  }>({ open: false });
   const [deleteModal, setDeleteModal] = useState<{
     open: boolean;
     item?: MoneyMovementModel;
   }>({ open: false });
-  const [isFormLoading, setIsFormLoading] = useState(false);
 
   // Table state management using generic hook
   const { state: tableState, actions: tableActions } = useTableState({
@@ -74,46 +70,31 @@ const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
     defaultValues: defaultTransactionFormValues,
   });
 
-  // Reset form when dialog opens
-  useEffect(() => {
-    if (transactionDialog.open) {
-      const transaction = transactionDialog.transaction;
-      if (transaction) {
-        const budgetIds = transaction.budget_items?.map((item) => item.budget_id) || [];
-        const businessProjectIds = transaction.business_project_transactions?.map((item) => item.project_id) || [];
-        form.reset({
-          amount: transaction.amount || 0,
-          category_id: transaction.category_id ? transaction.category_id.toString() : null,
-          wallet_id: transaction.wallet_id ? transaction.wallet_id.toString() : null,
-          date: transaction.date || new Date().toISOString().split("T")[0],
-          description: transaction.description || "",
-          budget_ids: budgetIds,
-          business_project_ids: businessProjectIds,
-        });
-      } else {
-        form.reset(defaultTransactionFormValues);
-      }
-    }
-  }, [transactionDialog.open, transactionDialog.transaction, form]);
+  // Dialog state using hook
+  const transactionDialog = useDialogState<TransactionModel, TransactionFormData>({
+    form,
+    defaultValues: defaultTransactionFormValues,
+    mapDataToForm: mapTransactionToFormData,
+  });
 
   // Mutation callbacks
   const { handleSuccess: mutationSuccess, handleError } = useMutationCallbacks({
-    setIsLoading: setIsFormLoading,
-    onOpenChange: (open) => setTransactionDialog({ open }),
+    setIsLoading: transactionDialog.setIsLoading,
+    onOpenChange: (open) => !open && transactionDialog.close(),
     form,
     queryKeysToInvalidate: QUERY_KEY_SETS.TRANSACTIONS
   });
 
   const handleFormSubmit = (data: TransactionFormData) => {
-    setIsFormLoading(true);
+    transactionDialog.setIsLoading(true);
     const processedData = {
       ...data,
       category_id: data.category_id || "",
       wallet_id: data.wallet_id || "",
     };
 
-    if (transactionDialog.transaction) {
-      updateTransactionWithRelations.mutate({ id: transactionDialog.transaction.id, ...processedData }, {
+    if (transactionDialog.selectedData) {
+      updateTransactionWithRelations.mutate({ id: transactionDialog.selectedData.id, ...processedData }, {
         onSuccess: mutationSuccess,
         onError: handleError
       });
@@ -132,8 +113,11 @@ const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
     })
   };
 
-  const handleEditTransaction = (transaction: MoneyMovementModel) => {
-    setTransactionDialog({ open: true, transaction: transactionsGroupById[transaction.resource_id] });
+  const handleEditTransaction = (movement: MoneyMovementModel) => {
+    const transaction = transactionsGroupById[movement.resource_id];
+    if (transaction) {
+      transactionDialog.openEdit(transaction);
+    }
   };
 
   const handleDeleteTransaction = (movement: MoneyMovementModel) => {
@@ -211,11 +195,11 @@ const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
 
       <TransactionDialog
         open={transactionDialog.open}
-        onOpenChange={(open) => setTransactionDialog({ open })}
+        onOpenChange={(open) => !open && transactionDialog.close()}
         form={form}
-        isLoading={isFormLoading}
+        isLoading={transactionDialog.isLoading}
         onSubmit={handleFormSubmit}
-        transaction={transactionDialog.transaction}
+        transaction={transactionDialog.selectedData}
       />
 
       <ConfirmationModal
