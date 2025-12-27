@@ -1,13 +1,13 @@
 import { useState, useCallback } from "react";
 
-interface DeleteConfirmationConfig {
+export interface DeleteConfirmationConfig {
   title?: string;
   description?: string;
   confirmText?: string;
   cancelText?: string;
 }
 
-interface UseDeleteConfirmationReturn<T = number> {
+export interface UseDeleteConfirmationReturn<T = number> {
   open: boolean;
   itemToDelete: T | null;
   config: DeleteConfirmationConfig;
