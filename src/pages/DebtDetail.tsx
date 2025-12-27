@@ -12,6 +12,7 @@ import DebtHistoryDialog from "@/components/debt/DebtHistoryDialog";
 import DebtSummaryCard from "@/components/debt/DebtSummaryCard";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import DebtHistoryList from "@/components/debt/DebtHistoryList";
+import PageLoading from "@/components/PageLoading";
 import { DebtHistoryModel } from "@/models/debt-histories";
 import { useCreateDebtHistory, useDeleteDebtHistory, useUpdateDebtHistory } from "@/hooks/queries/use-debt-histories";
 import { useWallets } from "@/hooks/queries/use-wallets";
@@ -184,9 +185,9 @@ const DebtHistory = () => {
     return (
       <ProtectedRoute>
         <Layout>
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Hutang/piutang tidak ditemukan</p>
-            <Button onClick={() => navigate("/debt")} className="mt-4">
+          <div className="flex flex-col items-center justify-center py-16">
+            <p className="text-muted-foreground mb-4">Hutang/piutang tidak ditemukan</p>
+            <Button onClick={() => navigate("/debt")} variant="outline">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Kembali ke Daftar Hutang/Piutang
             </Button>

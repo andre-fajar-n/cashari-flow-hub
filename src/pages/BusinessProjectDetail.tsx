@@ -8,6 +8,7 @@ import BusinessProjectTransactionDialog from "@/components/business-project/Busi
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import BusinessProjectTransactionList from "@/components/business-project/BusinessProjectTransactionList";
+import PageLoading from "@/components/PageLoading";
 import { useBusinessProjectDetail, useDeleteBusinessProject, useUpdateBusinessProject } from "@/hooks/queries/use-business-projects";
 import { useState, useEffect } from "react";
 import BusinessProjectDialog from "@/components/business-project/BusinessProjectDialog";
@@ -139,13 +140,10 @@ const BusinessProjectDetail = () => {
     return (
       <ProtectedRoute>
         <Layout>
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Proyek tidak ditemukan</p>
-            <Button
-              onClick={() => navigate("/business-project")}
-              className="mt-4"
-              variant="outline"
-            >
+          <div className="flex flex-col items-center justify-center py-16">
+            <p className="text-muted-foreground mb-4">Proyek tidak ditemukan</p>
+            <Button onClick={() => navigate("/business-project")} variant="outline">
+              <ArrowLeft className="w-4 h-4 mr-2" />
               Kembali ke Daftar Proyek
             </Button>
           </div>

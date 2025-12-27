@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import BudgetDialog from "@/components/budget/BudgetDialog";
 import Layout from "@/components/Layout";
+import PageLoading from "@/components/PageLoading";
 import { useCreateBudget, useUpdateBudget, useDeleteBudget } from "@/hooks/queries/use-budgets";
 import { useBudgetsPaginated } from "@/hooks/queries/paginated/use-budgets-paginated";
 import { useBudgetSummary } from "@/hooks/queries/use-budget-summary";
@@ -111,11 +112,10 @@ const Budget = () => {
     return (
       <ProtectedRoute>
         <Layout>
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Memuat...</p>
-          </div>
+          <PageLoading message="Memuat data budget..." />
         </Layout>
-      </ProtectedRoute>)
+      </ProtectedRoute>
+    );
   }
 
   const handleView = (budget: BudgetModel) => {

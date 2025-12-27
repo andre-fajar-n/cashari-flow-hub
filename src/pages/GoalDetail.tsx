@@ -12,6 +12,7 @@ import GoalDialog from "@/components/goal/GoalDialog";
 import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
 import GoalOverview from "@/components/goal/GoalOverview";
+import PageLoading from "@/components/PageLoading";
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
@@ -189,16 +190,25 @@ const GoalDetail = () => {
   };
 
   // Check loading states and goal existence before accessing goal properties
-  if (!goal || isLoading) {
-    const message = !goal ? "Data tidak ditemukan" : "Memuat data..."
+  if (isLoading) {
     return (
       <ProtectedRoute>
         <Layout>
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">{message}</p>
-            <Button onClick={() => navigate('/goal')} className="mt-4">
+          <PageLoading message="Memuat detail target..." />
+        </Layout>
+      </ProtectedRoute>
+    );
+  }
+
+  if (!goal) {
+    return (
+      <ProtectedRoute>
+        <Layout>
+          <div className="flex flex-col items-center justify-center py-16">
+            <p className="text-muted-foreground mb-4">Target tidak ditemukan</p>
+            <Button onClick={() => navigate('/goal')} variant="outline">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Kembali ke Daftar Goal
+              Kembali ke Daftar Target
             </Button>
           </div>
         </Layout>
