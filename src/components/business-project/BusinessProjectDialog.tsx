@@ -1,77 +1,29 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { useAuth } from "@/hooks/use-auth";
+import { UseFormReturn } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { defaultBusinessProjectFormValues, BusinessProjectFormData } from "@/form-dto/business-projects";
-import { useCreateBusinessProject, useUpdateBusinessProject } from "@/hooks/queries/use-business-projects";
-import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { BusinessProjectFormData } from "@/form-dto/business-projects";
 import { BusinessProjectModel } from "@/models/business-projects";
 
 interface BusinessProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  form: UseFormReturn<BusinessProjectFormData>;
+  isLoading: boolean;
+  onSubmit: (data: BusinessProjectFormData) => void;
   project?: BusinessProjectModel;
-  onSuccess?: () => void;
 }
 
-const BusinessProjectDialog = ({ open, onOpenChange, project, onSuccess }: BusinessProjectDialogProps) => {
-  const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-
-  const createProject = useCreateBusinessProject();
-  const updateProject = useUpdateBusinessProject();
-
-  const form = useForm<BusinessProjectFormData>({
-    defaultValues: defaultBusinessProjectFormValues,
-  });
-
-  // Reset form when project prop changes or dialog opens/closes
-  useEffect(() => {
-    if (open) {
-      if (project) {
-        form.reset({
-          name: project.name || "",
-          description: project.description || "",
-          start_date: project.start_date || "",
-          end_date: project.end_date || "",
-        });
-      } else {
-        form.reset(defaultBusinessProjectFormValues);
-      }
-    }
-  }, [project, open, form]);
-
-  // Use mutation callbacks utility
-  const { handleSuccess, handleError } = useMutationCallbacks({
-    setIsLoading,
-    onOpenChange,
-    onSuccess,
-    form,
-    queryKeysToInvalidate: QUERY_KEY_SETS.BUSINESS_PROJECTS
-  });
-
-  const onSubmit = async (data: BusinessProjectFormData) => {
-    if (!user) return;
-
-    setIsLoading(true);
-
-    if (project) {
-      updateProject.mutate({ id: project.id, ...data }, {
-        onSuccess: handleSuccess,
-        onError: handleError
-      });
-    } else {
-      createProject.mutate(data, {
-        onSuccess: handleSuccess,
-        onError: handleError
-      });
-    }
-  };
-
+const BusinessProjectDialog = ({ 
+  open, 
+  onOpenChange, 
+  form, 
+  isLoading, 
+  onSubmit, 
+  project 
+}: BusinessProjectDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">

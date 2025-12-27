@@ -1,33 +1,83 @@
-import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Plus, Calendar, Edit, Trash2, Eye } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import BusinessProjectDialog from "@/components/business-project/BusinessProjectDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { useDeleteBusinessProject } from "@/hooks/queries/use-business-projects";
+import { useCreateBusinessProject, useUpdateBusinessProject, useDeleteBusinessProject } from "@/hooks/queries/use-business-projects";
 import { useBusinessProjectsPaginated } from "@/hooks/queries/paginated/use-business-projects-paginated";
 import { BusinessProjectModel } from "@/models/business-projects";
+import { BusinessProjectFormData, defaultBusinessProjectFormValues } from "@/form-dto/business-projects";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { formatDate } from "@/lib/date";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 
 const BusinessProject = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [businessProjectToDelete, setBusinessProjectToDelete] = useState<number | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<BusinessProjectModel | undefined>(undefined);
+  const [isFormLoading, setIsFormLoading] = useState(false);
+  
+  const createProject = useCreateBusinessProject();
+  const updateProject = useUpdateBusinessProject();
   const { mutate: deleteBusinessProject } = useDeleteBusinessProject();
+  
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
   const [serverSearch, setServerSearch] = useState("");
   const [serverFilters, setServerFilters] = useState<Record<string, any>>({});
   const { data: paged, isLoading } = useBusinessProjectsPaginated({ page, itemsPerPage, searchTerm: serverSearch, filters: serverFilters });
   const projects = paged?.data || [];
+
+  // Form state managed at page level
+  const form = useForm<BusinessProjectFormData>({
+    defaultValues: defaultBusinessProjectFormValues,
+  });
+
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (isDialogOpen) {
+      if (selectedProject) {
+        form.reset({
+          name: selectedProject.name || "",
+          description: selectedProject.description || "",
+          start_date: selectedProject.start_date || "",
+          end_date: selectedProject.end_date || "",
+        });
+      } else {
+        form.reset(defaultBusinessProjectFormValues);
+      }
+    }
+  }, [selectedProject, isDialogOpen, form]);
+
+  // Mutation callbacks
+  const { handleSuccess, handleError } = useMutationCallbacks({
+    setIsLoading: setIsFormLoading,
+    onOpenChange: setIsDialogOpen,
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.BUSINESS_PROJECTS
+  });
+
+  const handleFormSubmit = (data: BusinessProjectFormData) => {
+    setIsFormLoading(true);
+    if (selectedProject) {
+      updateProject.mutate({ id: selectedProject.id, ...data }, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
+    } else {
+      createProject.mutate(data, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
+    }
+  };
 
   const handleView = (project: BusinessProjectModel) => {
     navigate(`/business-project/${project.id}`);
@@ -197,10 +247,10 @@ const BusinessProject = () => {
         <BusinessProjectDialog
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
+          form={form}
+          isLoading={isFormLoading}
+          onSubmit={handleFormSubmit}
           project={selectedProject}
-          onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ["business_projects"] });
-          }}
         />
       </Layout>
     </ProtectedRoute>

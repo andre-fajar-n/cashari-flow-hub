@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import { ArrowLeft, Edit, Calendar, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -7,13 +8,15 @@ import BusinessProjectTransactionDialog from "@/components/business-project/Busi
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import BusinessProjectTransactionList from "@/components/business-project/BusinessProjectTransactionList";
-import { useBusinessProjectDetail, useDeleteBusinessProject, useUpdateBusinessProject } from "@/hooks/queries/use-business-projects";
+import { useBusinessProjectDetail, useDeleteBusinessProject, useCreateBusinessProject, useUpdateBusinessProject } from "@/hooks/queries/use-business-projects";
 import { useState, useEffect } from "react";
 import BusinessProjectDialog from "@/components/business-project/BusinessProjectDialog";
 import { formatDate } from "@/lib/date";
 import { useTransactions } from "@/hooks/queries/use-transactions";
 import { useBusinessProjectTransactions } from "@/hooks/queries/use-business-project-transactions";
 import { TransactionFilter } from "@/form-dto/transactions";
+import { BusinessProjectFormData, defaultBusinessProjectFormValues } from "@/form-dto/business-projects";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 
 const BusinessProjectDetail = () => {
   const { id } = useParams();
@@ -21,6 +24,7 @@ const BusinessProjectDetail = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isFormLoading, setIsFormLoading] = useState(false);
 
   // State for BusinessProjectTransactionDialog
   const [selectedTransactionIds, setSelectedTransactionIds] = useState<number[]>([]);
@@ -29,7 +33,42 @@ const BusinessProjectDetail = () => {
 
   const { data: project } = useBusinessProjectDetail(parseInt(id || "0"));
   const { mutate: deleteProject } = useDeleteBusinessProject();
+  const updateProject = useUpdateBusinessProject();
   const { addTransactionsToProject } = useBusinessProjectTransactions(project?.id);
+
+  // Form state managed at page level
+  const form = useForm<BusinessProjectFormData>({
+    defaultValues: defaultBusinessProjectFormValues,
+  });
+
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (isEditDialogOpen && project) {
+      form.reset({
+        name: project.name || "",
+        description: project.description || "",
+        start_date: project.start_date || "",
+        end_date: project.end_date || "",
+      });
+    }
+  }, [project, isEditDialogOpen, form]);
+
+  // Mutation callbacks
+  const { handleSuccess, handleError } = useMutationCallbacks({
+    setIsLoading: setIsFormLoading,
+    onOpenChange: setIsEditDialogOpen,
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.BUSINESS_PROJECTS
+  });
+
+  const handleFormSubmit = (data: BusinessProjectFormData) => {
+    if (!project) return;
+    setIsFormLoading(true);
+    updateProject.mutate({ id: project.id, ...data }, {
+      onSuccess: handleSuccess,
+      onError: handleError
+    });
+  };
 
   // Transactions data for the add dialog
   const filter: TransactionFilter = {
@@ -200,10 +239,10 @@ const BusinessProjectDetail = () => {
         <BusinessProjectDialog
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
+          form={form}
+          isLoading={isFormLoading}
+          onSubmit={handleFormSubmit}
           project={project}
-          onSuccess={() => {
-            // Refresh will happen automatically due to query invalidation
-          }}
         />
 
         <ConfirmationModal
