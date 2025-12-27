@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { UseFormReturn } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,96 +6,38 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dropdown } from "@/components/ui/dropdown";
 import { InputNumber } from "@/components/ui/input-number";
-import { useCreateDebtHistory, useUpdateDebtHistory } from "@/hooks/queries/use-debt-histories";
-import { DebtHistoryFormData, defaultDebtHistoryFormValues } from "@/form-dto/debt-histories";
-import { useWallets } from "@/hooks/queries/use-wallets";
-import { useDebtCategories } from "@/hooks/queries/use-categories";
-import { useDebts } from "@/hooks/queries/use-debts";
+import { DebtHistoryFormData } from "@/form-dto/debt-histories";
 import { DebtHistoryModel } from "@/models/debt-histories";
+import { WalletModel } from "@/models/wallets";
+import { CategoryModel } from "@/models/categories";
+import { DebtModel } from "@/models/debts";
 
 interface DebtHistoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  debtId?: number; // Made optional to support usage from transaction history
-  onSuccess?: () => void;
+  form: UseFormReturn<DebtHistoryFormData>;
+  isLoading: boolean;
+  onSubmit: (data: DebtHistoryFormData) => void;
   history?: DebtHistoryModel;
-  showDebtSelection?: boolean; // New prop to control debt selection visibility
+  showDebtSelection?: boolean; // Control debt selection visibility
+  // Data props
+  wallets?: WalletModel[];
+  categories?: CategoryModel[];
+  debts?: DebtModel[];
 }
 
 const DebtHistoryDialog = ({
   open,
   onOpenChange,
-  debtId,
-  onSuccess,
+  form,
+  isLoading,
+  onSubmit,
   history,
-  showDebtSelection = false
+  showDebtSelection = false,
+  wallets,
+  categories,
+  debts
 }: DebtHistoryDialogProps) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const createDebtHistory = useCreateDebtHistory();
-  const updateDebtHistory = useUpdateDebtHistory();
-  const { data: wallets } = useWallets();
-  const { data: categories } = useDebtCategories();
-  const { data: debts } = useDebts();
-
-  const form = useForm<DebtHistoryFormData>({
-    defaultValues: defaultDebtHistoryFormValues,
-  });
-
-  const onSubmit = async (data: DebtHistoryFormData) => {
-    setIsLoading(true);
-
-    try {
-      // Convert string IDs to numbers for API
-      const submitData = {
-        ...data,
-        debt_id: parseInt(data.debt_id),
-        wallet_id: parseInt(data.wallet_id),
-        category_id: parseInt(data.category_id),
-      };
-
-      if (history) {
-        await updateDebtHistory.mutateAsync({ id: history.id, ...submitData });
-      } else {
-        await createDebtHistory.mutateAsync(submitData);
-      }
-      // Success will be handled by the useEffect below
-    } catch (error) {
-      // Error is already handled by the mutation hooks (toast)
-      // Just reset the loading state
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (open) {
-      if (history) {
-        const resetValues = {
-          debt_id: (history.debt_id || debtId)?.toString() || "",
-          wallet_id: history.wallet_id ? history.wallet_id.toString() : "",
-          category_id: history.category_id ? history.category_id.toString() : "",
-          amount: history.amount || 0,
-          date: history.date || new Date().toISOString().split("T")[0],
-          description: history.description || "",
-        };
-        form.reset(resetValues);
-      } else {
-        const resetValues = {
-          ...defaultDebtHistoryFormValues,
-          debt_id: debtId?.toString() || "",
-        };
-        form.reset(resetValues);
-      }
-    }
-  }, [open, history, form, debtId]);
-
-  useEffect(() => {
-    if (createDebtHistory.isSuccess || updateDebtHistory.isSuccess) {
-      onOpenChange(false);
-      setIsLoading(false);
-      onSuccess?.();
-    }
-  }, [createDebtHistory.isSuccess, updateDebtHistory.isSuccess]);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
