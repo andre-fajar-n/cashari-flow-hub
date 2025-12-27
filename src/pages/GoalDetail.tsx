@@ -26,21 +26,21 @@ import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instrum
 import { useCurrencies, useCurrencyDetail } from "@/hooks/queries/use-currencies";
 import { useInvestmentCategories } from "@/hooks/queries/use-categories";
 import { MOVEMENT_TYPES } from "@/constants/enums";
-import { GoalFormData, defaultGoalFormValues } from "@/form-dto/goals";
+import { GoalFormData, defaultGoalFormValues, mapGoalToFormData } from "@/form-dto/goals";
 import { GoalTransferFormData, defaultGoalTransferFormData } from "@/form-dto/goal-transfers";
 import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData } from "@/form-dto/goal-investment-records";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { useDialogState } from "@/hooks/use-dialog-state";
+import { GoalModel } from "@/models/goals";
 
 const GoalDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
   const [isRecordDialogOpen, setIsRecordDialogOpen] = useState(false);
   const [transferConfig, setTransferConfig] = useState<GoalTransferConfig | undefined>(undefined);
-  const [isFormLoading, setIsFormLoading] = useState(false);
   const [isTransferFormLoading, setIsTransferFormLoading] = useState(false);
   const [isRecordFormLoading, setIsRecordFormLoading] = useState(false);
 
@@ -74,20 +74,15 @@ const GoalDetail = () => {
     defaultValues: defaultGoalInvestmentRecordFormData,
   });
 
+  // Use dialog state hook for goal edit dialog
+  const goalDialog = useDialogState<GoalModel, GoalFormData>({
+    form,
+    defaultValues: defaultGoalFormValues,
+    mapDataToForm: mapGoalToFormData,
+  });
+
   const isLoading = isGoalLoading || isTransfersLoading || isMovementsLoading || isFundsSummaryLoading || isWalletsLoading ||
     isAssetsLoading || isInstrumentsLoading || isRecordsLoading || isCurrencyLoading;
-
-  // Reset goal form when dialog opens
-  useEffect(() => {
-    if (isDialogOpen && goal) {
-      form.reset({
-        name: goal.name || "",
-        target_amount: goal.target_amount || 0,
-        currency_code: goal.currency_code || "",
-        target_date: goal.target_date || "",
-      });
-    }
-  }, [goal, isDialogOpen, form]);
 
   // Reset transfer form when dialog opens
   useEffect(() => {
@@ -114,10 +109,10 @@ const GoalDetail = () => {
     }
   }, [isRecordDialogOpen, goal, recordForm]);
 
-  // Mutation callbacks
-  const { handleSuccess, handleError } = useMutationCallbacks({
-    setIsLoading: setIsFormLoading,
-    onOpenChange: setIsDialogOpen,
+  // Mutation callbacks for goal dialog
+  const { handleError: handleGoalError } = useMutationCallbacks({
+    setIsLoading: goalDialog.setIsLoading,
+    onOpenChange: (open) => !open && goalDialog.close(),
     form,
     queryKeysToInvalidate: QUERY_KEY_SETS.GOALS
   });
@@ -138,10 +133,10 @@ const GoalDetail = () => {
 
   const handleFormSubmit = (data: GoalFormData) => {
     if (!goal) return;
-    setIsFormLoading(true);
+    goalDialog.setIsLoading(true);
     updateGoal.mutate({ id: goal.id, ...data }, {
-      onSuccess: handleSuccess,
-      onError: handleError
+      onSuccess: () => goalDialog.handleSuccess(),
+      onError: handleGoalError
     });
   };
 
@@ -215,7 +210,9 @@ const GoalDetail = () => {
   }
 
   const handleEdit = () => {
-    setIsDialogOpen(true);
+    if (goal) {
+      goalDialog.openEdit(goal);
+    }
   };
 
   const handleSuccessCallback = () => {
@@ -390,10 +387,10 @@ const GoalDetail = () => {
           />
 
           <GoalDialog
-            open={isDialogOpen}
-            onOpenChange={setIsDialogOpen}
+            open={goalDialog.open}
+            onOpenChange={(open) => !open && goalDialog.close()}
             form={form}
-            isLoading={isFormLoading}
+            isLoading={goalDialog.isLoading}
             onSubmit={handleFormSubmit}
             currencies={currencies}
             goal={goal}
