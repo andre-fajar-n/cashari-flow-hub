@@ -1,78 +1,30 @@
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { useAuth } from "@/hooks/use-auth";
+import { UseFormReturn } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dropdown } from "@/components/ui/dropdown";
 import { DEBT_TYPES } from "@/constants/enums";
-import { DebtFormData, defaultDebtFormValues } from "@/form-dto/debts";
-import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
-import { useCreateDebt, useUpdateDebt } from "@/hooks/queries/use-debts";
-import { useCurrencies } from "@/hooks/queries/use-currencies";
+import { DebtFormData } from "@/form-dto/debts";
 import { DebtModel } from "@/models/debts";
 
 interface DebtDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  form: UseFormReturn<DebtFormData>;
+  isLoading: boolean;
+  onSubmit: (data: DebtFormData) => void;
   debt?: DebtModel;
-  onSuccess?: () => void;
 }
 
-const DebtDialog = ({ open, onOpenChange, debt, onSuccess }: DebtDialogProps) => {
-  const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-  const createDebt = useCreateDebt();
-  const updateDebt = useUpdateDebt();
-  const { data: currencies } = useCurrencies();
-
-  const form = useForm<DebtFormData>({
-    defaultValues: defaultDebtFormValues,
-  });
-
-  // Reset form when debt prop changes or dialog opens/closes
-  useEffect(() => {
-    if (open) {
-      if (debt) {
-        form.reset({
-          name: debt.name || "",
-          type: debt.type || DEBT_TYPES.LOAN,
-          due_date: debt.due_date || "",
-        });
-      } else {
-        form.reset(defaultDebtFormValues);
-      }
-    }
-  }, [debt, open, form]);
-
-  // Use mutation callbacks utility
-  const { handleSuccess, handleError } = useMutationCallbacks({
-    setIsLoading,
-    onOpenChange,
-    onSuccess,
-    form,
-    queryKeysToInvalidate: QUERY_KEY_SETS.DEBTS
-  });
-
-  const onSubmit = async (data: DebtFormData) => {
-    if (!user) return;
-
-    setIsLoading(true);
-
-    if (debt) {
-      updateDebt.mutate({ id: debt.id, ...data }, {
-        onSuccess: handleSuccess,
-        onError: handleError
-      });
-    } else {
-      createDebt.mutate(data, {
-        onSuccess: handleSuccess,
-        onError: handleError
-      });
-    }
-  };
-
+const DebtDialog = ({ 
+  open, 
+  onOpenChange, 
+  form, 
+  isLoading, 
+  onSubmit,
+  debt 
+}: DebtDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">

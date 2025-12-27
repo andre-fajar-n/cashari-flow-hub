@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import Layout from "@/components/Layout";
 import DebtDialog from "@/components/debt/DebtDialog";
 import { DEBT_TYPES } from "@/constants/enums";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { useDeleteDebt } from "@/hooks/queries/use-debts";
+import { useCreateDebt, useUpdateDebt, useDeleteDebt } from "@/hooks/queries/use-debts";
 import { useDebtsPaginated } from "@/hooks/queries/paginated/use-debts-paginated";
 import { useDebtSummary } from "@/hooks/queries/use-debt-summary";
 import { DebtModel } from "@/models/debts";
@@ -16,6 +17,8 @@ import { DebtTable } from "@/components/debt/DebtTable";
 import { useTableState } from "@/hooks/use-table-state";
 import { SelectFilterConfig } from "@/components/ui/advanced-data-table/advanced-data-table-toolbar";
 import { useUserSettings } from "@/hooks/queries/use-user-settings";
+import { DebtFormData, defaultDebtFormValues } from "@/form-dto/debts";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 
 const Debt = () => {
   const queryClient = useQueryClient();
@@ -24,6 +27,16 @@ const Debt = () => {
   const [debtToDelete, setDebtToDelete] = useState<DebtModel | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedDebt, setSelectedDebt] = useState<DebtModel | undefined>(undefined);
+  const [isFormLoading, setIsFormLoading] = useState(false);
+
+  const createDebt = useCreateDebt();
+  const updateDebt = useUpdateDebt();
+  const { mutate: deleteDebt } = useDeleteDebt();
+
+  // Form state managed at page level
+  const form = useForm<DebtFormData>({
+    defaultValues: defaultDebtFormValues,
+  });
 
   // Table state management using generic hook
   const { state: tableState, actions: tableActions } = useTableState({
@@ -31,7 +44,6 @@ const Debt = () => {
     initialPageSize: 10,
   });
 
-  const { mutate: deleteDebt } = useDeleteDebt();
   const { data: paged, isLoading: isLoadingDebts } = useDebtsPaginated({
     page: tableState.page,
     itemsPerPage: tableState.pageSize,
@@ -50,6 +62,44 @@ const Debt = () => {
     acc[item.id] = item;
     return acc;
   }, {} as Record<number, DebtModel>);
+
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (isDialogOpen) {
+      if (selectedDebt) {
+        form.reset({
+          name: selectedDebt.name || "",
+          type: selectedDebt.type || DEBT_TYPES.LOAN,
+          due_date: selectedDebt.due_date || "",
+        });
+      } else {
+        form.reset(defaultDebtFormValues);
+      }
+    }
+  }, [selectedDebt, isDialogOpen, form]);
+
+  // Mutation callbacks
+  const { handleSuccess, handleError } = useMutationCallbacks({
+    setIsLoading: setIsFormLoading,
+    onOpenChange: setIsDialogOpen,
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.DEBTS
+  });
+
+  const handleFormSubmit = (data: DebtFormData) => {
+    setIsFormLoading(true);
+    if (selectedDebt) {
+      updateDebt.mutate({ id: selectedDebt.id, ...data }, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
+    } else {
+      createDebt.mutate(data, {
+        onSuccess: handleSuccess,
+        onError: handleError
+      });
+    }
+  };
 
   const handleEdit = (debt: DebtModel) => {
     setSelectedDebt(debt);
@@ -153,10 +203,10 @@ const Debt = () => {
         <DebtDialog
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
+          form={form}
+          isLoading={isFormLoading}
+          onSubmit={handleFormSubmit}
           debt={selectedDebt}
-          onSuccess={() => {
-            queryClient.invalidateQueries({ queryKey: ["debts"] });
-          }}
         />
       </Layout>
     </ProtectedRoute>

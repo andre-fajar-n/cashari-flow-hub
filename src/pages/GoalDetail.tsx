@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,15 +16,17 @@ import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
 import MovementsDataTable from "@/components/shared/MovementsDataTable";
-import { useDeleteGoal, useGoalDetail } from "@/hooks/queries/use-goals";
+import { useDeleteGoal, useGoalDetail, useUpdateGoal } from "@/hooks/queries/use-goals";
 import { useGoalTransfers } from "@/hooks/queries/use-goal-transfers";
 import { useMoneySummary } from "@/hooks/queries/use-money-summary";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
 import { useGoalInvestmentRecords } from "@/hooks/queries/use-goal-investment-records";
-import { useCurrencyDetail } from "@/hooks/queries/use-currencies";
+import { useCurrencies, useCurrencyDetail } from "@/hooks/queries/use-currencies";
 import { MOVEMENT_TYPES } from "@/constants/enums";
+import { GoalFormData, defaultGoalFormValues } from "@/form-dto/goals";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 
 const GoalDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -34,7 +37,9 @@ const GoalDetail = () => {
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
   const [isRecordDialogOpen, setIsRecordDialogOpen] = useState(false);
   const [transferConfig, setTransferConfig] = useState<GoalTransferConfig | undefined>(undefined);
+  const [isFormLoading, setIsFormLoading] = useState(false);
 
+  const updateGoal = useUpdateGoal();
   const { mutate: deleteGoal } = useDeleteGoal();
   const { data: goal, isLoading: isGoalLoading } = useGoalDetail(parseInt(id!));
   const { data: goalTransfers, isLoading: isTransfersLoading } = useGoalTransfers();
@@ -45,9 +50,44 @@ const GoalDetail = () => {
   const { data: instruments, isLoading: isInstrumentsLoading } = useInvestmentInstruments();
   const { data: goalRecords, isLoading: isRecordsLoading } = useGoalInvestmentRecords();
   const { data: currency, isLoading: isCurrencyLoading } = useCurrencyDetail(goal?.currency_code);
+  const { data: currencies } = useCurrencies();
+
+  // Form state managed at page level
+  const form = useForm<GoalFormData>({
+    defaultValues: defaultGoalFormValues,
+  });
 
   const isLoading = isGoalLoading || isTransfersLoading || isMovementsLoading || isFundsSummaryLoading || isWalletsLoading ||
     isAssetsLoading || isInstrumentsLoading || isRecordsLoading || isCurrencyLoading;
+
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (isDialogOpen && goal) {
+      form.reset({
+        name: goal.name || "",
+        target_amount: goal.target_amount || 0,
+        currency_code: goal.currency_code || "",
+        target_date: goal.target_date || "",
+      });
+    }
+  }, [goal, isDialogOpen, form]);
+
+  // Mutation callbacks
+  const { handleSuccess, handleError } = useMutationCallbacks({
+    setIsLoading: setIsFormLoading,
+    onOpenChange: setIsDialogOpen,
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.GOALS
+  });
+
+  const handleFormSubmit = (data: GoalFormData) => {
+    if (!goal) return;
+    setIsFormLoading(true);
+    updateGoal.mutate({ id: goal.id, ...data }, {
+      onSuccess: handleSuccess,
+      onError: handleError
+    });
+  };
 
   // Check loading states and goal existence before accessing goal properties
   if (!goal || isLoading) {
@@ -85,7 +125,7 @@ const GoalDetail = () => {
     setIsDialogOpen(true);
   };
 
-  const handleSuccess = () => {
+  const handleSuccessCallback = () => {
     queryClient.invalidateQueries({ queryKey: ["money_movements"] });
     queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
     queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
@@ -239,7 +279,7 @@ const GoalDetail = () => {
                 title="Riwayat Pergerakan Dana"
                 description="Kelola dan pantau semua pergerakan dana dalam goal ini"
                 emptyMessage="Belum ada riwayat pergerakan dana"
-                onSuccess={handleSuccess}
+                onSuccess={handleSuccessCallback}
               />
             </TabsContent>
           </Tabs>
@@ -259,6 +299,10 @@ const GoalDetail = () => {
           <GoalDialog
             open={isDialogOpen}
             onOpenChange={setIsDialogOpen}
+            form={form}
+            isLoading={isFormLoading}
+            onSubmit={handleFormSubmit}
+            currencies={currencies}
             goal={goal}
           />
 

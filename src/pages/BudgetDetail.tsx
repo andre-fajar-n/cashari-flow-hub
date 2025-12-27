@@ -1,10 +1,11 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Edit, Trash2, Calendar, Plus, AlertTriangle } from "lucide-react";
-import { useBudget, useDeleteBudget } from "@/hooks/queries/use-budgets";
+import { useBudget, useDeleteBudget, useUpdateBudget } from "@/hooks/queries/use-budgets";
 import BudgetTransactionList from "@/components/budget/BudgetTransactionList";
 import BudgetDialog from "@/components/budget/BudgetDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -16,7 +17,9 @@ import { formatDate } from "@/lib/date";
 import { useBudgetSummary } from "@/hooks/queries/use-budget-summary";
 import { calculateTotalSpentInBaseCurrency } from "@/lib/budget-summary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCurrencyDetail } from "@/hooks/queries/use-currencies";
+import { useCurrencies, useCurrencyDetail } from "@/hooks/queries/use-currencies";
+import { BudgetFormData, defaultBudgetFormValues } from "@/form-dto/budget";
+import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 
 const BudgetDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,11 +28,49 @@ const BudgetDetail = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isFormLoading, setIsFormLoading] = useState(false);
 
   const { data: budget } = useBudget(parseInt(id!));
   const { data: currency } = useCurrencyDetail(budget?.currency_code || '');
+  const { data: currencies } = useCurrencies();
+  const updateBudget = useUpdateBudget();
   const { mutate: deleteBudget } = useDeleteBudget();
   const { data: budgetSummary } = useBudgetSummary(parseInt(id!));
+
+  // Form state managed at page level
+  const form = useForm<BudgetFormData>({
+    defaultValues: defaultBudgetFormValues,
+  });
+
+  // Reset form when dialog opens
+  useEffect(() => {
+    if (isEditDialogOpen && budget) {
+      form.reset({
+        name: budget.name || "",
+        amount: budget.amount || 0,
+        currency_code: budget.currency_code || "",
+        start_date: budget.start_date || "",
+        end_date: budget.end_date || "",
+      });
+    }
+  }, [budget, isEditDialogOpen, form]);
+
+  // Mutation callbacks
+  const { handleSuccess, handleError } = useMutationCallbacks({
+    setIsLoading: setIsFormLoading,
+    onOpenChange: setIsEditDialogOpen,
+    form,
+    queryKeysToInvalidate: QUERY_KEY_SETS.BUDGETS
+  });
+
+  const handleFormSubmit = (data: BudgetFormData) => {
+    if (!budget) return;
+    setIsFormLoading(true);
+    updateBudget.mutate({ id: budget.id, ...data }, {
+      onSuccess: handleSuccess,
+      onError: handleError
+    });
+  };
 
   // Calculate total spent from budget summary
   const totalCalculation = useMemo(() => {
@@ -165,8 +206,11 @@ const BudgetDetail = () => {
         <BudgetDialog
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
+          form={form}
+          isLoading={isFormLoading}
+          onSubmit={handleFormSubmit}
+          currencies={currencies}
           budget={budget}
-          onSuccess={() => { /* budgets query key invalidated inside dialog */ }}
         />
 
         {/* Delete confirmation */}
@@ -190,4 +234,3 @@ const BudgetDetail = () => {
 };
 
 export default BudgetDetail;
-
