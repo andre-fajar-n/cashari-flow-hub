@@ -67,6 +67,8 @@ export const useCreateGoalInvestmentRecord = () => {
       queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
       queryClient.invalidateQueries({ queryKey: ["goals"] });
       queryClient.invalidateQueries({ queryKey: ["goal_funds_summary"] });
+      queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
+      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
       toast({
         title: "Berhasil",
         description: "Investment record berhasil ditambahkan",
@@ -105,6 +107,8 @@ export const useUpdateGoalInvestmentRecord = () => {
       queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
       queryClient.invalidateQueries({ queryKey: ["goals"] });
       queryClient.invalidateQueries({ queryKey: ["goal_funds_summary"] });
+      queryClient.invalidateQueries({ queryKey: ["investment_assets"] });
+      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
       toast({
         title: "Berhasil",
         description: "Investment record berhasil diperbarui",
