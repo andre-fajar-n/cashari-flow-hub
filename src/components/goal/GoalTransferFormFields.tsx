@@ -45,13 +45,13 @@ const GoalTransferFormFields = ({
               label="Goal Asal"
               placeholder="Pilih goal asal"
               options={[
-                { value: "0", label: "Tidak ada" },
+                { value: "", label: "Tidak ada" },
                 ...(goals?.map((goal) => ({
                   value: goal.id.toString(),
                   label: `${goal.name} (${goal.currency_code})`
                 })) || [])
               ]}
-              onValueChange={(value) => setValue("from_goal_id", parseInt(value))}
+              onValueChange={(value) => setValue("from_goal_id", value ? parseInt(value) : null)}
             />
           )}
 
@@ -61,13 +61,13 @@ const GoalTransferFormFields = ({
             label="Dompet Asal"
             placeholder="Pilih dompet asal"
             options={[
-              { value: "0", label: "Tidak ada" },
+              { value: "", label: "Tidak ada" },
               ...(wallets?.map((wallet) => ({
                 value: wallet.id.toString(),
                 label: `${wallet.name} (${wallet.currency_code})`
               })) || [])
             ]}
-            onValueChange={(value) => setValue("from_wallet_id", parseInt(value))}
+            onValueChange={(value) => setValue("from_wallet_id", value ? parseInt(value) : null)}
           />
 
           {(!modeConfig || modeConfig.showFromInstrument) && (
@@ -77,13 +77,13 @@ const GoalTransferFormFields = ({
               label="Instrumen Asal"
               placeholder="Pilih instrumen asal"
               options={[
-                { value: "0", label: "Tidak ada" },
+                { value: "", label: "Tidak ada" },
                 ...(instruments?.map((instrument) => ({
                   value: instrument.id.toString(),
                   label: instrument.name
                 })) || [])
               ]}
-              onValueChange={(value) => setValue("from_instrument_id", parseInt(value))}
+              onValueChange={(value) => setValue("from_instrument_id", value ? parseInt(value) : null)}
             />
           )}
 
@@ -93,15 +93,15 @@ const GoalTransferFormFields = ({
               name="from_asset_id"
               label="Aset Asal"
               placeholder="Pilih aset asal"
-              disabled={fromInstrumentId === 0 || (fromAssets?.length || 0) === 0}
+              disabled={!fromInstrumentId || (fromAssets?.length || 0) === 0}
               options={[
-                { value: "0", label: "Tidak ada" },
+                { value: "", label: "Tidak ada" },
                 ...(fromAssets?.map((asset) => ({
                   value: asset.id.toString(),
                   label: `${asset.name} ${asset.symbol ? `(${asset.symbol})` : ''}`
                 })) || [])
               ]}
-              onValueChange={(value) => setValue("from_asset_id", parseInt(value))}
+              onValueChange={(value) => setValue("from_asset_id", value ? parseInt(value) : null)}
             />
           )}
         </div>
@@ -118,13 +118,13 @@ const GoalTransferFormFields = ({
               label="Goal Tujuan"
               placeholder="Pilih goal tujuan"
               options={[
-                { value: "0", label: "Tidak ada" },
+                { value: "", label: "Tidak ada" },
                 ...(goals?.filter(goal => goal.is_active && !goal.is_achieved).map((goal) => ({
                   value: goal.id.toString(),
                   label: `${goal.name} (${goal.currency_code})`
                 })) || [])
               ]}
-              onValueChange={(value) => setValue("to_goal_id", parseInt(value))}
+              onValueChange={(value) => setValue("to_goal_id", value ? parseInt(value) : null)}
             />
           )}
 
@@ -134,13 +134,13 @@ const GoalTransferFormFields = ({
             label="Dompet Tujuan"
             placeholder="Pilih dompet tujuan"
             options={[
-              { value: "0", label: "Tidak ada" },
+              { value: "", label: "Tidak ada" },
               ...(wallets?.map((wallet) => ({
                 value: wallet.id.toString(),
                 label: `${wallet.name} (${wallet.currency_code})`
               })) || [])
             ]}
-            onValueChange={(value) => setValue("to_wallet_id", parseInt(value))}
+            onValueChange={(value) => setValue("to_wallet_id", value ? parseInt(value) : null)}
           />
 
           {(!modeConfig || modeConfig.showToInstrument) && (
@@ -150,13 +150,13 @@ const GoalTransferFormFields = ({
               label="Instrumen Tujuan"
               placeholder="Pilih instrumen tujuan"
               options={[
-                { value: "0", label: "Tidak ada" },
+                { value: "", label: "Tidak ada" },
                 ...(instruments?.map((instrument) => ({
                   value: instrument.id.toString(),
                   label: instrument.name
                 })) || [])
               ]}
-              onValueChange={(value) => setValue("to_instrument_id", parseInt(value))}
+              onValueChange={(value) => setValue("to_instrument_id", value ? parseInt(value) : null)}
             />
           )}
 
@@ -166,15 +166,15 @@ const GoalTransferFormFields = ({
               name="to_asset_id"
               label="Aset Tujuan"
               placeholder="Pilih aset tujuan"
-              disabled={toInstrumentId === 0 || (toAssets?.length || 0) === 0}
+              disabled={!toInstrumentId || (toAssets?.length || 0) === 0}
               options={[
-                { value: "0", label: "Tidak ada" },
+                { value: "", label: "Tidak ada" },
                 ...(toAssets?.map((asset) => ({
                   value: asset.id.toString(),
                   label: `${asset.name} ${asset.symbol ? `(${asset.symbol})` : ''}`
                 })) || [])
               ]}
-              onValueChange={(value) => setValue("to_asset_id", parseInt(value))}
+              onValueChange={(value) => setValue("to_asset_id", value ? parseInt(value) : null)}
             />
           )}
         </div>

@@ -1,13 +1,13 @@
 import { InvestmentAssetValueModel } from "@/models/investment-asset-values";
 
 export interface AssetValueFormData {
-  asset_id: number;
+  asset_id: number | null;
   value: number;
   date: string;
 }
 
 export const defaultAssetValueFormValues: AssetValueFormData = {
-  asset_id: 0,
+  asset_id: null,
   value: 0,
   date: new Date().toISOString().split('T')[0],
 };
