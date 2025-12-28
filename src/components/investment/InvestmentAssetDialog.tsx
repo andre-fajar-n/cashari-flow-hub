@@ -71,14 +71,11 @@ const InvestmentAssetDialog = ({
               name="instrument_id"
               label="Instrumen Investasi"
               placeholder="Pilih Instrumen"
-              options={[
-                { value: "none", label: "Pilih Instrumen" },
-                ...(instruments || []).map((instrument) => ({
-                  value: instrument.id.toString(),
-                  label: instrument.name
-                }))
-              ]}
-              onValueChange={(value) => form.setValue("instrument_id", value === "none" ? null : parseInt(value))}
+              options={(instruments || []).map((instrument) => ({
+                value: instrument.id.toString(),
+                label: instrument.name
+              }))}
+              onValueChange={(value) => form.setValue("instrument_id", value ? parseInt(value) : null)}
             />
 
             <div className="flex justify-end gap-2 pt-4">

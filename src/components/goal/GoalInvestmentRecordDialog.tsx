@@ -71,14 +71,11 @@ const GoalInvestmentRecordDialog = ({
                 label="Target"
                 placeholder="Pilih target"
                 rules={{ required: "Target harus dipilih" }}
-                options={[
-                  { value: "none", label: "Pilih target" },
-                  ...(goals?.map((goal) => ({
-                    value: goal.id.toString(),
-                    label: goal.name
-                  })) || [])
-                ]}
-                onValueChange={(value) => form.setValue("goal_id", value === "none" ? null : parseInt(value))}
+                options={goals?.map((goal) => ({
+                  value: goal.id.toString(),
+                  label: goal.name
+                })) || []}
+                onValueChange={(value) => form.setValue("goal_id", value ? parseInt(value) : null)}
               />
             )}
 
@@ -88,14 +85,11 @@ const GoalInvestmentRecordDialog = ({
                 name="wallet_id"
                 label="Dompet"
                 placeholder="Pilih Dompet"
-                options={[
-                  { value: "none", label: "Pilih Dompet" },
-                  ...(wallets?.map((wallet) => ({
-                    value: wallet.id.toString(),
-                    label: wallet.name
-                  })) || [])
-                ]}
-                onValueChange={(value) => form.setValue("wallet_id", value === "none" ? null : parseInt(value))}
+                options={wallets?.map((wallet) => ({
+                  value: wallet.id.toString(),
+                  label: wallet.name
+                })) || []}
+                onValueChange={(value) => form.setValue("wallet_id", value ? parseInt(value) : null)}
               />
 
               <Dropdown
@@ -103,14 +97,11 @@ const GoalInvestmentRecordDialog = ({
                 name="category_id"
                 label="Kategori"
                 placeholder="Pilih Kategori"
-                options={[
-                  { value: "none", label: "Pilih Kategori" },
-                  ...(categories?.map((category) => ({
-                    value: category.id.toString(),
-                    label: category.name
-                  })) || [])
-                ]}
-                onValueChange={(value) => form.setValue("category_id", value === "none" ? null : parseInt(value))}
+                options={categories?.map((category) => ({
+                  value: category.id.toString(),
+                  label: category.name
+                })) || []}
+                onValueChange={(value) => form.setValue("category_id", value ? parseInt(value) : null)}
               />
             </div>
 
@@ -122,15 +113,12 @@ const GoalInvestmentRecordDialog = ({
                     name="instrument_id"
                     label="Instrumen Investasi"
                     placeholder="Pilih Instrumen"
-                    options={[
-                      { value: "none", label: "Pilih Instrumen" },
-                      ...(instruments?.map((instrument) => ({
-                        value: instrument.id.toString(),
-                        label: instrument.name
-                      })) || [])
-                    ]}
+                    options={instruments?.map((instrument) => ({
+                      value: instrument.id.toString(),
+                      label: instrument.name
+                    })) || []}
                     onValueChange={(value) => {
-                      form.setValue("instrument_id", value === "none" ? null : parseInt(value));
+                      form.setValue("instrument_id", value ? parseInt(value) : null);
                       form.setValue("asset_id", null);
                     }}
                   />
@@ -143,14 +131,11 @@ const GoalInvestmentRecordDialog = ({
                     label="Aset Investasi"
                     placeholder="Pilih Aset"
                     disabled={!selectedInstrument || filteredAssets.length === 0}
-                    options={[
-                      { value: "none", label: "Pilih Aset" },
-                      ...filteredAssets.map((asset) => ({
-                        value: asset.id.toString(),
-                        label: `${asset.name} ${asset.symbol ? `(${asset.symbol})` : ''}`
-                      }))
-                    ]}
-                    onValueChange={(value) => form.setValue("asset_id", value === "none" ? null : parseInt(value))}
+                    options={filteredAssets.map((asset) => ({
+                      value: asset.id.toString(),
+                      label: `${asset.name} ${asset.symbol ? `(${asset.symbol})` : ''}`
+                    }))}
+                    onValueChange={(value) => form.setValue("asset_id", value ? parseInt(value) : null)}
                   />
                 )}
               </div>
