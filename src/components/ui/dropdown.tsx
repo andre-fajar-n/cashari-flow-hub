@@ -44,7 +44,7 @@ export function Dropdown<TFieldValues extends FieldValues = FieldValues>({
           <FormLabel>{label}</FormLabel>
           <FormControl>
             <Select
-              value={field.value != null ? field.value.toString() : undefined}
+              value={field.value != null && field.value !== "" && field.value !== 0 ? field.value.toString() : undefined}
               onValueChange={(value) => {
                 // Let the custom onValueChange handle the conversion if provided
                 if (onValueChange) {
