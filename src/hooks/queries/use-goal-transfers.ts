@@ -63,6 +63,8 @@ export const useCreateGoalTransfer = () => {
       queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
       queryClient.invalidateQueries({ queryKey: ["goals"] });
       queryClient.invalidateQueries({ queryKey: ["goal_funds_summary"] });
+      queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
       toast({
         title: "Berhasil",
         description: "Transfer berhasil ditambahkan",
@@ -152,6 +154,8 @@ export const useUpdateGoalTransfer = () => {
       queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
       queryClient.invalidateQueries({ queryKey: ["goals"] });
       queryClient.invalidateQueries({ queryKey: ["goal_funds_summary"] });
+      queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
       toast({
         title: "Berhasil",
         description: "Transfer berhasil diperbarui",

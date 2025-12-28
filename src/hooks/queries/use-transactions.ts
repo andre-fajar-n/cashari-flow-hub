@@ -76,6 +76,7 @@ export const useCreateTransaction = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
       // Invalidate and refetch paginated transactions queries
       queryClient.invalidateQueries({ queryKey: ["transactions_paginated", user?.id] });
       queryClient.refetchQueries({ queryKey: ["transactions_paginated", user?.id] });
@@ -118,6 +119,7 @@ export const useUpdateTransaction = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
       // Invalidate and refetch paginated transactions queries
       queryClient.invalidateQueries({ queryKey: ["transactions_paginated", user?.id] });
       queryClient.refetchQueries({ queryKey: ["transactions_paginated", user?.id] });
@@ -154,6 +156,7 @@ export const useDeleteTransaction = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
       // Invalidate and refetch paginated transactions queries
       queryClient.invalidateQueries({ queryKey: ["transactions_paginated", user?.id] });
       queryClient.refetchQueries({ queryKey: ["transactions_paginated", user?.id] });

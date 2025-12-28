@@ -34,6 +34,9 @@ export const useInsertTransactionWithRelations = () => {
       queryClient.invalidateQueries({ queryKey: ["transactions", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
       queryClient.invalidateQueries({ queryKey: ["transactions_paginated", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
+      queryClient.invalidateQueries({ queryKey: ["budgets"] });
+      queryClient.invalidateQueries({ queryKey: ["business_projects"] });
       toast({
         title: "Berhasil",
         description: "Transaksi berhasil ditambahkan",
@@ -80,6 +83,9 @@ export const useUpdateTransactionWithRelations = () => {
       queryClient.invalidateQueries({ queryKey: ["transactions", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
       queryClient.invalidateQueries({ queryKey: ["transactions_paginated", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
+      queryClient.invalidateQueries({ queryKey: ["budgets"] });
+      queryClient.invalidateQueries({ queryKey: ["business_projects"] });
       toast({
         title: "Berhasil",
         description: "Transaksi berhasil diperbarui",

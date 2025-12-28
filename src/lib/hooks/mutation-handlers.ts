@@ -127,19 +127,19 @@ export const useMutationCallbacks = (config: MutationCallbacksConfig) => {
  * Predefined query key sets for common scenarios
  */
 export const QUERY_KEY_SETS = {
-  TRANSACTIONS: ["transactions", "transactions_paginated", "wallets", "budgets", "business_projects"],
-  WALLETS: ["wallets", "transactions", "transfers"],
+  TRANSACTIONS: ["transactions", "transactions_paginated", "wallets", "budgets", "business_projects", "money_movements_paginated"],
+  WALLETS: ["wallets", "transactions", "transfers", "money_movements_paginated"],
   CATEGORIES: ["categories", "transactions"],
-  BUDGETS: ["budgets", "transactions"],
-  BUSINESS_PROJECTS: ["business_projects", "transactions"],
-  DEBTS: ["debts", "debt_histories"],
-  TRANSFERS: ["transfers", "wallets"],
-  GOAL_TRANSFERS: ["goal_transfers", "goals", "goal_movements", "wallets", "money_movements", "goal_investment_records"],
-  INVESTMENT_ASSETS: ["investment_assets", "investment_asset_values", "goal_investment_records"],
-  INVESTMENT_ASSET_VALUES: ["investment_asset_values", "investment_asset_values_paginated"],
+  BUDGETS: ["budgets", "transactions", "money_movements_paginated"],
+  BUSINESS_PROJECTS: ["business_projects", "transactions", "money_movements_paginated"],
+  DEBTS: ["debts", "debt_histories", "debt-summary", "money_movements_paginated"],
+  TRANSFERS: ["transfers", "transfers_paginated", "wallets", "money_movements_paginated"],
+  GOAL_TRANSFERS: ["goal_transfers", "goals", "goal_movements", "wallets", "money_movements", "goal_investment_records", "goal_funds_summary", "money_movements_paginated"],
+  INVESTMENT_ASSETS: ["investment_assets", "investment_asset_values", "goal_investment_records", "money_movements_paginated"],
+  INVESTMENT_ASSET_VALUES: ["investment_asset_values", "investment_asset_values_paginated", "money_movements_paginated"],
   INVESTMENT_INSTRUMENTS: ["investment_instruments", "investment_instruments_paginated"],
-  GOALS: ["goals", "goal_transfers", "goal_movements"],
-  INVESTMENT_RECORDS: ["goal_investment_records", "goals", "investment_assets", "money_movements"],
+  GOALS: ["goals", "goal_transfers", "goal_movements", "goal_funds_summary", "money_movements_paginated"],
+  INVESTMENT_RECORDS: ["goal_investment_records", "goals", "investment_assets", "money_movements", "goal_funds_summary", "money_movements_paginated"],
 } as const;
 
 /**
