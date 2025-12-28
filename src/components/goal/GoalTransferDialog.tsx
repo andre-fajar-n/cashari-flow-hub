@@ -79,6 +79,7 @@ const GoalTransferDialog = ({
             <GoalTransferAmountFields
               control={form.control}
               watch={form.watch}
+              setValue={form.setValue}
               wallets={wallets}
             />
 

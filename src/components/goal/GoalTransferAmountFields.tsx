@@ -1,4 +1,5 @@
-import { Control, UseFormWatch } from "react-hook-form";
+import { useEffect } from "react";
+import { Control, UseFormWatch, UseFormSetValue } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
@@ -8,16 +9,25 @@ import { WalletModel } from "@/models/wallets";
 interface GoalTransferAmountFieldsProps {
   control: Control<GoalTransferFormData>;
   watch: UseFormWatch<GoalTransferFormData>;
+  setValue: UseFormSetValue<GoalTransferFormData>;
   wallets?: WalletModel[];
 }
 
-const GoalTransferAmountFields = ({ control, watch, wallets }: GoalTransferAmountFieldsProps) => {
+const GoalTransferAmountFields = ({ control, watch, setValue, wallets }: GoalTransferAmountFieldsProps) => {
   const fromWalletId = watch("from_wallet_id");
   const toWalletId = watch("to_wallet_id");
+  const fromAmount = watch("from_amount");
 
   const fromWallet = wallets?.find(w => w.id === fromWalletId);
   const toWallet = wallets?.find(w => w.id === toWalletId);
-  const isSameCurrency = fromWallet?.currency_code === toWallet?.currency_code;
+  const isSameCurrency = fromWallet && toWallet && fromWallet.currency_code === toWallet.currency_code;
+
+  // Sync to_amount when currencies are the same
+  useEffect(() => {
+    if (isSameCurrency && fromAmount > 0) {
+      setValue("to_amount", fromAmount);
+    }
+  }, [isSameCurrency, fromAmount, setValue]);
 
   return (
     <>

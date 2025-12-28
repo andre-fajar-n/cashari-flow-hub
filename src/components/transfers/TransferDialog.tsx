@@ -34,14 +34,14 @@ const TransferDialog = ({
   const watchAmountFrom = form.watch("from_amount");
 
   const fromWallet = useMemo(
-    () => wallets?.find(w => w.id.toString() === watchFromId),
+    () => wallets?.find(w => w.id.toString() === watchFromId?.toString()),
     [wallets, watchFromId]
   );
   const toWallet = useMemo(
-    () => wallets?.find(w => w.id.toString() === watchToId),
+    () => wallets?.find(w => w.id.toString() === watchToId?.toString()),
     [wallets, watchToId]
   );
-  const isSameCurrency = fromWallet?.currency_code === toWallet?.currency_code;
+  const isSameCurrency = fromWallet && toWallet && fromWallet.currency_code === toWallet.currency_code;
 
   // Sync to_amount if currency same
   useEffect(() => {
