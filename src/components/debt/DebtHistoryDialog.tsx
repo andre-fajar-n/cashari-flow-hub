@@ -52,13 +52,10 @@ const DebtHistoryDialog = ({
                 name="debt_id"
                 label="Hutang/Piutang"
                 placeholder="Pilih hutang/piutang"
-                options={[
-                  { value: "none", label: "Pilih hutang/piutang" },
-                  ...(debts?.map((debt) => ({
-                    value: debt.id.toString(),
-                    label: `${debt.name} (${debt.type === 'loan' ? 'Hutang' : 'Piutang'})`
-                  })) || [])
-                ]}
+                options={debts?.map((debt) => ({
+                  value: debt.id.toString(),
+                  label: `${debt.name} (${debt.type === 'loan' ? 'Hutang' : 'Piutang'})`
+                })) || []}
                 rules={{ required: "Hutang/Piutang harus dipilih" }}
               />
             )}
@@ -87,13 +84,10 @@ const DebtHistoryDialog = ({
               name="wallet_id"
               label="Dompet"
               placeholder="Pilih dompet"
-              options={[
-                { value: "none", label: "Pilih dompet" },
-                ...(wallets?.map((wallet) => ({
-                  value: wallet.id.toString(),
-                  label: `${wallet.name} (${wallet.currency_code})`
-                })) || [])
-              ]}
+              options={wallets?.map((wallet) => ({
+                value: wallet.id.toString(),
+                label: `${wallet.name} (${wallet.currency_code})`
+              })) || []}
               rules={{ required: "Dompet harus dipilih" }}
             />
 
@@ -102,13 +96,10 @@ const DebtHistoryDialog = ({
               name="category_id"
               label="Kategori"
               placeholder="Pilih kategori"
-              options={[
-                { value: "none", label: "Pilih kategori" },
-                ...(categories?.map((category) => ({
-                  value: category.id.toString(),
-                  label: category.name
-                })) || [])
-              ]}
+              options={categories?.map((category) => ({
+                value: category.id.toString(),
+                label: category.name
+              })) || []}
               rules={{ required: "Kategori harus dipilih" }}
             />
 

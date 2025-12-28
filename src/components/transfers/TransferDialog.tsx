@@ -66,14 +66,10 @@ const TransferDialog = ({
                 label="Dari Dompet"
                 placeholder="Pilih dompet"
                 rules={{ required: "Dompet asal harus dipilih" }}
-                options={[
-                  { value: "none", label: "Pilih dompet" },
-                  ...(wallets?.map(wallet => ({
-                    value: wallet.id.toString(),
-                    label: `${wallet.name} (${wallet.currency_code})`
-                  })) || [])
-                ]}
-                onValueChange={(value) => form.setValue("from_wallet_id", value === "none" ? null : value)}
+                options={wallets?.map(wallet => ({
+                  value: wallet.id.toString(),
+                  label: `${wallet.name} (${wallet.currency_code})`
+                })) || []}
               />
 
               <Dropdown
@@ -82,14 +78,10 @@ const TransferDialog = ({
                 label="Ke Dompet"
                 placeholder="Pilih dompet"
                 rules={{ required: "Dompet tujuan harus dipilih" }}
-                options={[
-                  { value: "none", label: "Pilih dompet" },
-                  ...(wallets?.map(wallet => ({
-                    value: wallet.id.toString(),
-                    label: `${wallet.name} (${wallet.currency_code})`
-                  })) || [])
-                ]}
-                onValueChange={(value) => form.setValue("to_wallet_id", value === "none" ? null : value)}
+                options={wallets?.map(wallet => ({
+                  value: wallet.id.toString(),
+                  label: `${wallet.name} (${wallet.currency_code})`
+                })) || []}
               />
             </div>
 
