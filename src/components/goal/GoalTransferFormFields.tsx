@@ -32,9 +32,8 @@ const GoalTransferFormFields = ({
   const fromInstrumentId = watch("from_instrument_id");
   const toInstrumentId = watch("to_instrument_id");
 
-  const NONE_VALUE = "__none__";
   const handleValueChange = (fieldName: keyof GoalTransferFormData) => (value: string) => {
-    setValue(fieldName, value && value !== NONE_VALUE ? parseInt(value) : null);
+    setValue(fieldName, value ? parseInt(value) : null);
   };
 
   return (
@@ -49,13 +48,10 @@ const GoalTransferFormFields = ({
               name="from_goal_id"
               label="Goal Asal"
               placeholder="Pilih goal asal"
-              options={[
-                { value: NONE_VALUE, label: "Tidak ada" },
-                ...(goals?.map((goal) => ({
-                  value: goal.id.toString(),
-                  label: `${goal.name} (${goal.currency_code})`
-                })) || [])
-              ]}
+              options={goals?.map((goal) => ({
+                value: goal.id.toString(),
+                label: `${goal.name} (${goal.currency_code})`
+              })) || []}
               onValueChange={handleValueChange("from_goal_id")}
             />
           )}
@@ -65,13 +61,10 @@ const GoalTransferFormFields = ({
             name="from_wallet_id"
             label="Dompet Asal"
             placeholder="Pilih dompet asal"
-            options={[
-              { value: NONE_VALUE, label: "Tidak ada" },
-              ...(wallets?.map((wallet) => ({
-                value: wallet.id.toString(),
-                label: `${wallet.name} (${wallet.currency_code})`
-              })) || [])
-            ]}
+            options={wallets?.map((wallet) => ({
+              value: wallet.id.toString(),
+              label: `${wallet.name} (${wallet.currency_code})`
+            })) || []}
             onValueChange={handleValueChange("from_wallet_id")}
           />
 
@@ -81,13 +74,10 @@ const GoalTransferFormFields = ({
               name="from_instrument_id"
               label="Instrumen Asal"
               placeholder="Pilih instrumen asal"
-              options={[
-                { value: NONE_VALUE, label: "Tidak ada" },
-                ...(instruments?.map((instrument) => ({
-                  value: instrument.id.toString(),
-                  label: instrument.name
-                })) || [])
-              ]}
+              options={instruments?.map((instrument) => ({
+                value: instrument.id.toString(),
+                label: instrument.name
+              })) || []}
               onValueChange={handleValueChange("from_instrument_id")}
             />
           )}
@@ -99,13 +89,10 @@ const GoalTransferFormFields = ({
               label="Aset Asal"
               placeholder="Pilih aset asal"
               disabled={!fromInstrumentId || (fromAssets?.length || 0) === 0}
-              options={[
-                { value: NONE_VALUE, label: "Tidak ada" },
-                ...(fromAssets?.map((asset) => ({
-                  value: asset.id.toString(),
-                  label: `${asset.name} ${asset.symbol ? `(${asset.symbol})` : ''}`
-                })) || [])
-              ]}
+              options={fromAssets?.map((asset) => ({
+                value: asset.id.toString(),
+                label: `${asset.name} ${asset.symbol ? `(${asset.symbol})` : ''}`
+              })) || []}
               onValueChange={handleValueChange("from_asset_id")}
             />
           )}
@@ -122,13 +109,10 @@ const GoalTransferFormFields = ({
               name="to_goal_id"
               label="Goal Tujuan"
               placeholder="Pilih goal tujuan"
-              options={[
-                { value: NONE_VALUE, label: "Tidak ada" },
-                ...(goals?.filter(goal => goal.is_active && !goal.is_achieved).map((goal) => ({
-                  value: goal.id.toString(),
-                  label: `${goal.name} (${goal.currency_code})`
-                })) || [])
-              ]}
+              options={goals?.filter(goal => goal.is_active && !goal.is_achieved).map((goal) => ({
+                value: goal.id.toString(),
+                label: `${goal.name} (${goal.currency_code})`
+              })) || []}
               onValueChange={handleValueChange("to_goal_id")}
             />
           )}
@@ -138,13 +122,10 @@ const GoalTransferFormFields = ({
             name="to_wallet_id"
             label="Dompet Tujuan"
             placeholder="Pilih dompet tujuan"
-            options={[
-              { value: NONE_VALUE, label: "Tidak ada" },
-              ...(wallets?.map((wallet) => ({
-                value: wallet.id.toString(),
-                label: `${wallet.name} (${wallet.currency_code})`
-              })) || [])
-            ]}
+            options={wallets?.map((wallet) => ({
+              value: wallet.id.toString(),
+              label: `${wallet.name} (${wallet.currency_code})`
+            })) || []}
             onValueChange={handleValueChange("to_wallet_id")}
           />
 
@@ -154,13 +135,10 @@ const GoalTransferFormFields = ({
               name="to_instrument_id"
               label="Instrumen Tujuan"
               placeholder="Pilih instrumen tujuan"
-              options={[
-                { value: NONE_VALUE, label: "Tidak ada" },
-                ...(instruments?.map((instrument) => ({
-                  value: instrument.id.toString(),
-                  label: instrument.name
-                })) || [])
-              ]}
+              options={instruments?.map((instrument) => ({
+                value: instrument.id.toString(),
+                label: instrument.name
+              })) || []}
               onValueChange={handleValueChange("to_instrument_id")}
             />
           )}
@@ -172,13 +150,10 @@ const GoalTransferFormFields = ({
               label="Aset Tujuan"
               placeholder="Pilih aset tujuan"
               disabled={!toInstrumentId || (toAssets?.length || 0) === 0}
-              options={[
-                { value: NONE_VALUE, label: "Tidak ada" },
-                ...(toAssets?.map((asset) => ({
-                  value: asset.id.toString(),
-                  label: `${asset.name} ${asset.symbol ? `(${asset.symbol})` : ''}`
-                })) || [])
-              ]}
+              options={toAssets?.map((asset) => ({
+                value: asset.id.toString(),
+                label: `${asset.name} ${asset.symbol ? `(${asset.symbol})` : ''}`
+              })) || []}
               onValueChange={handleValueChange("to_asset_id")}
             />
           )}
