@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Dropdown } from "@/components/ui/dropdown";
+import { WalletDropdown } from "@/components/ui/dropdowns";
 import { TransferFormData } from "@/form-dto/transfer";
 import { TransferModel } from "@/models/transfer";
 import { WalletModel } from "@/models/wallets";
@@ -43,7 +43,6 @@ const TransferDialog = ({
   );
   const isSameCurrency = fromWallet && toWallet && fromWallet.currency_code === toWallet.currency_code;
 
-  // Sync to_amount if currency same
   useEffect(() => {
     if (isSameCurrency && watchAmountFrom > 0) {
       form.setValue("to_amount", watchAmountFrom);
@@ -60,28 +59,20 @@ const TransferDialog = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <Dropdown
+              <WalletDropdown
                 control={form.control}
                 name="from_wallet_id"
+                wallets={wallets}
                 label="Dari Dompet"
-                placeholder="Pilih dompet"
                 rules={{ required: "Dompet asal harus dipilih" }}
-                options={wallets?.map(wallet => ({
-                  value: wallet.id.toString(),
-                  label: `${wallet.name} (${wallet.currency_code})`
-                })) || []}
               />
 
-              <Dropdown
+              <WalletDropdown
                 control={form.control}
                 name="to_wallet_id"
+                wallets={wallets}
                 label="Ke Dompet"
-                placeholder="Pilih dompet"
                 rules={{ required: "Dompet tujuan harus dipilih" }}
-                options={wallets?.map(wallet => ({
-                  value: wallet.id.toString(),
-                  label: `${wallet.name} (${wallet.currency_code})`
-                })) || []}
               />
             </div>
 
@@ -109,17 +100,10 @@ const TransferDialog = ({
                   <FormItem>
                     <FormLabel>Jumlah Masuk</FormLabel>
                     <FormControl>
-                      <InputNumber
-                        {...field}
-                        onChange={field.onChange}
-                        value={field.value}
-                        disabled={isSameCurrency}
-                      />
+                      <InputNumber {...field} onChange={field.onChange} value={field.value} disabled={isSameCurrency} />
                     </FormControl>
                     {isSameCurrency && (
-                      <p className="text-xs text-muted-foreground">
-                        Otomatis disamakan dengan jumlah keluar karena mata uang sama
-                      </p>
+                      <p className="text-xs text-muted-foreground">Otomatis disamakan karena mata uang sama</p>
                     )}
                     <FormMessage />
                   </FormItem>
@@ -129,8 +113,7 @@ const TransferDialog = ({
 
             {fromWallet && toWallet && (
               <div className="text-sm text-muted-foreground bg-muted p-3 rounded">
-                Transfer dari <b>{fromWallet.name}</b> ({fromWallet.currency_code}) ke{" "}
-                <b>{toWallet.name}</b> ({toWallet.currency_code})
+                Transfer dari <b>{fromWallet.name}</b> ({fromWallet.currency_code}) ke <b>{toWallet.name}</b> ({toWallet.currency_code})
               </div>
             )}
 

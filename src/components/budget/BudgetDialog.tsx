@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Dropdown } from "@/components/ui/dropdown";
+import { CurrencyDropdown } from "@/components/ui/dropdowns";
 import { BudgetFormData } from "@/form-dto/budget";
 import { InputNumber } from "@/components/ui/input-number";
 import { BudgetModel } from "@/models/budgets";
@@ -71,15 +71,10 @@ const BudgetDialog = ({
               )}
             />
 
-            <Dropdown
+            <CurrencyDropdown
               control={form.control}
               name="currency_code"
-              label="Mata Uang"
-              placeholder="Pilih mata uang"
-              options={currencies?.map((currency) => ({
-                value: currency.code,
-                label: `${currency.code} - ${currency.name}`
-              })) || []}
+              currencies={currencies}
             />
 
             <FormField

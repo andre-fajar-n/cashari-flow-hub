@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Textarea } from "@/components/ui/textarea";
-import { Dropdown } from "@/components/ui/dropdown";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { GoalDropdown, WalletDropdown, CategoryDropdown, InstrumentDropdown, AssetDropdown } from "@/components/ui/dropdowns";
 import { GoalInvestmentRecordFormData } from "@/form-dto/goal-investment-records";
 import { GoalInvestmentRecordModel } from "@/models/goal-investment-records";
 import { GoalModel } from "@/models/goals";
@@ -21,11 +21,9 @@ interface GoalInvestmentRecordDialogProps {
   isLoading: boolean;
   onSubmit: (data: GoalInvestmentRecordFormData) => void;
   record?: GoalInvestmentRecordModel | null;
-  // Control visibility
-  goalId?: number; // Pre-filled goal ID (hides goal selector)
-  instrumentId?: number; // Pre-filled instrument ID (hides instrument selector)
-  assetId?: number; // Pre-filled asset ID (hides asset selector)
-  // Data props
+  goalId?: number;
+  instrumentId?: number;
+  assetId?: number;
   goals?: GoalModel[];
   instruments?: InvestmentInstrumentModel[];
   assets?: InvestmentAssetModel[];
@@ -50,7 +48,6 @@ const GoalInvestmentRecordDialog = ({
   categories
 }: GoalInvestmentRecordDialogProps) => {
   const selectedInstrument = form.watch("instrument_id");
-
   const filteredAssets = assets?.filter(asset => asset.instrument_id === selectedInstrument) || [];
 
   return (
@@ -63,44 +60,33 @@ const GoalInvestmentRecordDialog = ({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {/* Goal Selector - Only show when NOT called from goal detail page */}
             {!goalId && (
-              <Dropdown
+              <GoalDropdown
                 control={form.control}
                 name="goal_id"
-                label="Target"
-                placeholder="Pilih target"
+                goals={goals}
+                showCurrency={false}
                 rules={{ required: "Target harus dipilih" }}
-                options={goals?.map((goal) => ({
-                  value: goal.id.toString(),
-                  label: goal.name
-                })) || []}
                 onValueChange={(value) => form.setValue("goal_id", value ? parseInt(value) : null)}
               />
             )}
 
             <div className="grid grid-cols-2 gap-4">
-              <Dropdown
+              <WalletDropdown
                 control={form.control}
                 name="wallet_id"
+                wallets={wallets}
                 label="Dompet"
                 placeholder="Pilih Dompet"
-                options={wallets?.map((wallet) => ({
-                  value: wallet.id.toString(),
-                  label: wallet.name
-                })) || []}
                 onValueChange={(value) => form.setValue("wallet_id", value ? parseInt(value) : null)}
               />
 
-              <Dropdown
+              <CategoryDropdown
                 control={form.control}
                 name="category_id"
+                categories={categories}
                 label="Kategori"
                 placeholder="Pilih Kategori"
-                options={categories?.map((category) => ({
-                  value: category.id.toString(),
-                  label: category.name
-                })) || []}
                 onValueChange={(value) => form.setValue("category_id", value ? parseInt(value) : null)}
               />
             </div>
@@ -108,15 +94,12 @@ const GoalInvestmentRecordDialog = ({
             {!instrumentId && !assetId ? (
               <div className="grid grid-cols-2 gap-4">
                 {!instrumentId && (
-                  <Dropdown
+                  <InstrumentDropdown
                     control={form.control}
                     name="instrument_id"
+                    instruments={instruments}
                     label="Instrumen Investasi"
                     placeholder="Pilih Instrumen"
-                    options={instruments?.map((instrument) => ({
-                      value: instrument.id.toString(),
-                      label: instrument.name
-                    })) || []}
                     onValueChange={(value) => {
                       form.setValue("instrument_id", value ? parseInt(value) : null);
                       form.setValue("asset_id", null);
@@ -125,21 +108,18 @@ const GoalInvestmentRecordDialog = ({
                 )}
 
                 {!assetId && (
-                  <Dropdown
+                  <AssetDropdown
                     control={form.control}
                     name="asset_id"
+                    assets={filteredAssets}
                     label="Aset Investasi"
                     placeholder="Pilih Aset"
                     disabled={!selectedInstrument || filteredAssets.length === 0}
-                    options={filteredAssets.map((asset) => ({
-                      value: asset.id.toString(),
-                      label: `${asset.name} ${asset.symbol ? `(${asset.symbol})` : ''}`
-                    }))}
                     onValueChange={(value) => form.setValue("asset_id", value ? parseInt(value) : null)}
                   />
                 )}
               </div>
-            ) : (null)}
+            ) : null}
 
             <div className="grid grid-cols-2 gap-4">
               <FormField

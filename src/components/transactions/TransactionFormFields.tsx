@@ -1,8 +1,8 @@
 import { Control } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Dropdown } from "@/components/ui/dropdown";
 import { InputNumber } from "@/components/ui/input-number";
+import { WalletDropdown, CategoryDropdown } from "@/components/ui/dropdowns";
 import { WalletModel } from "@/models/wallets";
 import { CategoryModel } from "@/models/categories";
 
@@ -16,27 +16,18 @@ const TransactionFormFields = ({ control, wallets, categories }: TransactionForm
 
   return (
     <>
-      <Dropdown
+      <WalletDropdown
         control={control}
         name="wallet_id"
-        label="Dompet"
-        placeholder="Pilih dompet"
-        options={wallets?.map((wallet) => ({
-          value: wallet.id.toString(),
-          label: `${wallet.name} (${wallet.currency_code})`
-        })) || []}
+        wallets={wallets}
         rules={{ required: "Dompet harus dipilih" }}
       />
 
-      <Dropdown
+      <CategoryDropdown
         control={control}
         name="category_id"
-        label="Kategori"
-        placeholder="Pilih kategori"
-        options={categories?.map((category) => ({
-          value: category.id.toString(),
-          label: `${category.name} ${category.is_income ? "(Pemasukan)" : "(Pengeluaran)"}`
-        })) || []}
+        categories={categories}
+        showType={true}
         rules={{ required: "Kategori harus dipilih" }}
       />
 

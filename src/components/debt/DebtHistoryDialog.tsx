@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Dropdown } from "@/components/ui/dropdown";
 import { InputNumber } from "@/components/ui/input-number";
+import { WalletDropdown, CategoryDropdown, DebtDropdown } from "@/components/ui/dropdowns";
 import { DebtHistoryFormData } from "@/form-dto/debt-histories";
 import { DebtHistoryModel } from "@/models/debt-histories";
 import { WalletModel } from "@/models/wallets";
@@ -19,8 +19,7 @@ interface DebtHistoryDialogProps {
   isLoading: boolean;
   onSubmit: (data: DebtHistoryFormData) => void;
   history?: DebtHistoryModel;
-  showDebtSelection?: boolean; // Control debt selection visibility
-  // Data props
+  showDebtSelection?: boolean;
   wallets?: WalletModel[];
   categories?: CategoryModel[];
   debts?: DebtModel[];
@@ -47,15 +46,10 @@ const DebtHistoryDialog = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {showDebtSelection && (
-              <Dropdown
+              <DebtDropdown
                 control={form.control}
                 name="debt_id"
-                label="Hutang/Piutang"
-                placeholder="Pilih hutang/piutang"
-                options={debts?.map((debt) => ({
-                  value: debt.id.toString(),
-                  label: `${debt.name} (${debt.type === 'loan' ? 'Hutang' : 'Piutang'})`
-                })) || []}
+                debts={debts}
                 rules={{ required: "Hutang/Piutang harus dipilih" }}
               />
             )}
@@ -79,27 +73,17 @@ const DebtHistoryDialog = ({
               )}
             />
 
-            <Dropdown
+            <WalletDropdown
               control={form.control}
               name="wallet_id"
-              label="Dompet"
-              placeholder="Pilih dompet"
-              options={wallets?.map((wallet) => ({
-                value: wallet.id.toString(),
-                label: `${wallet.name} (${wallet.currency_code})`
-              })) || []}
+              wallets={wallets}
               rules={{ required: "Dompet harus dipilih" }}
             />
 
-            <Dropdown
+            <CategoryDropdown
               control={form.control}
               name="category_id"
-              label="Kategori"
-              placeholder="Pilih kategori"
-              options={categories?.map((category) => ({
-                value: category.id.toString(),
-                label: category.name
-              })) || []}
+              categories={categories}
               rules={{ required: "Kategori harus dipilih" }}
             />
 
@@ -133,11 +117,7 @@ const DebtHistoryDialog = ({
             />
 
             <div className="flex justify-end gap-2 pt-4">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => onOpenChange(false)}
-              >
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                 Batal
               </Button>
               <Button type="submit" disabled={isLoading}>

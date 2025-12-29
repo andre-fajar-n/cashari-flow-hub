@@ -3,10 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { InstrumentDropdown } from "@/components/ui/dropdowns";
 import { AssetFormData } from "@/form-dto/investment-assets";
 import { InvestmentAssetModel } from "@/models/investment-assets";
 import { InvestmentInstrumentModel } from "@/models/investment-instruments";
-import { Dropdown } from "@/components/ui/dropdown";
 
 interface InvestmentAssetDialogProps {
   open: boolean;
@@ -66,24 +66,15 @@ const InvestmentAssetDialog = ({
               )}
             />
 
-            <Dropdown
+            <InstrumentDropdown
               control={form.control}
               name="instrument_id"
-              label="Instrumen Investasi"
-              placeholder="Pilih Instrumen"
-              options={(instruments || []).map((instrument) => ({
-                value: instrument.id.toString(),
-                label: instrument.name
-              }))}
+              instruments={instruments}
               onValueChange={(value) => form.setValue("instrument_id", value ? parseInt(value) : null)}
             />
 
             <div className="flex justify-end gap-2 pt-4">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => onOpenChange(false)}
-              >
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                 Batal
               </Button>
               <Button type="submit" disabled={isLoading}>
