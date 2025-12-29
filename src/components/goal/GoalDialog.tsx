@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Dropdown } from "@/components/ui/dropdown";
+import { CurrencyDropdown } from "@/components/ui/dropdowns";
 import { GoalFormData } from "@/form-dto/goals";
 import { CurrencyModel } from "@/models/currencies";
 import { GoalModel } from "@/models/goals";
@@ -71,15 +71,10 @@ const GoalDialog = ({
               )}
             />
 
-            <Dropdown
+            <CurrencyDropdown
               control={form.control}
               name="currency_code"
-              label="Mata Uang"
-              placeholder="Pilih mata uang"
-              options={currencies?.map((currency) => ({
-                value: currency.code,
-                label: `${currency.code} - ${currency.name}`
-              })) || []}
+              currencies={currencies}
             />
 
             <FormField
@@ -97,11 +92,7 @@ const GoalDialog = ({
             />
 
             <div className="flex justify-end gap-2 pt-4">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => onOpenChange(false)}
-              >
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                 Batal
               </Button>
               <Button type="submit" disabled={isLoading}>
