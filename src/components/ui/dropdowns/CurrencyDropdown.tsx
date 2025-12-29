@@ -37,7 +37,7 @@ export function CurrencyDropdown<TFieldValues extends FieldValues = FieldValues>
       onValueChange={onValueChange}
       options={currencies?.map((currency) => ({
         value: currency.code,
-        label: `${currency.code} - ${currency.name}`
+        label: `${currency.code} - ${currency.name} (${currency.symbol})`
       })) || []}
     />
   );
