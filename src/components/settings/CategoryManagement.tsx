@@ -6,6 +6,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Dropdown } from "@/components/ui/dropdown";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { CATEGORY_APPLICATIONS, CategoryApplication } from "@/constants/enums";
+import { CategoryDropdown } from "@/components/ui/dropdowns";
 import { useForm } from "react-hook-form";
 import { Plus, Trash, Pen } from "lucide-react";
 import ConfirmationModal from "@/components/ConfirmationModal";
@@ -227,19 +228,13 @@ const CategoryManagement = () => {
                     ]}
                     onValueChange={(value) => form.setValue("application", value === "none" ? null : value as CategoryApplication)}
                   />
-                  <Dropdown
+                  <CategoryDropdown
                     control={form.control}
                     name="parent_id"
                     label="Kategori Induk (Opsional)"
-                    placeholder="Pilih kategori induk"
-                    options={[
-                      { value: "none", label: "Tidak ada induk" },
-                      ...parentCategories.map((category) => ({
-                        value: category.id.toString(),
-                        label: category.name
-                      }))
-                    ]}
-                    onValueChange={(value) => form.setValue("parent_id", value === "none" ? null : parseInt(value))}
+                    categories={parentCategories}
+                    placeholder="Tidak ada induk"
+                    onValueChange={(value) => form.setValue("parent_id", value ? parseInt(value) : null)}
                   />
                 </div>
                 <div className="flex gap-2">

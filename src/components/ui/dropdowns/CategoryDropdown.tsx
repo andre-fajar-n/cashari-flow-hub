@@ -1,4 +1,4 @@
-import { Control, FieldPath, FieldValues } from "react-hook-form";
+import { Control, FieldPath, FieldValues, useFormContext } from "react-hook-form";
 import { Dropdown } from "@/components/ui/dropdown";
 import { CategoryModel } from "@/models/categories";
 
@@ -12,6 +12,7 @@ interface CategoryDropdownProps<TFieldValues extends FieldValues = FieldValues> 
   disabled?: boolean;
   className?: string;
   showType?: boolean; // Show (Pemasukan)/(Pengeluaran) suffix
+  valueAsNumber?: boolean; // Convert value to number
   onValueChange?: (value: string) => void;
 }
 
@@ -25,8 +26,15 @@ export function CategoryDropdown<TFieldValues extends FieldValues = FieldValues>
   disabled,
   className,
   showType = false,
+  valueAsNumber = false,
   onValueChange,
 }: CategoryDropdownProps<TFieldValues>) {
+  const handleValueChange = valueAsNumber 
+    ? (value: string) => {
+        onValueChange?.(value);
+      }
+    : onValueChange;
+
   return (
     <Dropdown
       control={control}
@@ -36,7 +44,7 @@ export function CategoryDropdown<TFieldValues extends FieldValues = FieldValues>
       rules={rules}
       disabled={disabled}
       className={className}
-      onValueChange={onValueChange}
+      onValueChange={handleValueChange}
       options={categories?.map((category) => ({
         value: category.id.toString(),
         label: showType 

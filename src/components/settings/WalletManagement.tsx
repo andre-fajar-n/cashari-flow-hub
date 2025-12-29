@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Dropdown } from "@/components/ui/dropdown";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
+import { CurrencyDropdown } from "@/components/ui/dropdowns";
 import { useForm } from "react-hook-form";
 import { Plus, Trash, Pen } from "lucide-react";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
@@ -157,19 +157,11 @@ const WalletManagement = () => {
                       </FormItem>
                     )}
                   />
-                  <Dropdown
+                  <CurrencyDropdown
                     control={form.control}
                     name="currency_code"
                     label="Mata Uang"
-                    placeholder="Pilih mata uang"
-                    options={[
-                      { value: "none", label: "Pilih mata uang" },
-                      ...(currencies?.map((currency) => ({
-                        value: currency.code,
-                        label: `${currency.code} - ${currency.name} (${currency.symbol})`
-                      })) || [])
-                    ]}
-                    onValueChange={(value) => form.setValue("currency_code", value === "none" ? null : value)}
+                    currencies={currencies || []}
                   />
                   <FormField
                     control={form.control}

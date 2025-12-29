@@ -2,11 +2,11 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
-import { Dropdown } from "@/components/ui/dropdown";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Settings } from "lucide-react";
+import { CurrencyDropdown } from "@/components/ui/dropdowns";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { useUserSettings, useCreateUserSettings, useUpdateUserSettings } from "@/hooks/queries/use-user-settings";
 import { UserSettingsFormData, defaultUserSettingsFormValues } from "@/form-dto/user-settings";
@@ -76,20 +76,12 @@ const UserSettingsManagement = () => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
-              <Dropdown
+              <CurrencyDropdown
                 control={form.control}
                 name="base_currency_code"
                 label="Mata Uang Dasar"
-                placeholder="Pilih mata uang dasar"
+                currencies={currencies || []}
                 rules={{ required: "Mata uang dasar harus dipilih" }}
-                options={[
-                  { value: "none", label: "Pilih mata uang dasar" },
-                  ...(currencies?.map((currency) => ({
-                    value: currency.code,
-                    label: `${currency.code} - ${currency.name} (${currency.symbol})`
-                  })) || [])
-                ]}
-                onValueChange={(value) => form.setValue("base_currency_code", value === "none" ? "" : value)}
               />
               <div className="text-sm text-muted-foreground">
                 Mata uang dasar akan digunakan untuk konversi dan laporan keuangan
