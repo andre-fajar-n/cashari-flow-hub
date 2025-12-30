@@ -426,7 +426,7 @@ serve(async (_req: Request) => {
         return new Response(
             JSON.stringify({
                 success: false,
-                error: err instanceof Error ? err.message : String(err),
+                error: "Internal server error",
                 stats: {
                     jobsProcessed,
                     jobsCompleted,
