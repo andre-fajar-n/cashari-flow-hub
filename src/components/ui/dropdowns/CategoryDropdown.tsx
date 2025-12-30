@@ -11,7 +11,6 @@ interface CategoryDropdownProps<TFieldValues extends FieldValues = FieldValues> 
   rules?: any;
   disabled?: boolean;
   className?: string;
-  showType?: boolean; // Show (Pemasukan)/(Pengeluaran) suffix
   valueAsNumber?: boolean; // Convert value to number
   onValueChange?: (value: string) => void;
 }
@@ -25,14 +24,13 @@ export function CategoryDropdown<TFieldValues extends FieldValues = FieldValues>
   rules,
   disabled,
   className,
-  showType = false,
   valueAsNumber = false,
   onValueChange,
 }: CategoryDropdownProps<TFieldValues>) {
-  const handleValueChange = valueAsNumber 
+  const handleValueChange = valueAsNumber
     ? (value: string) => {
-        onValueChange?.(value);
-      }
+      onValueChange?.(value);
+    }
     : onValueChange;
 
   return (
@@ -47,9 +45,7 @@ export function CategoryDropdown<TFieldValues extends FieldValues = FieldValues>
       onValueChange={handleValueChange}
       options={categories?.map((category) => ({
         value: category.id.toString(),
-        label: showType 
-          ? `${category.name} ${category.is_income ? "(Pemasukan)" : "(Pengeluaran)"}`
-          : category.name
+        label: `${category.name} ${category.is_income ? "(+)" : "(-)"}`
       })) || []}
     />
   );

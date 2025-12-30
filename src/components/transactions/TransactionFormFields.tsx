@@ -27,7 +27,6 @@ const TransactionFormFields = ({ control, wallets, categories }: TransactionForm
         control={control}
         name="category_id"
         categories={categories}
-        showType={true}
         rules={{ required: "Kategori harus dipilih" }}
       />
 

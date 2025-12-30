@@ -29,7 +29,7 @@ import { GoalTransferModel, GoalTransferWithRelations } from "@/models/goal-tran
 import { GoalInvestmentRecordModel, GoalInvestmentRecordWithRelations } from "@/models/goal-investment-records";
 import { DebtHistoryModel } from "@/models/debt-histories";
 import { MoneyMovementModel } from "@/models/money-movements";
-import { MOVEMENT_TYPES } from "@/constants/enums";
+import { CATEGORY_APPLICATIONS, MOVEMENT_TYPES } from "@/constants/enums";
 import { useMoneyMovementsPaginated } from "@/hooks/queries/paginated/use-money-movements-paginated";
 import { useTableState } from "@/hooks/use-table-state";
 import { TransactionHistoryTable } from "@/components/transactions/TransactionHistoryTable";
@@ -632,7 +632,7 @@ const TransactionHistory = () => {
             instruments={instruments}
             assets={assets}
             wallets={wallets}
-            categories={categories}
+            categories={categories?.filter(category => category.application === CATEGORY_APPLICATIONS.INVESTMENT)}
           />
 
           <DebtHistoryDialog
@@ -644,7 +644,7 @@ const TransactionHistory = () => {
             history={debtHistoryDialog.selectedData}
             showDebtSelection={true}
             wallets={wallets}
-            categories={categories}
+            categories={categories?.filter(category => category.application === CATEGORY_APPLICATIONS.DEBT)}
             debts={debts}
           />
 
