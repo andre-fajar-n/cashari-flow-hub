@@ -105,7 +105,7 @@ serve(async (req: any) => {
   } catch (err) {
     console.error("Unexpected error:", err);
     return new Response(JSON.stringify({
-      error: err
+      error: "Internal server error"
     }), {
       status: 500
     });
