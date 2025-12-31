@@ -13,8 +13,22 @@ export const useBudgetWithTransactionsPaginatedByBudgetId = (budgetId: number, p
     mapFilters: (q: any, filters: Record<string, any>) => {
       Object.entries(filters).forEach(([key, value]) => {
         if (!value && value !== 0) return;
-        if (key === 'start_date' || key === 'end_date') {
-          q = q.eq(key, value);
+        if (key === "date_from") {
+          // Handle date range from
+          q = q.gte("date", value);
+        } else if (key === "date_to") {
+          // Handle date range to
+          q = q.lte("date", value);
+        } else if (key === "date") {
+          // Handle single date or date range object
+          if (typeof value === "object" && value.from) {
+            q = q.gte("date", value.from);
+            if (value.to) {
+              q = q.lte("date", value.to);
+            }
+          } else {
+            q = q.eq("date", value);
+          }
         } else {
           q = q.eq(key, value);
         }
