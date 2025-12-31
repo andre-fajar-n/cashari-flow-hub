@@ -60,16 +60,6 @@ export const useMoneyMovementsPaginated = (params: PaginatedParams) => {
   });
 };
 
-export const useMoneyMovementsPaginatedByBudget = (budgetId: number, params: PaginatedParams) => {
-  return useMoneyMovementsPaginated({
-    ...params,
-    filters: {
-      ...params.filters,
-      budget_id: budgetId
-    }
-  });
-};
-
 export const useMoneyMovementsPaginatedByProject = (projectId: number, params: PaginatedParams) => {
   return useMoneyMovementsPaginated({
     ...params,

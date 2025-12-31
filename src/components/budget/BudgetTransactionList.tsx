@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useDeleteBudgetItem } from "@/hooks/queries/use-budget-transactions";
 import { BudgetModel } from "@/models/budgets";
 import { useTransactionCategories } from "@/hooks/queries/use-categories";
@@ -6,7 +7,6 @@ import { useTableState } from "@/hooks/use-table-state";
 import { SelectFilterConfig } from "@/components/ui/advanced-data-table/advanced-data-table-toolbar";
 import { TransactionHistoryTable } from "@/components/transactions/TransactionHistoryTable";
 import { getTransactionHistoryColumns } from "@/components/transactions/TransactionHistoryColumns";
-import { useMoneyMovementsPaginatedByBudget } from "@/hooks/queries/paginated/use-money-movements-paginated";
 import { TransactionModel } from "@/models/transactions";
 import { MOVEMENT_TYPES } from "@/constants/enums";
 import { useDeleteTransaction, useTransactions } from "@/hooks/queries/use-transactions";
@@ -19,6 +19,8 @@ import { defaultTransactionFormValues, TransactionFormData, mapTransactionToForm
 import { useInsertTransactionWithRelations, useUpdateTransactionWithRelations } from "@/hooks/queries/use-transaction-with-relations";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useDialogState } from "@/hooks/use-dialog-state";
+import { BudgetItemWithTransactions } from "@/models/budget-transactions";
+import { useBudgetWithTransactionsPaginatedByBudgetId } from "@/hooks/queries/paginated/use-budget-with-transactions-paginated";
 
 interface BudgetTransactionListProps {
   budget: BudgetModel;
@@ -43,7 +45,7 @@ const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
   const insertTransactionWithRelations = useInsertTransactionWithRelations();
   const updateTransactionWithRelations = useUpdateTransactionWithRelations();
 
-  const { data: paged, isLoading: isLoadingMovements } = useMoneyMovementsPaginatedByBudget(budget.id, {
+  const { data: paged, isLoading: isLoadingMovements } = useBudgetWithTransactionsPaginatedByBudgetId(budget.id, {
     page: tableState.page,
     itemsPerPage: tableState.pageSize,
     searchTerm: tableState.searchTerm,
@@ -53,10 +55,66 @@ const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
   const { data: categories } = useTransactionCategories();
   const { data: wallets } = useWallets();
 
-  const movements = paged?.data || [];
   const totalCount = paged?.count || 0;
 
-  const transactionIds = movements?.filter(m => m.resource_type === MOVEMENT_TYPES.TRANSACTION).map(m => m.resource_id) || [];
+  // Memoize the mapping to ensure React detects changes properly
+  const { transactionIds, movements } = useMemo(() => {
+    const itemTransactions = paged?.data as BudgetItemWithTransactions[] || [];
+    const ids: number[] = [];
+    const movs: MoneyMovementModel[] = [];
+
+    itemTransactions.forEach(item => {
+      ids.push(item.transaction_id);
+
+      movs.push({
+        amount: item.amount,
+        amount_unit: null,
+        asset_id: null,
+        asset_name: null,
+        asset_symbol: null,
+        base_currency_code: item.base_currency_code,
+        base_currency_symbol: item.base_currency_symbol,
+        budget_ids: item.budget_ids,
+        budget_names_text: item.budget_names_text,
+        business_project_names_text: null,
+        category_id: item.category_id,
+        category_name: item.category_name,
+        created_at: item.created_at,
+        currency_code: item.original_currency_code,
+        currency_symbol: item.original_currency_symbol,
+        date: item.date,
+        debt_id: null,
+        debt_name: null,
+        description: item.description,
+        exchange_rate: item.exchange_rate,
+        goal_id: null,
+        goal_name: null,
+        id: item.id,
+        instrument_id: null,
+        instrument_name: null,
+        opposite_asset_id: null,
+        opposite_asset_name: null,
+        opposite_asset_symbol: null,
+        opposite_goal_id: null,
+        opposite_goal_name: null,
+        opposite_instrument_id: null,
+        opposite_instrument_name: null,
+        opposite_wallet_id: null,
+        opposite_wallet_name: null,
+        project_ids: null,
+        resource_id: item.transaction_id,
+        resource_type: MOVEMENT_TYPES.TRANSACTION,
+        unit_label: null,
+        user_id: item.user_id,
+        wallet_id: item.wallet_id,
+        wallet_name: item.wallet_name,
+        asset: null,
+      });
+    });
+
+    return { transactionIds: ids, movements: movs };
+  }, [paged?.data]);
+
   const { data: transactions, isLoading: isTransactionsLoading } = useTransactions({ ids: transactionIds });
   const transactionsGroupById = transactions?.reduce((acc, item) => {
     acc[item.id] = item;
@@ -82,7 +140,7 @@ const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
     setIsLoading: transactionDialog.setIsLoading,
     onOpenChange: (open) => !open && transactionDialog.close(),
     form,
-    queryKeysToInvalidate: QUERY_KEY_SETS.TRANSACTIONS
+    queryKeysToInvalidate: [...QUERY_KEY_SETS.TRANSACTIONS, ...QUERY_KEY_SETS.BUDGETS]
   });
 
   const handleFormSubmit = (data: TransactionFormData) => {
@@ -127,7 +185,7 @@ const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
   const handleConfirmDelete = (item: MoneyMovementModel) => {
     try {
       deleteTransaction(item.resource_id);
-      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
+      queryClient.invalidateQueries({ queryKey: ["budgets_with_transactions_paginated"] });
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
     } catch (error) {
       console.error("Failed to delete transaction", error);

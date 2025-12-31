@@ -11,7 +11,6 @@ import BudgetDialog from "@/components/budget/BudgetDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import BudgetTransactionDialog from "@/components/budget/BudgetTransactionDialog";
 import BudgetSummaryCard from "@/components/budget/BudgetSummaryCard";
-import PageLoading from "@/components/PageLoading";
 import { AmountText } from "@/components/ui/amount-text";
 import { formatAmountCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/date";
@@ -22,7 +21,7 @@ import { useCurrencies, useCurrencyDetail } from "@/hooks/queries/use-currencies
 import { BudgetFormData, defaultBudgetFormValues, mapBudgetToFormData } from "@/form-dto/budget";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useTransactions } from "@/hooks/queries/use-transactions";
-import { useBudgetTransactions, useCreateBudgetItem } from "@/hooks/queries/use-budget-transactions";
+import { useBudgetTransactionsByBudgetId, useCreateBudgetItem } from "@/hooks/queries/use-budget-transactions";
 import { TransactionFilter } from "@/form-dto/transactions";
 import { useDialogState } from "@/hooks/use-dialog-state";
 import { BudgetModel } from "@/models/budgets";
@@ -33,7 +32,7 @@ const BudgetDetail = () => {
   const [activeTab, setActiveTab] = useState("summary");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  
+
   // State for BudgetTransactionDialog
   const [selectedTransactionIds, setSelectedTransactionIds] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -65,7 +64,7 @@ const BudgetDetail = () => {
     endDate: budget?.end_date
   };
   const { data: allTransactions } = useTransactions(filter);
-  const { data: budgetTransactions } = useBudgetTransactions(budget?.id);
+  const { data: budgetTransactions } = useBudgetTransactionsByBudgetId(budget?.id);
 
   // Get transactions that are not already in this budget
   const availableTransactions = allTransactions?.filter(transaction => {
@@ -134,7 +133,7 @@ const BudgetDetail = () => {
     setIsLoading: budgetDialog.setIsLoading,
     onOpenChange: (open) => !open && budgetDialog.close(),
     form,
-    queryKeysToInvalidate: QUERY_KEY_SETS.BUDGETS
+    queryKeysToInvalidate: [...QUERY_KEY_SETS.BUDGETS, ...QUERY_KEY_SETS.TRANSACTIONS]
   });
 
   const handleFormSubmit = (data: BudgetFormData) => {
@@ -147,7 +146,6 @@ const BudgetDetail = () => {
       onError: handleError
     });
   };
-
 
   // Calculate total spent from budget summary
   const totalCalculation = useMemo(() => {

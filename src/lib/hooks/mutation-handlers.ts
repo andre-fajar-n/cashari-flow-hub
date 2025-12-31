@@ -50,9 +50,12 @@ export const createMutationHandlers = (config: MutationHandlerConfig) => {
       config.onSuccess();
     }
 
-    // Invalidate specified queries
+    // Invalidate specified queries using predicate to match all variations
+    // This ensures queries with additional parameters (like budgetId, page, filters) are also invalidated
     config.queryKeysToInvalidate.forEach(queryKey => {
-      queryClient.invalidateQueries({ queryKey: [queryKey] });
+      queryClient.invalidateQueries({
+        predicate: (query) => query.queryKey[0] === queryKey
+      });
     });
   };
 
@@ -99,17 +102,13 @@ export const useMutationCallbacks = (config: MutationCallbacksConfig) => {
       config.onSuccess();
     }
 
-    // Invalidate specified queries
+    // Invalidate specified queries using predicate to match all variations
+    // This ensures queries with additional parameters (like budgetId, page, filters) are also invalidated
     config.queryKeysToInvalidate.forEach(queryKey => {
-      queryClient.invalidateQueries({ queryKey: [queryKey] });
-    });
-
-    // Special handling for money_movements - invalidate all variations
-    if (config.queryKeysToInvalidate.includes("money_movements")) {
       queryClient.invalidateQueries({
-        predicate: (query) => query.queryKey[0] === "money_movements"
+        predicate: (query) => query.queryKey[0] === queryKey
       });
-    }
+    });
   };
 
   const handleError = () => {
@@ -130,7 +129,7 @@ export const QUERY_KEY_SETS = {
   TRANSACTIONS: ["transactions", "transactions_paginated", "wallets", "budgets", "business_projects", "money_movements_paginated"],
   WALLETS: ["wallets", "transactions", "transfers", "money_movements_paginated"],
   CATEGORIES: ["categories", "transactions"],
-  BUDGETS: ["budgets", "transactions", "money_movements_paginated"],
+  BUDGETS: ["budgets", "transactions", "money_movements_paginated", "budgets_with_transactions_paginated"],
   BUSINESS_PROJECTS: ["business_projects", "transactions", "money_movements_paginated"],
   DEBTS: ["debts", "debt_histories", "debt-summary", "money_movements_paginated"],
   TRANSFERS: ["transfers", "transfers_paginated", "wallets", "money_movements_paginated"],
