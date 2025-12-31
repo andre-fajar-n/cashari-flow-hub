@@ -10,6 +10,7 @@ import { BusinessProjectTable } from "@/components/business-project/BusinessProj
 import { DeleteConfirmationModal, useDeleteConfirmation } from "@/components/DeleteConfirmationModal";
 import { useCreateBusinessProject, useUpdateBusinessProject, useDeleteBusinessProject } from "@/hooks/queries/use-business-projects";
 import { useBusinessProjectsPaginated } from "@/hooks/queries/paginated/use-business-projects-paginated";
+import { useBusinessProjectsSummaryAll } from "@/hooks/queries/use-business-project-summary";
 import { BusinessProjectModel } from "@/models/business-projects";
 import { BusinessProjectFormData, defaultBusinessProjectFormValues } from "@/form-dto/business-projects";
 import { useTableState } from "@/hooks/use-table-state";
@@ -54,6 +55,9 @@ const BusinessProject = () => {
   });
   const projects = paged?.data || [];
   const totalCount = paged?.count || 0;
+
+  // Fetch all projects summary for displaying in the table
+  const { data: projectsSummary } = useBusinessProjectsSummaryAll();
 
   // Delete confirmation hook
   const deleteConfirmation = useDeleteConfirmation<number>({
@@ -105,7 +109,7 @@ const BusinessProject = () => {
           {/* Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Proyek Bisnis</h1>
+              <h1 className="text-2xl font-bold">Proyek Bisnis</h1>
               <p className="text-sm text-muted-foreground mt-1">Kelola proyek bisnis dan investasi Anda</p>
             </div>
             <Button onClick={dialog.openAdd}>
@@ -117,6 +121,7 @@ const BusinessProject = () => {
           {/* Business Project Table */}
           <BusinessProjectTable
             projects={projects}
+            projectsSummary={projectsSummary}
             isLoading={isLoading}
             totalCount={totalCount}
             page={tableState.page}

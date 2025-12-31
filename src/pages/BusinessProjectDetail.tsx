@@ -1,18 +1,19 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { ArrowLeft, Edit, Calendar, Trash2, Plus } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { ArrowLeft, Edit, Calendar, Trash2, Plus, AlertTriangle, ArrowUpCircle, ArrowDownCircle, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import BusinessProjectTransactionDialog from "@/components/business-project/BusinessProjectTransactionDialog";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import BusinessProjectTransactionList from "@/components/business-project/BusinessProjectTransactionList";
-import PageLoading from "@/components/PageLoading";
+import BusinessProjectSummaryCard from "@/components/business-project/BusinessProjectSummaryCard";
 import { useBusinessProjectDetail, useDeleteBusinessProject, useUpdateBusinessProject } from "@/hooks/queries/use-business-projects";
-import { useState, useEffect } from "react";
+import { useBusinessProjectSummary } from "@/hooks/queries/use-business-project-summary";
 import BusinessProjectDialog from "@/components/business-project/BusinessProjectDialog";
 import { formatDate } from "@/lib/date";
+import { formatAmountCurrency } from "@/lib/currency";
 import { useTransactions } from "@/hooks/queries/use-transactions";
 import { useBusinessProjectTransactions } from "@/hooks/queries/use-business-project-transactions";
 import { TransactionFilter } from "@/form-dto/transactions";
@@ -20,10 +21,14 @@ import { BusinessProjectFormData, defaultBusinessProjectFormValues, mapBusinessP
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useDialogState } from "@/hooks/use-dialog-state";
 import { BusinessProjectModel } from "@/models/business-projects";
+import { calculateProjectTotalInBaseCurrency } from "@/components/business-project/BusinessProjectSummaryCard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AmountText } from "@/components/ui/amount-text";
 
 const BusinessProjectDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("summary");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
@@ -33,6 +38,7 @@ const BusinessProjectDetail = () => {
   const [isAddingTransactions, setIsAddingTransactions] = useState(false);
 
   const { data: project } = useBusinessProjectDetail(parseInt(id || "0"));
+  const { data: projectSummary } = useBusinessProjectSummary(parseInt(id || "0"));
   const { mutate: deleteProject } = useDeleteBusinessProject();
   const updateProject = useUpdateBusinessProject();
   const { addTransactionsToProject } = useBusinessProjectTransactions(project?.id);
@@ -136,6 +142,14 @@ const BusinessProjectDetail = () => {
     }
   };
 
+  // Calculate total from project summary
+  const totalCalculation = useMemo(() => {
+    if (!projectSummary || projectSummary.length === 0) {
+      return { total_income: 0, total_expense: 0, total_net: 0, base_currency_code: null, base_currency_symbol: null, can_calculate: true };
+    }
+    return calculateProjectTotalInBaseCurrency(projectSummary);
+  }, [projectSummary]);
+
   if (!project) {
     return (
       <ProtectedRoute>
@@ -176,12 +190,14 @@ const BusinessProjectDetail = () => {
                 </Button>
                 <div>
                   <h1 className="text-2xl font-bold">{project.name}</h1>
-                  {project.description && (
-                    <p className="text-muted-foreground mt-1">{project.description}</p>
-                  )}
+                  <p className="text-muted-foreground mt-0.5 flex items-center gap-2">
+                    <Calendar className="w-3.5 h-3.5" />
+                    {project.start_date ? formatDate(project.start_date) : "Belum ditentukan"}
+                    {project.end_date && ` - ${formatDate(project.end_date)}`}
+                  </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 pr-1">
                 <Button onClick={() => setIsAddDialogOpen(true)}>
                   <Plus className="w-4 h-4 mr-2" /> Tambah Transaksi
                 </Button>
@@ -190,7 +206,7 @@ const BusinessProjectDetail = () => {
                   variant="outline"
                 >
                   <Edit className="w-4 h-4 mr-2" />
-                  Ubah Proyek
+                  Ubah
                 </Button>
                 <Button
                   onClick={() => setIsDeleteModalOpen(true)}
@@ -201,32 +217,88 @@ const BusinessProjectDetail = () => {
                 </Button>
               </div>
             </div>
+
+            {/* Compact stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-2 px-2 border-t">
+              <div className="sm:text-center">
+                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                  <ArrowUpCircle className="w-3 h-3 text-green-600" /> Total Pemasukan
+                </p>
+                {totalCalculation.can_calculate ? (
+                  <p className="font-semibold text-green-700">
+                    {formatAmountCurrency(totalCalculation.total_income, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
+                  </p>
+                ) : (
+                  <div className="flex justify-center gap-1 text-xs text-yellow-600 mt-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    <span>Kurs belum tersedia</span>
+                  </div>
+                )}
+              </div>
+              <div className="sm:text-center">
+                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                  <ArrowDownCircle className="w-3 h-3 text-red-600" /> Total Pengeluaran
+                </p>
+                {totalCalculation.can_calculate ? (
+                  <p className="font-semibold text-red-700">
+                    {formatAmountCurrency(totalCalculation.total_expense, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
+                  </p>
+                ) : (
+                  <div className="flex justify-center gap-1 text-xs text-yellow-600 mt-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    <span>Kurs belum tersedia</span>
+                  </div>
+                )}
+              </div>
+              <div className="sm:text-center">
+                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                  <TrendingUp className="w-3 h-3" /> Net
+                </p>
+                {totalCalculation.can_calculate ? (
+                  <AmountText amount={totalCalculation.total_net} showSign className="font-semibold">
+                    {formatAmountCurrency(Math.abs(totalCalculation.total_net), totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
+                  </AmountText>
+                ) : (
+                  <div className="flex justify-center gap-1 text-xs text-yellow-600 mt-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    <span>Kurs belum tersedia</span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Project Info */}
-          <Card className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Tanggal Mulai:</span>
-                <span className="font-medium">
-                  {project.start_date ? formatDate(project.start_date) : "Belum ditentukan"}
-                </span>
-              </div>
-              {project.end_date && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Tanggal Selesai:</span>
-                  <span className="font-medium">
-                    {project.end_date ? formatDate(project.end_date) : "Belum ditentukan"}
-                  </span>
+          {/* Description if available */}
+          {project.description && (
+            <p className="text-muted-foreground">{project.description}</p>
+          )}
+
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="summary">Ringkasan</TabsTrigger>
+              <TabsTrigger value="history">Riwayat</TabsTrigger>
+            </TabsList>
+
+            {/* Project Summary */}
+            <TabsContent value="summary" className="space-y-4">
+              {projectSummary && projectSummary.length > 0 ? (
+                <BusinessProjectSummaryCard
+                  summaryData={projectSummary}
+                  title={`Ringkasan Keuangan - ${project.name}`}
+                />
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">Belum ada transaksi dalam proyek ini</p>
                 </div>
               )}
-            </div>
-          </Card>
+            </TabsContent>
 
-          {/* Transactions */}
-          <BusinessProjectTransactionList project={project} />
+            {/* Transaction list */}
+            <TabsContent value="history" className="space-y-4">
+              <BusinessProjectTransactionList project={project} />
+            </TabsContent>
+          </Tabs>
         </div>
 
         <BusinessProjectDialog
