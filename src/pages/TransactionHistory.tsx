@@ -34,7 +34,7 @@ import { useMoneyMovementsPaginated } from "@/hooks/queries/paginated/use-money-
 import { useTableState } from "@/hooks/use-table-state";
 import { TransactionHistoryTable } from "@/components/transactions/TransactionHistoryTable";
 import { getTransactionHistoryColumns } from "@/components/transactions/TransactionHistoryColumns";
-import { useBudgets, useBusinessProjects, useCategories, useDebts, useGoals, useInvestmentAssets, useInvestmentInstruments } from "@/hooks/queries";
+import { useBudgets, useBusinessProjects, useCategories, useDebtCategories, useDebts, useGoals, useInvestmentAssets, useInvestmentCategories, useInvestmentInstruments } from "@/hooks/queries";
 import { defaultTransactionFormValues, mapTransactionToFormData, TransactionFormData } from "@/form-dto/transactions";
 import { defaultTransferFormData, mapTransferToFormData, TransferFormData } from "@/form-dto/transfer";
 import { defaultGoalTransferFormData, GoalTransferFormData, mapGoalTransferToFormData } from "@/form-dto/goal-transfers";
@@ -415,6 +415,8 @@ const TransactionHistory = () => {
   };
 
   const { data: categories } = useCategories();
+  const { data: categoriesInvestment } = useInvestmentCategories();
+  const { data: categoriesDebt } = useDebtCategories();
   const { data: goals } = useGoals();
   const { data: instruments } = useInvestmentInstruments();
   const { data: assets } = useInvestmentAssets();
@@ -632,7 +634,7 @@ const TransactionHistory = () => {
             instruments={instruments}
             assets={assets}
             wallets={wallets}
-            categories={categories?.filter(category => category.application === CATEGORY_APPLICATIONS.INVESTMENT)}
+            categories={categoriesInvestment}
           />
 
           <DebtHistoryDialog
@@ -644,7 +646,7 @@ const TransactionHistory = () => {
             history={debtHistoryDialog.selectedData}
             showDebtSelection={true}
             wallets={wallets}
-            categories={categories?.filter(category => category.application === CATEGORY_APPLICATIONS.DEBT)}
+            categories={categoriesDebt}
             debts={debts}
           />
 
