@@ -194,39 +194,6 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
 
   return (
     <div className="space-y-4">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-4">
-          <div className="flex items-center gap-2">
-            <ArrowUpCircle className="w-4 h-4 text-green-600" />
-            <span className="text-sm font-medium">Total Pemasukan</span>
-          </div>
-          <AmountText amount={totalIncome} className="text-lg font-bold mt-1" showSign={false}>
-            {formatAmountCurrency(totalIncome, userSettings?.base_currency_code, userSettings?.currencies?.symbol)}
-          </AmountText>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center gap-2">
-            <ArrowDownCircle className="w-4 h-4 text-red-600" />
-            <span className="text-sm font-medium">Total Pengeluaran</span>
-          </div>
-          <AmountText amount={-totalExpense} className="text-lg font-bold mt-1" showSign={false}>
-            {formatAmountCurrency(totalExpense, userSettings?.base_currency_code, userSettings?.currencies?.symbol)}
-          </AmountText>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center gap-2">
-            <div className={`w-4 h-4 rounded-full ${netAmount >= 0 ? 'bg-green-600' : 'bg-red-600'}`} />
-            <span className="text-sm font-medium">Net</span>
-          </div>
-          <AmountText amount={netAmount} className="text-lg font-bold mt-1" showSign={true}>
-            {formatAmountCurrency(Math.abs(netAmount), userSettings?.base_currency_code, userSettings?.currencies?.symbol)}
-          </AmountText>
-        </Card>
-      </div>
-
       {/* Transaction List */}
       <TransactionHistoryTable
         columns={columns}
