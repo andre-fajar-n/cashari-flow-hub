@@ -314,11 +314,11 @@ const AssetDetail = () => {
                           <XAxis dataKey="date" padding={{ left: 30, right: 30 }} />
                           <YAxis
                             domain={['dataMin - dataMin * 0.05', 'dataMax + dataMax * 0.05']}
-                            tickFormatter={(value) => formatAmountCurrency(value, assetCurrencyCode, assetCurrencySymbol)}
+                            tickFormatter={(value) => formatAmountCurrency(value, assetCurrencyCode, assetCurrencySymbol, 4)}
                             width={100}
                           />
                           <Tooltip
-                            formatter={(value) => [formatAmountCurrency(Number(value), assetCurrencyCode, assetCurrencySymbol), 'Nilai']}
+                            formatter={(value) => [formatAmountCurrency(Number(value), assetCurrencyCode, assetCurrencySymbol, 4), 'Nilai']}
                             labelFormatter={(label) => {
                               const item = chartData.find(d => d.date === label);
                               return item ? formatDate(item.fullDate) : label;

@@ -123,7 +123,7 @@ const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetV
         const value = row.original.value;
         return (
           <AmountText amount={value}>
-            {formatAmountCurrency(value, currencyCode, currencySymbol)}
+            {formatAmountCurrency(value, currencyCode, currencySymbol, 4)}
           </AmountText>
         );
       },

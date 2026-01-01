@@ -103,7 +103,7 @@ export const getInvestmentAssetColumns = ({
         return (
           <div className="flex flex-col">
             <span className="font-medium text-gray-900">
-              {formatAmountCurrency(averagePrice, assetSummary.currencyCode, assetSummary.currencySymbol)}
+              {formatAmountCurrency(averagePrice, assetSummary.currencyCode, assetSummary.currencySymbol, 4)}
             </span>
             <span className="text-xs text-gray-500">per unit</span>
           </div>
@@ -125,7 +125,7 @@ export const getInvestmentAssetColumns = ({
         return (
           <div className="flex flex-col">
             <span className="font-semibold text-gray-900">
-              {formatAmountCurrency(assetSummary.latestAssetValue, assetSummary.currencyCode, assetSummary.currencySymbol)}
+              {formatAmountCurrency(assetSummary.latestAssetValue, assetSummary.currencyCode, assetSummary.currencySymbol, 4)}
             </span>
             {assetSummary.latestAssetValueDate && (
               <span className="text-xs text-gray-500">
@@ -156,7 +156,7 @@ export const getInvestmentAssetColumns = ({
               {formatAmountCurrency(currentValue, assetSummary.currencyCode, assetSummary.currencySymbol)}
             </span>
             <span className="text-xs text-gray-500">
-              {assetSummary.totalAmountUnit.toLocaleString('id-ID')} unit × {formatAmountCurrency(assetSummary.latestAssetValue, assetSummary.currencyCode, assetSummary.currencySymbol)}
+              {assetSummary.totalAmountUnit.toLocaleString('id-ID')} unit × {formatAmountCurrency(assetSummary.latestAssetValue, assetSummary.currencyCode, assetSummary.currencySymbol, 4)}
             </span>
           </div>
         );
