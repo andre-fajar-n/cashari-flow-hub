@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, Edit, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import InvestmentInstrumentDialog from "@/components/investment/InvestmentInstrumentDialog";
 import Layout from "@/components/Layout";
@@ -9,12 +8,12 @@ import { DeleteConfirmationModal, useDeleteConfirmation } from "@/components/Del
 import { useCreateInvestmentInstrument, useUpdateInvestmentInstrument, useDeleteInvestmentInstrument } from "@/hooks/queries/use-investment-instruments";
 import { useInvestmentInstrumentsPaginated } from "@/hooks/queries/paginated/use-investment-instruments-paginated";
 import { InvestmentInstrumentModel } from "@/models/investment-instruments";
-import { DataTable, ColumnFilter } from "@/components/ui/data-table";
-import { Card } from "@/components/ui/card";
+import { InvestmentInstrumentTable } from "@/components/investment/InvestmentInstrumentTable";
 import { InstrumentFormData, defaultInstrumentFormValues } from "@/form-dto/investment-instruments";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialogState } from "@/hooks/use-dialog-state";
+import { useTableState } from "@/hooks/use-table-state";
 
 const InvestmentInstrument = () => {
   const { user } = useAuth();
@@ -23,11 +22,16 @@ const InvestmentInstrument = () => {
   const createInstrument = useCreateInvestmentInstrument();
   const updateInstrument = useUpdateInvestmentInstrument();
 
-  const [page, setPage] = useState(1);
-  const itemsPerPage = 10;
-  const [serverSearch, setServerSearch] = useState("");
-  const [serverFilters, setServerFilters] = useState<Record<string, any>>({});
-  const { data: paged, isLoading } = useInvestmentInstrumentsPaginated({ page, itemsPerPage, searchTerm: serverSearch, filters: serverFilters });
+  // Table state
+  const { state, actions } = useTableState({ initialPageSize: 10 });
+
+  // Paginated data
+  const { data: paged, isLoading } = useInvestmentInstrumentsPaginated({
+    page: state.page,
+    itemsPerPage: state.pageSize,
+    searchTerm: state.searchTerm,
+    filters: state.filters,
+  });
   const instruments = paged?.data || [];
 
   // Form
@@ -77,86 +81,6 @@ const InvestmentInstrument = () => {
     }
   };
 
-
-  const renderInstrumentItem = (instrument: InvestmentInstrumentModel) => (
-    <Card key={instrument.id} className="bg-card border border-border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
-      <div className="space-y-3">
-        {/* Header Section */}
-        <div className="flex items-start justify-between">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-1 bg-primary/10 rounded-full">
-                <TrendingUp className="w-4 h-4 text-primary" />
-              </div>
-              <h3 className="font-bold text-lg text-foreground truncate">{instrument.name}</h3>
-            </div>
-
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-              {instrument.unit_label && (
-                <span className="text-sm font-medium text-muted-foreground bg-muted px-2 py-1 rounded-lg w-fit">
-                  Unit: {instrument.unit_label}
-                </span>
-              )}
-              <span className={`text-xs px-3 py-1 rounded-full font-medium w-fit ${instrument.is_trackable
-                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                : 'bg-muted text-muted-foreground'
-                }`}>
-                {instrument.is_trackable ? 'Dapat Dilacak' : 'Tidak Dapat Dilacak'}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Actions - Mobile responsive */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-2 pt-4 sm:pt-1 border-t-2 sm:border-t border-border">
-          <Button
-            variant="outline"
-            size="lg"
-            className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
-          >
-            <TrendingUp className="w-3 h-3 sm:mr-1" />
-            Detail
-          </Button>
-          <Button
-            variant="outline"
-            size="lg"
-            className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
-            onClick={() => dialog.openEdit(instrument)}
-          >
-            <Edit className="w-3 h-3 sm:mr-1" />
-            Ubah
-          </Button>
-          <Button
-            variant="destructive"
-            size="lg"
-            className="flex-1 h-9 sm:h-8 text-sm sm:text-xs"
-            onClick={() => deleteConfirmation.openModal(instrument.id)}
-          >
-            <Trash2 className="w-3 h-3 sm:mr-1" />
-            Hapus
-          </Button>
-        </div>
-      </div>
-    </Card>
-  );
-
-  const columnFilters: ColumnFilter[] = [
-    {
-      field: "is_trackable",
-      label: "Status Tracking",
-      type: "select",
-      options: [
-        { label: "Dapat Dilacak", value: "true" },
-        { label: "Tidak Dapat Dilacak", value: "false" }
-      ]
-    },
-    {
-      field: "unit_label",
-      label: "Unit Label",
-      type: "text"
-    }
-  ];
-
   return (
     <ProtectedRoute>
       <Layout>
@@ -165,44 +89,36 @@ const InvestmentInstrument = () => {
           onConfirm={(id) => deleteInstrument(id)}
         />
 
-        <DataTable
-          data={instruments}
-          isLoading={isLoading}
-          searchPlaceholder="Cari instrumen investasi..."
-          searchFields={["name", "unit_label"]}
-          columnFilters={columnFilters}
-          itemsPerPage={itemsPerPage}
-          serverMode
-          totalCount={paged?.count}
-          page={page}
-          onServerParamsChange={({ searchTerm, filters, page: nextPage }) => {
-            setServerSearch(searchTerm);
-            setServerFilters(filters);
-            setPage(nextPage);
-          }}
-          useUrlParams={true}
-          renderItem={renderInstrumentItem}
-          emptyStateMessage="Belum ada instrumen investasi yang dibuat"
-          title="Instrumen Investasi"
-          description="Kelola jenis instrumen investasi Anda"
-          headerActions={
-            instruments && instruments.length > 0 && (
-              <Button onClick={dialog.openAdd} className="w-full sm:w-auto">
-                <Plus className="w-4 h-4 mr-2" />
-                Tambah Instrumen
-              </Button>
-            )
-          }
-        />
-
-        {(!instruments || instruments.length === 0) && !isLoading && (
-          <div className="text-center py-8">
-            <Button onClick={dialog.openAdd} className="mt-4">
+        <div className="space-y-4">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Instrumen Investasi</h1>
+              <p className="text-muted-foreground text-sm">Kelola jenis instrumen investasi Anda</p>
+            </div>
+            <Button onClick={dialog.openAdd}>
               <Plus className="w-4 h-4 mr-2" />
-              Tambah Instrumen Pertama
+              Tambah Instrumen
             </Button>
           </div>
-        )}
+
+          {/* Table */}
+          <InvestmentInstrumentTable
+            data={instruments}
+            totalCount={paged?.count || 0}
+            isLoading={isLoading}
+            searchTerm={state.searchTerm}
+            onSearchChange={actions.handleSearchChange}
+            filters={state.filters}
+            onFiltersChange={actions.handleFiltersChange}
+            page={state.page}
+            pageSize={state.pageSize}
+            setPage={actions.handlePageChange}
+            setPageSize={actions.handlePageSizeChange}
+            onEdit={dialog.openEdit}
+            onDelete={deleteConfirmation.openModal}
+          />
+        </div>
 
         <InvestmentInstrumentDialog
           open={dialog.open}
