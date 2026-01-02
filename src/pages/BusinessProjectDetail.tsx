@@ -9,6 +9,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import BusinessProjectTransactionList from "@/components/business-project/BusinessProjectTransactionList";
 import BusinessProjectSummaryCard from "@/components/business-project/BusinessProjectSummaryCard";
+import BusinessProjectTrendChart from "@/components/business-project/BusinessProjectTrendChart";
 import { useBusinessProjectDetail, useDeleteBusinessProject, useUpdateBusinessProject } from "@/hooks/queries/use-business-projects";
 import { useBusinessProjectSummary } from "@/hooks/queries/use-business-project-summary";
 import BusinessProjectDialog from "@/components/business-project/BusinessProjectDialog";
@@ -24,7 +25,6 @@ import { BusinessProjectModel } from "@/models/business-projects";
 import { calculateProjectTotalInBaseCurrency } from "@/components/business-project/BusinessProjectSummaryCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AmountText } from "@/components/ui/amount-text";
-
 const BusinessProjectDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -281,12 +281,21 @@ const BusinessProjectDetail = () => {
             </TabsList>
 
             {/* Project Summary */}
-            <TabsContent value="summary" className="space-y-4">
-              {projectSummary && projectSummary.length > 0 ? (
-                <BusinessProjectSummaryCard
-                  summaryData={projectSummary}
-                  title={`Ringkasan Keuangan - ${project.name}`}
-                />
+            <TabsContent value="summary" className="space-y-6">
+              {projectTransactions && projectTransactions.length > 0 ? (
+                <>
+                  <BusinessProjectTrendChart
+                    transactions={projectTransactions}
+                    baseCurrencyCode={totalCalculation.base_currency_code}
+                    baseCurrencySymbol={totalCalculation.base_currency_symbol}
+                  />
+                  {projectSummary && projectSummary.length > 0 && (
+                    <BusinessProjectSummaryCard
+                      summaryData={projectSummary}
+                      title={`Ringkasan Keuangan - ${project.name}`}
+                    />
+                  )}
+                </>
               ) : (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">Belum ada transaksi dalam proyek ini</p>
