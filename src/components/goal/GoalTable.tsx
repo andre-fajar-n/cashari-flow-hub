@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { formatDate } from "@/lib/date";
 import { formatAmountCurrency } from "@/lib/currency";
 import { CurrencyModel } from "@/models/currencies";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface GoalTableProps {
   data: GoalModel[];
@@ -152,28 +153,43 @@ export const GoalTable = ({
 
         return (
           <div className="flex items-center justify-end gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleView(goal)}
-            >
-              <Eye className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onEdit(goal)}
-            >
-              <Edit className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-destructive hover:text-destructive"
-              onClick={() => onDelete(goal.id)}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleView(goal)}
+                >
+                  <Eye className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Lihat Detail</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onEdit(goal)}
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Edit</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => onDelete(goal.id)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Hapus</TooltipContent>
+            </Tooltip>
           </div>
         );
       },

@@ -11,6 +11,7 @@ import { calculateTotalInBaseCurrency } from "@/lib/debt-summary";
 import { Badge } from "@/components/ui/badge";
 import { DEBT_TYPES } from "@/constants/enums";
 import { UserSettingsModel } from "@/models/user-settings";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export interface DebtTableProps {
   debts: DebtModel[];
@@ -197,28 +198,43 @@ export const DebtTable = ({
 
         return (
           <div className="flex items-center justify-end gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onViewHistory(debt)}
-            >
-              <Eye className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onEdit(debt)}
-            >
-              <Edit className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-destructive hover:text-destructive"
-              onClick={() => onDelete(debt.id)}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onViewHistory(debt)}
+                >
+                  <Eye className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Lihat Riwayat</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onEdit(debt)}
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Edit</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => onDelete(debt.id)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Hapus</TooltipContent>
+            </Tooltip>
           </div>
         );
       },
