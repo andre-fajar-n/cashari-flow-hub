@@ -1,7 +1,8 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { MoneyMovementModel } from "@/models/money-movements";
 import { Badge } from "@/components/ui/badge";
-import { DataTableColumnHeader, DataTableRowActions, RowAction } from "@/components/ui/advanced-data-table";
+import { Button } from "@/components/ui/button";
+import { DataTableColumnHeader } from "@/components/ui/advanced-data-table";
 import {
   ArrowUpCircle,
   ArrowDownCircle,
@@ -393,49 +394,51 @@ export const getTransactionHistoryColumns = ({
 
   const actionColumn = {
     id: "actions",
-    header: "Aksi",
+    header: () => <span className="text-right block">Aksi</span>,
     cell: ({ row }) => {
       const movement = row.original;
 
-      const actions: RowAction<MoneyMovementModel>[] = [];
-
-      // Edit action (always available)
-      actions.push({
-        label: "Ubah",
-        icon: Edit,
-        onClick: onEdit,
-      });
-
-      // Delete action (always available)
-      actions.push({
-        label: "Hapus Transaksi",
-        icon: Trash2,
-        onClick: onDelete,
-        variant: "destructive",
-        separator: true,
-      });
-
-      // Remove from Budget action (only when onRemoveFromBudget is provided)
-      if (onRemoveFromBudget) {
-        actions.push({
-          label: "Hapus dari Budget",
-          icon: X,
-          onClick: (movement) => onRemoveFromBudget(movement.resource_id),
-          variant: "destructive",
-        });
-      }
-
-      // Remove from Project action (only when onRemoveFromProject is provided)
-      if (onRemoveFromProject) {
-        actions.push({
-          label: "Hapus dari Proyek",
-          icon: X,
-          onClick: (movement) => onRemoveFromProject(movement.resource_id),
-          variant: "destructive",
-        });
-      }
-
-      return <DataTableRowActions item={movement} actions={actions} />;
+      return (
+        <div className="flex items-center justify-end gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onEdit(movement)}
+          >
+            <Edit className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-destructive hover:text-destructive"
+            onClick={() => onDelete(movement)}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+          {onRemoveFromBudget && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => onRemoveFromBudget(movement.resource_id)}
+              title="Hapus dari Budget"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          )}
+          {onRemoveFromProject && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => onRemoveFromProject(movement.resource_id)}
+              title="Hapus dari Proyek"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+      );
     },
   };
 

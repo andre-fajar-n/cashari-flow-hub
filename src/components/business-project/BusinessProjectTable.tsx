@@ -1,8 +1,9 @@
-import { AdvancedDataTable, DataTableColumnHeader, DataTableRowActions, RowAction } from "@/components/ui/advanced-data-table";
+import { AdvancedDataTable, DataTableColumnHeader } from "@/components/ui/advanced-data-table";
 import { AdvancedDataTableToolbar, SelectFilterConfig } from "@/components/ui/advanced-data-table/advanced-data-table-toolbar";
 import { ColumnDef } from "@tanstack/react-table";
 import { BusinessProjectModel, BusinessProjectSummaryModel } from "@/models/business-projects";
 import { Edit, Trash2, Eye, Calendar, AlertTriangle, ArrowUpCircle, ArrowDownCircle, TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/date";
 import { formatAmountCurrency } from "@/lib/currency";
 
@@ -203,31 +204,36 @@ export const BusinessProjectTable = ({
     },
     {
       id: "actions",
-      header: "Aksi",
+      header: () => <span className="text-right block">Aksi</span>,
       cell: ({ row }) => {
         const project = row.original;
 
-        const actions: RowAction<BusinessProjectModel>[] = [
-          {
-            label: "Detail",
-            icon: Eye,
-            onClick: onView,
-          },
-          {
-            label: "Ubah",
-            icon: Edit,
-            onClick: onEdit,
-          },
-          {
-            label: "Hapus",
-            icon: Trash2,
-            onClick: (project) => onDelete(project.id),
-            variant: "destructive",
-            separator: true,
-          },
-        ];
-
-        return <DataTableRowActions item={project} actions={actions} />;
+        return (
+          <div className="flex items-center justify-end gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onView(project)}
+            >
+              <Eye className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(project)}
+            >
+              <Edit className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => onDelete(project.id)}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        );
       },
     },
   ];

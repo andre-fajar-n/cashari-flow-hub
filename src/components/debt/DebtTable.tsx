@@ -1,9 +1,10 @@
-import { AdvancedDataTable, DataTableColumnHeader, DataTableRowActions, RowAction } from "@/components/ui/advanced-data-table";
+import { AdvancedDataTable, DataTableColumnHeader } from "@/components/ui/advanced-data-table";
 import { AdvancedDataTableToolbar, SelectFilterConfig } from "@/components/ui/advanced-data-table/advanced-data-table-toolbar";
 import { ColumnDef } from "@tanstack/react-table";
 import { DebtModel } from "@/models/debts";
 import { DebtSummaryModel } from "@/models/debt-summary";
-import { Edit, Trash2, History } from "lucide-react";
+import { Edit, Trash2, Eye } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/date";
 import { formatAmountCurrency } from "@/lib/currency";
 import { calculateTotalInBaseCurrency } from "@/lib/debt-summary";
@@ -190,31 +191,36 @@ export const DebtTable = ({
     },
     {
       id: "actions",
-      header: "Aksi",
+      header: () => <span className="text-right block">Aksi</span>,
       cell: ({ row }) => {
         const debt = row.original;
 
-        const actions: RowAction<DebtModel>[] = [
-          {
-            label: "Detail",
-            icon: History,
-            onClick: onViewHistory,
-          },
-          {
-            label: "Ubah",
-            icon: Edit,
-            onClick: onEdit,
-          },
-          {
-            label: "Hapus",
-            icon: Trash2,
-            onClick: (debt) => onDelete(debt.id),
-            variant: "destructive",
-            separator: true,
-          },
-        ];
-
-        return <DataTableRowActions item={debt} actions={actions} />;
+        return (
+          <div className="flex items-center justify-end gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onViewHistory(debt)}
+            >
+              <Eye className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(debt)}
+            >
+              <Edit className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => onDelete(debt.id)}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        );
       },
     },
   ];

@@ -8,7 +8,7 @@ import { useTableState } from "@/hooks/use-table-state";
 import { AdvancedDataTable } from "@/components/ui/advanced-data-table/advanced-data-table";
 import { AdvancedDataTableToolbar } from "@/components/ui/advanced-data-table/advanced-data-table-toolbar";
 import { DataTableColumnHeader } from "@/components/ui/advanced-data-table/data-table-column-header";
-import { DataTableRowActions, RowAction } from "@/components/ui/advanced-data-table/data-table-row-actions";
+import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/date";
 import { formatAmountCurrency } from "@/lib/currency";
 import AmountText from "@/components/ui/amount-text";
@@ -130,24 +130,29 @@ const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetV
     },
     {
       id: "actions",
+      header: () => <span className="text-right block">Aksi</span>,
       cell: ({ row }) => {
         const value = row.original;
-        const actions: RowAction<InvestmentAssetValueModel>[] = [
-          {
-            label: "Edit",
-            icon: Edit,
-            onClick: valueDialog.openEdit,
-          },
-          {
-            label: "Hapus",
-            icon: Trash2,
-            onClick: handleDeleteClick,
-            variant: "destructive",
-            separator: true,
-          },
-        ];
 
-        return <DataTableRowActions item={value} actions={actions} />;
+        return (
+          <div className="flex items-center justify-end gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => valueDialog.openEdit(value)}
+            >
+              <Edit className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => handleDeleteClick(value)}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        );
       },
     },
   ];

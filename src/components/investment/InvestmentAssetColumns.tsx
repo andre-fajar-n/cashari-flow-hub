@@ -2,7 +2,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import { InvestmentAssetModel } from "@/models/investment-assets";
 import { AssetSummaryData } from "@/models/money-summary";
 import { Badge } from "@/components/ui/badge";
-import { DataTableColumnHeader, DataTableRowActions, RowAction } from "@/components/ui/advanced-data-table";
+import { Button } from "@/components/ui/button";
+import { DataTableColumnHeader } from "@/components/ui/advanced-data-table";
 import { Coins, Edit, Trash2, ArrowUp, ArrowDown, Eye } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/date";
@@ -196,31 +197,36 @@ export const getInvestmentAssetColumns = ({
     },
     {
       id: "actions",
-      header: "Aksi",
+      header: () => <span className="text-right block">Aksi</span>,
       cell: ({ row }) => {
         const asset = row.original;
 
-        const actions: RowAction<InvestmentAssetModel>[] = [
-          {
-            label: "Lihat Detail",
-            icon: Eye,
-            onClick: onViewHistory,
-          },
-          {
-            label: "Edit",
-            icon: Edit,
-            onClick: onEdit,
-          },
-          {
-            label: "Hapus",
-            icon: Trash2,
-            onClick: (asset) => onDelete(asset.id),
-            variant: "destructive",
-            separator: true,
-          },
-        ];
-
-        return <DataTableRowActions item={asset} actions={actions} />;
+        return (
+          <div className="flex items-center justify-end gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onViewHistory(asset)}
+            >
+              <Eye className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(asset)}
+            >
+              <Edit className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => onDelete(asset.id)}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        );
       },
     },
   ];

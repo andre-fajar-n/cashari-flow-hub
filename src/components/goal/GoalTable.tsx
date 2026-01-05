@@ -1,12 +1,12 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { Eye, Edit, Trash2, Calendar, TrendingUp } from "lucide-react";
+import { Eye, Edit, Trash2, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { GoalModel } from "@/models/goals";
 import { AdvancedDataTable } from "@/components/ui/advanced-data-table/advanced-data-table";
 import { AdvancedDataTableToolbar, SelectFilterConfig } from "@/components/ui/advanced-data-table/advanced-data-table-toolbar";
 import { DataTableColumnHeader } from "@/components/ui/advanced-data-table/data-table-column-header";
-import { DataTableRowActions, RowAction } from "@/components/ui/advanced-data-table/data-table-row-actions";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { formatDate } from "@/lib/date";
 import { formatAmountCurrency } from "@/lib/currency";
@@ -146,29 +146,36 @@ export const GoalTable = ({
     },
     {
       id: "actions",
+      header: () => <span className="text-right block">Aksi</span>,
       cell: ({ row }) => {
         const goal = row.original;
-        const actions: RowAction<GoalModel>[] = [
-          {
-            label: "Detail",
-            icon: Eye,
-            onClick: handleView,
-          },
-          {
-            label: "Edit",
-            icon: Edit,
-            onClick: onEdit,
-          },
-          {
-            label: "Hapus",
-            icon: Trash2,
-            onClick: (goal) => onDelete(goal.id),
-            variant: "destructive",
-            separator: true,
-          },
-        ];
 
-        return <DataTableRowActions item={goal} actions={actions} />;
+        return (
+          <div className="flex items-center justify-end gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleView(goal)}
+            >
+              <Eye className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(goal)}
+            >
+              <Edit className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => onDelete(goal.id)}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        );
       },
     },
   ];
