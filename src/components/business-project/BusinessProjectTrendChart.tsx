@@ -2,14 +2,15 @@ import { useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import {
-  AreaChart,
-  Area,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   Legend,
+  Cell,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatAmountCurrency } from "@/lib/currency";
@@ -125,21 +126,12 @@ const BusinessProjectTrendChart = ({
       <CardContent>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
+            <BarChart
               data={chartData}
               margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              barCategoryGap="20%"
             >
-              <defs>
-                <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0.1} />
-                </linearGradient>
-                <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.1} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
               <XAxis
                 dataKey="monthLabel"
                 tick={{ fontSize: 12 }}
@@ -160,6 +152,7 @@ const BusinessProjectTrendChart = ({
                 }}
               />
               <Tooltip
+                cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }}
                 content={({ active, payload, label }) => {
                   if (!active || !payload || payload.length === 0) return null;
                   
@@ -172,16 +165,22 @@ const BusinessProjectTrendChart = ({
                       <p className="font-semibold mb-2">{label}</p>
                       <div className="space-y-1 text-sm">
                         <div className="flex items-center justify-between gap-4">
-                          <span className="text-green-600">Pemasukan:</span>
-                          <span className="font-medium">{formatCurrency(income)}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-sm bg-emerald-500" />
+                            <span>Pemasukan:</span>
+                          </div>
+                          <span className="font-medium text-emerald-600">{formatCurrency(income)}</span>
                         </div>
                         <div className="flex items-center justify-between gap-4">
-                          <span className="text-red-600">Pengeluaran:</span>
-                          <span className="font-medium">{formatCurrency(expense)}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-sm bg-rose-500" />
+                            <span>Pengeluaran:</span>
+                          </div>
+                          <span className="font-medium text-rose-600">{formatCurrency(expense)}</span>
                         </div>
                         <div className="border-t pt-1 mt-1 flex items-center justify-between gap-4">
-                          <span className={net >= 0 ? "text-green-600" : "text-red-600"}>Net:</span>
-                          <span className={`font-semibold ${net >= 0 ? "text-green-600" : "text-red-600"}`}>
+                          <span className={net >= 0 ? "text-emerald-600" : "text-rose-600"}>Net:</span>
+                          <span className={`font-semibold ${net >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                             {net >= 0 ? "+" : ""}{formatCurrency(net)}
                           </span>
                         </div>
@@ -192,28 +191,24 @@ const BusinessProjectTrendChart = ({
               />
               <Legend
                 formatter={(value) => {
-                  if (value === "income") return "Pemasukan";
-                  if (value === "expense") return "Pengeluaran";
+                  if (value === "income") return <span className="text-emerald-600 font-medium">Pemasukan</span>;
+                  if (value === "expense") return <span className="text-rose-600 font-medium">Pengeluaran</span>;
                   return value;
                 }}
               />
-              <Area
-                type="monotone"
-                dataKey="income"
-                stroke="hsl(var(--chart-2))"
-                strokeWidth={2}
-                fill="url(#colorIncome)"
+              <Bar 
+                dataKey="income" 
                 name="income"
+                fill="#10b981"
+                radius={[4, 4, 0, 0]}
               />
-              <Area
-                type="monotone"
-                dataKey="expense"
-                stroke="hsl(var(--chart-1))"
-                strokeWidth={2}
-                fill="url(#colorExpense)"
+              <Bar 
+                dataKey="expense" 
                 name="expense"
+                fill="#f43f5e"
+                radius={[4, 4, 0, 0]}
               />
-            </AreaChart>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </CardContent>
