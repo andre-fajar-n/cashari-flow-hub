@@ -2,15 +2,14 @@ import { useMemo } from "react";
 import { format, parseISO } from "date-fns";
 import { id as idLocale } from "date-fns/locale";
 import {
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   Legend,
-  Cell,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatAmountCurrency } from "@/lib/currency";
@@ -126,10 +125,9 @@ const BusinessProjectTrendChart = ({
       <CardContent>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
+            <LineChart
               data={chartData}
               margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-              barCategoryGap="20%"
             >
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
               <XAxis
@@ -152,7 +150,6 @@ const BusinessProjectTrendChart = ({
                 }}
               />
               <Tooltip
-                cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }}
                 content={({ active, payload, label }) => {
                   if (!active || !payload || payload.length === 0) return null;
                   
@@ -166,14 +163,14 @@ const BusinessProjectTrendChart = ({
                       <div className="space-y-1 text-sm">
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-sm bg-emerald-500" />
+                            <div className="w-3 h-3 rounded-full bg-emerald-500" />
                             <span>Pemasukan:</span>
                           </div>
                           <span className="font-medium text-emerald-600">{formatCurrency(income)}</span>
                         </div>
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded-sm bg-rose-500" />
+                            <div className="w-3 h-3 rounded-full bg-rose-500" />
                             <span>Pengeluaran:</span>
                           </div>
                           <span className="font-medium text-rose-600">{formatCurrency(expense)}</span>
@@ -196,19 +193,25 @@ const BusinessProjectTrendChart = ({
                   return value;
                 }}
               />
-              <Bar 
+              <Line 
+                type="monotone"
                 dataKey="income" 
                 name="income"
-                fill="#10b981"
-                radius={[4, 4, 0, 0]}
+                stroke="#10b981"
+                strokeWidth={2.5}
+                dot={{ fill: "#10b981", strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, strokeWidth: 2 }}
               />
-              <Bar 
+              <Line 
+                type="monotone"
                 dataKey="expense" 
                 name="expense"
-                fill="#f43f5e"
-                radius={[4, 4, 0, 0]}
+                stroke="#f43f5e"
+                strokeWidth={2.5}
+                dot={{ fill: "#f43f5e", strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, strokeWidth: 2 }}
               />
-            </BarChart>
+            </LineChart>
           </ResponsiveContainer>
         </div>
       </CardContent>
