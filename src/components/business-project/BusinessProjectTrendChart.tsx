@@ -190,6 +190,7 @@ const BusinessProjectTrendChart = ({
                 formatter={(value) => {
                   if (value === "income") return <span className="text-emerald-600 font-medium">Pemasukan</span>;
                   if (value === "expense") return <span className="text-rose-600 font-medium">Pengeluaran</span>;
+                  if (value === "net") return <span className="text-blue-600 font-medium">Net Profit/Loss</span>;
                   return value;
                 }}
               />
@@ -209,6 +210,16 @@ const BusinessProjectTrendChart = ({
                 stroke="#f43f5e"
                 strokeWidth={2.5}
                 dot={{ fill: "#f43f5e", strokeWidth: 2, r: 4 }}
+                activeDot={{ r: 6, strokeWidth: 2 }}
+              />
+              <Line 
+                type="monotone"
+                dataKey="net" 
+                name="net"
+                stroke="#3b82f6"
+                strokeWidth={2.5}
+                strokeDasharray="5 5"
+                dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
                 activeDot={{ r: 6, strokeWidth: 2 }}
               />
             </LineChart>
