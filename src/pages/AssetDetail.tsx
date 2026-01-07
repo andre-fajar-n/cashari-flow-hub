@@ -2,20 +2,18 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Edit, Trash2, Plus, TrendingUp, BarChart3 } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Plus, BarChart3 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import AssetValueDialog from "@/components/investment/AssetValueDialog";
+import AssetValueChart from "@/components/investment/AssetValueChart";
 import { useInvestmentAssets, useDeleteInvestmentAsset, useUpdateInvestmentAsset } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
 import { useInvestmentAssetValues, useCreateInvestmentAssetValue } from "@/hooks/queries/use-investment-asset-values";
 import InvestmentAssetDialog from "@/components/investment/InvestmentAssetDialog";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { formatAmountCurrency } from "@/lib/currency";
 import AssetSummary from "@/components/investment/AssetSummary";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
 import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
@@ -229,11 +227,10 @@ const AssetDetail = () => {
     }
   };
 
-  // Prepare chart data
+  // Prepare chart data - pass raw data, formatting handled in component
   const chartData = assetValues?.map(value => ({
-    date: formatDate(value.date),
+    date: value.date,
     value: value.value,
-    fullDate: value.date
   })).reverse() || [];
 
   return (
@@ -298,46 +295,12 @@ const AssetDetail = () => {
 
             <TabsContent value="history" className="space-y-4">
               {/* Chart Section */}
-              {chartData.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5" />
-                      Grafik Nilai {asset.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="date" padding={{ left: 30, right: 30 }} />
-                          <YAxis
-                            domain={['dataMin - dataMin * 0.05', 'dataMax + dataMax * 0.05']}
-                            tickFormatter={(value) => formatAmountCurrency(value, assetCurrencyCode, assetCurrencySymbol, 4)}
-                            width={100}
-                          />
-                          <Tooltip
-                            formatter={(value) => [formatAmountCurrency(Number(value), assetCurrencyCode, assetCurrencySymbol, 4), 'Nilai']}
-                            labelFormatter={(label) => {
-                              const item = chartData.find(d => d.date === label);
-                              return item ? formatDate(item.fullDate) : label;
-                            }}
-                          />
-                          <Line
-                            type="monotone"
-                            dataKey="value"
-                            stroke="#2563eb"
-                            strokeWidth={2}
-                            dot={{ fill: '#2563eb', strokeWidth: 2, r: 4 }}
-                            activeDot={{ r: 6, stroke: '#2563eb', strokeWidth: 2 }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              <AssetValueChart
+                data={chartData}
+                currencyCode={assetCurrencyCode}
+                currencySymbol={assetCurrencySymbol}
+                assetName={asset.name}
+              />
 
               {/* Value History Table */}
               <AssetValueHistoryList assetId={asset.id} currencyCode={assetCurrencyCode} currencySymbol={assetCurrencySymbol} />
