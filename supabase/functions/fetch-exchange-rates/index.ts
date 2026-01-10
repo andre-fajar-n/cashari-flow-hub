@@ -2,6 +2,11 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { rateConversion } from "../_shared/rate-conversion.ts";
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
 // Supabase client
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL") ?? "",
@@ -12,6 +17,11 @@ const supabase = createClient(
 const API_BASE = "https://api.twelvedata.com/exchange_rate";
 
 serve(async (req: any) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   try {
     let { date } = await req.json().catch(() => ({
       date: null
@@ -31,7 +41,8 @@ serve(async (req: any) => {
       return new Response(JSON.stringify({
         message: "No tasks found"
       }), {
-        status: 200
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
 
@@ -100,14 +111,16 @@ serve(async (req: any) => {
     return new Response(JSON.stringify({
       message: "Exchange rates updated"
     }), {
-      status: 200
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   } catch (err) {
     console.error("Unexpected error:", err);
     return new Response(JSON.stringify({
       error: "Internal server error"
     }), {
-      status: 500
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
 });
