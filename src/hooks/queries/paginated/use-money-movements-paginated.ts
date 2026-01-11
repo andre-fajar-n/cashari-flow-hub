@@ -89,3 +89,13 @@ export const useMoneyMovementsPaginatedByAsset = (assetId: number, params: Pagin
     }
   });
 };
+
+export const useMoneyMovementsPaginatedByGoal = (goalId: number, params: PaginatedParams) => {
+  return useMoneyMovementsPaginated({
+    ...params,
+    filters: {
+      ...params.filters,
+      goal_id: goalId
+    }
+  });
+};
