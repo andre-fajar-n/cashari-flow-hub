@@ -12,55 +12,110 @@ import GoalDialog from "@/components/goal/GoalDialog";
 import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
 import GoalOverview from "@/components/goal/GoalOverview";
+import GoalMovementList from "@/components/goal/GoalMovementList";
 import PageLoading from "@/components/PageLoading";
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
-import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
-import MovementsDataTable from "@/components/shared/MovementsDataTable";
+import { useMoneyMovementsPaginatedByGoal } from "@/hooks/queries/paginated/use-money-movements-paginated";
 import { useDeleteGoal, useGoalDetail, useUpdateGoal } from "@/hooks/queries/use-goals";
-import { useGoalTransfers, useCreateGoalTransfer, useUpdateGoalTransfer } from "@/hooks/queries/use-goal-transfers";
-import { useGoalInvestmentRecords, useCreateGoalInvestmentRecord, useUpdateGoalInvestmentRecord } from "@/hooks/queries/use-goal-investment-records";
+import { useGoalTransfers, useCreateGoalTransfer, useUpdateGoalTransfer, useDeleteGoalTransfer } from "@/hooks/queries/use-goal-transfers";
+import { useGoalInvestmentRecords, useCreateGoalInvestmentRecord, useUpdateGoalInvestmentRecord, useDeleteGoalInvestmentRecord } from "@/hooks/queries/use-goal-investment-records";
 import { useMoneySummary } from "@/hooks/queries/use-money-summary";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
 import { useCurrencies, useCurrencyDetail } from "@/hooks/queries/use-currencies";
 import { useInvestmentCategories } from "@/hooks/queries/use-categories";
+import { useTableState } from "@/hooks/use-table-state";
 import { MOVEMENT_TYPES } from "@/constants/enums";
 import { GoalFormData, defaultGoalFormValues, mapGoalToFormData } from "@/form-dto/goals";
 import { GoalTransferFormData, defaultGoalTransferFormData, mapGoalTransferToFormData } from "@/form-dto/goal-transfers";
 import { GoalTransferModel } from "@/models/goal-transfers";
 import { GoalInvestmentRecordModel } from "@/models/goal-investment-records";
 import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData, mapGoalInvestmentRecordToFormData } from "@/form-dto/goal-investment-records";
+import { MoneyMovementModel } from "@/models/money-movements";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useDialogState } from "@/hooks/use-dialog-state";
 import { GoalModel } from "@/models/goals";
 
 const GoalDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const goalId = parseInt(id!);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  
+  // Delete goal modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  
+  // Transfer config for new transfers
   const [transferConfig, setTransferConfig] = useState<GoalTransferConfig | undefined>(undefined);
+  
+  // History tab state - managed at page level
+  const { state: tableState, actions: tableActions } = useTableState({
+    initialPage: 1,
+    initialPageSize: 10,
+  });
+  
+  // Edit/Delete state for movements
+  const [editTransfer, setEditTransfer] = useState<GoalTransferModel | undefined>();
+  const [editRecord, setEditRecord] = useState<GoalInvestmentRecordModel | undefined>();
+  const [historyDeleteModal, setHistoryDeleteModal] = useState<{
+    open: boolean;
+    type: 'transfer' | 'record' | undefined;
+    id: number | undefined;
+  }>({ open: false, type: undefined, id: undefined });
+  
+  // Dialog states for history edit
+  const [historyTransferDialogOpen, setHistoryTransferDialogOpen] = useState(false);
+  const [historyRecordDialogOpen, setHistoryRecordDialogOpen] = useState(false);
+  const [isHistoryTransferLoading, setIsHistoryTransferLoading] = useState(false);
+  const [isHistoryRecordLoading, setIsHistoryRecordLoading] = useState(false);
 
+  // Mutations
   const updateGoal = useUpdateGoal();
   const createGoalTransfer = useCreateGoalTransfer();
   const updateGoalTransfer = useUpdateGoalTransfer();
+  const { mutateAsync: deleteGoalTransfer } = useDeleteGoalTransfer();
   const createRecord = useCreateGoalInvestmentRecord();
   const updateRecord = useUpdateGoalInvestmentRecord();
+  const { mutateAsync: deleteRecord } = useDeleteGoalInvestmentRecord();
   const { mutate: deleteGoal } = useDeleteGoal();
-  const { data: goal, isLoading: isGoalLoading } = useGoalDetail(parseInt(id!));
-  const { data: goalTransfers, isLoading: isTransfersLoading } = useGoalTransfers();
-  const { data: goalMovements, isLoading: isMovementsLoading } = useMoneyMovements({ goalId: parseInt(id!) });
-  const { data: goalFundsSummary, isLoading: isFundsSummaryLoading } = useMoneySummary({ goalId: parseInt(id!) });
+  
+  // Queries
+  const { data: goal, isLoading: isGoalLoading } = useGoalDetail(goalId);
+  const { data: goalFundsSummary, isLoading: isFundsSummaryLoading } = useMoneySummary({ goalId });
   const { data: wallets, isLoading: isWalletsLoading } = useWallets();
   const { data: assets, isLoading: isAssetsLoading } = useInvestmentAssets();
   const { data: instruments, isLoading: isInstrumentsLoading } = useInvestmentInstruments();
-  const { data: goalRecords, isLoading: isRecordsLoading } = useGoalInvestmentRecords();
   const { data: currency, isLoading: isCurrencyLoading } = useCurrencyDetail(goal?.currency_code);
   const { data: currencies } = useCurrencies();
   const { data: investmentCategories } = useInvestmentCategories();
-  const { data: goals } = useGoalDetail(parseInt(id!));
+  
+  // Paginated movements for history tab
+  const { data: paged, isLoading: isMovementsLoading } = useMoneyMovementsPaginatedByGoal(goalId, {
+    page: tableState.page,
+    itemsPerPage: tableState.pageSize,
+    searchTerm: tableState.searchTerm,
+    filters: tableState.filters
+  });
+  
+  const movements = paged?.data || [];
+  const totalCount = paged?.count || 0;
+  
+  // Fetch related transfers and records for editing
+  const goalTransferIds = movements?.filter(m => m.resource_type === MOVEMENT_TYPES.GOAL_TRANSFER).map(m => m.resource_id) || [];
+  const { data: goalTransfers } = useGoalTransfers({ ids: goalTransferIds });
+  const goalTransfersById = goalTransfers?.reduce((acc, t) => {
+    acc[t.id] = t;
+    return acc;
+  }, {} as Record<number, GoalTransferModel>) || {};
+  
+  const investmentRecordIds = movements?.filter(m => m.resource_type === MOVEMENT_TYPES.INVESTMENT_GROWTH).map(m => m.resource_id) || [];
+  const { data: goalRecords } = useGoalInvestmentRecords({ ids: investmentRecordIds });
+  const goalRecordsById = goalRecords?.reduce((acc, r) => {
+    acc[r.id] = r;
+    return acc;
+  }, {} as Record<number, GoalInvestmentRecordModel>) || {};
 
   // Form states managed at page level
   const form = useForm<GoalFormData>({
@@ -72,8 +127,16 @@ const GoalDetail = () => {
   const recordForm = useForm<GoalInvestmentRecordFormData>({
     defaultValues: defaultGoalInvestmentRecordFormData,
   });
+  
+  // History forms (separate for edit operations)
+  const historyTransferForm = useForm<GoalTransferFormData>({
+    defaultValues: defaultGoalTransferFormData,
+  });
+  const historyRecordForm = useForm<GoalInvestmentRecordFormData>({
+    defaultValues: defaultGoalInvestmentRecordFormData,
+  });
 
-  // Use dialog state hooks
+  // Use dialog state hooks for main dialogs
   const goalDialog = useDialogState<GoalModel, GoalFormData>({
     form,
     defaultValues: defaultGoalFormValues,
@@ -92,13 +155,12 @@ const GoalDetail = () => {
     mapDataToForm: mapGoalInvestmentRecordToFormData,
   });
 
-  const isLoading = isGoalLoading || isTransfersLoading || isMovementsLoading || isFundsSummaryLoading || isWalletsLoading ||
-    isAssetsLoading || isInstrumentsLoading || isRecordsLoading || isCurrencyLoading;
+  const isLoading = isGoalLoading || isFundsSummaryLoading || isWalletsLoading ||
+    isAssetsLoading || isInstrumentsLoading || isCurrencyLoading;
 
   // Reset transfer form when dialog opens with specific config
   useEffect(() => {
     if (transferDialog.open && transferConfig) {
-      const goalId = parseInt(id!);
       if (transferConfig.mode === 'add_to_goal') {
         transferForm.reset({ ...defaultGoalTransferFormData, to_goal_id: goalId });
       } else if (transferConfig.mode === 'take_from_goal') {
@@ -109,7 +171,7 @@ const GoalDetail = () => {
         transferForm.reset({ ...defaultGoalTransferFormData, from_goal_id: goalId, to_goal_id: goalId });
       }
     }
-  }, [transferDialog.open, transferConfig, id, transferForm]);
+  }, [transferDialog.open, transferConfig, goalId, transferForm]);
 
   // Reset record form when dialog opens
   useEffect(() => {
@@ -117,6 +179,45 @@ const GoalDetail = () => {
       recordForm.reset({ ...defaultGoalInvestmentRecordFormData, goal_id: goal.id });
     }
   }, [recordDialog.open, goal, recordForm]);
+  
+  // Reset history transfer form when editing
+  useEffect(() => {
+    if (historyTransferDialogOpen && editTransfer) {
+      historyTransferForm.reset({
+        from_wallet_id: editTransfer.from_wallet_id || null,
+        from_goal_id: editTransfer.from_goal_id || null,
+        from_instrument_id: editTransfer.from_instrument_id || null,
+        from_asset_id: editTransfer.from_asset_id || null,
+        to_wallet_id: editTransfer.to_wallet_id || null,
+        to_goal_id: editTransfer.to_goal_id || null,
+        to_instrument_id: editTransfer.to_instrument_id || null,
+        to_asset_id: editTransfer.to_asset_id || null,
+        from_amount: editTransfer.from_amount || 0,
+        to_amount: editTransfer.to_amount || 0,
+        from_amount_unit: editTransfer.from_amount_unit,
+        to_amount_unit: editTransfer.to_amount_unit,
+        date: editTransfer.date || new Date().toISOString().split("T")[0],
+      });
+    }
+  }, [historyTransferDialogOpen, editTransfer, historyTransferForm]);
+  
+  // Reset history record form when editing
+  useEffect(() => {
+    if (historyRecordDialogOpen && editRecord) {
+      historyRecordForm.reset({
+        goal_id: editRecord.goal_id || null,
+        instrument_id: editRecord.instrument_id || null,
+        asset_id: editRecord.asset_id || null,
+        wallet_id: editRecord.wallet_id || null,
+        category_id: editRecord.category_id || null,
+        amount: editRecord.amount || 0,
+        amount_unit: editRecord.amount_unit,
+        date: editRecord.date || new Date().toISOString().split("T")[0],
+        description: editRecord.description || "",
+        is_valuation: editRecord.is_valuation || false,
+      });
+    }
+  }, [historyRecordDialogOpen, editRecord, historyRecordForm]);
 
   // Mutation callbacks
   const { handleError: handleGoalError } = useMutationCallbacks({
@@ -139,6 +240,27 @@ const GoalDetail = () => {
     form: recordForm,
     queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_RECORDS
   });
+  
+  // History mutation callbacks
+  const { handleSuccess: handleHistoryTransferSuccess, handleError: handleHistoryTransferError } = useMutationCallbacks({
+    setIsLoading: setIsHistoryTransferLoading,
+    onOpenChange: (open) => {
+      setHistoryTransferDialogOpen(open);
+      if (!open) setEditTransfer(undefined);
+    },
+    form: historyTransferForm,
+    queryKeysToInvalidate: QUERY_KEY_SETS.GOAL_TRANSFERS
+  });
+  
+  const { handleSuccess: handleHistoryRecordSuccess, handleError: handleHistoryRecordError } = useMutationCallbacks({
+    setIsLoading: setIsHistoryRecordLoading,
+    onOpenChange: (open) => {
+      setHistoryRecordDialogOpen(open);
+      if (!open) setEditRecord(undefined);
+    },
+    form: historyRecordForm,
+    queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_RECORDS
+  });
 
   const handleFormSubmit = (data: GoalFormData) => {
     if (!goal) return;
@@ -152,14 +274,14 @@ const GoalDetail = () => {
   const handleTransferFormSubmit = (data: GoalTransferFormData) => {
     transferDialog.setIsLoading(true);
     const transferData = {
-      from_wallet_id: data.from_wallet_id > 0 ? data.from_wallet_id : null,
-      from_goal_id: data.from_goal_id > 0 ? data.from_goal_id : null,
-      from_instrument_id: data.from_instrument_id > 0 ? data.from_instrument_id : null,
-      from_asset_id: data.from_asset_id > 0 ? data.from_asset_id : null,
-      to_wallet_id: data.to_wallet_id > 0 ? data.to_wallet_id : null,
-      to_goal_id: data.to_goal_id > 0 ? data.to_goal_id : null,
-      to_instrument_id: data.to_instrument_id > 0 ? data.to_instrument_id : null,
-      to_asset_id: data.to_asset_id > 0 ? data.to_asset_id : null,
+      from_wallet_id: data.from_wallet_id && data.from_wallet_id > 0 ? data.from_wallet_id : null,
+      from_goal_id: data.from_goal_id && data.from_goal_id > 0 ? data.from_goal_id : null,
+      from_instrument_id: data.from_instrument_id && data.from_instrument_id > 0 ? data.from_instrument_id : null,
+      from_asset_id: data.from_asset_id && data.from_asset_id > 0 ? data.from_asset_id : null,
+      to_wallet_id: data.to_wallet_id && data.to_wallet_id > 0 ? data.to_wallet_id : null,
+      to_goal_id: data.to_goal_id && data.to_goal_id > 0 ? data.to_goal_id : null,
+      to_instrument_id: data.to_instrument_id && data.to_instrument_id > 0 ? data.to_instrument_id : null,
+      to_asset_id: data.to_asset_id && data.to_asset_id > 0 ? data.to_asset_id : null,
       from_amount: data.from_amount,
       to_amount: data.to_amount,
       from_amount_unit: data.from_amount_unit || null,
@@ -187,6 +309,89 @@ const GoalDetail = () => {
       onSuccess: () => recordDialog.handleSuccess(),
       onError: handleRecordError
     });
+  };
+  
+  // History handlers
+  const handleHistoryTransferSubmit = (data: GoalTransferFormData) => {
+    if (!editTransfer) return;
+    setIsHistoryTransferLoading(true);
+    const transferData = {
+      from_wallet_id: data.from_wallet_id && data.from_wallet_id > 0 ? data.from_wallet_id : null,
+      from_goal_id: data.from_goal_id && data.from_goal_id > 0 ? data.from_goal_id : null,
+      from_instrument_id: data.from_instrument_id && data.from_instrument_id > 0 ? data.from_instrument_id : null,
+      from_asset_id: data.from_asset_id && data.from_asset_id > 0 ? data.from_asset_id : null,
+      to_wallet_id: data.to_wallet_id && data.to_wallet_id > 0 ? data.to_wallet_id : null,
+      to_goal_id: data.to_goal_id && data.to_goal_id > 0 ? data.to_goal_id : null,
+      to_instrument_id: data.to_instrument_id && data.to_instrument_id > 0 ? data.to_instrument_id : null,
+      to_asset_id: data.to_asset_id && data.to_asset_id > 0 ? data.to_asset_id : null,
+      from_amount: data.from_amount,
+      to_amount: data.to_amount,
+      from_amount_unit: data.from_amount_unit || null,
+      to_amount_unit: data.to_amount_unit || null,
+      date: data.date,
+    };
+    updateGoalTransfer.mutate({ id: editTransfer.id, ...transferData }, {
+      onSuccess: handleHistoryTransferSuccess,
+      onError: handleHistoryTransferError
+    });
+  };
+  
+  const handleHistoryRecordSubmit = (data: GoalInvestmentRecordFormData) => {
+    if (!editRecord) return;
+    setIsHistoryRecordLoading(true);
+    const cleanData = { ...data };
+    cleanData.wallet_id = data.wallet_id || null;
+    cleanData.category_id = data.category_id || null;
+    if (!data.instrument_id) cleanData.instrument_id = null;
+    if (!data.asset_id) cleanData.asset_id = null;
+    cleanData.amount_unit = data.amount_unit;
+    updateRecord.mutate({ id: editRecord.id, ...cleanData }, {
+      onSuccess: handleHistoryRecordSuccess,
+      onError: handleHistoryRecordError
+    });
+  };
+  
+  const handleMovementEdit = (movement: MoneyMovementModel) => {
+    if (movement.resource_type === MOVEMENT_TYPES.GOAL_TRANSFER) {
+      const transfer = goalTransfersById[movement.resource_id];
+      if (transfer) {
+        setEditTransfer(transfer);
+        setHistoryTransferDialogOpen(true);
+      }
+    } else if (movement.resource_type === MOVEMENT_TYPES.INVESTMENT_GROWTH) {
+      const record = goalRecordsById[movement.resource_id];
+      if (record) {
+        setEditRecord(record);
+        setHistoryRecordDialogOpen(true);
+      }
+    }
+  };
+  
+  const handleMovementDelete = (movement: MoneyMovementModel) => {
+    let type: 'transfer' | 'record' | undefined;
+    if (movement.resource_type === MOVEMENT_TYPES.GOAL_TRANSFER) {
+      type = 'transfer';
+    } else if (movement.resource_type === MOVEMENT_TYPES.INVESTMENT_GROWTH) {
+      type = 'record';
+    }
+    if (type && movement.resource_id) {
+      setHistoryDeleteModal({ open: true, type, id: movement.resource_id });
+    }
+  };
+  
+  const handleConfirmHistoryDelete = async () => {
+    if (!historyDeleteModal.id) return;
+    try {
+      if (historyDeleteModal.type === 'transfer') {
+        await deleteGoalTransfer(historyDeleteModal.id);
+      } else if (historyDeleteModal.type === 'record') {
+        await deleteRecord(historyDeleteModal.id);
+      }
+      setHistoryDeleteModal({ open: false, type: undefined, id: undefined });
+      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
+    } catch (error) {
+      console.error("Failed to delete:", error);
+    }
   };
 
   // Check loading states and goal existence before accessing goal properties
@@ -219,10 +424,11 @@ const GoalDetail = () => {
   const totalAmount = goalFundsSummary?.reduce((sum, fund) => sum + fund.amount, 0) || 0;
   const percentage = Math.min(totalAmount / goal.target_amount * 100, 100);
 
+  // Calculate totals from movements for overview
   let totalAmountRecord = 0;
   let totalAmountTransfer = 0;
 
-  for (const movement of goalMovements || []) {
+  for (const movement of movements || []) {
     if (movement.resource_type === MOVEMENT_TYPES.INVESTMENT_GROWTH) {
       totalAmountRecord += movement.amount;
     } else if (movement.resource_type === MOVEMENT_TYPES.GOAL_TRANSFER) {
@@ -234,12 +440,6 @@ const GoalDetail = () => {
     if (goal) {
       goalDialog.openEdit(goal);
     }
-  };
-
-  const handleSuccessCallback = () => {
-    queryClient.invalidateQueries({ queryKey: ["money_movements"] });
-    queryClient.invalidateQueries({ queryKey: ["goal_transfers"] });
-    queryClient.invalidateQueries({ queryKey: ["goal_investment_records"] });
   };
 
   const handleDeleteClick = () => {
@@ -368,23 +568,65 @@ const GoalDetail = () => {
             </TabsContent>
 
             <TabsContent value="history" className="space-y-4">
-              <MovementsDataTable
-                movements={goalMovements || []}
-                transfers={goalTransfers || []}
-                records={goalRecords || []}
+              <GoalMovementList
+                // Data
+                movements={movements}
+                totalCount={totalCount}
+                isLoading={isMovementsLoading}
+                
+                // Table state
+                searchTerm={tableState.searchTerm}
+                onSearchChange={tableActions.handleSearchChange}
+                filters={tableState.filters}
+                onFiltersChange={tableActions.handleFiltersChange}
+                page={tableState.page}
+                pageSize={tableState.pageSize}
+                onPageChange={tableActions.handlePageChange}
+                onPageSizeChange={tableActions.handlePageSizeChange}
+                
+                // Filter options
                 wallets={wallets || []}
                 instruments={instruments || []}
                 assets={assets || []}
-                filterType="goal"
-                title="Riwayat Pergerakan Dana"
-                description="Kelola dan pantau semua pergerakan dana dalam goal ini"
-                emptyMessage="Belum ada riwayat pergerakan dana"
-                onSuccess={handleSuccessCallback}
+                categories={investmentCategories || []}
+                
+                // Handlers
+                onEdit={handleMovementEdit}
+                onDelete={handleMovementDelete}
+                
+                // Transfer Dialog
+                transferDialogOpen={historyTransferDialogOpen}
+                onTransferDialogChange={(open) => {
+                  setHistoryTransferDialogOpen(open);
+                  if (!open) setEditTransfer(undefined);
+                }}
+                transferForm={historyTransferForm}
+                isTransferFormLoading={isHistoryTransferLoading}
+                onTransferFormSubmit={handleHistoryTransferSubmit}
+                editTransfer={editTransfer}
+                goals={goal ? [goal] : []}
+                
+                // Record Dialog
+                recordDialogOpen={historyRecordDialogOpen}
+                onRecordDialogChange={(open) => {
+                  setHistoryRecordDialogOpen(open);
+                  if (!open) setEditRecord(undefined);
+                }}
+                recordForm={historyRecordForm}
+                isRecordFormLoading={isHistoryRecordLoading}
+                onRecordFormSubmit={handleHistoryRecordSubmit}
+                editRecord={editRecord}
+                
+                // Delete Modal
+                deleteModalOpen={historyDeleteModal.open}
+                onDeleteModalChange={(open) => setHistoryDeleteModal({ ...historyDeleteModal, open })}
+                onConfirmDelete={handleConfirmHistoryDelete}
+                deleteItemType={historyDeleteModal.type}
               />
             </TabsContent>
           </Tabs>
 
-          {/* Modals */}
+          {/* Goal Delete Modal */}
           <ConfirmationModal
             open={isDeleteModalOpen}
             onOpenChange={setIsDeleteModalOpen}
@@ -396,6 +638,7 @@ const GoalDetail = () => {
             variant="destructive"
           />
 
+          {/* Goal Edit Dialog */}
           <GoalDialog
             open={goalDialog.open}
             onOpenChange={(open) => !open && goalDialog.close()}
@@ -406,6 +649,7 @@ const GoalDetail = () => {
             goal={goal}
           />
 
+          {/* New Transfer Dialog (Add funds) */}
           <GoalTransferDialog
             open={transferDialog.open}
             onOpenChange={(open) => {
@@ -424,13 +668,13 @@ const GoalDetail = () => {
             assets={assets}
           />
 
+          {/* New Record Dialog (Update progress) */}
           <GoalInvestmentRecordDialog
             open={recordDialog.open}
             onOpenChange={(open) => !open && recordDialog.close()}
             form={recordForm}
             isLoading={recordDialog.isLoading}
             onSubmit={handleRecordFormSubmit}
-            goalId={goal.id}
             goals={goal ? [goal] : []}
             instruments={instruments}
             assets={assets}
