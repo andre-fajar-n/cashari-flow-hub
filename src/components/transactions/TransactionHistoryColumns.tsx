@@ -363,11 +363,12 @@ export const getTransactionHistoryColumns = ({
             {formatAmountCurrency(movement.amount, movement.currency_code, movement.currency_symbol)}
           </div>
 
+          {/* Base currency conversion - italic style with ≈ prefix */}
           {movement.exchange_rate ? (
             <>
               {movement.exchange_rate !== 1 && (
-                <div className="text-xs text-gray-500 mt-0.5">
-                  {formatAmountCurrency(
+                <div className="text-xs text-muted-foreground mt-0.5 italic">
+                  ≈ {formatAmountCurrency(
                     movement.amount * movement.exchange_rate,
                     movement.base_currency_code || "",
                     movement.base_currency_symbol || ""
@@ -376,16 +377,20 @@ export const getTransactionHistoryColumns = ({
               )}
             </>
           ) : (
-            <div className="text-xs text-gray-500 mt-0.5">
+            <div className="text-xs text-amber-600 mt-0.5">
               Kurs tidak tersedia
             </div>
           )}
 
-          {/* Amount Unit (for investments) */}
+          {/* Amount Unit (for investments) - badge-like style with icon */}
           {movement.amount_unit && (
-            <div className="text-xs text-gray-500 mt-0.5">
-              {movement.amount_unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })}{" "}
-              {movement.unit_label || "tidak diketahui"}
+            <div className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded mt-1">
+              <span className="font-medium">
+                {movement.amount_unit.toLocaleString("id-ID", { maximumFractionDigits: 4 })}
+              </span>
+              <span className="opacity-75">
+                {movement.unit_label || "unit"}
+              </span>
             </div>
           )}
         </div>
