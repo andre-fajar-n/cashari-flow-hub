@@ -62,13 +62,6 @@ export type Database = {
             foreignKeyName: "budget_items_budget_id_fkey"
             columns: ["budget_id"]
             isOneToOne: false
-            referencedRelation: "budget_summary"
-            referencedColumns: ["budget_id"]
-          },
-          {
-            foreignKeyName: "budget_items_budget_id_fkey"
-            columns: ["budget_id"]
-            isOneToOne: false
             referencedRelation: "budgets"
             referencedColumns: ["id"]
           },
@@ -127,78 +120,8 @@ export type Database = {
             foreignKeyName: "budgets_currency_code_fkey"
             columns: ["currency_code"]
             isOneToOne: false
-            referencedRelation: "budget_item_with_transactions"
-            referencedColumns: ["original_currency_code"]
-          },
-          {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "budget_summary"
-            referencedColumns: ["original_currency_code"]
-          },
-          {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "business_project_summary"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "business_project_summary"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
             referencedRelation: "currencies"
             referencedColumns: ["code"]
-          },
-          {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "currency_pairs"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "currency_pairs"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "debt_summary"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "debt_summary"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "money_movements"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "money_movements"
-            referencedColumns: ["currency_code"]
           },
         ]
       }
@@ -541,111 +464,6 @@ export type Database = {
             foreignKeyName: "exchange_rates_from_currency_fkey"
             columns: ["from_currency"]
             isOneToOne: false
-            referencedRelation: "budget_item_with_transactions"
-            referencedColumns: ["original_currency_code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_from_currency_fkey"
-            columns: ["from_currency"]
-            isOneToOne: false
-            referencedRelation: "budget_summary"
-            referencedColumns: ["original_currency_code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_from_currency_fkey"
-            columns: ["from_currency"]
-            isOneToOne: false
-            referencedRelation: "business_project_summary"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_from_currency_fkey"
-            columns: ["from_currency"]
-            isOneToOne: false
-            referencedRelation: "business_project_summary"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_from_currency_fkey"
-            columns: ["from_currency"]
-            isOneToOne: false
-            referencedRelation: "currencies"
-            referencedColumns: ["code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_from_currency_fkey"
-            columns: ["from_currency"]
-            isOneToOne: false
-            referencedRelation: "currency_pairs"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_from_currency_fkey"
-            columns: ["from_currency"]
-            isOneToOne: false
-            referencedRelation: "currency_pairs"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_from_currency_fkey"
-            columns: ["from_currency"]
-            isOneToOne: false
-            referencedRelation: "debt_summary"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_from_currency_fkey"
-            columns: ["from_currency"]
-            isOneToOne: false
-            referencedRelation: "debt_summary"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_from_currency_fkey"
-            columns: ["from_currency"]
-            isOneToOne: false
-            referencedRelation: "money_movements"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_from_currency_fkey"
-            columns: ["from_currency"]
-            isOneToOne: false
-            referencedRelation: "money_movements"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_to_currency_fkey"
-            columns: ["to_currency"]
-            isOneToOne: false
-            referencedRelation: "budget_item_with_transactions"
-            referencedColumns: ["original_currency_code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_to_currency_fkey"
-            columns: ["to_currency"]
-            isOneToOne: false
-            referencedRelation: "budget_summary"
-            referencedColumns: ["original_currency_code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_to_currency_fkey"
-            columns: ["to_currency"]
-            isOneToOne: false
-            referencedRelation: "business_project_summary"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_to_currency_fkey"
-            columns: ["to_currency"]
-            isOneToOne: false
-            referencedRelation: "business_project_summary"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_to_currency_fkey"
-            columns: ["to_currency"]
-            isOneToOne: false
             referencedRelation: "currencies"
             referencedColumns: ["code"]
           },
@@ -653,43 +471,8 @@ export type Database = {
             foreignKeyName: "exchange_rates_to_currency_fkey"
             columns: ["to_currency"]
             isOneToOne: false
-            referencedRelation: "currency_pairs"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_to_currency_fkey"
-            columns: ["to_currency"]
-            isOneToOne: false
-            referencedRelation: "currency_pairs"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_to_currency_fkey"
-            columns: ["to_currency"]
-            isOneToOne: false
-            referencedRelation: "debt_summary"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_to_currency_fkey"
-            columns: ["to_currency"]
-            isOneToOne: false
-            referencedRelation: "debt_summary"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_to_currency_fkey"
-            columns: ["to_currency"]
-            isOneToOne: false
-            referencedRelation: "money_movements"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "exchange_rates_to_currency_fkey"
-            columns: ["to_currency"]
-            isOneToOne: false
-            referencedRelation: "money_movements"
-            referencedColumns: ["currency_code"]
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -939,78 +722,8 @@ export type Database = {
             foreignKeyName: "goals_currency_code_fkey"
             columns: ["currency_code"]
             isOneToOne: false
-            referencedRelation: "budget_item_with_transactions"
-            referencedColumns: ["original_currency_code"]
-          },
-          {
-            foreignKeyName: "goals_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "budget_summary"
-            referencedColumns: ["original_currency_code"]
-          },
-          {
-            foreignKeyName: "goals_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "business_project_summary"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "goals_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "business_project_summary"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "goals_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
             referencedRelation: "currencies"
             referencedColumns: ["code"]
-          },
-          {
-            foreignKeyName: "goals_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "currency_pairs"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "goals_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "currency_pairs"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "goals_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "debt_summary"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "goals_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "debt_summary"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "goals_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "money_movements"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "goals_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "money_movements"
-            referencedColumns: ["currency_code"]
           },
         ]
       }
@@ -1270,78 +983,8 @@ export type Database = {
             foreignKeyName: "user_settings_base_currency_code_fkey"
             columns: ["base_currency_code"]
             isOneToOne: false
-            referencedRelation: "budget_item_with_transactions"
-            referencedColumns: ["original_currency_code"]
-          },
-          {
-            foreignKeyName: "user_settings_base_currency_code_fkey"
-            columns: ["base_currency_code"]
-            isOneToOne: false
-            referencedRelation: "budget_summary"
-            referencedColumns: ["original_currency_code"]
-          },
-          {
-            foreignKeyName: "user_settings_base_currency_code_fkey"
-            columns: ["base_currency_code"]
-            isOneToOne: false
-            referencedRelation: "business_project_summary"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "user_settings_base_currency_code_fkey"
-            columns: ["base_currency_code"]
-            isOneToOne: false
-            referencedRelation: "business_project_summary"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "user_settings_base_currency_code_fkey"
-            columns: ["base_currency_code"]
-            isOneToOne: false
             referencedRelation: "currencies"
             referencedColumns: ["code"]
-          },
-          {
-            foreignKeyName: "user_settings_base_currency_code_fkey"
-            columns: ["base_currency_code"]
-            isOneToOne: false
-            referencedRelation: "currency_pairs"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "user_settings_base_currency_code_fkey"
-            columns: ["base_currency_code"]
-            isOneToOne: false
-            referencedRelation: "currency_pairs"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "user_settings_base_currency_code_fkey"
-            columns: ["base_currency_code"]
-            isOneToOne: false
-            referencedRelation: "debt_summary"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "user_settings_base_currency_code_fkey"
-            columns: ["base_currency_code"]
-            isOneToOne: false
-            referencedRelation: "debt_summary"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "user_settings_base_currency_code_fkey"
-            columns: ["base_currency_code"]
-            isOneToOne: false
-            referencedRelation: "money_movements"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "user_settings_base_currency_code_fkey"
-            columns: ["base_currency_code"]
-            isOneToOne: false
-            referencedRelation: "money_movements"
-            referencedColumns: ["currency_code"]
           },
         ]
       }
@@ -1378,78 +1021,8 @@ export type Database = {
             foreignKeyName: "wallets_currency_code_fkey"
             columns: ["currency_code"]
             isOneToOne: false
-            referencedRelation: "budget_item_with_transactions"
-            referencedColumns: ["original_currency_code"]
-          },
-          {
-            foreignKeyName: "wallets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "budget_summary"
-            referencedColumns: ["original_currency_code"]
-          },
-          {
-            foreignKeyName: "wallets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "business_project_summary"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "wallets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "business_project_summary"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "wallets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
             referencedRelation: "currencies"
             referencedColumns: ["code"]
-          },
-          {
-            foreignKeyName: "wallets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "currency_pairs"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "wallets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "currency_pairs"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "wallets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "debt_summary"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "wallets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "debt_summary"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "wallets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "money_movements"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "wallets_currency_code_fkey"
-            columns: ["currency_code"]
-            isOneToOne: false
-            referencedRelation: "money_movements"
-            referencedColumns: ["currency_code"]
           },
         ]
       }
@@ -1482,13 +1055,6 @@ export type Database = {
             foreignKeyName: "budget_items_budget_id_fkey"
             columns: ["budget_id"]
             isOneToOne: false
-            referencedRelation: "budget_summary"
-            referencedColumns: ["budget_id"]
-          },
-          {
-            foreignKeyName: "budget_items_budget_id_fkey"
-            columns: ["budget_id"]
-            isOneToOne: false
             referencedRelation: "budgets"
             referencedColumns: ["id"]
           },
@@ -1510,78 +1076,15 @@ export type Database = {
             foreignKeyName: "budgets_currency_code_fkey"
             columns: ["base_currency_code"]
             isOneToOne: false
-            referencedRelation: "budget_item_with_transactions"
-            referencedColumns: ["original_currency_code"]
-          },
-          {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["base_currency_code"]
-            isOneToOne: false
-            referencedRelation: "budget_summary"
-            referencedColumns: ["original_currency_code"]
-          },
-          {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["base_currency_code"]
-            isOneToOne: false
-            referencedRelation: "business_project_summary"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["base_currency_code"]
-            isOneToOne: false
-            referencedRelation: "business_project_summary"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["base_currency_code"]
-            isOneToOne: false
             referencedRelation: "currencies"
             referencedColumns: ["code"]
           },
           {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["base_currency_code"]
+            foreignKeyName: "wallets_currency_code_fkey"
+            columns: ["original_currency_code"]
             isOneToOne: false
-            referencedRelation: "currency_pairs"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["base_currency_code"]
-            isOneToOne: false
-            referencedRelation: "currency_pairs"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["base_currency_code"]
-            isOneToOne: false
-            referencedRelation: "debt_summary"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["base_currency_code"]
-            isOneToOne: false
-            referencedRelation: "debt_summary"
-            referencedColumns: ["currency_code"]
-          },
-          {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["base_currency_code"]
-            isOneToOne: false
-            referencedRelation: "money_movements"
-            referencedColumns: ["base_currency_code"]
-          },
-          {
-            foreignKeyName: "budgets_currency_code_fkey"
-            columns: ["base_currency_code"]
-            isOneToOne: false
-            referencedRelation: "money_movements"
-            referencedColumns: ["currency_code"]
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
           },
         ]
       }
@@ -1600,7 +1103,22 @@ export type Database = {
           start_date: string | null
           user_id: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "budget_items_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallets_currency_code_fkey"
+            columns: ["original_currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       business_project_summary: {
         Row: {
@@ -1617,14 +1135,37 @@ export type Database = {
           net_amount_in_base_currency: number | null
           user_id: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wallets_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       currency_pairs: {
         Row: {
           base_currency_code: string | null
           currency_code: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_settings_base_currency_code_fkey"
+            columns: ["base_currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "wallets_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       debt_summary: {
         Row: {
@@ -1640,7 +1181,15 @@ export type Database = {
           outcome_amount_in_base_currency: number | null
           user_id: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wallets_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       missing_exchange_rate: {
         Row: {
@@ -1694,7 +1243,22 @@ export type Database = {
           wallet_id: number | null
           wallet_name: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_settings_base_currency_code_fkey"
+            columns: ["base_currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "wallets_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       money_summary: {
         Row: {
@@ -1728,18 +1292,6 @@ export type Database = {
           business_projects: Json | null
           transaction_id: number | null
           user_id: string | null
-        }
-        Insert: {
-          budgets?: never
-          business_projects?: never
-          transaction_id?: number | null
-          user_id?: string | null
-        }
-        Update: {
-          budgets?: never
-          business_projects?: never
-          transaction_id?: number | null
-          user_id?: string | null
         }
         Relationships: []
       }
