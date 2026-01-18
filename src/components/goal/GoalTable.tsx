@@ -1,5 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { Eye, Edit, Trash2, Calendar } from "lucide-react";
+import { Eye, Edit, Trash2, Calendar, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { GoalModel } from "@/models/goals";
 import { AdvancedDataTable } from "@/components/ui/advanced-data-table/advanced-data-table";
@@ -12,6 +12,8 @@ import { formatDate } from "@/lib/date";
 import { formatAmountCurrency } from "@/lib/currency";
 import { CurrencyModel } from "@/models/currencies";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { GoalInvestmentSummary } from "@/models/investment-summary";
+import AmountText from "@/components/ui/amount-text";
 
 interface GoalTableProps {
   data: GoalModel[];
@@ -30,6 +32,7 @@ interface GoalTableProps {
   currencyOptions: { label: string; value: string }[];
   goalFundsSummary: Record<number, { goal_id: number; amount: number }>;
   currenciesMap: Record<string, CurrencyModel>;
+  goalInvestmentSummary: Record<number, GoalInvestmentSummary>;
 }
 
 export const GoalTable = ({
@@ -49,6 +52,7 @@ export const GoalTable = ({
   currencyOptions,
   goalFundsSummary,
   currenciesMap,
+  goalInvestmentSummary,
 }: GoalTableProps) => {
   const navigate = useNavigate();
 
@@ -132,6 +136,61 @@ export const GoalTable = ({
         return (
           <div className="font-semibold text-blue-600">
             {formatAmountCurrency(goal.target_amount, currency.code, currency.symbol)}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "investment_info",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Info Investasi" />
+      ),
+      cell: ({ row }) => {
+        const goal = row.original;
+        const currency = currenciesMap[goal.currency_code];
+        const investmentData = goalInvestmentSummary[goal.id];
+
+        if (!investmentData || investmentData.invested_capital === 0) {
+          return (
+            <div className="text-xs text-muted-foreground">
+              Belum ada investasi
+            </div>
+          );
+        }
+
+        const { invested_capital, current_value, total_profit, roi } = investmentData;
+        const isPositive = total_profit > 0;
+        const isNegative = total_profit < 0;
+
+        return (
+          <div className="flex flex-col gap-1 min-w-[180px]">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Modal:</span>
+              <span className="font-medium">
+                {formatAmountCurrency(invested_capital, currency.code, currency.symbol)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Nilai:</span>
+              <span className="font-medium">
+                {formatAmountCurrency(current_value, currency.code, currency.symbol)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Profit:</span>
+              <AmountText amount={total_profit} showSign={true} className="font-medium">
+                {formatAmountCurrency(Math.abs(total_profit), currency.code, currency.symbol)}
+              </AmountText>
+            </div>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">ROI:</span>
+              <div className={`flex items-center gap-1 font-semibold ${isPositive ? 'text-green-600' : isNegative ? 'text-red-600' : 'text-muted-foreground'}`}>
+                {isPositive && <TrendingUp className="w-3 h-3" />}
+                {isNegative && <TrendingDown className="w-3 h-3" />}
+                {!isPositive && !isNegative && <Minus className="w-3 h-3" />}
+                <span>{roi !== null ? `${roi.toFixed(2)}%` : '-'}</span>
+              </div>
+            </div>
           </div>
         );
       },

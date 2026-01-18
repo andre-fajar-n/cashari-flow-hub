@@ -1191,6 +1191,36 @@ export type Database = {
           },
         ]
       }
+      investment_summary: {
+        Row: {
+          active_capital: number | null
+          amount_unit: number | null
+          asset_id: number | null
+          asset_name: string | null
+          base_currency_code: string | null
+          current_value: number | null
+          goal_id: number | null
+          goal_name: string | null
+          instrument_id: number | null
+          instrument_name: string | null
+          invested_capital: number | null
+          original_currency_code: string | null
+          realized_profit: number | null
+          total_profit: number | null
+          unrealized_profit: number | null
+          wallet_id: number | null
+          wallet_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goals_currency_code_fkey"
+            columns: ["base_currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       missing_exchange_rate: {
         Row: {
           base_currency_code: string | null
