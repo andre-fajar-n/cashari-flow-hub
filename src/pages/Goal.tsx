@@ -10,6 +10,7 @@ import { useCreateGoal, useUpdateGoal, useDeleteGoal } from "@/hooks/queries/use
 import { useGoalsPaginated } from "@/hooks/queries/paginated/use-goals-paginated";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { useMoneySummary } from "@/hooks/queries/use-money-summary";
+import { useGoalInvestmentSummary } from "@/hooks/queries/use-investment-summary";
 import { useTableState } from "@/hooks/use-table-state";
 import { GoalTable } from "@/components/goal/GoalTable";
 import { CurrencyModel } from "@/models/currencies";
@@ -57,8 +58,9 @@ const Goal = () => {
 
   const { data: currencies, isLoading: isCurrencyLoading } = useCurrencies();
   const { data: goalFundsSummary, isLoading: isFundsSummaryLoading } = useMoneySummary({ investmentOnly: true });
+  const { data: goalInvestmentSummary, isLoading: isInvestmentSummaryLoading } = useGoalInvestmentSummary();
 
-  const isLoading = isGoalsLoading || isCurrencyLoading || isFundsSummaryLoading;
+  const isLoading = isGoalsLoading || isCurrencyLoading || isFundsSummaryLoading || isInvestmentSummaryLoading;
 
   const groupedByGoalId = (goalFundsSummary ?? []).reduce((acc, item) => {
     if (!acc[item.goal_id]) {
@@ -145,6 +147,7 @@ const Goal = () => {
             currencyOptions={currencyOptions}
             goalFundsSummary={groupedByGoalId}
             currenciesMap={currenciesMap}
+            goalInvestmentSummary={goalInvestmentSummary || {}}
           />
         </div>
 
