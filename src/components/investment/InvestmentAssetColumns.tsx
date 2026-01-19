@@ -4,7 +4,7 @@ import { AssetSummaryData } from "@/models/money-summary";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/advanced-data-table";
-import { Coins, Edit, Trash2, ArrowUp, ArrowDown, Eye } from "lucide-react";
+import { Coins, Edit, Trash2, ArrowUp, ArrowDown, Eye, Ban } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/date";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -15,6 +15,13 @@ export interface InvestmentAssetColumnsProps {
   onDelete: (assetId: number) => void;
   onViewHistory: (asset: InvestmentAssetModel) => void;
 }
+
+/**
+ * Helper to check if asset's instrument is trackable
+ */
+const isAssetTrackable = (asset: InvestmentAssetModel): boolean => {
+  return asset.investment_instruments?.is_trackable ?? false;
+};
 
 /**
  * Generate column definitions for Investment Asset table
@@ -119,18 +126,29 @@ export const getInvestmentAssetColumns = ({
       cell: ({ row }) => {
         const asset = row.original;
         const assetSummary = assetSummaryGrouped[asset.id];
+        const trackable = isAssetTrackable(asset);
+
+        // Show "Tidak Dilacak" for non-trackable instruments
+        if (!trackable) {
+          return (
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Ban className="w-3.5 h-3.5" />
+              <span className="text-sm">Tidak Dilacak</span>
+            </div>
+          );
+        }
 
         if (!assetSummary?.latestAssetValue) {
-          return <span className="text-gray-400 text-sm">Belum ada data</span>;
+          return <span className="text-muted-foreground text-sm">Belum ada data</span>;
         }
 
         return (
           <div className="flex flex-col">
-            <span className="font-semibold text-gray-900">
+            <span className="font-semibold text-foreground">
               {formatAmountCurrency(assetSummary.latestAssetValue, assetSummary.currencyCode, assetSummary.currencySymbol, 4)}
             </span>
             {assetSummary.latestAssetValueDate && (
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-muted-foreground">
                 {formatDate(assetSummary.latestAssetValueDate)}
               </span>
             )}
@@ -145,19 +163,30 @@ export const getInvestmentAssetColumns = ({
       cell: ({ row }) => {
         const asset = row.original;
         const assetSummary = assetSummaryGrouped[asset.id];
+        const trackable = isAssetTrackable(asset);
+
+        // Show "Tidak Dilacak" for non-trackable instruments
+        if (!trackable) {
+          return (
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Ban className="w-3.5 h-3.5" />
+              <span className="text-sm">Tidak Dilacak</span>
+            </div>
+          );
+        }
 
         if (!assetSummary?.latestAssetValue) {
-          return <span className="text-gray-400 text-sm">-</span>;
+          return <span className="text-muted-foreground text-sm">-</span>;
         }
 
         const currentValue = assetSummary.latestAssetValue * assetSummary.totalAmountUnit;
 
         return (
           <div className="flex flex-col">
-            <span className="font-semibold text-gray-900">
+            <span className="font-semibold text-foreground">
               {formatAmountCurrency(currentValue, assetSummary.currencyCode, assetSummary.currencySymbol)}
             </span>
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-muted-foreground">
               {assetSummary.totalAmountUnit.toLocaleString('id-ID')} unit × {formatAmountCurrency(assetSummary.latestAssetValue, assetSummary.currencyCode, assetSummary.currencySymbol, 4)}
             </span>
           </div>
@@ -171,15 +200,26 @@ export const getInvestmentAssetColumns = ({
       cell: ({ row }) => {
         const asset = row.original;
         const assetSummary = assetSummaryGrouped[asset.id];
+        const trackable = isAssetTrackable(asset);
+
+        // Show "Tidak Dilacak" for non-trackable instruments
+        if (!trackable) {
+          return (
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Ban className="w-3.5 h-3.5" />
+              <span className="text-sm">Tidak Dilacak</span>
+            </div>
+          );
+        }
 
         if (!assetSummary?.unrealizedAmount) {
-          return <span className="text-gray-400 text-sm">-</span>;
+          return <span className="text-muted-foreground text-sm">-</span>;
         }
 
         const isProfit = assetSummary.unrealizedAmount >= 0;
         const Icon = isProfit ? ArrowUp : ArrowDown;
-        const colorClass = isProfit ? "text-green-600" : "text-red-600";
-        const bgClass = isProfit ? "bg-green-50" : "bg-red-50";
+        const colorClass = isProfit ? "text-emerald-600" : "text-rose-600";
+        const bgClass = isProfit ? "bg-emerald-50 dark:bg-emerald-950/30" : "bg-rose-50 dark:bg-rose-950/30";
 
         return (
           <div className={`flex items-center gap-1 ${bgClass} px-2 py-1 rounded-lg w-fit`}>
@@ -214,7 +254,7 @@ export const getInvestmentAssetColumns = ({
                   <Eye className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Lihat Riwayat Harga</TooltipContent>
+              <TooltipContent>Lihat Detail</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>

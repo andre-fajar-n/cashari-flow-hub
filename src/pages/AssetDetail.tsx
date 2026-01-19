@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -34,6 +34,8 @@ import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handl
 import { useAuth } from "@/hooks/use-auth";
 import { useDialogState } from "@/hooks/use-dialog-state";
 import { InvestmentAssetModel } from "@/models/investment-assets";
+import TrackableWarningBanner from "@/components/investment/TrackableWarningBanner";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AssetDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -139,6 +141,15 @@ const AssetDetail = () => {
     || 'unknown currency';
   const assetCurrencySymbol = movements?.find((r: MoneyMovementModel) => (r.asset_id ?? r.asset?.id) === (asset?.id))?.currency_symbol
     || 'unknown currency';
+
+  // Check if instrument is trackable
+  const isTrackable = asset?.investment_instruments?.is_trackable ?? false;
+  
+  // Check if there are legacy asset values when not trackable
+  const hasLegacyAssetValues = useMemo(() => {
+    if (isTrackable) return false;
+    return (assetValues?.length ?? 0) > 0;
+  }, [isTrackable, assetValues]);
 
   const handleSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ["money_movements"] });
@@ -273,38 +284,69 @@ const AssetDetail = () => {
             </div>
           </div>
 
+          {/* Warning Banner for non-trackable instruments */}
+          {hasLegacyAssetValues && (
+            <TrackableWarningBanner type="legacy-data" />
+          )}
+          {!isTrackable && !hasLegacyAssetValues && (
+            <TrackableWarningBanner type="not-trackable" />
+          )}
+
           {/* Action Buttons */}
           <div className="flex gap-2">
-            <Button onClick={handleAddValue} size="sm">
-              <Plus className="w-4 h-4 mr-1" />
-              Tambah Nilai
-            </Button>
+            {isTrackable && (
+              <Button onClick={handleAddValue} size="sm">
+                <Plus className="w-4 h-4 mr-1" />
+                Tambah Nilai
+              </Button>
+            )}
             <Button onClick={handleAddRecord} variant="outline" size="sm">
               <BarChart3 className="w-4 h-4 mr-1" />
               Tambah Record
             </Button>
           </div>
 
-          {/* Tabs */}
+          {/* Tabs - show/hide based on trackable status */}
           <Tabs defaultValue="summary" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className={`grid w-full ${isTrackable || hasLegacyAssetValues ? 'grid-cols-3' : 'grid-cols-2'}`}>
               <TabsTrigger value="summary">Ringkasan</TabsTrigger>
-              <TabsTrigger value="history">Riwayat Nilai</TabsTrigger>
+              {(isTrackable || hasLegacyAssetValues) && (
+                <TabsTrigger value="history">Riwayat Nilai</TabsTrigger>
+              )}
               <TabsTrigger value="movements">Riwayat Pergerakan Dana</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="history" className="space-y-4">
-              {/* Chart Section */}
-              <AssetValueChart
-                data={chartData}
-                currencyCode={assetCurrencyCode}
-                currencySymbol={assetCurrencySymbol}
-                assetName={asset.name}
-              />
+            {(isTrackable || hasLegacyAssetValues) && (
+              <TabsContent value="history" className="space-y-4">
+                {/* Market Value Section Header */}
+                {isTrackable && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg">Nilai Pasar Aset</CardTitle>
+                      <CardDescription>
+                        Tambahkan nilai pasar per unit untuk mencerminkan harga aset pada tanggal tertentu.
+                      </CardDescription>
+                    </CardHeader>
+                  </Card>
+                )}
 
-              {/* Value History Table */}
-              <AssetValueHistoryList assetId={asset.id} currencyCode={assetCurrencyCode} currencySymbol={assetCurrencySymbol} />
-            </TabsContent>
+                {/* Chart Section */}
+                <AssetValueChart
+                  data={chartData}
+                  currencyCode={assetCurrencyCode}
+                  currencySymbol={assetCurrencySymbol}
+                  assetName={asset.name}
+                />
+
+                {/* Value History Table */}
+                <AssetValueHistoryList 
+                  assetId={asset.id} 
+                  currencyCode={assetCurrencyCode} 
+                  currencySymbol={assetCurrencySymbol}
+                  isReadOnly={!isTrackable}
+                />
+              </TabsContent>
+            )}
 
             <TabsContent value="summary" className="space-y-4">
               <AssetSummary assetId={asset.id} assetName={asset.name} />
