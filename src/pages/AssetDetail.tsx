@@ -119,6 +119,22 @@ const AssetDetail = () => {
     queryKeysToInvalidate: QUERY_KEY_SETS.INVESTMENT_RECORDS
   });
 
+  // Check if instrument is trackable - must be before early return to follow Rules of Hooks
+  const isTrackable = asset?.investment_instruments?.is_trackable ?? false;
+  
+  // Check if there are legacy asset values when not trackable - must be before early return
+  const hasLegacyAssetValues = useMemo(() => {
+    if (isTrackable) return false;
+    return (assetValues?.length ?? 0) > 0;
+  }, [isTrackable, assetValues]);
+
+  // Derive currency code from related wallet records (since assets no longer have currency_code)
+  const assetCurrencyCode = movements?.find((r: MoneyMovementModel) => (r.asset_id ?? r.asset?.id) === (asset?.id))?.currency_code
+    || (wallets && wallets.length > 0 ? wallets[0].currency_code : undefined)
+    || 'unknown currency';
+  const assetCurrencySymbol = movements?.find((r: MoneyMovementModel) => (r.asset_id ?? r.asset?.id) === (asset?.id))?.currency_symbol
+    || 'unknown currency';
+
   if (!asset) {
     return (
       <ProtectedRoute>
@@ -134,22 +150,6 @@ const AssetDetail = () => {
       </ProtectedRoute>
     );
   }
-
-  // Derive currency code from related wallet records (since assets no longer have currency_code)
-  const assetCurrencyCode = movements?.find((r: MoneyMovementModel) => (r.asset_id ?? r.asset?.id) === (asset?.id))?.currency_code
-    || (wallets && wallets.length > 0 ? wallets[0].currency_code : undefined)
-    || 'unknown currency';
-  const assetCurrencySymbol = movements?.find((r: MoneyMovementModel) => (r.asset_id ?? r.asset?.id) === (asset?.id))?.currency_symbol
-    || 'unknown currency';
-
-  // Check if instrument is trackable
-  const isTrackable = asset?.investment_instruments?.is_trackable ?? false;
-  
-  // Check if there are legacy asset values when not trackable
-  const hasLegacyAssetValues = useMemo(() => {
-    if (isTrackable) return false;
-    return (assetValues?.length ?? 0) > 0;
-  }, [isTrackable, assetValues]);
 
   const handleSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ["money_movements"] });
