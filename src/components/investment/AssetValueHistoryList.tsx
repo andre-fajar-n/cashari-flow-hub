@@ -25,9 +25,11 @@ interface AssetValueHistoryListProps {
   assetId: number;
   currencyCode: string;
   currencySymbol: string;
+  /** When true, hide edit/delete actions (for non-trackable instruments with legacy data) */
+  isReadOnly?: boolean;
 }
 
-const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetValueHistoryListProps) => {
+const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol, isReadOnly = false }: AssetValueHistoryListProps) => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { state: tableState, actions: tableActions } = useTableState({
@@ -129,10 +131,11 @@ const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetV
         );
       },
     },
-    {
+    // Only show actions column if not in read-only mode
+    ...(!isReadOnly ? [{
       id: "actions",
       header: () => <span className="text-right block">Aksi</span>,
-      cell: ({ row }) => {
+      cell: ({ row }: { row: { original: InvestmentAssetValueModel } }) => {
         const value = row.original;
 
         return (
@@ -165,7 +168,7 @@ const AssetValueHistoryList = ({ assetId, currencyCode, currencySymbol }: AssetV
           </div>
         );
       },
-    },
+    } as ColumnDef<InvestmentAssetValueModel>] : []),
   ];
 
   // Date range filter configuration
