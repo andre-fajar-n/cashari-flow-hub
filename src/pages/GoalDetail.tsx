@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ArrowLeft, Edit, Trash2, Plus, Minus, ArrowRightLeft, BarChart3, Power, PowerOff } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import GoalDialog from "@/components/goal/GoalDialog";
@@ -511,7 +512,12 @@ const GoalDetail = () => {
                 Kembali
               </Button>
               <div>
-                <h1 className="text-3xl font-bold">{goal.name}</h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-3xl font-bold">{goal.name}</h1>
+                  <Badge variant={goal.is_active ? "default" : "secondary"}>
+                    {goal.is_active ? 'Aktif' : 'Tidak Aktif'}
+                  </Badge>
+                </div>
                 <p className="text-muted-foreground">Detail Target Keuangan</p>
               </div>
             </div>
