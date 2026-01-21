@@ -4,7 +4,7 @@ export const useInvestmentAssetsPaginated = (params: PaginatedParams) => {
   return usePaginatedSupabase(params, {
     queryKeyBase: "investment_assets_paginated",
     table: "investment_assets",
-    select: `*, investment_instruments(name)`,
+    select: `*, investment_instruments(name, is_trackable)`,
     orderBy: [
       { column: "name", ascending: true },
     ],
