@@ -6,6 +6,7 @@ export const useGoalsPaginated = (params: PaginatedParams) =>
     table: "goals",
     select: `*`,
     orderBy: [
+      { column: "is_active", ascending: false },
       { column: "name", ascending: true },
     ],
     mapSearch: (q: any, term: string) => q.ilike("name", `%${term}%`),

@@ -93,6 +93,42 @@ export const useUpdateGoal = () => {
   });
 };
 
+export const useToggleGoalActive = () => {
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, is_active }: { id: number; is_active: boolean }) => {
+      const { error } = await supabase
+        .from("goals")
+        .update({
+          is_active,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", user?.id)
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["goals"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("goals_paginated") });
+      toast({
+        title: "Berhasil",
+        description: variables.is_active ? "Goal berhasil diaktifkan" : "Goal berhasil dinonaktifkan",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
 export const useCreateGoal = () => {
   const { toast } = useToast();
   const { user } = useAuth();
