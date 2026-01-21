@@ -57,21 +57,10 @@ const Goal = () => {
   const totalCount = paged?.count || 0;
 
   const { data: currencies, isLoading: isCurrencyLoading } = useCurrencies();
-  const { data: goalFundsSummary, isLoading: isFundsSummaryLoading } = useMoneySummary({ investmentOnly: true });
   const { data: goalInvestmentSummary, isLoading: isInvestmentSummaryLoading } = useGoalInvestmentSummary();
 
-  const isLoading = isGoalsLoading || isCurrencyLoading || isFundsSummaryLoading || isInvestmentSummaryLoading;
+  const isLoading = isGoalsLoading || isCurrencyLoading || isInvestmentSummaryLoading;
 
-  const groupedByGoalId = (goalFundsSummary ?? []).reduce((acc, item) => {
-    if (!acc[item.goal_id]) {
-      acc[item.goal_id] = {
-        goal_id: item.goal_id,
-        amount: 0,
-      };
-    }
-    acc[item.goal_id].amount += item.amount || 0;
-    return acc;
-  }, {} as Record<number, { goal_id: number; amount: number }>);
   const currenciesMap = (currencies ?? []).reduce((acc, currency) => {
     acc[currency.code] = currency;
     return acc;
@@ -109,7 +98,7 @@ const Goal = () => {
 
   // Currency options for filter
   const currencyOptions = currencies?.map(currency => ({
-    label: `${currency.code} (${currency.symbol})`,
+    label: `${currency.code} (${currency.name})`,
     value: currency.code
   })) || [];
 
@@ -145,7 +134,6 @@ const Goal = () => {
             onEdit={dialog.openEdit}
             onDelete={deleteConfirmation.openModal}
             currencyOptions={currencyOptions}
-            goalFundsSummary={groupedByGoalId}
             currenciesMap={currenciesMap}
             goalInvestmentSummary={goalInvestmentSummary || {}}
           />

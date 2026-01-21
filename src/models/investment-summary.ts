@@ -4,9 +4,9 @@ export type InvestmentSummaryModel = Database["public"]["Views"]["investment_sum
 
 export interface GoalInvestmentSummary {
   goal_id: number;
-  invested_capital: number;
-  current_value: number;
-  total_profit: number;
+  invested_capital_base_currency: number;
+  current_value_base_currency: number;
+  total_profit_base_currency: number;
   roi: number | null; // total_profit / invested_capital * 100
   original_currency_code: string;
 }

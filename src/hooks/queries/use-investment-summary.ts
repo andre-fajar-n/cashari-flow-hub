@@ -48,24 +48,27 @@ export const useGoalInvestmentSummary = () => {
 
         const existing = goalMap.get(item.goal_id);
         const investedCapital = item.invested_capital || 0;
+        const investedCapitalBaseCurrency = item.invested_capital_base_currency || 0;
         const currentValue = item.current_value || 0;
+        const currentValueBaseCurrency = item.current_value_base_currency || 0;
         const totalProfit = item.total_profit || 0;
+        const totalProfitBaseCurrency = item.total_profit_base_currency || 0;
 
         if (existing) {
-          existing.invested_capital += investedCapital;
-          existing.current_value += currentValue;
-          existing.total_profit += totalProfit;
+          existing.invested_capital_base_currency += investedCapitalBaseCurrency;
+          existing.current_value_base_currency += currentValueBaseCurrency;
+          existing.total_profit_base_currency += totalProfitBaseCurrency;
           // Recalculate ROI after aggregation
-          existing.roi = existing.invested_capital > 0 
-            ? (existing.total_profit / existing.invested_capital) * 100 
+          existing.roi = existing.invested_capital_base_currency > 0
+            ? (existing.total_profit_base_currency / existing.invested_capital_base_currency) * 100
             : null;
         } else {
           goalMap.set(item.goal_id, {
             goal_id: item.goal_id,
-            invested_capital: investedCapital,
-            current_value: currentValue,
-            total_profit: totalProfit,
-            roi: investedCapital > 0 ? (totalProfit / investedCapital) * 100 : null,
+            invested_capital_base_currency: investedCapitalBaseCurrency,
+            current_value_base_currency: currentValueBaseCurrency,
+            total_profit_base_currency: totalProfitBaseCurrency,
+            roi: investedCapitalBaseCurrency > 0 ? (totalProfitBaseCurrency / investedCapitalBaseCurrency) * 100 : null,
             original_currency_code: item.original_currency_code || "",
           });
         }

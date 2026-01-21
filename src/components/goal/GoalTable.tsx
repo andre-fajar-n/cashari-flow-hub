@@ -30,7 +30,6 @@ interface GoalTableProps {
   onEdit: (goal: GoalModel) => void;
   onDelete: (goalId: number) => void;
   currencyOptions: { label: string; value: string }[];
-  goalFundsSummary: Record<number, { goal_id: number; amount: number }>;
   currenciesMap: Record<string, CurrencyModel>;
   goalInvestmentSummary: Record<number, GoalInvestmentSummary>;
 }
@@ -50,7 +49,6 @@ export const GoalTable = ({
   onEdit,
   onDelete,
   currencyOptions,
-  goalFundsSummary,
   currenciesMap,
   goalInvestmentSummary,
 }: GoalTableProps) => {
@@ -104,7 +102,7 @@ export const GoalTable = ({
       ),
       cell: ({ row }) => {
         const goal = row.original;
-        const totalAmount = goalFundsSummary[goal.id]?.amount || 0;
+        const totalAmount = goalInvestmentSummary?.[goal.id]?.current_value_base_currency || 0;
         const percentage = Math.min((totalAmount / goal.target_amount) * 100, 100);
         const currency = currenciesMap[goal.currency_code];
         const collectedAmount = formatAmountCurrency(totalAmount, currency.code, currency.symbol);
@@ -126,21 +124,6 @@ export const GoalTable = ({
       },
     },
     {
-      accessorKey: "target_amount",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Target" />
-      ),
-      cell: ({ row }) => {
-        const goal = row.original;
-        const currency = currenciesMap[goal.currency_code];
-        return (
-          <div className="font-semibold text-blue-600">
-            {formatAmountCurrency(goal.target_amount, currency.code, currency.symbol)}
-          </div>
-        );
-      },
-    },
-    {
       accessorKey: "investment_info",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Info Investasi" />
@@ -150,7 +133,7 @@ export const GoalTable = ({
         const currency = currenciesMap[goal.currency_code];
         const investmentData = goalInvestmentSummary[goal.id];
 
-        if (!investmentData || investmentData.invested_capital === 0) {
+        if (!investmentData || investmentData.invested_capital_base_currency === 0) {
           return (
             <div className="text-xs text-muted-foreground">
               Belum ada investasi
@@ -158,28 +141,22 @@ export const GoalTable = ({
           );
         }
 
-        const { invested_capital, current_value, total_profit, roi } = investmentData;
-        const isPositive = total_profit > 0;
-        const isNegative = total_profit < 0;
+        const { invested_capital_base_currency, total_profit_base_currency, roi } = investmentData;
+        const isPositive = total_profit_base_currency > 0;
+        const isNegative = total_profit_base_currency < 0;
 
         return (
           <div className="flex flex-col gap-1 min-w-[180px]">
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">Modal:</span>
               <span className="font-medium">
-                {formatAmountCurrency(invested_capital, currency.code, currency.symbol)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Nilai:</span>
-              <span className="font-medium">
-                {formatAmountCurrency(current_value, currency.code, currency.symbol)}
+                {formatAmountCurrency(invested_capital_base_currency, currency.code, currency.symbol)}
               </span>
             </div>
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">Profit:</span>
-              <AmountText amount={total_profit} showSign={true} className="font-medium">
-                {formatAmountCurrency(Math.abs(total_profit), currency.code, currency.symbol)}
+              <AmountText amount={total_profit_base_currency} showSign={true} className="font-medium">
+                {formatAmountCurrency(Math.abs(total_profit_base_currency), currency.code, currency.symbol)}
               </AmountText>
             </div>
             <div className="flex items-center justify-between text-xs">
@@ -193,15 +170,6 @@ export const GoalTable = ({
             </div>
           </div>
         );
-      },
-    },
-    {
-      accessorKey: "currency_code",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Mata Uang" />
-      ),
-      cell: ({ row }) => {
-        return <Badge variant="outline">{row.original.currency_code}</Badge>;
       },
     },
     {
