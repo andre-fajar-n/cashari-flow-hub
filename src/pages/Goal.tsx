@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -5,8 +6,9 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import GoalDialog from "@/components/goal/GoalDialog";
 import { DeleteConfirmationModal, useDeleteConfirmation } from "@/components/DeleteConfirmationModal";
+import ConfirmationModal from "@/components/ConfirmationModal";
 import { GoalModel } from "@/models/goals";
-import { useCreateGoal, useUpdateGoal, useDeleteGoal } from "@/hooks/queries/use-goals";
+import { useCreateGoal, useUpdateGoal, useDeleteGoal, useToggleGoalActive } from "@/hooks/queries/use-goals";
 import { useGoalsPaginated } from "@/hooks/queries/paginated/use-goals-paginated";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { useMoneySummary } from "@/hooks/queries/use-money-summary";
@@ -22,6 +24,7 @@ const Goal = () => {
   const createGoal = useCreateGoal();
   const updateGoal = useUpdateGoal();
   const { mutate: deleteGoal } = useDeleteGoal();
+  const toggleGoalActive = useToggleGoalActive();
 
   // Form state managed at page level
   const form = useForm<GoalFormData>({
@@ -71,6 +74,26 @@ const Goal = () => {
     title: "Hapus Target",
     description: "Apakah Anda yakin ingin menghapus target ini? Tindakan ini tidak dapat dibatalkan.",
   });
+
+  // Toggle active confirmation state
+  const [toggleActiveModal, setToggleActiveModal] = useState<{ open: boolean; goal: GoalModel | null }>({
+    open: false,
+    goal: null,
+  });
+
+  const handleToggleActiveClick = (goal: GoalModel) => {
+    setToggleActiveModal({ open: true, goal });
+  };
+
+  const handleConfirmToggleActive = () => {
+    if (toggleActiveModal.goal) {
+      toggleGoalActive.mutate({
+        id: toggleActiveModal.goal.id,
+        is_active: !toggleActiveModal.goal.is_active,
+      });
+    }
+    setToggleActiveModal({ open: false, goal: null });
+  };
 
   // Mutation callbacks
   const { handleSuccess, handleError } = useMutationCallbacks({
@@ -133,6 +156,7 @@ const Goal = () => {
             onPageSizeChange={tableActions.handlePageSizeChange}
             onEdit={dialog.openEdit}
             onDelete={deleteConfirmation.openModal}
+            onToggleActive={handleToggleActiveClick}
             currencyOptions={currencyOptions}
             currenciesMap={currenciesMap}
             goalInvestmentSummary={goalInvestmentSummary || {}}
@@ -142,6 +166,20 @@ const Goal = () => {
         <DeleteConfirmationModal
           deleteConfirmation={deleteConfirmation}
           onConfirm={(id) => deleteGoal(id)}
+        />
+
+        <ConfirmationModal
+          open={toggleActiveModal.open}
+          onOpenChange={(open) => !open && setToggleActiveModal({ open: false, goal: null })}
+          onConfirm={handleConfirmToggleActive}
+          title={toggleActiveModal.goal?.is_active ? "Nonaktifkan Target" : "Aktifkan Target"}
+          description={
+            toggleActiveModal.goal?.is_active
+              ? `Apakah Anda yakin ingin menonaktifkan target "${toggleActiveModal.goal?.name}"?`
+              : `Apakah Anda yakin ingin mengaktifkan target "${toggleActiveModal.goal?.name}"?`
+          }
+          confirmText={toggleActiveModal.goal?.is_active ? "Nonaktifkan" : "Aktifkan"}
+          variant={toggleActiveModal.goal?.is_active ? "destructive" : "default"}
         />
 
         <GoalDialog

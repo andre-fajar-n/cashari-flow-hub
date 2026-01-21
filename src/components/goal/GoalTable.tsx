@@ -1,5 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { Eye, Edit, Trash2, Calendar, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { Eye, Edit, Trash2, Calendar, TrendingUp, TrendingDown, Minus, Power, PowerOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { GoalModel } from "@/models/goals";
 import { AdvancedDataTable } from "@/components/ui/advanced-data-table/advanced-data-table";
@@ -29,6 +29,7 @@ interface GoalTableProps {
   onPageSizeChange: (size: number) => void;
   onEdit: (goal: GoalModel) => void;
   onDelete: (goalId: number) => void;
+  onToggleActive: (goal: GoalModel) => void;
   currencyOptions: { label: string; value: string }[];
   currenciesMap: Record<string, CurrencyModel>;
   goalInvestmentSummary: Record<number, GoalInvestmentSummary>;
@@ -48,6 +49,7 @@ export const GoalTable = ({
   onPageSizeChange,
   onEdit,
   onDelete,
+  onToggleActive,
   currencyOptions,
   currenciesMap,
   goalInvestmentSummary,
@@ -80,15 +82,12 @@ export const GoalTable = ({
       },
     },
     {
-      accessorKey: "is_achieved",
+      accessorKey: "is_active",
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Status" />
       ),
       cell: ({ row }) => {
         const goal = row.original;
-        if (goal.is_achieved) {
-          return <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100">🎉 Tercapai</Badge>;
-        }
         if (goal.is_active) {
           return <Badge variant="default" className="bg-blue-100 text-blue-800 hover:bg-blue-100">🎯 Aktif</Badge>;
         }
@@ -209,6 +208,19 @@ export const GoalTable = ({
                 <Button
                   variant="ghost"
                   size="sm"
+                  onClick={() => onToggleActive(goal)}
+                  className={goal.is_active ? "text-amber-600 hover:text-amber-600" : "text-green-600 hover:text-green-600"}
+                >
+                  {goal.is_active ? <PowerOff className="w-4 h-4" /> : <Power className="w-4 h-4" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{goal.is_active ? "Nonaktifkan" : "Aktifkan"}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="text-destructive hover:text-destructive"
                   onClick={() => onDelete(goal.id)}
                 >
@@ -226,17 +238,8 @@ export const GoalTable = ({
   // Select filters configuration
   const selectFilters: SelectFilterConfig[] = [
     {
-      key: "is_achieved",
-      label: "Status Pencapaian",
-      placeholder: "Semua Status",
-      options: [
-        { label: "Tercapai", value: "true" },
-        { label: "Belum Tercapai", value: "false" }
-      ]
-    },
-    {
       key: "is_active",
-      label: "Status Aktif",
+      label: "Status",
       placeholder: "Semua Status",
       options: [
         { label: "Aktif", value: "true" },

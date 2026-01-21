@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArrowLeft, Edit, Trash2, Plus, Minus, ArrowRightLeft, BarChart3 } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Plus, Minus, ArrowRightLeft, BarChart3, Power, PowerOff } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import GoalDialog from "@/components/goal/GoalDialog";
@@ -17,7 +17,7 @@ import PageLoading from "@/components/PageLoading";
 import { GoalTransferConfig } from "@/components/goal/GoalTransferModes";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import { useMoneyMovementsPaginatedByGoal } from "@/hooks/queries/paginated/use-money-movements-paginated";
-import { useDeleteGoal, useGoalDetail, useGoals, useUpdateGoal } from "@/hooks/queries/use-goals";
+import { useDeleteGoal, useGoalDetail, useGoals, useUpdateGoal, useToggleGoalActive } from "@/hooks/queries/use-goals";
 import { useGoalTransfers, useCreateGoalTransfer, useUpdateGoalTransfer, useDeleteGoalTransfer } from "@/hooks/queries/use-goal-transfers";
 import { useGoalInvestmentRecords, useCreateGoalInvestmentRecord, useUpdateGoalInvestmentRecord, useDeleteGoalInvestmentRecord } from "@/hooks/queries/use-goal-investment-records";
 import { useMoneySummary } from "@/hooks/queries/use-money-summary";
@@ -46,6 +46,9 @@ const GoalDetail = () => {
 
   // Delete goal modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  
+  // Toggle active modal state
+  const [isToggleActiveModalOpen, setIsToggleActiveModalOpen] = useState(false);
 
   // Transfer config for new transfers
   const [transferConfig, setTransferConfig] = useState<GoalTransferConfig | undefined>(undefined);
@@ -73,6 +76,7 @@ const GoalDetail = () => {
 
   // Mutations
   const updateGoal = useUpdateGoal();
+  const toggleGoalActive = useToggleGoalActive();
   const createGoalTransfer = useCreateGoalTransfer();
   const updateGoalTransfer = useUpdateGoalTransfer();
   const { mutateAsync: deleteGoalTransfer } = useDeleteGoalTransfer();
@@ -455,6 +459,18 @@ const GoalDetail = () => {
     });
   };
 
+  const handleToggleActiveClick = () => {
+    setIsToggleActiveModalOpen(true);
+  };
+
+  const handleConfirmToggleActive = () => {
+    toggleGoalActive.mutate({
+      id: goal.id,
+      is_active: !goal.is_active,
+    });
+    setIsToggleActiveModalOpen(false);
+  };
+
   const handleAddRecord = () => {
     recordDialog.openAdd();
   };
@@ -512,6 +528,19 @@ const GoalDetail = () => {
                     <Edit className="w-4 h-4 mr-2" />
                     Edit Goal
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleToggleActiveClick} className="cursor-pointer">
+                    {goal.is_active ? (
+                      <>
+                        <PowerOff className="w-4 h-4 mr-2" />
+                        Nonaktifkan Goal
+                      </>
+                    ) : (
+                      <>
+                        <Power className="w-4 h-4 mr-2" />
+                        Aktifkan Goal
+                      </>
+                    )}
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleDeleteClick} className="cursor-pointer text-destructive focus:text-destructive">
                     <Trash2 className="w-4 h-4 mr-2" />
                     Hapus Goal
@@ -522,7 +551,7 @@ const GoalDetail = () => {
           </div>
 
           {/* Action Buttons */}
-          {goal.is_active && !goal.is_achieved && (
+          {goal.is_active && (
             <div className="flex flex-wrap gap-2">
               <Button onClick={handleAddToGoal} size="sm" className="shrink-0">
                 <Plus className="w-4 h-4 mr-1" />
@@ -637,6 +666,21 @@ const GoalDetail = () => {
             confirmText="Ya, Hapus"
             cancelText="Batal"
             variant="destructive"
+          />
+
+          {/* Goal Toggle Active Modal */}
+          <ConfirmationModal
+            open={isToggleActiveModalOpen}
+            onOpenChange={setIsToggleActiveModalOpen}
+            onConfirm={handleConfirmToggleActive}
+            title={goal.is_active ? "Nonaktifkan Goal" : "Aktifkan Goal"}
+            description={
+              goal.is_active
+                ? `Apakah Anda yakin ingin menonaktifkan goal "${goal.name}"?`
+                : `Apakah Anda yakin ingin mengaktifkan goal "${goal.name}"?`
+            }
+            confirmText={goal.is_active ? "Nonaktifkan" : "Aktifkan"}
+            variant={goal.is_active ? "destructive" : "default"}
           />
 
           {/* Goal Edit Dialog */}
