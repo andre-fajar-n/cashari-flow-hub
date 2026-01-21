@@ -53,7 +53,6 @@ CREATE TABLE public.goals (
   target_amount DECIMAL(15,2) NOT NULL,
   currency_code VARCHAR(10) REFERENCES public.currencies(code) NOT NULL,
   target_date DATE,
-  is_achieved BOOLEAN DEFAULT FALSE,
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

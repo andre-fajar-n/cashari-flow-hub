@@ -24,8 +24,8 @@ const GoalOverview = ({ goal, totalAmount, percentage, totalAmountRecord, totalA
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>Ringkasan Goal</span>
-            <Badge variant={goal.is_achieved ? "default" : goal.is_active ? "secondary" : "outline"}>
-              {goal.is_achieved ? 'Tercapai' : goal.is_active ? 'Aktif' : 'Tidak Aktif'}
+            <Badge variant={goal.is_active ? "secondary" : "outline"}>
+              {goal.is_active ? 'Aktif' : 'Tidak Aktif'}
             </Badge>
           </CardTitle>
         </CardHeader>

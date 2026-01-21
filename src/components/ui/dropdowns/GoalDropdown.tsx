@@ -29,8 +29,8 @@ export function GoalDropdown<TFieldValues extends FieldValues = FieldValues>({
   filterActive = false,
   onValueChange,
 }: GoalDropdownProps<TFieldValues>) {
-  const filteredGoals = filterActive 
-    ? goals?.filter(goal => goal.is_active && !goal.is_achieved) 
+  const filteredGoals = filterActive
+    ? goals?.filter(goal => goal.is_active)
     : goals;
 
   return (
