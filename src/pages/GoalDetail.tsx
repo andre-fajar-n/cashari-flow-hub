@@ -595,10 +595,6 @@ const GoalDetail = () => {
             <TabsContent value="overview" className="space-y-4">
               <GoalOverview
                 goal={goal}
-                totalAmount={totalAmount}
-                percentage={percentage}
-                totalAmountRecord={totalAmountRecord}
-                totalAmountTransfer={totalAmountTransfer}
                 currency={currency}
               />
             </TabsContent>
