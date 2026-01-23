@@ -52,6 +52,8 @@ export const useCreateBudgetItem = () => {
       queryClient.invalidateQueries({ queryKey: ["budget-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["budgets_with_transactions_paginated"] });
+      queryClient.invalidateQueries({ queryKey: ["budget-summary"] });
       toast({
         title: "Berhasil",
         description: "Transaksi berhasil ditambahkan ke budget",
@@ -88,6 +90,8 @@ export const useDeleteBudgetItem = () => {
       queryClient.invalidateQueries({ queryKey: ["budget-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["budgets_with_transactions_paginated"] });
+      queryClient.invalidateQueries({ queryKey: ["budget-summary"] });
       toast({
         title: "Berhasil",
         description: "Transaksi berhasil dihapus dari budget",

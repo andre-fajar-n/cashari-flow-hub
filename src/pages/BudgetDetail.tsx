@@ -69,7 +69,7 @@ const BudgetDetail = () => {
   // Get transactions that are not already in this budget
   const availableTransactions = allTransactions?.filter(transaction => {
     const isAlreadyInBudget = budgetTransactions?.some(
-      budgetTrx => budgetTrx.transaction_id === transaction.id
+      budgetTrx => budgetTrx.resource_id === transaction.id
     );
     return !isAlreadyInBudget;
   }) || [];
@@ -133,7 +133,7 @@ const BudgetDetail = () => {
     setIsLoading: budgetDialog.setIsLoading,
     onOpenChange: (open) => !open && budgetDialog.close(),
     form,
-    queryKeysToInvalidate: [...QUERY_KEY_SETS.BUDGETS, ...QUERY_KEY_SETS.TRANSACTIONS]
+    queryKeysToInvalidate: QUERY_KEY_SETS.BUDGETS
   });
 
   const handleFormSubmit = (data: BudgetFormData) => {
@@ -141,7 +141,7 @@ const BudgetDetail = () => {
     budgetDialog.setIsLoading(true);
     updateBudget.mutate({ id: budget.id, ...data }, {
       onSuccess: () => {
-        budgetDialog.handleSuccess();
+        handleSuccess();
       },
       onError: handleError
     });

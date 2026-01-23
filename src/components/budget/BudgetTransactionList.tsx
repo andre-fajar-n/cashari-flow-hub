@@ -56,64 +56,9 @@ const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
   const { data: wallets } = useWallets();
 
   const totalCount = paged?.count || 0;
+  const movements = paged?.data || [];
 
-  // Memoize the mapping to ensure React detects changes properly
-  const { transactionIds, movements } = useMemo(() => {
-    const itemTransactions = paged?.data as BudgetItemWithTransactions[] || [];
-    const ids: number[] = [];
-    const movs: MoneyMovementModel[] = [];
-
-    itemTransactions.forEach(item => {
-      ids.push(item.transaction_id);
-
-      movs.push({
-        amount: item.amount,
-        amount_unit: null,
-        asset_id: null,
-        asset_name: null,
-        asset_symbol: null,
-        base_currency_code: item.base_currency_code,
-        base_currency_symbol: item.base_currency_symbol,
-        budget_ids: item.budget_ids,
-        budget_names_text: item.budget_names_text,
-        business_project_names_text: null,
-        category_id: item.category_id,
-        category_name: item.category_name,
-        created_at: item.created_at,
-        currency_code: item.original_currency_code,
-        currency_symbol: item.original_currency_symbol,
-        date: item.date,
-        debt_id: null,
-        debt_name: null,
-        description: item.description,
-        exchange_rate: item.exchange_rate,
-        goal_id: null,
-        goal_name: null,
-        id: item.id,
-        instrument_id: null,
-        instrument_name: null,
-        opposite_asset_id: null,
-        opposite_asset_name: null,
-        opposite_asset_symbol: null,
-        opposite_goal_id: null,
-        opposite_goal_name: null,
-        opposite_instrument_id: null,
-        opposite_instrument_name: null,
-        opposite_wallet_id: null,
-        opposite_wallet_name: null,
-        project_ids: null,
-        resource_id: item.transaction_id,
-        resource_type: MOVEMENT_TYPES.TRANSACTION,
-        unit_label: null,
-        user_id: item.user_id,
-        wallet_id: item.wallet_id,
-        wallet_name: item.wallet_name,
-        asset: null,
-      });
-    });
-
-    return { transactionIds: ids, movements: movs };
-  }, [paged?.data]);
+  const transactionIds = movements?.filter(m => m.resource_type === MOVEMENT_TYPES.TRANSACTION).map(m => m.resource_id) || [];
 
   const { data: transactions, isLoading: isTransactionsLoading } = useTransactions({ ids: transactionIds });
   const transactionsGroupById = transactions?.reduce((acc, item) => {

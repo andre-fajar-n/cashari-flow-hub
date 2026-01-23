@@ -1039,25 +1039,26 @@ export type Database = {
       }
       budget_item_with_transactions: {
         Row: {
-          amount: number | null
-          base_currency_code: string | null
-          base_currency_symbol: string | null
           budget_id: number | null
           budget_ids: number[] | null
           budget_names_text: string | null
-          category_id: number | null
-          category_name: string | null
-          created_at: string | null
-          date: string | null
-          description: string | null
-          exchange_rate: number | null
           id: number | null
-          original_currency_code: string | null
-          original_currency_symbol: string | null
-          transaction_id: number | null
+          resource_id: number | null
+          resource_type: string | null
           user_id: string | null
           wallet_id: number | null
           wallet_name: string | null
+          category_id: number | null
+          category_name: string | null
+          description: string | null
+          amount: number | null
+          currency_code: string | null
+          currency_symbol: string | null
+          date: string | null
+          created_at: string | null
+          base_currency_code: string | null
+          base_currency_symbol: string | null
+          exchange_rate: number | null
         }
         Relationships: [
           {

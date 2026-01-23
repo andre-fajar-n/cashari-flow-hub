@@ -51,7 +51,6 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
   const insertTransactionWithRelations = useInsertTransactionWithRelations();
   const updateTransactionWithRelations = useUpdateTransactionWithRelations();
 
-  const { data: userSettings, isLoading: isLoadingUserSettings } = useUserSettings();
   const { data: paged, isLoading: isLoadingMovements } = useMoneyMovementsPaginatedByProject(project.id, {
     page: tableState.page,
     itemsPerPage: tableState.pageSize,
@@ -69,7 +68,7 @@ const BusinessProjectTransactionList = ({ project }: BusinessProjectTransactionL
     return acc;
   }, {} as Record<number, TransactionModel>);
 
-  const isLoading = isLoadingMovements || isTransactionsLoading || isLoadingUserSettings;
+  const isLoading = isLoadingMovements || isTransactionsLoading;
 
   const { data: categories } = useTransactionCategories();
   const { data: wallets } = useWallets();

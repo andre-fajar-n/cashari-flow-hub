@@ -129,7 +129,7 @@ export const QUERY_KEY_SETS = {
   TRANSACTIONS: ["transactions", "transactions_paginated", "wallets", "budgets", "business_projects", "money_movements_paginated"],
   WALLETS: ["wallets", "transactions", "transfers", "money_movements_paginated"],
   CATEGORIES: ["categories", "transactions"],
-  BUDGETS: ["budgets", "transactions", "money_movements_paginated", "budgets_with_transactions_paginated"],
+  BUDGETS: ["budgets", "transactions", "money_movements_paginated", "budgets_with_transactions_paginated", "budget-summary"],
   BUSINESS_PROJECTS: ["business_projects", "transactions", "money_movements_paginated"],
   DEBTS: ["debts", "debt_histories", "debt-summary", "money_movements_paginated"],
   TRANSFERS: ["transfers", "transfers_paginated", "wallets", "money_movements_paginated"],
