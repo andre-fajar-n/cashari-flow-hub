@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import {
   Tooltip,
   TooltipContent,
@@ -112,6 +113,68 @@ const RoiCard = ({
   );
 };
 
+const ProgressSection = ({
+  goal,
+  currentValue,
+  currencyCode,
+  currencySymbol,
+}: {
+  goal: GoalModel;
+  currentValue: number;
+  currencyCode: string;
+  currencySymbol: string;
+}) => {
+  const targetAmount = goal.target_amount || 0;
+  const progressPercentage = targetAmount > 0 
+    ? Math.min(Math.round((currentValue / targetAmount) * 100), 100) 
+    : 0;
+  const isAchieved = currentValue >= targetAmount && targetAmount > 0;
+
+  return (
+    <div className="space-y-3 p-4 rounded-lg border bg-muted/30">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Target className="w-4 h-4 text-muted-foreground" />
+          <span className="text-sm font-medium">Pencapaian Target</span>
+        </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-xs">
+              <p className="text-sm">
+                Persentase nilai saat ini terhadap target goal yang telah ditentukan.
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+      
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">
+            {formatAmountCurrency(currentValue, currencyCode, currencySymbol)} dari {formatAmountCurrency(targetAmount, currencyCode, currencySymbol)}
+          </span>
+          <Badge variant={isAchieved ? "default" : "secondary"} className="ml-2">
+            {progressPercentage}%
+          </Badge>
+        </div>
+        <Progress 
+          value={progressPercentage} 
+          className="h-3"
+        />
+        {isAchieved && (
+          <p className="text-xs text-primary font-medium flex items-center gap-1">
+            <TrendingUp className="w-3 h-3" />
+            Target telah tercapai!
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const GoalSummaryHeader = ({ goal, summary, currencySymbol }: GoalSummaryHeaderProps) => {
   const baseCurrencyCode = summary.baseCurrencyCode || goal.currency_code;
 
@@ -129,6 +192,14 @@ const GoalSummaryHeader = ({ goal, summary, currencySymbol }: GoalSummaryHeaderP
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Progress Bar */}
+        <ProgressSection 
+          goal={goal} 
+          currentValue={summary.currentValue} 
+          currencyCode={baseCurrencyCode}
+          currencySymbol={currencySymbol}
+        />
+
         {/* 4 Main Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard
