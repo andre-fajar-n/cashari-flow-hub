@@ -17,6 +17,7 @@ export interface InvestmentSummaryExtended {
   instrument_name: string | null;
   invested_capital: number | null;
   invested_capital_base_currency: number | null;
+  is_trackable: boolean | null;
   original_currency_code: string | null;
   realized_profit: number | null;
   realized_profit_base_currency: number | null;
@@ -39,7 +40,7 @@ export interface GoalDetailSummary {
   totalProfit: number;
   roi: number | null;
   baseCurrencyCode: string;
-  
+
   // Raw data for breakdown
   items: InvestmentSummaryExtended[];
 }
@@ -54,6 +55,7 @@ export interface WalletBreakdown {
   activeCapitalBaseCurrency: number;
   currentValue: number;
   currentValueBaseCurrency: number;
+  totalProfitBaseCurrency: number;
   instruments: InstrumentBreakdown[];
 }
 
@@ -73,8 +75,8 @@ export interface AssetBreakdown {
   assetId: number | null;
   assetName: string | null;
   originalCurrencyCode: string;
-  isTrackable: boolean; // determined by unrealized_asset_profit_base_currency not being null
-  
+  isTrackable: boolean;
+
   // Common fields
   investedCapital: number;
   investedCapitalBaseCurrency: number;
@@ -84,7 +86,7 @@ export interface AssetBreakdown {
   realizedProfitBaseCurrency: number;
   totalProfit: number;
   totalProfitBaseCurrency: number;
-  
+
   // Trackable only fields
   amountUnit: number | null;
   avgUnitPrice: number | null;
@@ -114,7 +116,7 @@ export const useGoalDetailSummary = (goalId: number) => {
 
       // Cast to extended type since the view has more fields than the auto-generated types
       const items = (data || []) as unknown as InvestmentSummaryExtended[];
-      
+
       // Aggregate values
       let totalInvestedCapital = 0;
       let currentValue = 0;
@@ -130,8 +132,8 @@ export const useGoalDetailSummary = (goalId: number) => {
         }
       }
 
-      const roi = totalInvestedCapital > 0 
-        ? (totalProfit / totalInvestedCapital) * 100 
+      const roi = totalInvestedCapital > 0
+        ? (totalProfit / totalInvestedCapital) * 100
         : null;
 
       return {
@@ -169,6 +171,7 @@ export const buildBreakdownData = (items: InvestmentSummaryExtended[]): WalletBr
         activeCapitalBaseCurrency: 0,
         currentValue: 0,
         currentValueBaseCurrency: 0,
+        totalProfitBaseCurrency: 0,
         instruments: [],
       };
       walletMap.set(walletId, wallet);
@@ -191,15 +194,13 @@ export const buildBreakdownData = (items: InvestmentSummaryExtended[]): WalletBr
       wallet.instruments.push(instrument);
     }
 
-    // Determine if trackable - based on unrealized_asset_profit_base_currency not being null
-    const isTrackable = item.unrealized_asset_profit_base_currency !== null && item.unrealized_asset_profit_base_currency !== undefined;
-    
+
     // Calculate latest unit price for trackable assets
     let latestUnitPrice: number | null = null;
-    if (isTrackable && item.amount_unit && item.amount_unit > 0 && item.current_value) {
+    if (item.is_trackable && item.amount_unit && item.amount_unit > 0 && item.current_value) {
       latestUnitPrice = item.current_value / item.amount_unit;
     }
-    
+
     // Calculate base currency conversion using avg_exchange_rate
     const avgExchangeRate = item.avg_exchange_rate || 1;
 
@@ -208,7 +209,7 @@ export const buildBreakdownData = (items: InvestmentSummaryExtended[]): WalletBr
       assetId: item.asset_id,
       assetName: item.asset_name,
       originalCurrencyCode: item.original_currency_code || "",
-      isTrackable,
+      isTrackable: item.is_trackable || false,
       investedCapital: item.invested_capital || 0,
       investedCapitalBaseCurrency: item.invested_capital_base_currency || 0,
       activeCapital: item.active_capital || 0,
@@ -244,10 +245,11 @@ export const buildBreakdownData = (items: InvestmentSummaryExtended[]): WalletBr
     wallet.activeCapitalBaseCurrency += asset.activeCapitalBaseCurrency;
     wallet.currentValue += asset.currentValue;
     wallet.currentValueBaseCurrency += asset.currentValueBaseCurrency;
+    wallet.totalProfitBaseCurrency += asset.totalProfitBaseCurrency;
   }
 
   // Sort and return
-  return Array.from(walletMap.values()).sort((a, b) => 
+  return Array.from(walletMap.values()).sort((a, b) =>
     b.currentValueBaseCurrency - a.currentValueBaseCurrency
   );
 };

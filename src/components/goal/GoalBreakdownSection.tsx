@@ -9,11 +9,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { 
-  ChevronDown, 
-  ChevronUp, 
-  Wallet, 
-  TrendingUp, 
+import {
+  ChevronDown,
+  ChevronUp,
+  Wallet,
+  TrendingUp,
   BarChart3,
   HelpCircle,
   AlertCircle,
@@ -22,12 +22,12 @@ import {
 } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
-import { 
-  buildBreakdownData, 
-  WalletBreakdown, 
-  InstrumentBreakdown, 
+import {
+  buildBreakdownData,
+  WalletBreakdown,
+  InstrumentBreakdown,
   AssetBreakdown,
-  InvestmentSummaryExtended 
+  InvestmentSummaryExtended
 } from "@/hooks/queries/use-goal-detail-summary";
 
 interface GoalBreakdownSectionProps {
@@ -55,15 +55,15 @@ const LabelWithTooltip = ({ label, tooltip }: { label: string; tooltip: string }
 );
 
 // Simple metric display (single value)
-const SimpleMetric = ({ 
-  label, 
-  tooltip, 
-  value, 
+const SimpleMetric = ({
+  label,
+  tooltip,
+  value,
   currency,
   showSign = false,
   prominent = false,
-}: { 
-  label: string; 
+}: {
+  label: string;
   tooltip: string;
   value: number;
   currency: string;
@@ -73,9 +73,9 @@ const SimpleMetric = ({
   <div className="space-y-0.5">
     <LabelWithTooltip label={label} tooltip={tooltip} />
     {showSign ? (
-      <AmountText 
-        amount={value} 
-        showSign={true} 
+      <AmountText
+        amount={value}
+        showSign={true}
         className={prominent ? "text-base font-semibold" : "text-sm font-medium"}
       >
         {formatAmountCurrency(Math.abs(value), currency, currency)}
@@ -89,17 +89,17 @@ const SimpleMetric = ({
 );
 
 // Dual currency metric (original + base)
-const DualCurrencyMetric = ({ 
-  label, 
-  tooltip, 
-  originalValue, 
-  originalCurrency, 
-  baseValue, 
+const DualCurrencyMetric = ({
+  label,
+  tooltip,
+  originalValue,
+  originalCurrency,
+  baseValue,
   baseCurrency,
   showSign = false,
   hideBaseIfSame = true,
-}: { 
-  label: string; 
+}: {
+  label: string;
   tooltip: string;
   originalValue: number;
   originalCurrency: string;
@@ -109,7 +109,7 @@ const DualCurrencyMetric = ({
   hideBaseIfSame?: boolean;
 }) => {
   const isSameCurrency = originalCurrency === baseCurrency;
-  
+
   return (
     <div className="flex justify-between items-start py-1.5">
       <LabelWithTooltip label={label} tooltip={tooltip} />
@@ -135,11 +135,11 @@ const DualCurrencyMetric = ({
 
 // ============= Level 3: Asset Item (Most Detailed) =============
 
-const AssetItem = ({ 
-  asset, 
-  baseCurrency 
-}: { 
-  asset: AssetBreakdown; 
+const AssetItem = ({
+  asset,
+  baseCurrency
+}: {
+  asset: AssetBreakdown;
   baseCurrency: string;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -160,8 +160,8 @@ const AssetItem = ({
                   <Badge variant="outline" className="text-xs py-0 px-1.5">
                     {asset.originalCurrencyCode}
                   </Badge>
-                  <Badge 
-                    variant={asset.isTrackable ? "secondary" : "outline"} 
+                  <Badge
+                    variant={asset.isTrackable ? "secondary" : "outline"}
                     className="text-xs py-0 px-1.5"
                   >
                     {asset.isTrackable ? "Trackable" : "Non-trackable"}
@@ -198,8 +198,8 @@ const AssetItem = ({
                 {/* Amount Unit */}
                 {asset.amountUnit !== null && asset.amountUnit > 0 && (
                   <div className="flex justify-between items-center py-1.5">
-                    <LabelWithTooltip 
-                      label="Jumlah Unit" 
+                    <LabelWithTooltip
+                      label="Jumlah Unit"
                       tooltip="Jumlah unit aset yang saat ini dimiliki."
                     />
                     <Badge variant="secondary" className="font-mono">
@@ -211,8 +211,8 @@ const AssetItem = ({
                 {/* Latest Market Price */}
                 {asset.latestUnitPrice !== null && (
                   <div className="flex justify-between items-center py-1.5">
-                    <LabelWithTooltip 
-                      label="Harga Pasar Terakhir" 
+                    <LabelWithTooltip
+                      label="Harga Pasar Terakhir"
                       tooltip="Harga pasar terbaru per unit aset."
                     />
                     <p className="text-sm font-medium">
@@ -248,14 +248,14 @@ const AssetItem = ({
                 <div className="py-1.5">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-1">
-                      <LabelWithTooltip 
-                        label="Keuntungan Belum Terealisasi" 
+                      <LabelWithTooltip
+                        label="Keuntungan Belum Terealisasi"
                         tooltip="Keuntungan di atas kertas yang belum dicairkan."
                       />
                       {(asset.unrealizedCurrencyProfit !== null && asset.unrealizedCurrencyProfit !== 0) && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="h-5 w-5 p-0"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -267,9 +267,9 @@ const AssetItem = ({
                       )}
                     </div>
                     <div className="text-right">
-                      <AmountText 
-                        amount={asset.unrealizedProfitBaseCurrency || 0} 
-                        showSign={true} 
+                      <AmountText
+                        amount={asset.unrealizedProfitBaseCurrency || 0}
+                        showSign={true}
                         className="text-sm font-medium"
                       >
                         {formatAmountCurrency(Math.abs(asset.unrealizedProfitBaseCurrency || 0), baseCurrency, baseCurrency)}
@@ -299,9 +299,9 @@ const AssetItem = ({
                             </Tooltip>
                           </TooltipProvider>
                         </span>
-                        <AmountText 
-                          amount={(asset.unrealizedProfitBaseCurrency || 0) - (asset.unrealizedCurrencyProfit || 0)} 
-                          showSign={true} 
+                        <AmountText
+                          amount={(asset.unrealizedProfitBaseCurrency || 0) - (asset.unrealizedCurrencyProfit || 0)}
+                          showSign={true}
                           className="font-medium"
                         >
                           {formatAmountCurrency(Math.abs((asset.unrealizedProfitBaseCurrency || 0) - (asset.unrealizedCurrencyProfit || 0)), baseCurrency, baseCurrency)}
@@ -321,9 +321,9 @@ const AssetItem = ({
                             </Tooltip>
                           </TooltipProvider>
                         </span>
-                        <AmountText 
-                          amount={asset.unrealizedCurrencyProfit} 
-                          showSign={true} 
+                        <AmountText
+                          amount={asset.unrealizedCurrencyProfit}
+                          showSign={true}
                           className="font-medium"
                         >
                           {formatAmountCurrency(Math.abs(asset.unrealizedCurrencyProfit), baseCurrency, baseCurrency)}
@@ -411,11 +411,11 @@ const AssetItem = ({
 
 // ============= Level 2: Instrument Item =============
 
-const InstrumentItem = ({ 
-  instrument, 
+const InstrumentItem = ({
+  instrument,
   baseCurrency,
-}: { 
-  instrument: InstrumentBreakdown; 
+}: {
+  instrument: InstrumentBreakdown;
   baseCurrency: string;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -479,14 +479,7 @@ const InstrumentItem = ({
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          {/* Instrument metrics in base currency */}
-          <div className="px-4 py-2 border-t grid grid-cols-3 gap-4 bg-muted/20">
-            <SimpleMetric
-              label="Total Modal"
-              tooltip="Total dana yang diinvestasikan di instrumen ini."
-              value={instrument.investedCapitalBaseCurrency}
-              currency={baseCurrency}
-            />
+          <div className="px-4 py-2 border-t grid grid-cols-2 gap-4 bg-muted/20">
             <SimpleMetric
               label="Nilai Saat Ini"
               tooltip="Nilai total instrumen saat ini."
@@ -501,9 +494,9 @@ const InstrumentItem = ({
               showSign={true}
             />
           </div>
-          
+
           {/* Assets list */}
-          <div className="p-3 space-y-2">
+          <div className="p-3 space-y-2 border-t">
             {instrument.assets
               .sort((a, b) => b.totalProfitBaseCurrency - a.totalProfitBaseCurrency)
               .map((asset, idx) => (
@@ -518,11 +511,11 @@ const InstrumentItem = ({
 
 // ============= Level 1: Wallet Item =============
 
-const WalletItem = ({ 
-  wallet, 
-  baseCurrency 
-}: { 
-  wallet: WalletBreakdown; 
+const WalletItem = ({
+  wallet,
+  baseCurrency
+}: {
+  wallet: WalletBreakdown;
   baseCurrency: string;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -552,8 +545,8 @@ const WalletItem = ({
               </div>
               {/* Show Total Profit */}
               <div className="text-right hidden sm:block">
-                <AmountText amount={wallet.currentValueBaseCurrency - wallet.investedCapitalBaseCurrency} showSign={true} className="text-sm font-semibold">
-                  {formatAmountCurrency(Math.abs(wallet.currentValueBaseCurrency - wallet.investedCapitalBaseCurrency), baseCurrency, baseCurrency)}
+                <AmountText amount={wallet.totalProfitBaseCurrency} showSign={true} className="text-sm font-semibold">
+                  {formatAmountCurrency(Math.abs(wallet.totalProfitBaseCurrency), baseCurrency, baseCurrency)}
                 </AmountText>
                 <p className="text-xs text-muted-foreground">Profit</p>
               </div>
@@ -564,27 +557,11 @@ const WalletItem = ({
         <CollapsibleContent>
           {/* Wallet summary metrics (original currency focus) */}
           <div className="px-4 pb-3 pt-2 border-t">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {/* Invested Capital - Original Currency */}
-              <div className="space-y-0.5">
-                <LabelWithTooltip 
-                  label="Total Modal" 
-                  tooltip="Total dana yang pernah dimasukkan ke wallet ini, termasuk dana yang sudah ditarik kembali."
-                />
-                <p className="text-sm font-medium">
-                  {formatAmountCurrency(wallet.investedCapital, wallet.originalCurrencyCode, wallet.originalCurrencyCode)}
-                </p>
-                {!isSameCurrency && (
-                  <p className="text-xs text-muted-foreground italic">
-                    ≈ {formatAmountCurrency(wallet.investedCapitalBaseCurrency, baseCurrency, baseCurrency)}
-                  </p>
-                )}
-              </div>
-
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Active Capital - Original Currency */}
               <div className="space-y-0.5">
-                <LabelWithTooltip 
-                  label="Dana Aktif" 
+                <LabelWithTooltip
+                  label="Dana Aktif"
                   tooltip="Dana yang saat ini masih berada di goal dan belum ditarik."
                 />
                 <p className="text-sm font-medium">
@@ -599,8 +576,8 @@ const WalletItem = ({
 
               {/* Current Value - Base Currency */}
               <div className="space-y-0.5">
-                <LabelWithTooltip 
-                  label="Nilai Saat Ini" 
+                <LabelWithTooltip
+                  label="Nilai Saat Ini"
                   tooltip="Nilai wallet berdasarkan kondisi terbaru dalam base currency."
                 />
                 <p className="text-sm font-semibold text-primary">
@@ -615,21 +592,21 @@ const WalletItem = ({
 
               {/* Total Profit - Base Currency */}
               <div className="space-y-0.5">
-                <LabelWithTooltip 
-                  label="Total Profit" 
+                <LabelWithTooltip
+                  label="Total Profit"
                   tooltip="Total keuntungan dari wallet ini dalam base currency."
                 />
-                <AmountText 
-                  amount={wallet.currentValueBaseCurrency - wallet.investedCapitalBaseCurrency} 
-                  showSign={true} 
+                <AmountText
+                  amount={wallet.totalProfitBaseCurrency}
+                  showSign={true}
                   className="text-sm font-semibold"
                 >
-                  {formatAmountCurrency(Math.abs(wallet.currentValueBaseCurrency - wallet.investedCapitalBaseCurrency), baseCurrency, baseCurrency)}
+                  {formatAmountCurrency(Math.abs(wallet.totalProfitBaseCurrency), baseCurrency, baseCurrency)}
                 </AmountText>
               </div>
             </div>
           </div>
-          
+
           {/* Instruments list */}
           <div className="px-4 pb-4 pt-2">
             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
@@ -639,9 +616,9 @@ const WalletItem = ({
               {wallet.instruments
                 .sort((a, b) => b.currentValueBaseCurrency - a.currentValueBaseCurrency)
                 .map((instrument, idx) => (
-                  <InstrumentItem 
-                    key={idx} 
-                    instrument={instrument} 
+                  <InstrumentItem
+                    key={idx}
+                    instrument={instrument}
                     baseCurrency={baseCurrency}
                   />
                 ))}
@@ -657,7 +634,7 @@ const WalletItem = ({
 
 const GoalBreakdownSection = ({ items, baseCurrencyCode, baseCurrencySymbol }: GoalBreakdownSectionProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  
+
   const breakdownData = buildBreakdownData(items);
 
   if (breakdownData.length === 0) {
@@ -691,9 +668,9 @@ const GoalBreakdownSection = ({ items, baseCurrencyCode, baseCurrencySymbol }: G
               Rincian keuangan per wallet, instrumen, dan aset. Klik untuk melihat detail lebih lanjut.
             </p>
             {breakdownData.map((wallet) => (
-              <WalletItem 
-                key={wallet.walletId} 
-                wallet={wallet} 
+              <WalletItem
+                key={wallet.walletId}
+                wallet={wallet}
                 baseCurrency={baseCurrencyCode}
               />
             ))}
