@@ -44,10 +44,10 @@ const AppSidebar = () => {
     { path: "/budget", label: "Budget", icon: Calendar },
     { path: "/business-project", label: "Proyek Bisnis", icon: Users },
     { path: "/debt", label: "Hutang/Piutang", icon: CreditCard },
-    { path: "/goal", label: "Target", icon: Target },
   ];
 
   const investmentMenuItems = [
+    { path: "/goal", label: "Target", icon: Target },
     { path: "/investment-instrument", label: "Instrumen Investasi", icon: TrendingUp },
     { path: "/investment-asset", label: "Aset Investasi", icon: Wallet },
   ];
