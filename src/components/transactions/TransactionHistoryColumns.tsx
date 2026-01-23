@@ -371,7 +371,8 @@ export const getTransactionHistoryColumns = ({
                   ≈ {formatAmountCurrency(
                     movement.amount * movement.exchange_rate,
                     movement.base_currency_code || "",
-                    movement.base_currency_symbol || ""
+                    movement.base_currency_symbol || "",
+                    4
                   )}
                 </div>
               )}
