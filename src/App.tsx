@@ -15,6 +15,7 @@ import BusinessProject from "@/pages/BusinessProject";
 import Goal from "@/pages/Goal";
 import GoalDetail from "@/pages/GoalDetail";
 import InvestmentInstrument from "@/pages/InvestmentInstrument";
+import InstrumentDetail from "@/pages/InstrumentDetail";
 import InvestmentAsset from "@/pages/InvestmentAsset";
 import AssetDetail from "@/pages/AssetDetail";
 import Settings from "@/pages/Settings";
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/goal" element={<Goal />} />
             <Route path="/goal/:id" element={<GoalDetail />} />
             <Route path="/investment-instrument" element={<InvestmentInstrument />} />
+            <Route path="/investment-instrument/:id" element={<InstrumentDetail />} />
             <Route path="/investment-asset" element={<InvestmentAsset />} />
             <Route path="/investment-asset/:id" element={<AssetDetail />} />
             <Route path="/settings" element={<Settings />} />

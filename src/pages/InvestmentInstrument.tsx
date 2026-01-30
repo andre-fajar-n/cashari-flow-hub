@@ -1,4 +1,5 @@
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -18,6 +19,7 @@ import { useMemo } from "react";
 
 const InvestmentInstrument = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const { mutate: deleteInstrument } = useDeleteInvestmentInstrument();
   const createInstrument = useCreateInvestmentInstrument();
@@ -114,6 +116,11 @@ const InvestmentInstrument = () => {
     }
   };
 
+  // Handle view detail
+  const handleView = (summary: InstrumentSummary) => {
+    navigate(`/investment-instrument/${summary.instrumentId}`);
+  };
+
   return (
     <ProtectedRoute>
       <Layout>
@@ -150,6 +157,7 @@ const InvestmentInstrument = () => {
             setPageSize={actions.handlePageSizeChange}
             onEdit={handleEdit}
             onDelete={deleteConfirmation.openModal}
+            onView={handleView}
           />
         </div>
 
