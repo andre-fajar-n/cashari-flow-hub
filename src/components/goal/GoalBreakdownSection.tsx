@@ -479,23 +479,7 @@ const InstrumentItem = ({
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <div className="px-4 py-2 border-t grid grid-cols-2 gap-4 bg-muted/20">
-            <SimpleMetric
-              label="Nilai Saat Ini"
-              tooltip="Nilai total instrumen saat ini."
-              value={instrument.currentValueBaseCurrency}
-              currency={baseCurrency}
-            />
-            <SimpleMetric
-              label="Total Profit"
-              tooltip="Total keuntungan dari instrumen ini."
-              value={instrument.totalProfitBaseCurrency}
-              currency={baseCurrency}
-              showSign={true}
-            />
-          </div>
-
-          {/* Assets list */}
+          {/* Assets list - no redundant metrics, go directly to breakdown */}
           <div className="p-3 space-y-2 border-t">
             {instrument.assets
               .sort((a, b) => b.totalProfitBaseCurrency - a.totalProfitBaseCurrency)
@@ -555,59 +539,26 @@ const WalletItem = ({
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          {/* Wallet summary metrics (original currency focus) */}
+          {/* Only show additional info not in collapsed state */}
           <div className="px-4 pb-3 pt-2 border-t">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {/* Active Capital - Original Currency */}
-              <div className="space-y-0.5">
-                <LabelWithTooltip
-                  label="Dana Aktif"
-                  tooltip="Dana yang saat ini masih berada di goal dan belum ditarik."
-                />
-                <p className="text-sm font-medium">
-                  {formatAmountCurrency(wallet.activeCapital, wallet.originalCurrencyCode, wallet.originalCurrencyCode)}
+            {/* Dana Aktif - Only additional info shown when expanded */}
+            <div className="space-y-0.5">
+              <LabelWithTooltip
+                label="Dana Aktif"
+                tooltip="Dana yang saat ini masih berada di goal dan belum ditarik."
+              />
+              <p className="text-sm font-medium">
+                {formatAmountCurrency(wallet.activeCapital, wallet.originalCurrencyCode, wallet.originalCurrencyCode)}
+              </p>
+              {!isSameCurrency && (
+                <p className="text-xs text-muted-foreground italic">
+                  ≈ {formatAmountCurrency(wallet.activeCapitalBaseCurrency, baseCurrency, baseCurrency)}
                 </p>
-                {!isSameCurrency && (
-                  <p className="text-xs text-muted-foreground italic">
-                    ≈ {formatAmountCurrency(wallet.activeCapitalBaseCurrency, baseCurrency, baseCurrency)}
-                  </p>
-                )}
-              </div>
-
-              {/* Current Value - Base Currency */}
-              <div className="space-y-0.5">
-                <LabelWithTooltip
-                  label="Nilai Saat Ini"
-                  tooltip="Nilai wallet berdasarkan kondisi terbaru dalam base currency."
-                />
-                <p className="text-sm font-semibold text-primary">
-                  {formatAmountCurrency(wallet.currentValueBaseCurrency, baseCurrency, baseCurrency)}
-                </p>
-                {!isSameCurrency && (
-                  <p className="text-xs text-muted-foreground italic">
-                    {wallet.originalCurrencyCode}: {formatAmountCurrency(wallet.currentValue, wallet.originalCurrencyCode, wallet.originalCurrencyCode)}
-                  </p>
-                )}
-              </div>
-
-              {/* Total Profit - Base Currency */}
-              <div className="space-y-0.5">
-                <LabelWithTooltip
-                  label="Total Profit"
-                  tooltip="Total keuntungan dari wallet ini dalam base currency."
-                />
-                <AmountText
-                  amount={wallet.totalProfitBaseCurrency}
-                  showSign={true}
-                  className="text-sm font-semibold"
-                >
-                  {formatAmountCurrency(Math.abs(wallet.totalProfitBaseCurrency), baseCurrency, baseCurrency)}
-                </AmountText>
-              </div>
+              )}
             </div>
           </div>
 
-          {/* Instruments list */}
+          {/* Instruments list - breakdown to next level */}
           <div className="px-4 pb-4 pt-2">
             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
               {wallet.instruments.length} Instrumen
