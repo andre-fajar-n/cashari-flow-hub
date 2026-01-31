@@ -6,6 +6,7 @@ export const useDebtsPaginated = (params: PaginatedParams) =>
     table: "debts",
     select: `*`,
     orderBy: [
+      { column: "status", ascending: true },
       { column: "name", ascending: true },
     ],
     mapSearch: (q: any, term: string) => q.ilike("name", `%${term}%`),
