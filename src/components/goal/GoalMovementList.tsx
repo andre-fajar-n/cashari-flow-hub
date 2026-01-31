@@ -23,7 +23,9 @@ export interface GoalMovementListProps {
   movements: MoneyMovementModel[];
   totalCount: number;
   isLoading: boolean;
-  
+
+  originPage: 'goal' | 'instrument' | 'asset';
+
   // Table state (controlled from parent)
   searchTerm: string;
   onSearchChange: (search: string) => void;
@@ -33,17 +35,17 @@ export interface GoalMovementListProps {
   pageSize: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
-  
+
   // Filter options
   wallets: WalletModel[];
   instruments: InvestmentInstrumentModel[];
   assets: InvestmentAssetModel[];
   categories: CategoryModel[];
-  
+
   // Edit/Delete handlers (from parent)
   onEdit: (movement: MoneyMovementModel) => void;
   onDelete: (movement: MoneyMovementModel) => void;
-  
+
   // Transfer Dialog
   transferDialogOpen: boolean;
   onTransferDialogChange: (open: boolean) => void;
@@ -53,7 +55,7 @@ export interface GoalMovementListProps {
   editTransfer?: GoalTransferModel;
   transferConfig?: GoalTransferConfig;
   goals: GoalModel[];
-  
+
   // Record Dialog
   recordDialogOpen: boolean;
   onRecordDialogChange: (open: boolean) => void;
@@ -61,7 +63,7 @@ export interface GoalMovementListProps {
   isRecordFormLoading: boolean;
   onRecordFormSubmit: (data: GoalInvestmentRecordFormData) => void;
   editRecord?: GoalInvestmentRecordModel;
-  
+
   // Delete Modal
   deleteModalOpen: boolean;
   onDeleteModalChange: (open: boolean) => void;
@@ -74,7 +76,9 @@ const GoalMovementList = ({
   movements,
   totalCount,
   isLoading,
-  
+
+  originPage,
+
   // Table state
   searchTerm,
   onSearchChange,
@@ -84,17 +88,17 @@ const GoalMovementList = ({
   pageSize,
   onPageChange,
   onPageSizeChange,
-  
+
   // Filter options
   wallets,
   instruments,
   assets,
   categories,
-  
+
   // Handlers
   onEdit,
   onDelete,
-  
+
   // Transfer Dialog
   transferDialogOpen,
   onTransferDialogChange,
@@ -104,7 +108,7 @@ const GoalMovementList = ({
   editTransfer,
   transferConfig,
   goals,
-  
+
   // Record Dialog
   recordDialogOpen,
   onRecordDialogChange,
@@ -112,7 +116,7 @@ const GoalMovementList = ({
   isRecordFormLoading,
   onRecordFormSubmit,
   editRecord,
-  
+
   // Delete Modal
   deleteModalOpen,
   onDeleteModalChange,
@@ -124,7 +128,7 @@ const GoalMovementList = ({
     onEdit,
     onDelete,
   });
-  
+
   // Select filters configuration
   const selectFilters: SelectFilterConfig[] = [
     {
@@ -153,34 +157,58 @@ const GoalMovementList = ({
         label: `${wallet.name} (${wallet.currency_code})`,
         value: wallet.id.toString()
       })) || []
-    },
-    {
-      key: "instrument_id",
-      label: "Instrumen",
-      placeholder: "Semua Instrumen",
-      options: instruments?.map(instrument => ({
-        label: instrument.name,
-        value: instrument.id.toString()
-      })) || []
-    },
-    {
-      key: "asset_id",
-      label: "Aset",
-      placeholder: "Semua Aset",
-      options: assets?.map(asset => ({
-        label: asset.name,
-        value: asset.id.toString()
-      })) || []
     }
   ];
-  
+
+  const goal_filter = {
+    key: "goal_id",
+    label: "Tujuan",
+    placeholder: "Semua Tujuan",
+    options: goals?.map(goal => ({
+      label: goal.name,
+      value: goal.id.toString()
+    })) || []
+  }
+  const instrument_filter = {
+    key: "instrument_id",
+    label: "Instrumen",
+    placeholder: "Semua Instrumen",
+    options: instruments?.map(instrument => ({
+      label: instrument.name,
+      value: instrument.id.toString()
+    })) || []
+  }
+  const asset_filter = {
+    key: "asset_id",
+    label: "Aset",
+    placeholder: "Semua Aset",
+    options: assets?.map(asset => ({
+      label: asset.name,
+      value: asset.id.toString()
+    })) || []
+  }
+
+  switch (originPage) {
+    case 'instrument':
+      selectFilters.push(goal_filter, asset_filter);
+      break;
+    case 'asset':
+      selectFilters.push(goal_filter, instrument_filter);
+      break;
+    case 'goal':
+      selectFilters.push(instrument_filter, asset_filter);
+      break;
+    default:
+      break;
+  }
+
   // Date range filter configuration
   const dateRangeFilter: DateRangeFilterConfig = {
     key: "date",
     label: "Tanggal",
     placeholder: "Pilih rentang tanggal",
   };
-  
+
   return (
     <>
       <TransactionHistoryTable
@@ -199,7 +227,7 @@ const GoalMovementList = ({
         setPage={onPageChange}
         setPageSize={onPageSizeChange}
       />
-      
+
       {/* Transfer Dialog */}
       <GoalTransferDialog
         open={transferDialogOpen}
@@ -214,7 +242,7 @@ const GoalMovementList = ({
         instruments={instruments}
         assets={assets}
       />
-      
+
       {/* Investment Record Dialog */}
       <GoalInvestmentRecordDialog
         open={recordDialogOpen}
@@ -229,7 +257,7 @@ const GoalMovementList = ({
         wallets={wallets}
         categories={categories}
       />
-      
+
       {/* Delete Confirmation Modal */}
       <ConfirmationModal
         open={deleteModalOpen}

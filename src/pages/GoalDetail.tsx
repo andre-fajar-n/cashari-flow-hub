@@ -47,7 +47,7 @@ const GoalDetail = () => {
 
   // Delete goal modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  
+
   // Toggle active modal state
   const [isToggleActiveModalOpen, setIsToggleActiveModalOpen] = useState(false);
 
@@ -601,6 +601,8 @@ const GoalDetail = () => {
 
             <TabsContent value="history" className="space-y-4">
               <GoalMovementList
+                originPage="goal"
+
                 // Data
                 movements={movements}
                 totalCount={totalCount}

@@ -99,3 +99,13 @@ export const useMoneyMovementsPaginatedByGoal = (goalId: number, params: Paginat
     }
   }, "investment_movement");
 };
+
+export const useMoneyMovementsPaginatedByInstrument = (instrumentId: number, params: PaginatedParams) => {
+  return useMoneyMovementsPaginated({
+    ...params,
+    filters: {
+      ...params.filters,
+      instrument_id: instrumentId
+    }
+  }, "investment_movement");
+};

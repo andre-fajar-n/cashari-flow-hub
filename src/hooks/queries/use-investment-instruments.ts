@@ -135,3 +135,26 @@ export const useUpdateInvestmentInstrument = () => {
     },
   });
 };
+
+export const useInvestmentInstrumentDetail = (instrumentId: number) => {
+  const { user } = useAuth();
+
+  return useQuery<InvestmentInstrumentModel>({
+    queryKey: ["investment_instrument", user?.id, instrumentId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("investment_instruments")
+        .select("*")
+        .eq("user_id", user?.id)
+        .eq("id", instrumentId)
+        .single();
+
+      if (error) {
+        console.error("Error fetching investment instrument:", error);
+        throw error;
+      }
+      return data;
+    },
+    enabled: !!user,
+  });
+};
