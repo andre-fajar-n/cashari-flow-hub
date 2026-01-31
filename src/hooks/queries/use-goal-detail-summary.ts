@@ -62,8 +62,11 @@ export interface WalletBreakdown {
 export interface InstrumentBreakdown {
   instrumentId: number | null;
   instrumentName: string;
+  originalCurrencyCode: string;
   investedCapital: number;
   investedCapitalBaseCurrency: number;
+  activeCapital: number;
+  activeCapitalBaseCurrency: number;
   currentValue: number;
   currentValueBaseCurrency: number;
   totalProfit: number;
@@ -183,8 +186,11 @@ export const buildBreakdownData = (items: InvestmentSummaryExtended[]): WalletBr
       instrument = {
         instrumentId,
         instrumentName,
+        originalCurrencyCode: item.original_currency_code || "",
         investedCapital: 0,
         investedCapitalBaseCurrency: 0,
+        activeCapital: 0,
+        activeCapitalBaseCurrency: 0,
         currentValue: 0,
         currentValueBaseCurrency: 0,
         totalProfit: 0,
@@ -237,6 +243,8 @@ export const buildBreakdownData = (items: InvestmentSummaryExtended[]): WalletBr
     instrument.currentValueBaseCurrency += asset.currentValueBaseCurrency;
     instrument.totalProfit += asset.totalProfit;
     instrument.totalProfitBaseCurrency += asset.totalProfitBaseCurrency;
+    instrument.activeCapital += asset.activeCapital;
+    instrument.activeCapitalBaseCurrency += asset.activeCapitalBaseCurrency;
 
     // Update wallet totals
     wallet.investedCapital += asset.investedCapital;
@@ -250,6 +258,6 @@ export const buildBreakdownData = (items: InvestmentSummaryExtended[]): WalletBr
 
   // Sort and return
   return Array.from(walletMap.values()).sort((a, b) =>
-    b.currentValueBaseCurrency - a.currentValueBaseCurrency
+    b.currentValueBaseCurrency - a.currentValueBaseCurrency || b.totalProfitBaseCurrency - a.totalProfitBaseCurrency
   );
 };

@@ -171,6 +171,12 @@ const AssetItem = ({
             </div>
             <div className="flex items-center gap-3">
               <div className="text-right">
+                <p className="text-sm font-semibold">
+                  {formatAmountCurrency(Math.abs(asset.currentValueBaseCurrency), baseCurrency, baseCurrency)}
+                </p>
+                <p className="text-xs text-muted-foreground">Nilai Saat Ini</p>
+              </div>
+              <div className="text-right">
                 <AmountText amount={asset.totalProfitBaseCurrency} showSign={true} className="text-sm font-semibold">
                   {formatAmountCurrency(Math.abs(asset.totalProfitBaseCurrency), baseCurrency, baseCurrency)}
                 </AmountText>
@@ -420,6 +426,7 @@ const InstrumentItem = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const hasNamedAssets = instrument.assets.length > 0 && instrument.assets.some(a => a.assetName);
+  const isSameCurrency = instrument.originalCurrencyCode === baseCurrency;
 
   // If no named assets, show as a compact summary row
   if (!hasNamedAssets) {
@@ -466,7 +473,7 @@ const InstrumentItem = ({
                 <p className="text-sm font-semibold">
                   {formatAmountCurrency(instrument.currentValueBaseCurrency, baseCurrency, baseCurrency)}
                 </p>
-                <p className="text-xs text-muted-foreground">Nilai</p>
+                <p className="text-xs text-muted-foreground">Nilai saat ini</p>
               </div>
               <div className="text-right">
                 <AmountText amount={instrument.totalProfitBaseCurrency} showSign={true} className="text-sm font-semibold">
@@ -479,10 +486,28 @@ const InstrumentItem = ({
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          {/* Assets list - no redundant metrics, go directly to breakdown */}
+          {/* Only show additional info not in collapsed state */}
+          <div className="px-4 pb-3 pt-2 border-t">
+            {/* Dana Aktif - Only additional info shown when expanded */}
+            <div className="space-y-0.5">
+              <LabelWithTooltip
+                label="Dana Aktif"
+                tooltip="Dana yang saat ini masih berada di goal dan belum ditarik."
+              />
+              <p className="text-sm font-medium">
+                {formatAmountCurrency(instrument.activeCapital, instrument.originalCurrencyCode, instrument.originalCurrencyCode)}
+              </p>
+              {!isSameCurrency && (
+                <p className="text-xs text-muted-foreground italic">
+                  ≈ {formatAmountCurrency(instrument.activeCapitalBaseCurrency, baseCurrency, baseCurrency)}
+                </p>
+              )}
+            </div>
+          </div>
+
           <div className="p-3 space-y-2 border-t">
             {instrument.assets
-              .sort((a, b) => b.totalProfitBaseCurrency - a.totalProfitBaseCurrency)
+              .sort((a, b) => b.currentValueBaseCurrency - a.currentValueBaseCurrency || b.totalProfitBaseCurrency - a.totalProfitBaseCurrency)
               .map((asset, idx) => (
                 <AssetItem key={idx} asset={asset} baseCurrency={baseCurrency} />
               ))}
@@ -565,7 +590,7 @@ const WalletItem = ({
             </p>
             <div className="space-y-2">
               {wallet.instruments
-                .sort((a, b) => b.currentValueBaseCurrency - a.currentValueBaseCurrency)
+                .sort((a, b) => b.currentValueBaseCurrency - a.currentValueBaseCurrency || b.totalProfitBaseCurrency - a.totalProfitBaseCurrency)
                 .map((instrument, idx) => (
                   <InstrumentItem
                     key={idx}
