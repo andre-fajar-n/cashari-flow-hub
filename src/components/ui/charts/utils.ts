@@ -1,4 +1,5 @@
 import { PeriodOption, PeriodType } from "./types";
+import { subDays, subMonths, subYears, parseISO, isAfter } from "date-fns";
 
 export const periodOptions: PeriodOption[] = [
   { value: "1M", label: "1M" },
@@ -25,7 +26,6 @@ export const filterDataByPeriod = <T extends { date: string }>(
     return data;
   }
 
-  const { subDays, subMonths, subYears, parseISO, isAfter } = require("date-fns");
   const now = new Date();
   let cutoffDate: Date;
 
