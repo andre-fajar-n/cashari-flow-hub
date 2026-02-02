@@ -6,10 +6,9 @@ import { TrendingUp, Edit, Trash2, Eye, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { InstrumentSummary } from "@/hooks/queries/use-instrument-summary";
+import { InstrumentSummary, CurrencyBreakdown } from "@/hooks/queries/use-instrument-summary";
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
-import { cn } from "@/lib/utils/cn";
 
 interface InstrumentSummaryTableProps {
   data: InstrumentSummary[];
@@ -44,40 +43,92 @@ const ROICell = ({ roi }: { roi: number | null }) => {
           </div>
         </TooltipTrigger>
         <TooltipContent side="top" className="max-w-xs text-xs">
-          ROI dihitung berdasarkan currency instrumen dan tidak memperhitungkan dampak perubahan kurs.
+          ROI dihitung menggunakan base currency user agar konsisten dan dapat dibandingkan antar instrumen.
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
 };
 
-// Helper for dual currency display
-const DualCurrencyCell = ({
+// Helper to format currency breakdown as secondary info
+const formatCurrencyBreakdown = (breakdown: CurrencyBreakdown[], field: 'activeCapital' | 'currentValue') => {
+  if (breakdown.length === 0) return null;
+  
+  return breakdown
+    .map(item => `${item.currencyCode} ${item[field].toLocaleString('id-ID', { maximumFractionDigits: 2 })}`)
+    .join(' · ');
+};
+
+// Cell component for amounts with currency breakdown
+const AmountWithBreakdownCell = ({
   primaryAmount,
-  primaryCurrency,
-  secondaryAmount,
-  secondaryCurrency,
-  showSecondary = true,
+  baseCurrency,
+  breakdown,
+  breakdownField,
+  tooltipText,
 }: {
   primaryAmount: number;
-  primaryCurrency: string;
-  secondaryAmount: number;
-  secondaryCurrency: string;
-  showSecondary?: boolean;
+  baseCurrency: string;
+  breakdown: CurrencyBreakdown[];
+  breakdownField: 'activeCapital' | 'currentValue';
+  tooltipText?: string;
 }) => {
-  const isDifferentCurrency = primaryCurrency !== secondaryCurrency;
+  const breakdownText = formatCurrencyBreakdown(breakdown, breakdownField);
   
-  return (
+  const content = (
     <div className="space-y-0.5">
-      <AmountText amount={primaryAmount} className="font-semibold block">
-        {formatAmountCurrency(primaryAmount, primaryCurrency, primaryCurrency)}
-      </AmountText>
-      {showSecondary && isDifferentCurrency && (
-        <span className="text-xs text-muted-foreground italic block">
-          ≈ {formatAmountCurrency(secondaryAmount, secondaryCurrency, secondaryCurrency)}
+      <span className="font-semibold block">
+        {formatAmountCurrency(primaryAmount, baseCurrency, baseCurrency)}
+      </span>
+      {breakdownText && (
+        <span className="text-xs text-muted-foreground block">
+          ≡ {breakdownText}
         </span>
       )}
     </div>
+  );
+
+  if (tooltipText) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="cursor-help">{content}</div>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-xs text-xs">
+            {tooltipText}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
+  return content;
+};
+
+// Profit cell with color
+const ProfitCell = ({
+  amount,
+  baseCurrency,
+}: {
+  amount: number;
+  baseCurrency: string;
+}) => {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="cursor-help">
+            <AmountText amount={amount} showSign className="font-semibold">
+              {formatAmountCurrency(Math.abs(amount), baseCurrency, baseCurrency)}
+            </AmountText>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs text-xs">
+          Total Profit = Nilai Saat Ini – Modal Aktif, dihitung dan ditampilkan dalam base currency user.
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 
@@ -111,10 +162,15 @@ export function InstrumentSummaryTable({
             </div>
             <div className="space-y-1">
               <span className="font-medium block">{instrument.instrumentName}</span>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {/* Currency Badge */}
                 <Badge variant="outline" className="text-xs font-mono">
-                  {instrument.originalCurrencyCode}
+                  {instrument.isMultiCurrency 
+                    ? "Multi Currency" 
+                    : instrument.currencyBreakdown[0]?.currencyCode || instrument.baseCurrencyCode
+                  }
                 </Badge>
+                {/* Trackable Badge */}
                 {instrument.isTrackable && (
                   <Badge variant="secondary" className="text-xs">
                     Trackable
@@ -127,7 +183,7 @@ export function InstrumentSummaryTable({
       },
     },
     {
-      accessorKey: "activeCapital",
+      accessorKey: "activeCapitalBaseCurrency",
       header: ({ column }) => (
         <TooltipProvider>
           <Tooltip>
@@ -138,7 +194,7 @@ export function InstrumentSummaryTable({
               </div>
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-xs text-xs">
-              Dana yang saat ini masih aktif di instrumen ini.
+              Total dana yang saat ini masih aktif di instrumen ini. Nilai utama dikonversi ke base currency user.
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -146,38 +202,39 @@ export function InstrumentSummaryTable({
       cell: ({ row }) => {
         const instrument = row.original;
         return (
-          <span className="font-medium">
-            {formatAmountCurrency(instrument.activeCapital, instrument.originalCurrencyCode, instrument.originalCurrencyCode)}
-          </span>
-        );
-      },
-    },
-    {
-      accessorKey: "currentValue",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Nilai Saat Ini" />,
-      cell: ({ row }) => {
-        const instrument = row.original;
-        return (
-          <DualCurrencyCell
-            primaryAmount={instrument.currentValue}
-            primaryCurrency={instrument.originalCurrencyCode}
-            secondaryAmount={instrument.currentValueBaseCurrency}
-            secondaryCurrency={instrument.baseCurrencyCode}
+          <AmountWithBreakdownCell
+            primaryAmount={instrument.activeCapitalBaseCurrency}
+            baseCurrency={instrument.baseCurrencyCode}
+            breakdown={instrument.currencyBreakdown}
+            breakdownField="activeCapital"
           />
         );
       },
     },
     {
-      accessorKey: "totalProfit",
+      accessorKey: "currentValueBaseCurrency",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Nilai Saat Ini" />,
+      cell: ({ row }) => {
+        const instrument = row.original;
+        return (
+          <AmountWithBreakdownCell
+            primaryAmount={instrument.currentValueBaseCurrency}
+            baseCurrency={instrument.baseCurrencyCode}
+            breakdown={instrument.currencyBreakdown}
+            breakdownField="currentValue"
+          />
+        );
+      },
+    },
+    {
+      accessorKey: "totalProfitBaseCurrency",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Total Profit" />,
       cell: ({ row }) => {
         const instrument = row.original;
         return (
-          <DualCurrencyCell
-            primaryAmount={instrument.totalProfit}
-            primaryCurrency={instrument.originalCurrencyCode}
-            secondaryAmount={instrument.totalProfitBaseCurrency}
-            secondaryCurrency={instrument.baseCurrencyCode}
+          <ProfitCell
+            amount={instrument.totalProfitBaseCurrency}
+            baseCurrency={instrument.baseCurrencyCode}
           />
         );
       },
