@@ -6,7 +6,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import InvestmentInstrumentDialog from "@/components/investment/InvestmentInstrumentDialog";
 import Layout from "@/components/Layout";
 import { DeleteConfirmationModal, useDeleteConfirmation } from "@/components/DeleteConfirmationModal";
-import { useCreateInvestmentInstrument, useUpdateInvestmentInstrument, useDeleteInvestmentInstrument, useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
+import { useCreateInvestmentInstrument, useUpdateInvestmentInstrument, useDeleteInvestmentInstrument } from "@/hooks/queries/use-investment-instruments";
 import { useInstrumentSummary, InstrumentSummary } from "@/hooks/queries/use-instrument-summary";
 import { InvestmentInstrumentModel } from "@/models/investment-instruments";
 import { InstrumentSummaryTable } from "@/components/investment/InstrumentSummaryTable";
@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useDialogState } from "@/hooks/use-dialog-state";
 import { useTableState } from "@/hooks/use-table-state";
 import { useMemo } from "react";
+import { useInvestmentInstrumentsPaginated } from "@/hooks/queries/paginated/use-investment-instruments-paginated";
 
 const InvestmentInstrument = () => {
   const { user } = useAuth();
@@ -26,40 +27,30 @@ const InvestmentInstrument = () => {
   const updateInstrument = useUpdateInvestmentInstrument();
 
   // Table state
-  const { state, actions } = useTableState({ initialPageSize: 10 });
+  const { state: tableState, actions: tableActions } = useTableState({ initialPageSize: 10 });
 
   // Fetch instrument summary data (with financial metrics)
   const { data: summaryData, isLoading: isSummaryLoading } = useInstrumentSummary();
-  
+
   // Fetch raw instruments for edit dialog
-  const { data: rawInstruments } = useInvestmentInstruments();
+  const { data: paged, isLoading: isInstrumentsLoading } = useInvestmentInstrumentsPaginated({
+    page: tableState.page,
+    itemsPerPage: tableState.pageSize,
+    searchTerm: tableState.searchTerm,
+    filters: tableState.filters,
+  });
 
-  // Filter and paginate client-side since we aggregate from investment_summary
-  const filteredData = useMemo(() => {
-    let result = summaryData || [];
-    
-    // Apply search filter
-    if (state.searchTerm) {
-      const term = state.searchTerm.toLowerCase();
-      result = result.filter(item => 
-        item.instrumentName.toLowerCase().includes(term)
-      );
-    }
-    
-    // Apply is_trackable filter
-    if (state.filters.is_trackable !== undefined && state.filters.is_trackable !== "") {
-      const isTrackable = state.filters.is_trackable === "true";
-      result = result.filter(item => item.isTrackable === isTrackable);
-    }
-    
-    return result;
-  }, [summaryData, state.searchTerm, state.filters]);
+  const isLoading = isSummaryLoading || isInstrumentsLoading;
 
-  // Paginate
-  const paginatedData = useMemo(() => {
-    const start = (state.page - 1) * state.pageSize;
-    return filteredData.slice(start, start + state.pageSize);
-  }, [filteredData, state.page, state.pageSize]);
+  const rawInstruments = paged?.data as InvestmentInstrumentModel[];
+  const totalCount = paged?.count || 0;
+
+  const mapSummary = useMemo(() => {
+    return summaryData?.reduce((acc, summary) => {
+      acc[summary.instrumentId] = summary;
+      return acc;
+    }, {} as Record<number, InstrumentSummary>) || {};
+  }, [summaryData])
 
   // Form
   const form = useForm<InstrumentFormData>({
@@ -88,7 +79,7 @@ const InvestmentInstrument = () => {
     setIsLoading: dialog.setIsLoading,
     onOpenChange: (open) => !open && dialog.close(),
     form,
-    queryKeysToInvalidate: [...QUERY_KEY_SETS.INVESTMENT_INSTRUMENTS, "instrument_summary"]
+    queryKeysToInvalidate: [...QUERY_KEY_SETS.INVESTMENT_INSTRUMENTS]
   });
 
   const handleFormSubmit = (data: InstrumentFormData) => {
@@ -108,17 +99,14 @@ const InvestmentInstrument = () => {
     }
   };
 
-  // Handle edit from summary - find raw instrument data
-  const handleEdit = (summary: InstrumentSummary) => {
-    const rawInstrument = rawInstruments?.find(i => i.id === summary.instrumentId);
-    if (rawInstrument) {
-      dialog.openEdit(rawInstrument);
-    }
+  // Handle edit from raw instrument data
+  const handleEdit = (instrument: InvestmentInstrumentModel) => {
+    dialog.openEdit(instrument);
   };
 
   // Handle view detail
-  const handleView = (summary: InstrumentSummary) => {
-    navigate(`/investment-instrument/${summary.instrumentId}`);
+  const handleView = (instrument: InvestmentInstrumentModel) => {
+    navigate(`/investment-instrument/${instrument.id}`);
   };
 
   return (
@@ -144,17 +132,18 @@ const InvestmentInstrument = () => {
 
           {/* Table with financial metrics */}
           <InstrumentSummaryTable
-            data={paginatedData}
-            totalCount={filteredData.length}
-            isLoading={isSummaryLoading}
-            searchTerm={state.searchTerm}
-            onSearchChange={actions.handleSearchChange}
-            filters={state.filters}
-            onFiltersChange={actions.handleFiltersChange}
-            page={state.page}
-            pageSize={state.pageSize}
-            setPage={actions.handlePageChange}
-            setPageSize={actions.handlePageSizeChange}
+            data={rawInstruments}
+            mapSummary={mapSummary}
+            totalCount={totalCount}
+            isLoading={isLoading}
+            searchTerm={tableState.searchTerm}
+            onSearchChange={tableActions.handleSearchChange}
+            filters={tableState.filters}
+            onFiltersChange={tableActions.handleFiltersChange}
+            page={tableState.page}
+            pageSize={tableState.pageSize}
+            setPage={tableActions.handlePageChange}
+            setPageSize={tableActions.handlePageSizeChange}
             onEdit={handleEdit}
             onDelete={deleteConfirmation.openModal}
             onView={handleView}

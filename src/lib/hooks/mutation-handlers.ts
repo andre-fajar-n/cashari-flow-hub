@@ -136,7 +136,7 @@ export const QUERY_KEY_SETS = {
   GOAL_TRANSFERS: ["goal_transfers", "goals", "goal_movements", "wallets", "money_movements", "goal_investment_records", "goal_funds_summary", "money_movements_paginated"],
   INVESTMENT_ASSETS: ["investment_assets", "investment_asset_values", "goal_investment_records", "money_movements_paginated"],
   INVESTMENT_ASSET_VALUES: ["investment_asset_values", "investment_asset_values_paginated", "money_movements_paginated"],
-  INVESTMENT_INSTRUMENTS: ["investment_instruments", "investment_instruments_paginated"],
+  INVESTMENT_INSTRUMENTS: ["investment_instruments", "investment_instruments_paginated", "instrument_summary"],
   GOALS: ["goals", "goal_transfers", "goal_movements", "goal_funds_summary", "money_movements_paginated", "goal_investment_summary"],
   INVESTMENT_RECORDS: ["goal_investment_records", "goals", "investment_assets", "money_movements", "goal_funds_summary", "money_movements_paginated"],
 } as const;

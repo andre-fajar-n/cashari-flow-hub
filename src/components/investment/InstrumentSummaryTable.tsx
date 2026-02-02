@@ -9,9 +9,11 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { InstrumentSummary, CurrencyBreakdown } from "@/hooks/queries/use-instrument-summary";
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
+import { InvestmentInstrumentModel } from "@/models/investment-instruments";
 
 interface InstrumentSummaryTableProps {
-  data: InstrumentSummary[];
+  data: InvestmentInstrumentModel[];
+  mapSummary: Record<number, InstrumentSummary>;
   totalCount: number;
   isLoading?: boolean;
   searchTerm: string;
@@ -22,15 +24,15 @@ interface InstrumentSummaryTableProps {
   pageSize: number;
   setPage: (page: number) => void;
   setPageSize: (size: number) => void;
-  onEdit: (instrument: InstrumentSummary) => void;
+  onEdit: (instrument: InvestmentInstrumentModel) => void;
   onDelete: (id: number) => void;
-  onView?: (instrument: InstrumentSummary) => void;
+  onView?: (instrument: InvestmentInstrumentModel) => void;
 }
 
 // Helper component for ROI with tooltip
 const ROICell = ({ roi }: { roi: number | null }) => {
   if (roi === null) return <span className="text-muted-foreground">-</span>;
-  
+
   return (
     <TooltipProvider>
       <Tooltip>
@@ -53,7 +55,7 @@ const ROICell = ({ roi }: { roi: number | null }) => {
 // Helper to format currency breakdown as secondary info
 const formatCurrencyBreakdown = (breakdown: CurrencyBreakdown[], field: 'activeCapital' | 'currentValue') => {
   if (breakdown.length === 0) return null;
-  
+
   return breakdown
     .map(item => `${item.currencyCode} ${item[field].toLocaleString('id-ID', { maximumFractionDigits: 2 })}`)
     .join(' · ');
@@ -74,7 +76,7 @@ const AmountWithBreakdownCell = ({
   tooltipText?: string;
 }) => {
   const breakdownText = formatCurrencyBreakdown(breakdown, breakdownField);
-  
+
   const content = (
     <div className="space-y-0.5">
       <span className="font-semibold block">
@@ -82,7 +84,7 @@ const AmountWithBreakdownCell = ({
       </span>
       {breakdownText && (
         <span className="text-xs text-muted-foreground block">
-          ≡ {breakdownText}
+          ≈ {breakdownText}
         </span>
       )}
     </div>
@@ -134,6 +136,7 @@ const ProfitCell = ({
 
 export function InstrumentSummaryTable({
   data,
+  mapSummary,
   totalCount,
   isLoading = false,
   searchTerm,
@@ -149,29 +152,30 @@ export function InstrumentSummaryTable({
   onView,
 }: InstrumentSummaryTableProps) {
   // Define columns
-  const columns: ColumnDef<InstrumentSummary>[] = [
+  const columns: ColumnDef<InvestmentInstrumentModel>[] = [
     {
       accessorKey: "instrumentName",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Nama Instrumen" />,
       cell: ({ row }) => {
         const instrument = row.original;
+        const summary = mapSummary[instrument.id];
         return (
           <div className="flex items-center gap-3">
             <div className="p-1.5 bg-primary/10 rounded-full">
               <TrendingUp className="w-4 h-4 text-primary" />
             </div>
             <div className="space-y-1">
-              <span className="font-medium block">{instrument.instrumentName}</span>
+              <span className="font-medium block">{instrument.name}</span>
               <div className="flex items-center gap-1.5 flex-wrap">
                 {/* Currency Badge */}
                 <Badge variant="outline" className="text-xs font-mono">
-                  {instrument.isMultiCurrency 
-                    ? "Multi Currency" 
-                    : instrument.currencyBreakdown[0]?.currencyCode || instrument.baseCurrencyCode
+                  {summary?.isMultiCurrency
+                    ? "Multi Currency"
+                    : summary?.currencyBreakdown[0]?.currencyCode || summary?.baseCurrencyCode
                   }
                 </Badge>
                 {/* Trackable Badge */}
-                {instrument.isTrackable && (
+                {instrument.is_trackable && (
                   <Badge variant="secondary" className="text-xs">
                     Trackable
                   </Badge>
@@ -201,11 +205,12 @@ export function InstrumentSummaryTable({
       ),
       cell: ({ row }) => {
         const instrument = row.original;
+        const summary = mapSummary[instrument.id];
         return (
           <AmountWithBreakdownCell
-            primaryAmount={instrument.activeCapitalBaseCurrency}
-            baseCurrency={instrument.baseCurrencyCode}
-            breakdown={instrument.currencyBreakdown}
+            primaryAmount={summary?.activeCapitalBaseCurrency}
+            baseCurrency={summary?.baseCurrencyCode}
+            breakdown={summary?.currencyBreakdown}
             breakdownField="activeCapital"
           />
         );
@@ -216,11 +221,12 @@ export function InstrumentSummaryTable({
       header: ({ column }) => <DataTableColumnHeader column={column} title="Nilai Saat Ini" />,
       cell: ({ row }) => {
         const instrument = row.original;
+        const summary = mapSummary[instrument.id];
         return (
           <AmountWithBreakdownCell
-            primaryAmount={instrument.currentValueBaseCurrency}
-            baseCurrency={instrument.baseCurrencyCode}
-            breakdown={instrument.currencyBreakdown}
+            primaryAmount={summary?.currentValueBaseCurrency}
+            baseCurrency={summary?.baseCurrencyCode}
+            breakdown={summary?.currencyBreakdown}
             breakdownField="currentValue"
           />
         );
@@ -231,10 +237,11 @@ export function InstrumentSummaryTable({
       header: ({ column }) => <DataTableColumnHeader column={column} title="Total Profit" />,
       cell: ({ row }) => {
         const instrument = row.original;
+        const summary = mapSummary[instrument.id];
         return (
           <ProfitCell
-            amount={instrument.totalProfitBaseCurrency}
-            baseCurrency={instrument.baseCurrencyCode}
+            amount={summary?.totalProfitBaseCurrency}
+            baseCurrency={summary?.baseCurrencyCode}
           />
         );
       },
@@ -242,7 +249,11 @@ export function InstrumentSummaryTable({
     {
       accessorKey: "roi",
       header: ({ column }) => <DataTableColumnHeader column={column} title="ROI" />,
-      cell: ({ row }) => <ROICell roi={row.original.roi} />,
+      cell: ({ row }) => {
+        const instrument = row.original;
+        const summary = mapSummary[instrument.id];
+        return <ROICell roi={summary?.roi} />;
+      },
     },
     {
       id: "actions",
@@ -283,7 +294,7 @@ export function InstrumentSummaryTable({
                   variant="ghost"
                   size="sm"
                   className="text-destructive hover:text-destructive"
-                  onClick={() => onDelete(instrument.instrumentId)}
+                  onClick={() => onDelete(instrument.id)}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
