@@ -12,10 +12,27 @@ export interface InstrumentDetailSummary {
   roi: number | null;
   originalCurrencyCode: string;
   
-  // Base currency aggregates
+  // Base currency aggregates (for multi-currency comparison)
+  investedCapitalBaseCurrency: number;
+  activeCapitalBaseCurrency: number;
   currentValueBaseCurrency: number;
   totalProfitBaseCurrency: number;
   baseCurrencyCode: string;
+  
+  // Profit breakdown
+  realizedProfit: number;
+  realizedProfitBaseCurrency: number;
+  unrealizedProfit: number;
+  unrealizedProfitBaseCurrency: number;
+  unrealizedAssetProfit: number;
+  unrealizedCurrencyProfit: number;
+  
+  // Trackable indicator
+  isTrackable: boolean;
+  
+  // Currency context
+  isMultiCurrency: boolean;
+  uniqueCurrencies: string[];
   
   // Raw data for breakdown
   items: InvestmentSummaryExtended[];
@@ -132,29 +149,63 @@ export const useInstrumentDetailSummary = (instrumentId: number) => {
       let activeCapital = 0;
       let currentValue = 0;
       let totalProfit = 0;
+      let investedCapitalBaseCurrency = 0;
+      let activeCapitalBaseCurrency = 0;
       let currentValueBaseCurrency = 0;
       let totalProfitBaseCurrency = 0;
+      let realizedProfit = 0;
+      let realizedProfitBaseCurrency = 0;
+      let unrealizedProfit = 0;
+      let unrealizedProfitBaseCurrency = 0;
+      let unrealizedAssetProfit = 0;
+      let unrealizedCurrencyProfit = 0;
       let originalCurrencyCode = "";
       let baseCurrencyCode = "";
+      let hasTrackableAsset = false;
+      const currencySet = new Set<string>();
 
       for (const item of items) {
+        const avgExchangeRate = item.avg_exchange_rate || 1;
+        
         totalInvestedCapital += item.invested_capital || 0;
         activeCapital += item.active_capital || 0;
         currentValue += item.current_value || 0;
         totalProfit += item.total_profit || 0;
+        investedCapitalBaseCurrency += item.invested_capital_base_currency || 0;
+        activeCapitalBaseCurrency += (item.active_capital || 0) * avgExchangeRate;
         currentValueBaseCurrency += item.current_value_base_currency || 0;
         totalProfitBaseCurrency += item.total_profit_base_currency || 0;
-        if (item.original_currency_code && !originalCurrencyCode) {
-          originalCurrencyCode = item.original_currency_code;
+        realizedProfit += item.realized_profit || 0;
+        realizedProfitBaseCurrency += item.realized_profit_base_currency || 0;
+        unrealizedProfit += item.unrealized_profit || 0;
+        
+        // Unrealized breakdown
+        if (item.unrealized_asset_profit_base_currency != null) {
+          unrealizedProfitBaseCurrency += item.unrealized_asset_profit_base_currency;
+          unrealizedAssetProfit += item.unrealized_asset_profit_base_currency - (item.unrealized_currency_profit || 0);
+          hasTrackableAsset = true;
+        }
+        if (item.unrealized_currency_profit != null) {
+          unrealizedCurrencyProfit += item.unrealized_currency_profit;
+        }
+        
+        if (item.original_currency_code) {
+          currencySet.add(item.original_currency_code);
+          if (!originalCurrencyCode) {
+            originalCurrencyCode = item.original_currency_code;
+          }
         }
         if (item.base_currency_code && !baseCurrencyCode) {
           baseCurrencyCode = item.base_currency_code;
         }
       }
 
-      const roi = activeCapital > 0
-        ? (totalProfit / activeCapital) * 100
+      // ROI = Total Profit / Invested Capital (NOT Active Capital)
+      const roi = investedCapitalBaseCurrency > 0
+        ? (totalProfitBaseCurrency / investedCapitalBaseCurrency) * 100
         : null;
+
+      const uniqueCurrencies = Array.from(currencySet);
 
       return {
         totalInvestedCapital,
@@ -163,9 +214,20 @@ export const useInstrumentDetailSummary = (instrumentId: number) => {
         totalProfit,
         roi,
         originalCurrencyCode,
+        investedCapitalBaseCurrency,
+        activeCapitalBaseCurrency,
         currentValueBaseCurrency,
         totalProfitBaseCurrency,
         baseCurrencyCode,
+        realizedProfit,
+        realizedProfitBaseCurrency,
+        unrealizedProfit,
+        unrealizedProfitBaseCurrency,
+        unrealizedAssetProfit,
+        unrealizedCurrencyProfit,
+        isTrackable: hasTrackableAsset,
+        isMultiCurrency: uniqueCurrencies.length > 1,
+        uniqueCurrencies,
         items,
       };
     },
