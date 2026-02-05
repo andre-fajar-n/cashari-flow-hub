@@ -7,7 +7,7 @@ export const useFetchExchangeRates = () => {
 
   return useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke('fetch-exchange-rates');
+      const { data, error } = await supabase.functions.invoke('fetch-exchange-rate-by-date');
       if (error) throw error;
       return data;
     },

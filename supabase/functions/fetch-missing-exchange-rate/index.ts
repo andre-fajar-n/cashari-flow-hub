@@ -13,7 +13,7 @@ const supabase = createClient(
  * This function:
  * 1. Reads from missing_exchange_rate table
  * 2. Groups currency pairs by date
- * 3. Creates one job per date in exchange_rate_jobs table
+ * 3. Creates one job per currency pair in exchange_rate_jobs table
  * 4. Returns summary of jobs created
  * 
  * Runtime: ~5 seconds (just database operations)
@@ -58,21 +58,6 @@ serve(async (req: Request) => {
 
         console.log(`Found ${missingRates.length} missing exchange rates`);
 
-        // Group missing rates by date
-        const ratesByDate = new Map<string, Set<string>>();
-
-        for (const rate of missingRates) {
-            // Assuming currency_pair is a new field or derived from base_currency_code and currency_code
-            // If not, it needs to be constructed: `${rate.currency_code}/${rate.base_currency_code}`
-            const currencyPair = `${rate.currency_code}/${rate.base_currency_code}`;
-            if (!ratesByDate.has(rate.date)) {
-                ratesByDate.set(rate.date, new Set<string>());
-            }
-            ratesByDate.get(rate.date)!.add(currencyPair);
-        }
-
-        console.log(`Found ${ratesByDate.size} dates with missing exchange rates`);
-
         // Get existing pending jobs to avoid duplicates
         const { data: existingJobs, error: existingJobsError } = await supabase
             .from("exchange_rate_jobs")
@@ -88,32 +73,35 @@ serve(async (req: Request) => {
         const existingJobSignatures = new Set<string>();
         if (existingJobs) {
             for (const job of existingJobs) {
-                // Ensure currency_pairs are sorted for consistent signature
-                const signature = `${job.date}:${(job.currency_pairs as string[]).sort().join(",")}`;
-                existingJobSignatures.add(signature);
+                const pairs = job.currency_pairs as string[];
+                // We only care about single-pair jobs for accurate duplicate checking in this new flow
+                if (pairs.length === 1) {
+                    const signature = `${job.date}:${pairs[0]}`;
+                    existingJobSignatures.add(signature);
+                }
             }
         }
 
-        console.log(`Found ${existingJobSignatures.size} existing pending jobs`);
+        console.log(`Found ${existingJobSignatures.size} existing pending single-pair jobs`);
 
-        // Create jobs for each date, skipping duplicates
+        // Create jobs for each missing rate, skipping duplicates
         const jobs = [];
         let skippedCount = 0;
 
-        for (const [jobDate, pairs] of ratesByDate.entries()) {
-            const currencyPairs = Array.from(pairs).sort();
-            const signature = `${jobDate}:${currencyPairs.join(",")}`;
+        for (const rate of missingRates) {
+            const currencyPair = `${rate.currency_code}/${rate.base_currency_code}`;
+            const signature = `${rate.date}:${currencyPair}`;
 
-            // Skip if job already exists with pending status
+            // Skip if job already exists with pending status for this specific pair and date
             if (existingJobSignatures.has(signature)) {
-                console.log(`Skipping duplicate job for date ${jobDate} (already pending)`);
+                console.log(`Skipping duplicate job for ${currencyPair} on ${rate.date} (already pending)`);
                 skippedCount++;
                 continue;
             }
 
             jobs.push({
-                date: jobDate,
-                currency_pairs: currencyPairs,
+                date: rate.date,
+                currency_pairs: [currencyPair],
                 status: "pending",
                 retry_count: 0,
                 max_retries: 5,
@@ -142,7 +130,7 @@ serve(async (req: Request) => {
         }
 
         // Insert jobs into database
-        const { data: createdJobs, error: insertError } = await supabase
+        const { data: _createdJobs, error: insertError } = await supabase
             .from("exchange_rate_jobs")
             .insert(jobs) // Use 'jobs' array here
             .select();

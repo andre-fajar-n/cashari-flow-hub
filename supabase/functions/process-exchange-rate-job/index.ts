@@ -10,7 +10,7 @@ const supabase = createClient(
 );
 
 // API base URL
-const API_BASE = "https://api.twelvedata.com/exchange_rate";
+const API_BASE = "https://api.twelvedata.com/time_series/cross";
 
 // Batch processing configuration
 const MAX_EXECUTION_TIME_MS = 149000; // 149 seconds (1s buffer before 150s Edge Function limit)
@@ -27,22 +27,38 @@ interface Job {
 }
 
 /**
- * Fetch exchange rates from Twelve Data API.
- * 
- * No internal retry logic - failures are handled by marking the job
- * as pending/failed and letting the job queue retry in the next run.
+ * Fetch exchange rate for a single currency pair from Twelve Data API.
  */
-async function fetchExchangeRates(
-    url: string,
-    symbols: string[],
+async function fetchExchangeRate(
+    base: string,
+    quote: string,
     keyDate: string
 ): Promise<any> {
-    console.log(`Fetching exchange rates for date: ${keyDate}`);
+    console.log(`Fetching exchange rate for ${base}/${quote} on ${keyDate}`);
 
+    const startDate = new Date(keyDate);
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + 1);
+    const endDateStr = endDate.toISOString().split("T")[0];
+
+    const apiKey = Deno.env.get("TWELVE_API_KEY");
+    const queryParams = new URLSearchParams({
+        base,
+        quote,
+        interval: "1day",
+        start_date: keyDate,
+        end_date: endDateStr,
+        outputsize: "1",
+        timezone: "Asia/Jakarta",
+        apikey: apiKey ?? "",
+    });
+
+    const url = `${API_BASE}?${queryParams.toString()}`;
     const res = await fetch(url);
     const json = await res.json();
-    console.log("Status code", res.status);
-    console.log("Response code", json.code);
+
+    console.log(`Status code for ${base}/${quote}:`, res.status);
+    if (json.code) console.log(`Response code for ${base}/${quote}:`, json.code);
 
     // Success case
     if (res.status === 200 && !json.code) {
@@ -50,8 +66,7 @@ async function fetchExchangeRates(
     }
 
     // Handle errors
-    console.error("API error", json);
-    console.error(`Query params: {symbol: ${symbols}, date: ${keyDate}}`);
+    console.error(`API error for ${base}/${quote}`, json);
 
     // Throw error with code for caller to handle
     const error: any = new Error(json.message || "API request failed");
@@ -94,49 +109,6 @@ async function incrementDailyCounter(): Promise<number> {
     return data || 0;
 }
 
-/**
- * Process exchange rate data and prepare for database upsert
- */
-function processExchangeRateData(
-    json: any,
-    symbols: string[],
-    keyDate: string
-): Array<any> {
-    const dataToUpsert = [];
-    console.log("Processing currency pair");
-
-    if (symbols.length === 1) {
-        const splitedSymbol = json.symbol.split("/");
-        console.log("Single currency pair:", splitedSymbol);
-
-        dataToUpsert.push({
-            from_currency: splitedSymbol[0],
-            to_currency: splitedSymbol[1],
-            rate: rateConversion(splitedSymbol[0], json.rate),
-            date: keyDate,
-        });
-    } else {
-        for (const currencyPair of symbols) {
-            const splitedSymbol = currencyPair.split("/");
-            console.log("Multiple currency pair:", splitedSymbol);
-
-            const exchangeRate = json[currencyPair];
-            if (!exchangeRate) {
-                console.log("EXCHANGE RATE undefined:", currencyPair);
-                continue;
-            }
-
-            dataToUpsert.push({
-                from_currency: splitedSymbol[0],
-                to_currency: splitedSymbol[1],
-                rate: rateConversion(splitedSymbol[0], exchangeRate.rate),
-                date: keyDate,
-            });
-        }
-    }
-
-    return dataToUpsert;
-}
 
 /**
  * Get the next pending job from the queue
@@ -227,7 +199,15 @@ async function processJob(job: Job, startTime: number): Promise<{
     errorMessage?: string;
 }> {
     console.log(`Processing job ${job.id} for date ${job.date}`);
-    console.log(`Currency pairs: ${job.currency_pairs.length}`);
+
+    if (!job.currency_pairs || job.currency_pairs.length === 0) {
+        console.error(`Job ${job.id} has no currency pairs`);
+        await updateJobStatus(job.id, "failed", "No currency pairs in job");
+        return { success: false, rateLimitHit: false, shouldWait: false, dailyLimitReached: false, errorMessage: "No currency pairs" };
+    }
+
+    const currencyPair = job.currency_pairs[0];
+    console.log(`Currency pair: ${currencyPair}`);
 
     // Check if job can be retried
     if (job.retry_count >= job.max_retries) {
@@ -238,6 +218,8 @@ async function processJob(job: Job, startTime: number): Promise<{
 
     // Update status to processing
     await updateJobStatus(job.id, "processing");
+
+    const dataToUpsert = [];
 
     try {
         // Check daily API limit before making the call
@@ -250,35 +232,55 @@ async function processJob(job: Job, startTime: number): Promise<{
             return { success: false, rateLimitHit: false, shouldWait: false, dailyLimitReached: true, errorMessage: "Daily API limit reached" };
         }
 
-        // Build API URL
-        const url = `${API_BASE}?symbol=${job.currency_pairs.join(",")}&date=${job.date}&apikey=${Deno.env.get("TWELVE_API_KEY")}`;
+        const [base, quote] = currencyPair.split("/");
 
-        // Fetch exchange rates (no internal retry)
-        const json = await fetchExchangeRates(url, job.currency_pairs, job.date);
-        console.log("Response from Twelve Data API", json);
+        // Fetch exchange rate for this specific pair
+        const json = await fetchExchangeRate(base, quote, job.date);
 
         // Increment the daily counter after successful API call
-        const newCount = await incrementDailyCounter();
-        console.log(`API call count incremented to: ${newCount}/${TWELVE_DATA_DAILY_LIMIT}`);
+        await incrementDailyCounter();
 
-        // Process and prepare data
-        const dataToUpsert = processExchangeRateData(json, job.currency_pairs, job.date);
+        if (json.values && json.values.length > 0) {
+            const latestData = json.values[0];
+            const responseDate = latestData.datetime;
 
-        // Upsert to database
-        const { error: upsertError } = await supabase
-            .from("exchange_rates")
-            .upsert(dataToUpsert, {
-                onConflict: "from_currency,to_currency,date",
-            });
+            // Validate date: only insert if date matches requested date
+            if (responseDate === job.date) {
+                const rate = parseFloat(latestData.close);
+                if (!isNaN(rate)) {
+                    dataToUpsert.push({
+                        from_currency: base,
+                        to_currency: quote,
+                        rate: rateConversion(base, rate),
+                        date: job.date,
+                    });
+                } else {
+                    console.warn(`Invalid rate (NaN) for ${currencyPair}. Skipping.`);
+                }
+            } else {
+                console.warn(`Date mismatch for ${currencyPair}. Requested: ${job.date}, Got: ${responseDate}. Skipping.`);
+            }
+        } else {
+            console.warn(`No values returned for ${currencyPair}. Skipping.`);
+        }
 
-        if (upsertError) {
-            console.error("Insert error", upsertError);
-            throw upsertError;
+        // Upsert collected data
+        if (dataToUpsert.length > 0) {
+            const { error: upsertError } = await supabase
+                .from("exchange_rates")
+                .upsert(dataToUpsert, {
+                    onConflict: "from_currency,to_currency,date",
+                });
+
+            if (upsertError) {
+                console.error("Insert error", upsertError);
+                throw upsertError;
+            }
         }
 
         // Mark job as completed
         await updateJobStatus(job.id, "completed");
-        console.log(`Job ${job.id} completed successfully`);
+        console.log(`Job ${job.id} completed successfully for ${currencyPair}`);
 
         return { success: true, rateLimitHit: false, shouldWait: false, dailyLimitReached: false };
     } catch (err: any) {

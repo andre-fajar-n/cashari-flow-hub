@@ -4,12 +4,12 @@
 -- Job 1: Orchestrator - Create jobs from missing exchange rates
 -- Runs daily at midnight UTC to create new jobs
 select cron.schedule(
-  'create-exchange-rate-jobs-daily',
+  'fetch-missing-exchange-rate-daily',
   '0 0 * * *', -- Daily at midnight UTC
   $$
   select
     net.http_post(
-      url:= (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/create-exchange-rate-jobs',
+      url:= (select decrypted_secret from vault.decrypted_secrets where name = 'project_url') || '/functions/v1/fetch-missing-exchange-rate',
       headers:=jsonb_build_object(
         'Content-type', 'application/json',
         'Authorization', 'Bearer ' || (select decrypted_secret from vault.decrypted_secrets where name = 'anon_key')
