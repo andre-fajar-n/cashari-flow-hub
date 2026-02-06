@@ -69,53 +69,98 @@ serve(async (req: Request) => {
             throw existingJobsError;
         }
 
-        // Create a set of existing job signatures for quick lookup
-        const existingJobSignatures = new Set<string>();
+        // Create a set of existing pending job signatures (pair:start_date)
+        const pendingSignatures = new Set<string>();
         if (existingJobs) {
             for (const job of existingJobs) {
                 const pairs = job.currency_pairs as string[];
-                // We only care about single-pair jobs for accurate duplicate checking in this new flow
-                if (pairs.length === 1) {
-                    const signature = `${job.date}:${pairs[0]}`;
-                    existingJobSignatures.add(signature);
+                if (pairs && pairs.length > 0) {
+                    pendingSignatures.add(`${pairs[0]}:${job.date}`);
                 }
             }
         }
 
-        console.log(`Found ${existingJobSignatures.size} existing pending single-pair jobs`);
+        console.log(`Found ${pendingSignatures.size} existing pending job signatures`);
 
-        // Create jobs for each missing rate, skipping duplicates
+        // Group missing rates by currency pair
+        const groups: Record<string, { currencyPair: string, dates: string[] }> = {};
+        for (const rate of missingRates) {
+            const pair = `${rate.currency_code}/${rate.base_currency_code}`;
+            if (!groups[pair]) {
+                groups[pair] = { currencyPair: pair, dates: [] };
+            }
+            if (!groups[pair].dates.includes(rate.date)) {
+                groups[pair].dates.push(rate.date);
+            }
+        }
+
+        // Helper to get day difference between two YYYY-MM-DD strings
+        const getDiffDays = (d1: string, d2: string) => {
+            const start = new Date(d1);
+            const end = new Date(d2);
+            return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+        };
+
+        // Create jobs for each currency pair group, splitting into chunks if necessary
         const jobs = [];
         let skippedCount = 0;
 
-        for (const rate of missingRates) {
-            const currencyPair = `${rate.currency_code}/${rate.base_currency_code}`;
-            const signature = `${rate.date}:${currencyPair}`;
+        for (const pair in groups) {
+            const group = groups[pair];
+            group.dates.sort();
 
-            // Skip if job already exists with pending status for this specific pair and date
-            if (existingJobSignatures.has(signature)) {
-                console.log(`Skipping duplicate job for ${currencyPair} on ${rate.date} (already pending)`);
-                skippedCount++;
-                continue;
+            // Split dates into chunks of max 5000 days range
+            const chunks: string[][] = [];
+            let currentChunk: string[] = [];
+
+            for (const dateStr of group.dates) {
+                if (currentChunk.length === 0) {
+                    currentChunk.push(dateStr);
+                } else {
+                    const diff = getDiffDays(currentChunk[0], dateStr);
+                    if (diff < 5000) {
+                        currentChunk.push(dateStr);
+                    } else {
+                        chunks.push(currentChunk);
+                        currentChunk = [dateStr];
+                    }
+                }
+            }
+            if (currentChunk.length > 0) {
+                chunks.push(currentChunk);
             }
 
-            jobs.push({
-                date: rate.date,
-                currency_pairs: [currencyPair],
-                status: "pending",
-                retry_count: 0,
-                max_retries: 5,
-            });
+            for (const chunk of chunks) {
+                const minDate = chunk[0];
+                const maxDate = chunk[chunk.length - 1];
+                const signature = `${group.currencyPair}:${minDate}`;
+
+                if (pendingSignatures.has(signature)) {
+                    console.log(`Skipping duplicate job for ${group.currencyPair} starting ${minDate} (already pending)`);
+                    skippedCount++;
+                    continue;
+                }
+
+                jobs.push({
+                    date: minDate,
+                    end_date: maxDate,
+                    missing_dates: chunk,
+                    currency_pairs: [group.currencyPair],
+                    status: "pending",
+                    retry_count: 0,
+                    max_retries: 5,
+                });
+            }
         }
 
-        console.log(`Jobs to create: ${jobs.length}, Skipped (duplicates): ${skippedCount}`);
+        console.log(`Jobs to create: ${jobs.length}, Skipped (pending): ${skippedCount}`);
 
         if (jobs.length === 0) {
             console.log("No new jobs to create");
             return new Response(
                 JSON.stringify({
                     message: skippedCount > 0
-                        ? `No new jobs created. ${skippedCount} jobs already pending.`
+                        ? `No new jobs created. ${skippedCount} job chunks already pending.`
                         : "No missing exchange rates found",
                     stats: {
                         jobsCreated: 0,
@@ -132,7 +177,7 @@ serve(async (req: Request) => {
         // Insert jobs into database
         const { data: _createdJobs, error: insertError } = await supabase
             .from("exchange_rate_jobs")
-            .insert(jobs) // Use 'jobs' array here
+            .insert(jobs)
             .select();
 
         if (insertError) {
@@ -140,7 +185,7 @@ serve(async (req: Request) => {
             throw insertError;
         }
 
-        console.log(`Successfully created ${jobs.length} jobs, skipped ${skippedCount} duplicates`);
+        console.log(`Successfully created ${jobs.length} job chunks, skipped ${skippedCount} already pending`);
 
         return new Response(
             JSON.stringify({

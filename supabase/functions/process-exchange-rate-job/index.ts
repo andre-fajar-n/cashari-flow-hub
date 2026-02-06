@@ -20,6 +20,8 @@ const TWELVE_DATA_DAILY_LIMIT = 800; // Twelve Data API daily limit
 interface Job {
     id: string;
     date: string;
+    end_date: string | null;
+    missing_dates: string[] | null;
     currency_pairs: string[];
     status: string;
     retry_count: number;
@@ -28,27 +30,47 @@ interface Job {
 
 /**
  * Fetch exchange rate for a single currency pair from Twelve Data API.
+ * Supports both single date and date range fetching.
  */
 async function fetchExchangeRate(
     base: string,
     quote: string,
-    keyDate: string
+    startDate: string,
+    endDate?: string | null
 ): Promise<any> {
-    console.log(`Fetching exchange rate for ${base}/${quote} on ${keyDate}`);
+    const isRange = !!endDate && endDate !== startDate;
+    console.log(`Fetching exchange rate for ${base}/${quote}: ${startDate}${isRange ? ` to ${endDate}` : ""}`);
 
-    const startDate = new Date(keyDate);
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 1);
-    const endDateStr = endDate.toISOString().split("T")[0];
+    let outputSize = "1";
+    let actualEndDate = endDate;
+
+    if (isRange) {
+        // Calculate outputsize: number of days between start and end
+        const start = new Date(startDate);
+        const end = new Date(endDate!);
+        const diffDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        outputSize = Math.min(diffDays, 5000).toString();
+
+        // Twelve Data end_date is exclusive for some intervals, but for daily it's usually inclusive.
+        // To be safe, we add 1 day to end_date to ensure we get exactly what we need.
+        const safeEnd = new Date(end);
+        safeEnd.setDate(safeEnd.getDate() + 1);
+        actualEndDate = safeEnd.toISOString().split("T")[0];
+    } else {
+        const start = new Date(startDate);
+        const safeEnd = new Date(start);
+        safeEnd.setDate(safeEnd.getDate() + 1);
+        actualEndDate = safeEnd.toISOString().split("T")[0];
+    }
 
     const apiKey = Deno.env.get("TWELVE_API_KEY");
     const queryParams = new URLSearchParams({
         base,
         quote,
         interval: "1day",
-        start_date: keyDate,
-        end_date: endDateStr,
-        outputsize: "1",
+        start_date: startDate,
+        end_date: actualEndDate!,
+        outputsize: outputSize,
         timezone: "Asia/Jakarta",
         apikey: apiKey ?? "",
     });
@@ -199,7 +221,7 @@ async function processJob(job: Job, startTime: number): Promise<{
     dailyLimitReached: boolean;
     errorMessage?: string;
 }> {
-    console.log(`Processing job ${job.id} for date ${job.date}`);
+    console.log(`Processing job ${job.id} for date range ${job.date} to ${job.end_date ?? job.date}`);
 
     if (!job.currency_pairs || job.currency_pairs.length === 0) {
         console.error(`Job ${job.id} has no currency pairs`);
@@ -235,31 +257,35 @@ async function processJob(job: Job, startTime: number): Promise<{
 
         const [base, quote] = currencyPair.split("/");
 
-        // Fetch exchange rate for this specific pair
-        const json = await fetchExchangeRate(base, quote, job.date);
+        // Fetch exchange rate for this pair (single or range)
+        const json = await fetchExchangeRate(base, quote, job.date, job.end_date);
 
         // Increment the daily counter after successful API call
         await incrementDailyCounter();
 
-        if (json.values && json.values.length > 0) {
-            const latestData = json.values[0];
-            const responseDate = latestData.datetime;
+        // Specific dates we want to insert
+        const missingDatesSet = new Set(job.missing_dates || [job.date]);
 
-            // Validate date: only insert if date matches requested date
-            if (responseDate === job.date) {
-                const rate = parseFloat(latestData.close);
-                if (!isNaN(rate)) {
-                    dataToUpsert.push({
-                        from_currency: base,
-                        to_currency: quote,
-                        rate: rateConversion(base, rate),
-                        date: job.date,
-                    });
-                } else {
-                    console.warn(`Invalid rate (NaN) for ${currencyPair}. Skipping.`);
+        if (json.values && json.values.length > 0) {
+            console.log(`API returned ${json.values.length} historical values. Filtering for ${missingDatesSet.size} requested dates.`);
+
+            for (const value of json.values) {
+                const responseDate = value.datetime;
+
+                // Validate date: only insert if date is in requested missing_dates
+                if (missingDatesSet.has(responseDate)) {
+                    const rate = parseFloat(value.close);
+                    if (!isNaN(rate)) {
+                        dataToUpsert.push({
+                            from_currency: base,
+                            to_currency: quote,
+                            rate: rateConversion(base, rate),
+                            date: responseDate,
+                        });
+                    } else {
+                        console.warn(`Invalid rate (NaN) for ${currencyPair} on ${responseDate}. Skipping.`);
+                    }
                 }
-            } else {
-                console.warn(`Date mismatch for ${currencyPair}. Requested: ${job.date}, Got: ${responseDate}. Skipping.`);
             }
         } else {
             console.warn(`No values returned for ${currencyPair}. Skipping.`);
@@ -267,6 +293,7 @@ async function processJob(job: Job, startTime: number): Promise<{
 
         // Upsert collected data
         if (dataToUpsert.length > 0) {
+            console.log(`Upserting ${dataToUpsert.length} exchange rates for ${currencyPair}`);
             const { error: upsertError } = await supabase
                 .from("exchange_rates")
                 .upsert(dataToUpsert, {
@@ -281,7 +308,7 @@ async function processJob(job: Job, startTime: number): Promise<{
 
         // Mark job as completed
         await updateJobStatus(job.id, "completed");
-        console.log(`Job ${job.id} completed successfully for ${currencyPair}`);
+        console.log(`Job ${job.id} completed successfully for ${currencyPair}. Processed ${dataToUpsert.length} dates.`);
 
         return { success: true, rateLimitHit: false, shouldWait: false, dailyLimitReached: false };
     } catch (err: any) {
