@@ -54,6 +54,7 @@ async function fetchExchangeRate(
     });
 
     const url = `${API_BASE}?${queryParams.toString()}`;
+    console.log(`URL: ${url}`);
     const res = await fetch(url);
     const json = await res.json();
 
