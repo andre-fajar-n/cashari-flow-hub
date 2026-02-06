@@ -54,7 +54,6 @@ async function fetchExchangeRate(
     });
 
     const url = `${API_BASE}?${queryParams.toString()}`;
-    console.log(`URL: ${url}`);
     const res = await fetch(url);
     const json = await res.json();
 
@@ -68,6 +67,7 @@ async function fetchExchangeRate(
 
     // Handle errors
     console.error(`API error for ${base}/${quote}`, json);
+    console.log(`URL: ${url}`);
 
     // Throw error with code for caller to handle
     const error: any = new Error(json.message || "API request failed");
