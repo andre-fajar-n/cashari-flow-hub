@@ -35,45 +35,51 @@ interface Job {
 async function fetchExchangeRate(
     base: string,
     quote: string,
-    startDate: string,
+    startDate?: string | null,
     endDate?: string | null
 ): Promise<any> {
-    const isRange = !!endDate && endDate !== startDate;
-    console.log(`Fetching exchange rate for ${base}/${quote}: ${startDate}${isRange ? ` to ${endDate}` : ""}`);
-
-    let outputSize = "1";
-    let actualEndDate = endDate;
-
-    if (isRange) {
-        // Calculate outputsize: number of days between start and end
-        const start = new Date(startDate);
-        const end = new Date(endDate!);
-        const diffDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-        outputSize = Math.min(diffDays, 5000).toString();
-
-        // Twelve Data end_date is exclusive for some intervals, but for daily it's usually inclusive.
-        // To be safe, we add 1 day to end_date to ensure we get exactly what we need.
-        const safeEnd = new Date(end);
-        safeEnd.setDate(safeEnd.getDate() + 1);
-        actualEndDate = safeEnd.toISOString().split("T")[0];
-    } else {
-        const start = new Date(startDate);
-        const safeEnd = new Date(start);
-        safeEnd.setDate(safeEnd.getDate() + 1);
-        actualEndDate = safeEnd.toISOString().split("T")[0];
-    }
+    const isRange = !!startDate && !!endDate && endDate !== startDate;
+    console.log(`Fetching exchange rate for ${base}/${quote}: ${startDate || "best-effort"}${endDate ? ` up to ${endDate}` : "latest"}`);
 
     const apiKey = Deno.env.get("TWELVE_API_KEY");
     const queryParams = new URLSearchParams({
         base,
         quote,
         interval: "1day",
-        start_date: startDate,
-        end_date: actualEndDate!,
-        outputsize: outputSize,
         timezone: "Asia/Jakarta",
         apikey: apiKey ?? "",
     });
+
+    if (startDate && endDate && isRange) {
+        // Range mode
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const diffDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+        const outputSize = Math.min(diffDays, 5000).toString();
+
+        const safeEnd = new Date(end);
+        safeEnd.setDate(safeEnd.getDate() + 1);
+
+        queryParams.set("start_date", startDate);
+        queryParams.set("end_date", safeEnd.toISOString().split("T")[0]);
+        queryParams.set("outputsize", outputSize);
+    } else if (startDate) {
+        // Single date mode (with start_date)
+        const start = new Date(startDate);
+        const safeEnd = new Date(start);
+        safeEnd.setDate(safeEnd.getDate() + 1);
+
+        queryParams.set("start_date", startDate);
+        queryParams.set("end_date", safeEnd.toISOString().split("T")[0]);
+        queryParams.set("outputsize", "1");
+    } else if (endDate) {
+        // Fallback mode: remove start_date, keep end_date (gets data up to end_date)
+        queryParams.set("end_date", endDate);
+        queryParams.set("outputsize", "1");
+    } else {
+        // Absolute latest
+        queryParams.set("outputsize", "1");
+    }
 
     const url = `${API_BASE}?${queryParams.toString()}`;
     const res = await fetch(url);
@@ -258,7 +264,23 @@ async function processJob(job: Job, startTime: number): Promise<{
         const [base, quote] = currencyPair.split("/");
 
         // Fetch exchange rate for this pair (single or range)
-        const json = await fetchExchangeRate(base, quote, job.date, job.end_date);
+        let json;
+        try {
+            json = await fetchExchangeRate(base, quote, job.date, job.end_date);
+        } catch (err: any) {
+            // Check for 404 "base parameter missing" or actual 404 status
+            const is404 = err.code === 404 || err.status === 404;
+            const isMissingBase = is404 || (err.message && err.message.toLowerCase().includes("base parameter is missing"));
+
+            if (isMissingBase) {
+                console.warn(`API returned 404 for ${currencyPair} with range ${job.date} - ${job.end_date || job.date}. Retrying without start_date (fallback to previous available).`);
+                // Fallback: fetch latest available rate for this pair up to requested end date
+                json = await fetchExchangeRate(base, quote, null, job.end_date || job.date);
+                console.log(`Fallback successful for ${currencyPair} up to ${job.end_date || job.date}. Using best available data.`);
+            } else {
+                throw err;
+            }
+        }
 
         // Increment the daily counter after successful API call
         await incrementDailyCounter();
@@ -267,27 +289,47 @@ async function processJob(job: Job, startTime: number): Promise<{
         const missingDatesSet = new Set(job.missing_dates || [job.date]);
 
         if (json.values && json.values.length > 0) {
-            console.log(`API returned ${json.values.length} historical values. Filtering for ${missingDatesSet.size} requested dates.`);
+            // Determine if this was a fallback result (only 1 value usually, and datetime might not match requested range)
+            const isFallbackResult = json.values.length === 1 && !missingDatesSet.has(json.values[0].datetime);
 
-            for (const value of json.values) {
-                const responseDate = value.datetime;
+            if (isFallbackResult) {
+                const fallbackRate = parseFloat(json.values[0].close);
+                console.log(`Applying fallback rate ${fallbackRate} to all ${missingDatesSet.size} requested dates for ${currencyPair}`);
 
-                // Validate date: only insert if date is in requested missing_dates
-                if (missingDatesSet.has(responseDate)) {
-                    const rate = parseFloat(value.close);
-                    if (!isNaN(rate)) {
+                if (!isNaN(fallbackRate)) {
+                    for (const reqDate of missingDatesSet) {
                         dataToUpsert.push({
                             from_currency: base,
                             to_currency: quote,
-                            rate: rateConversion(base, rate),
-                            date: responseDate,
+                            rate: rateConversion(base, fallbackRate),
+                            date: reqDate,
                         });
-                    } else {
-                        console.warn(`Invalid rate (NaN) for ${currencyPair} on ${responseDate}. Skipping.`);
+                    }
+                }
+            } else {
+                console.log(`API returned ${json.values.length} historical values. Filtering for ${missingDatesSet.size} requested dates.`);
+
+                for (const value of json.values) {
+                    const responseDate = value.datetime;
+
+                    // Validate date: only insert if date is in requested missing_dates
+                    if (missingDatesSet.has(responseDate)) {
+                        const rate = parseFloat(value.close);
+                        if (!isNaN(rate)) {
+                            dataToUpsert.push({
+                                from_currency: base,
+                                to_currency: quote,
+                                rate: rateConversion(base, rate),
+                                date: responseDate,
+                            });
+                        } else {
+                            console.warn(`Invalid rate (NaN) for ${currencyPair} on ${responseDate}. Skipping.`);
+                        }
                     }
                 }
             }
-        } else {
+        }
+        else {
             console.warn(`No values returned for ${currencyPair}. Skipping.`);
         }
 
