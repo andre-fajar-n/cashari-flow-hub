@@ -297,39 +297,67 @@ async function processJob(job: Job, startTime: number): Promise<{
                 console.log(`Applying fallback rate ${fallbackRate} to all ${missingDatesSet.size} requested dates for ${currencyPair}`);
 
                 if (!isNaN(fallbackRate)) {
+                    const fallbackOriginDate = json.values[0].datetime;
                     for (const reqDate of missingDatesSet) {
                         dataToUpsert.push({
                             from_currency: base,
                             to_currency: quote,
                             rate: rateConversion(base, fallbackRate),
                             date: reqDate,
+                            origin_date: fallbackOriginDate,
                         });
                     }
                 }
             } else {
-                console.log(`API returned ${json.values.length} historical values. Filtering for ${missingDatesSet.size} requested dates.`);
+                console.log(`API returned ${json.values.length} historical values. Finding best matches for ${missingDatesSet.size} requested dates.`);
 
-                for (const value of json.values) {
-                    const responseDate = value.datetime;
+                // Sort API values by date ascending for easier searching
+                const sortedValues = [...json.values].sort((a, b) => a.datetime.localeCompare(b.datetime));
 
-                    // Validate date: only insert if date is in requested missing_dates
-                    if (missingDatesSet.has(responseDate)) {
-                        const rate = parseFloat(value.close);
+                for (const reqDate of Array.from(missingDatesSet).sort()) {
+                    // Find the best match: the latest datetime in sortedValues that is <= reqDate
+                    let bestMatch = null;
+                    for (let i = sortedValues.length - 1; i >= 0; i--) {
+                        if (sortedValues[i].datetime <= reqDate) {
+                            bestMatch = sortedValues[i];
+                            break;
+                        }
+                    }
+
+                    if (bestMatch) {
+                        const rate = parseFloat(bestMatch.close);
                         if (!isNaN(rate)) {
                             dataToUpsert.push({
                                 from_currency: base,
                                 to_currency: quote,
                                 rate: rateConversion(base, rate),
-                                date: responseDate,
+                                date: reqDate,
+                                origin_date: bestMatch.datetime,
                             });
                         } else {
-                            console.warn(`Invalid rate (NaN) for ${currencyPair} on ${responseDate}. Skipping.`);
+                            console.warn(`Invalid rate (NaN) for ${currencyPair} from ${bestMatch.datetime} for requested date ${reqDate}. Skipping.`);
+                        }
+                    } else {
+                        // Special case: if the requested date is BEFORE all API returned data, 
+                        // we use the earliest possible rate as a last resort.
+                        const earliestMatch = sortedValues[0];
+                        const rate = parseFloat(earliestMatch.close);
+                        if (!isNaN(rate)) {
+                            console.log(`No historical data <= ${reqDate} for ${currencyPair}. Using earliest available rate from ${earliestMatch.datetime}.`);
+                            dataToUpsert.push({
+                                from_currency: base,
+                                to_currency: quote,
+                                rate: rateConversion(base, rate),
+                                date: reqDate,
+                                origin_date: earliestMatch.datetime,
+                            });
+                        } else {
+                            console.warn(`No values returned for ${currencyPair} even as fallback. Skipping ${reqDate}.`);
                         }
                     }
                 }
             }
-        }
-        else {
+        } else {
             console.warn(`No values returned for ${currencyPair}. Skipping.`);
         }
 
