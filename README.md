@@ -71,3 +71,54 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+# Structure Menu
+
+## Dashboard
+## Pengaturan
+## Riwayat Transaksi
+## Budget
+## Proyek Bisnis
+## Hutang/Piutang
+## Target
+## Instrumen
+## Aset
+## Laporan & Analitik
+### Ringkasan
+Tujuan: memberikan snapshot performa keuangan dari berbagai aspek.
+Isi / Komponen:
+- 📊 Grafik tren total kekayaan dari waktu ke waktu (line chart)
+
+### Analisis Arus Kas
+Tujuan: memberikan gambaran jelas mengenai pergerakan uang masuk dan keluar.
+Isi / Komponen:
+- 📊 Grafik tren arus kas masuk vs keluar (line chart)
+- 💰 Distribusi arus kas per kategori (pie chart)
+- 💸 Arus kas masuk vs keluar (bar chart per bulan)
+- 📆 Perbandingan bulan ini vs bulan lalu
+- Rata - rata pengeluaran per hari/minggu/bulan
+- 🔎 Insight otomatis (misal: “pengeluaran meningkat 12% bulan ini”)
+
+### Analisis Investasi
+Tujuan: memberikan gambaran mengenai performa investasi.
+Isi / Komponen:
+- 📊 Grafik tren nilai investasi dari waktu ke waktu (line chart)
+- 💰 Distribusi investasi per instrumen, per aset (pie chart)
+- ROI (Return on Investment) total, per instrumen, per aset
+- Persentase Realisasi dan Unrealisasi total, per instrumen, per aset
+
+### Analisis Hutang/Piutang
+Tujuan: memberikan gambaran mengenai performa hutang dan piutang.
+Isi / Komponen:
+- 📊 Total hutang vs piutang
+- 💰 Rasio hutang terhadap aset
+- 💸 Grafik timeline pelunasan
+- 📆 Reminder atau aging hutang (mana yang mendekati jatuh tempo)
+
+### Insight & Rekomendasi
+Tujuan: memberikan insight dan rekomendasi mengenai performa keuangan.
+Jika mau tambah fitur semi-AI/logic-based suggestion, bisa diimplementasikan di sini.
+Isi / Komponen:
+- “Pengeluaran kamu bulan ini lebih besar 15% dibanding rata-rata.”
+- “Investasi kamu di emas naik signifikan 8% bulan ini.”
+- “Kamu sudah mencapai 90% dari target tabungan tahun ini.”
