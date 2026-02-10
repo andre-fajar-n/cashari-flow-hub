@@ -13,15 +13,14 @@ import { DeleteConfirmationModal, useDeleteConfirmation } from "@/components/Del
 import { BudgetModel, BudgetSummary } from "@/models/budgets";
 import { BudgetTable } from "@/components/budget/BudgetTable";
 import { useTableState } from "@/hooks/use-table-state";
-import { useCurrencies } from "@/hooks/queries/use-currencies";
-import { CurrencyModel } from "@/models/currencies";
 import { BudgetFormData, defaultBudgetFormValues } from "@/form-dto/budget";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useDialogState } from "@/hooks/use-dialog-state";
+import { useUserSettings } from "@/hooks/queries/use-user-settings";
 
 const Budget = () => {
   const navigate = useNavigate();
-  
+
   const createBudget = useCreateBudget();
   const updateBudget = useUpdateBudget();
   const { mutate: deleteBudget } = useDeleteBudget();
@@ -38,7 +37,6 @@ const Budget = () => {
     mapDataToForm: (budget) => ({
       name: budget.name || "",
       amount: budget.amount || 0,
-      currency_code: budget.currency_code || "",
       start_date: budget.start_date || "",
       end_date: budget.end_date || "",
     }),
@@ -60,14 +58,8 @@ const Budget = () => {
   const totalCount = paged?.count || 0;
 
   const { data: budgetSummary, isLoading: isLoadingBudgetSummary } = useBudgetSummary();
-  const { data: currencies, isLoading: isLoadingCurrencies } = useCurrencies({
-    codes: budgets.map((budget) => budget.currency_code),
-  });
+  const { data: userSettings, isLoading: isLoadingUserSettings } = useUserSettings();
 
-  const currencyMap = currencies?.reduce((acc, currency) => {
-    acc[currency.code] = currency;
-    return acc;
-  }, {} as Record<string, CurrencyModel>);
   const budgetSummariesMap = budgetSummary?.reduce((acc, item) => {
     if (!acc[item.budget_id]) {
       acc[item.budget_id] = [];
@@ -77,7 +69,7 @@ const Budget = () => {
   }, {} as Record<number, BudgetSummary[]>);
 
   // Combine all loading states
-  const isLoading = isLoadingBudgets || isLoadingBudgetSummary || isLoadingCurrencies;
+  const isLoading = isLoadingBudgets || isLoadingBudgetSummary || isLoadingUserSettings;
 
   // Delete confirmation hook
   const deleteConfirmation = useDeleteConfirmation<number>({
@@ -156,7 +148,7 @@ const Budget = () => {
             onDelete={deleteConfirmation.openModal}
             onView={handleView}
             budgetSummariesMap={budgetSummariesMap}
-            currencyMap={currencyMap}
+            userSettings={userSettings}
           />
         </div>
 
@@ -171,7 +163,6 @@ const Budget = () => {
           form={form}
           isLoading={dialog.isLoading}
           onSubmit={handleFormSubmit}
-          currencies={currencies}
           budget={dialog.selectedData}
         />
       </Layout>

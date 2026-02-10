@@ -17,7 +17,6 @@ import { formatDate } from "@/lib/date";
 import { useBudgetSummary } from "@/hooks/queries/use-budget-summary";
 import { calculateTotalSpentInBaseCurrency } from "@/lib/budget-summary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCurrencies, useCurrencyDetail } from "@/hooks/queries/use-currencies";
 import { BudgetFormData, defaultBudgetFormValues, mapBudgetToFormData } from "@/form-dto/budget";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useTransactions } from "@/hooks/queries/use-transactions";
@@ -25,6 +24,7 @@ import { useBudgetTransactionsByBudgetId, useCreateBudgetItem } from "@/hooks/qu
 import { TransactionFilter } from "@/form-dto/transactions";
 import { useDialogState } from "@/hooks/use-dialog-state";
 import { BudgetModel } from "@/models/budgets";
+import { useUserSettings } from "@/hooks/queries/use-user-settings";
 
 const BudgetDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,12 +39,11 @@ const BudgetDetail = () => {
   const [isAddingTransactions, setIsAddingTransactions] = useState(false);
 
   const { data: budget } = useBudget(parseInt(id!));
-  const { data: currency } = useCurrencyDetail(budget?.currency_code || '');
-  const { data: currencies } = useCurrencies();
   const updateBudget = useUpdateBudget();
   const { mutate: deleteBudget } = useDeleteBudget();
   const { data: budgetSummary } = useBudgetSummary(parseInt(id!));
   const addTransactionsToBudget = useCreateBudgetItem();
+  const { data: userSettings } = useUserSettings();
 
   // Form state managed at page level
   const form = useForm<BudgetFormData>({
@@ -150,10 +149,10 @@ const BudgetDetail = () => {
   // Calculate total spent from budget summary
   const totalCalculation = useMemo(() => {
     if (!budgetSummary || budgetSummary.length === 0) {
-      return { total_spent: 0, can_calculate: true, base_currency_code: budget?.currency_code || null };
+      return { total_spent: 0, can_calculate: true, base_currency_code: userSettings?.currencies.code || null };
     }
     return calculateTotalSpentInBaseCurrency(budgetSummary);
-  }, [budgetSummary, budget?.currency_code]);
+  }, [budgetSummary, userSettings?.currencies.code]);
 
   const totalSpent = totalCalculation.total_spent || 0;
   const remainingBudget = (budget?.amount || 0) + totalSpent;
@@ -218,13 +217,13 @@ const BudgetDetail = () => {
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 py-2 px-2 border-t">
               <div className="sm:text-center">
                 <p className="text-xs text-muted-foreground">Total Budget</p>
-                <p className="font-semibold">{formatAmountCurrency(budget.amount, budget.currency_code, currency?.symbol)}</p>
+                <p className="font-semibold">{formatAmountCurrency(budget.amount, userSettings?.currencies.code, userSettings?.currencies.symbol)}</p>
               </div>
               <div className="sm:text-center">
                 <p className="text-xs text-center text-muted-foreground">Terpakai</p>
                 {totalCalculation.can_calculate ? (
                   <AmountText amount={totalSpent} showSign className="font-semibold">
-                    {formatAmountCurrency(Math.abs(totalSpent), budget.currency_code, currency?.symbol)}
+                    {formatAmountCurrency(Math.abs(totalSpent), userSettings?.currencies.code, userSettings?.currencies.symbol)}
                   </AmountText>
                 ) : (
                   <div className="flex justify-center gap-1 text-xs text-yellow-600 mt-1">
@@ -236,7 +235,7 @@ const BudgetDetail = () => {
               <div className="sm:text-center">
                 <p className="text-xs text-muted-foreground">{remainingBudget >= 0 ? 'Sisa Budget' : 'Kelebihan'}</p>
                 <AmountText amount={remainingBudget} showSign className="font-semibold">
-                  {formatAmountCurrency(Math.abs(remainingBudget), budget.currency_code, currency?.symbol)}
+                  {formatAmountCurrency(Math.abs(remainingBudget), userSettings?.currencies.code, userSettings?.currencies.symbol)}
                 </AmountText>
               </div>
               <div className="sm:text-center">
@@ -281,7 +280,6 @@ const BudgetDetail = () => {
           form={form}
           isLoading={budgetDialog.isLoading}
           onSubmit={handleFormSubmit}
-          currencies={currencies}
           budget={budget}
         />
 

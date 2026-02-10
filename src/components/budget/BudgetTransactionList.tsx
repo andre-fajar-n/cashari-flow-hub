@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { useDeleteBudgetItem } from "@/hooks/queries/use-budget-transactions";
 import { BudgetModel } from "@/models/budgets";
 import { useTransactionCategories } from "@/hooks/queries/use-categories";
@@ -19,8 +18,7 @@ import { defaultTransactionFormValues, TransactionFormData, mapTransactionToForm
 import { useInsertTransactionWithRelations, useUpdateTransactionWithRelations } from "@/hooks/queries/use-transaction-with-relations";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useDialogState } from "@/hooks/use-dialog-state";
-import { BudgetItemWithTransactions } from "@/models/budget-transactions";
-import { useBudgetWithTransactionsPaginatedByBudgetId } from "@/hooks/queries/paginated/use-budget-with-transactions-paginated";
+import { useMoneyMovementsPaginatedByBudget } from "@/hooks/queries/paginated/use-money-movements-paginated";
 
 interface BudgetTransactionListProps {
   budget: BudgetModel;
@@ -45,7 +43,7 @@ const BudgetTransactionList = ({ budget }: BudgetTransactionListProps) => {
   const insertTransactionWithRelations = useInsertTransactionWithRelations();
   const updateTransactionWithRelations = useUpdateTransactionWithRelations();
 
-  const { data: paged, isLoading: isLoadingMovements } = useBudgetWithTransactionsPaginatedByBudgetId(budget.id, {
+  const { data: paged, isLoading: isLoadingMovements } = useMoneyMovementsPaginatedByBudget(budget.id, {
     page: tableState.page,
     itemsPerPage: tableState.pageSize,
     searchTerm: tableState.searchTerm,

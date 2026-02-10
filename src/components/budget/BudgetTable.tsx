@@ -8,8 +8,8 @@ import { formatDate } from "@/lib/date";
 import { formatAmountCurrency } from "@/lib/currency";
 import { calculateTotalSpentInBaseCurrency } from "@/lib/budget-summary";
 import { Badge } from "@/components/ui/badge";
-import { CurrencyModel } from "@/models/currencies";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { UserSettingsModel } from "@/models/user-settings";
 
 export interface BudgetTableProps {
   budgets: BudgetModel[];
@@ -39,8 +39,8 @@ export interface BudgetTableProps {
   // Budget-specific data
   budgetSummariesMap?: Record<number, BudgetSummary[]>;
 
-  // Currencies
-  currencyMap?: Record<string, CurrencyModel>;
+  // User settings
+  userSettings: UserSettingsModel;
 }
 
 /**
@@ -65,7 +65,7 @@ export const BudgetTable = ({
   onDelete,
   onView,
   budgetSummariesMap = {},
-  currencyMap = {},
+  userSettings,
 }: BudgetTableProps) => {
   const columns: ColumnDef<BudgetModel>[] = [
     {
@@ -92,7 +92,7 @@ export const BudgetTable = ({
         return (
           <div className="space-y-1 text-right">
             <div className="font-bold text-gray-900">
-              {formatAmountCurrency(budget.amount, budget.currency_code, currencyMap[budget.currency_code]?.symbol)}
+              {formatAmountCurrency(budget.amount, userSettings.currencies.code, userSettings.currencies.symbol)}
             </div>
           </div>
         );
@@ -150,13 +150,13 @@ export const BudgetTable = ({
               <div>
                 <span className="text-gray-600">Terpakai: </span>
                 <span className={`font-semibold ${isOverBudget ? 'text-red-700' : 'text-blue-700'}`}>
-                  {formatAmountCurrency(Math.abs(totalSpent.total_spent) || 0, budget.currency_code, currencyMap[budget.currency_code]?.symbol)}
+                  {formatAmountCurrency(Math.abs(totalSpent.total_spent) || 0, totalSpent.base_currency_code, totalSpent.base_currency_symbol)}
                 </span>
               </div>
               <div>
                 <span className="text-gray-600">{isOverBudget ? 'Berlebih: ' : 'Sisa: '}</span>
                 <span className={`font-semibold ${isOverBudget ? 'text-red-700' : 'text-green-700'}`}>
-                  {formatAmountCurrency(Math.abs(remainingBudget), budget.currency_code, currencyMap[budget.currency_code]?.symbol)}
+                  {formatAmountCurrency(Math.abs(remainingBudget), totalSpent.base_currency_code, totalSpent.base_currency_symbol)}
                 </span>
               </div>
             </div>

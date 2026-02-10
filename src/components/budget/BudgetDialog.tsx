@@ -3,11 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { CurrencyDropdown } from "@/components/ui/dropdowns";
 import { BudgetFormData } from "@/form-dto/budget";
 import { InputNumber } from "@/components/ui/input-number";
 import { BudgetModel } from "@/models/budgets";
-import { CurrencyModel } from "@/models/currencies";
 
 interface BudgetDialogProps {
   open: boolean;
@@ -15,18 +13,16 @@ interface BudgetDialogProps {
   form: UseFormReturn<BudgetFormData>;
   isLoading: boolean;
   onSubmit: (data: BudgetFormData) => void;
-  currencies?: CurrencyModel[];
   budget?: BudgetModel;
 }
 
-const BudgetDialog = ({ 
-  open, 
-  onOpenChange, 
-  form, 
-  isLoading, 
-  onSubmit, 
-  currencies,
-  budget 
+const BudgetDialog = ({
+  open,
+  onOpenChange,
+  form,
+  isLoading,
+  onSubmit,
+  budget
 }: BudgetDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -69,12 +65,6 @@ const BudgetDialog = ({
                   <FormMessage />
                 </FormItem>
               )}
-            />
-
-            <CurrencyDropdown
-              control={form.control}
-              name="currency_code"
-              currencies={currencies}
             />
 
             <FormField
