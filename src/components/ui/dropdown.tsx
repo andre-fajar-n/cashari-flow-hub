@@ -1,11 +1,13 @@
+import React from "react";
 import { Control, FieldPath, FieldValues } from "react-hook-form";
+
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Option interface for dropdown items
 export interface DropdownOption {
   value: string;
-  label: string;
+  label: React.ReactNode;
   disabled?: boolean;
 }
 

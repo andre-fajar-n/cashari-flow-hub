@@ -1,6 +1,7 @@
 import { Control, FieldPath, FieldValues } from "react-hook-form";
 import { Dropdown } from "@/components/ui/dropdown";
 import { CurrencyModel } from "@/models/currencies";
+import { Badge } from "@/components/ui/badge";
 
 interface CurrencyDropdownProps<TFieldValues extends FieldValues = FieldValues> {
   control: Control<TFieldValues>;
@@ -37,7 +38,16 @@ export function CurrencyDropdown<TFieldValues extends FieldValues = FieldValues>
       onValueChange={onValueChange}
       options={currencies?.map((currency) => ({
         value: currency.code,
-        label: `${currency.code} - ${currency.name} (${currency.symbol})`
+        label: (
+          <div className="flex items-center justify-between w-full gap-2">
+            <span>{currency.code} - {currency.name} ({currency.symbol})</span>
+            {currency.type && (
+              <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 capitalize font-normal">
+                {currency.type}
+              </Badge>
+            )}
+          </div>
+        )
       })) || []}
     />
   );

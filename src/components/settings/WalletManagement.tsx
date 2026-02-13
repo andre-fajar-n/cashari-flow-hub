@@ -13,6 +13,8 @@ import { useCreateWallet, useDeleteWallet, useUpdateWallet, useWallets } from "@
 import { defaultWalletFormValues, WalletFormData } from "@/form-dto/wallets";
 import { WalletModel } from "@/models/wallets";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
+import { Badge } from "@/components/ui/badge";
+import { CurrencyModel } from "@/models/currencies";
 
 const WalletManagement = () => {
   const [isAdding, setIsAdding] = useState(false);
@@ -26,6 +28,11 @@ const WalletManagement = () => {
   const form = useForm<WalletFormData>({
     defaultValues: defaultWalletFormValues,
   });
+
+  const currencyMap = currencies?.reduce((acc, currency) => {
+    acc[currency.code] = currency;
+    return acc;
+  }, {} as Record<string, CurrencyModel>);
 
   // Reset form when adding/editing state changes
   useEffect(() => {
@@ -46,12 +53,12 @@ const WalletManagement = () => {
 
   // Use mutation callbacks utility
   const { handleSuccess } = useMutationCallbacks({
-    setIsLoading: () => {}, // Not used in this component
+    setIsLoading: () => { }, // Not used in this component
     onOpenChange: () => {
       setIsAdding(false);
       setEditingWallet(null);
     },
-    onSuccess: () => {},
+    onSuccess: () => { },
     form,
     queryKeysToInvalidate: QUERY_KEY_SETS.WALLETS
   });
@@ -85,7 +92,7 @@ const WalletManagement = () => {
       label: "Mata Uang",
       type: "select",
       options: currencies?.map(currency => ({
-        label: `${currency.code} (${currency.symbol})`,
+        label: `${currency.code} (${currency.symbol})${currency.type ? ` [${currency.type}]` : ''}`,
         value: currency.code
       })) || []
     },
@@ -100,11 +107,20 @@ const WalletManagement = () => {
     <div className="flex items-center justify-between p-4 border rounded-lg">
       <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <p className="font-medium">{wallet.name}</p>
+          <div className="flex items-center gap-2">
+            <p className="font-medium">{wallet.name}</p>
+          </div>
           <p className="text-sm text-muted-foreground">Nama Dompet</p>
         </div>
         <div>
-          <p className="font-medium">{wallet.currency_code}</p>
+          <div className="flex items-center gap-2">
+            <p className="font-medium">{wallet.currency_code}</p>
+            {currencyMap?.[wallet.currency_code]?.type && (
+              <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 capitalize font-normal">
+                {currencyMap?.[wallet.currency_code]?.type}
+              </Badge>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground">Mata Uang</p>
         </div>
         <div>
