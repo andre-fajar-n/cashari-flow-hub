@@ -251,32 +251,26 @@ export type Database = {
         Row: {
           code: string
           created_at: string | null
-          is_default: boolean | null
           name: string
           symbol: string
           unit: string | null
           updated_at: string | null
-          user_id: string
         }
         Insert: {
           code: string
           created_at?: string | null
-          is_default?: boolean | null
           name: string
           symbol: string
           unit?: string | null
           updated_at?: string | null
-          user_id: string
         }
         Update: {
           code?: string
           created_at?: string | null
-          is_default?: boolean | null
           name?: string
           symbol?: string
           unit?: string | null
           updated_at?: string | null
-          user_id?: string
         }
         Relationships: []
       }
