@@ -85,20 +85,6 @@ export const BudgetTable = ({
       },
     },
     {
-      accessorKey: "budget",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Budget" className="justify-end" />,
-      cell: ({ row }) => {
-        const budget = row.original;
-        return (
-          <div className="space-y-1 text-right">
-            <div className="font-bold text-gray-900">
-              {formatAmountCurrency(budget.amount, userSettings.currencies.code, userSettings.currencies.symbol)}
-            </div>
-          </div>
-        );
-      },
-    },
-    {
       id: "status",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Status" className="justify-end" />,
       cell: ({ row }) => {
@@ -146,7 +132,13 @@ export const BudgetTable = ({
             </div>
 
             {/* Budget Details */}
-            <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="grid grid-cols-3 gap-3 text-xs">
+              <div>
+                <span className="text-gray-600">Budget: </span>
+                <span className="font-semibold">
+                  {formatAmountCurrency(budget.amount, userSettings.currencies.code, userSettings.currencies.symbol)}
+                </span>
+              </div>
               <div>
                 <span className="text-gray-600">Terpakai: </span>
                 <span className={`font-semibold ${isOverBudget ? 'text-red-700' : 'text-blue-700'}`}>
