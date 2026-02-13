@@ -1,19 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
 import { CurrencyModel } from "@/models/currencies";
 import { CurrencyFilter } from "@/form-dto/currencies";
 
 export const useCurrencies = (filter?: CurrencyFilter) => {
-  const { user } = useAuth();
-
   return useQuery<CurrencyModel[]>({
-    queryKey: ["currencies", user?.id, filter],
+    queryKey: ["currencies", filter],
     queryFn: async () => {
       let query = supabase
         .from("currencies")
         .select("*")
-        .eq("user_id", user?.id)
         .order("code");
 
       if (filter?.codes) {
@@ -28,20 +24,16 @@ export const useCurrencies = (filter?: CurrencyFilter) => {
 
       return data;
     },
-    enabled: !!user,
   });
 };
 
 export const useCurrencyDetail = (code: string) => {
-  const { user } = useAuth();
-
   return useQuery<CurrencyModel>({
-    queryKey: ["currency", user?.id, code],
+    queryKey: ["currency", code],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("currencies")
         .select("*")
-        .eq("user_id", user?.id)
         .eq("code", code)
         .single();
 
@@ -52,6 +44,6 @@ export const useCurrencyDetail = (code: string) => {
 
       return data;
     },
-    enabled: !!user && !!code,
+    enabled: !!code,
   });
 };
