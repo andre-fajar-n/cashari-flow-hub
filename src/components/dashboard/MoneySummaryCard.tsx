@@ -40,7 +40,7 @@ const MoneySummaryCard = ({
       return row.latest_asset_value * row.amount_unit;
     }
     // Otherwise use the original amount
-    return row.amount || 0;
+    return row.total_amount || 0;
   };
 
   // Process currency totals with both original and calculated amounts
@@ -54,7 +54,7 @@ const MoneySummaryCard = ({
     const key = row.original_currency_code;
     const existing = currencyMap.get(key);
     const actualAmount = getActualAmount(row);
-    const originalAmount = row.amount || 0;
+    const originalAmount = row.total_amount || 0;
 
     if (existing) {
       existing.originalAmount += originalAmount;
@@ -164,7 +164,7 @@ const MoneySummaryCard = ({
 
       // Add to wallet total using both amounts
       const actualAmount = getActualAmount(row);
-      const originalAmount = row.amount || 0;
+      const originalAmount = row.total_amount || 0;
       wallet.amount += actualAmount; // Keep for backward compatibility
       wallet.originalAmount += originalAmount;
       wallet.calculatedAmount += actualAmount;
