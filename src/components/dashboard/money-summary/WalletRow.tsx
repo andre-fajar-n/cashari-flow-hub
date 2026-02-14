@@ -28,7 +28,7 @@ export const WalletRow = ({ wallet, isExpanded }: WalletRowProps) => (
     </div>
 
     {/* Column 2: Original Amount */}
-    {wallet.originalAmount === wallet.calculatedAmount ? (
+    {wallet.unrealized_profit === 0 ? (
       <div className="text-center space-y-1">
         <div className="text-xs text-muted-foreground font-medium">Nilai Awal</div>
         <div className="font-semibold">-</div>
@@ -36,13 +36,13 @@ export const WalletRow = ({ wallet, isExpanded }: WalletRowProps) => (
     ) : (
       <AmountColumn
         label="Nilai Awal"
-        amount={wallet.originalAmount}
+        amount={wallet.active_capital}
         currency={wallet.original_currency_code}
         currencySymbol={wallet.original_currency_symbol}
-        baseCurrencyAmount={wallet.latest_rate && wallet.base_currency_code !== wallet.original_currency_code ? wallet.originalAmount * wallet.latest_rate : undefined}
-        baseCurrency={wallet.base_currency_code}
-        baseCurrencySymbol={wallet.base_currency_symbol}
-        showBaseCurrency={wallet.latest_rate && wallet.base_currency_code !== wallet.original_currency_code}
+        baseCurrencyAmount={wallet.base_currency_code !== wallet.original_currency_code ? wallet.active_capital_base_currency : undefined}
+        baseCurrency={wallet.base_currency_code || undefined}
+        baseCurrencySymbol={wallet.base_currency_symbol || undefined}
+        showBaseCurrency={wallet.base_currency_code !== wallet.original_currency_code}
       />
     )}
 
@@ -52,25 +52,32 @@ export const WalletRow = ({ wallet, isExpanded }: WalletRowProps) => (
         originalAmount: wallet.originalAmount,
         calculatedAmount: wallet.calculatedAmount,
         unrealizedAmount: wallet.unrealizedAmount,
+        active_capital: wallet.active_capital,
+        active_capital_base_currency: wallet.active_capital_base_currency,
+        unrealized_profit: wallet.unrealized_profit,
+        unrealized_asset_profit_base_currency: wallet.unrealized_asset_profit_base_currency,
+        unrealized_currency_profit: wallet.unrealized_currency_profit,
+        current_value: wallet.current_value,
+        current_value_base_currency: wallet.current_value_base_currency,
         currency: wallet.original_currency_code,
         currencySymbol: wallet.original_currency_symbol,
-        baseCurrency: wallet.base_currency_code,
-        baseCurrencySymbol: wallet.base_currency_symbol,
+        baseCurrency: wallet.base_currency_code || undefined,
+        baseCurrencySymbol: wallet.base_currency_symbol || undefined,
         exchangeRate: wallet.latest_rate || 0,
-        showBaseCurrency: wallet.latest_rate && wallet.base_currency_code !== wallet.original_currency_code
+        showBaseCurrency: wallet.base_currency_code !== wallet.original_currency_code
       }}
     />
 
     {/* Column 4: Calculated Amount */}
     <AmountColumn
       label="Nilai Akhir"
-      amount={wallet.calculatedAmount}
+      amount={wallet.current_value}
       currency={wallet.original_currency_code}
       currencySymbol={wallet.original_currency_symbol}
-      baseCurrencyAmount={wallet.latest_rate && wallet.base_currency_code !== wallet.original_currency_code ? wallet.calculatedAmount * wallet.latest_rate : undefined}
-      baseCurrency={wallet.base_currency_code}
-      baseCurrencySymbol={wallet.base_currency_symbol}
-      showBaseCurrency={wallet.latest_rate && wallet.base_currency_code !== wallet.original_currency_code}
+      baseCurrencyAmount={wallet.base_currency_code !== wallet.original_currency_code ? wallet.current_value_base_currency : undefined}
+      baseCurrency={wallet.base_currency_code || undefined}
+      baseCurrencySymbol={wallet.base_currency_symbol || undefined}
+      showBaseCurrency={wallet.base_currency_code !== wallet.original_currency_code}
     />
   </div>
 );

@@ -60,6 +60,13 @@ const MoneySummaryCard = ({
       existing.originalAmount += originalAmount;
       existing.calculatedAmount += actualAmount;
       existing.amount += actualAmount; // Keep for backward compatibility
+      existing.active_capital += row.active_capital || 0;
+      existing.active_capital_base_currency += row.active_capital_base_currency || 0;
+      existing.unrealized_profit += row.unrealized_profit || 0;
+      existing.unrealized_asset_profit_base_currency += row.unrealized_asset_profit_base_currency || 0;
+      existing.unrealized_currency_profit += row.unrealized_currency_profit || 0;
+      existing.current_value += row.current_value || 0;
+      existing.current_value_base_currency += row.current_value_base_currency || 0;
     } else {
       currencyMap.set(key, {
         original_currency_code: row.original_currency_code,
@@ -68,6 +75,13 @@ const MoneySummaryCard = ({
         originalAmount: originalAmount,
         calculatedAmount: actualAmount,
         unrealizedAmount: 0, // Will be calculated after
+        active_capital: row.active_capital || 0,
+        active_capital_base_currency: row.active_capital_base_currency || 0,
+        unrealized_profit: row.unrealized_profit || 0,
+        unrealized_asset_profit_base_currency: row.unrealized_asset_profit_base_currency || 0,
+        unrealized_currency_profit: row.unrealized_currency_profit || 0,
+        current_value: row.current_value || 0,
+        current_value_base_currency: row.current_value_base_currency || 0,
         base_currency_code: row.base_currency_code,
         base_currency_symbol: row.base_currency_symbol,
         latest_rate: row.latest_rate ?? null,
@@ -151,6 +165,13 @@ const MoneySummaryCard = ({
           originalAmount: 0,
           calculatedAmount: 0,
           unrealizedAmount: 0,
+          active_capital: 0,
+          active_capital_base_currency: 0,
+          unrealized_profit: 0,
+          unrealized_asset_profit_base_currency: 0,
+          unrealized_currency_profit: 0,
+          current_value: 0,
+          current_value_base_currency: 0,
           original_currency_code: row.original_currency_code,
           original_currency_symbol: row.original_currency_symbol,
           latest_rate: row.latest_rate,
@@ -169,6 +190,13 @@ const MoneySummaryCard = ({
       wallet.originalAmount += originalAmount;
       wallet.calculatedAmount += actualAmount;
       wallet.unrealizedAmount = wallet.calculatedAmount - wallet.originalAmount;
+      wallet.active_capital += row.active_capital || 0;
+      wallet.active_capital_base_currency += row.active_capital_base_currency || 0;
+      wallet.unrealized_profit += row.unrealized_profit || 0;
+      wallet.unrealized_asset_profit_base_currency += row.unrealized_asset_profit_base_currency || 0;
+      wallet.unrealized_currency_profit += row.unrealized_currency_profit || 0;
+      wallet.current_value += row.current_value || 0;
+      wallet.current_value_base_currency += row.current_value_base_currency || 0;
 
       // Get or create instrument
       const instrumentKey = row.instrument_id || 0;
@@ -181,6 +209,13 @@ const MoneySummaryCard = ({
           originalAmount: 0,
           calculatedAmount: 0,
           unrealizedAmount: 0,
+          active_capital: 0,
+          active_capital_base_currency: 0,
+          unrealized_profit: 0,
+          unrealized_asset_profit_base_currency: 0,
+          unrealized_currency_profit: 0,
+          current_value: 0,
+          current_value_base_currency: 0,
           original_currency_code: row.original_currency_code,
           original_currency_symbol: row.original_currency_symbol,
           latest_rate: row.latest_rate,
@@ -197,6 +232,13 @@ const MoneySummaryCard = ({
       instrument.originalAmount += originalAmount;
       instrument.calculatedAmount += actualAmount;
       instrument.unrealizedAmount = instrument.calculatedAmount - instrument.originalAmount;
+      instrument.active_capital += row.active_capital || 0;
+      instrument.active_capital_base_currency += row.active_capital_base_currency || 0;
+      instrument.unrealized_profit += row.unrealized_profit || 0;
+      instrument.unrealized_asset_profit_base_currency += row.unrealized_asset_profit_base_currency || 0;
+      instrument.unrealized_currency_profit += row.unrealized_currency_profit || 0;
+      instrument.current_value += row.current_value || 0;
+      instrument.current_value_base_currency += row.current_value_base_currency || 0;
 
       // Get or create asset
       const assetKey = row.asset_id || 0;
@@ -209,6 +251,13 @@ const MoneySummaryCard = ({
           originalAmount: 0,
           calculatedAmount: 0,
           unrealizedAmount: 0,
+          active_capital: row.active_capital || 0,
+          active_capital_base_currency: row.active_capital_base_currency || 0,
+          unrealized_profit: row.unrealized_profit || 0,
+          unrealized_asset_profit_base_currency: row.unrealized_asset_profit_base_currency || 0,
+          unrealized_currency_profit: row.unrealized_currency_profit || 0,
+          current_value: row.current_value || 0,
+          current_value_base_currency: row.current_value_base_currency || 0,
           amount_unit: 0,
           original_currency_code: row.original_currency_code,
           original_currency_symbol: row.original_currency_symbol,
@@ -226,6 +275,8 @@ const MoneySummaryCard = ({
       asset.originalAmount += originalAmount;
       asset.calculatedAmount += actualAmount;
       asset.unrealizedAmount = asset.calculatedAmount - asset.originalAmount;
+      // Asset level fields are taken directly from the row for the first occurrence
+      // and shouldn't be accumulated like wallet/instrument level fields
       asset.amount_unit += row.amount_unit || 0;
     }
 
@@ -359,7 +410,11 @@ const MoneySummaryCard = ({
                 <div className="mt-3 space-y-1 text-sm">
                   <div className="flex justify-between text-green-600">
                     <span>Nilai Awal:</span>
-                    <span>{formatAmountCurrency(totalAmountCalculation.totalOriginalAmount, userSettings.base_currency_code, userSettings.currencies?.symbol)}</span>
+                    <span>
+                      {totalAmountCalculation.totalUnrealizedAmount === 0
+                        ? "-"
+                        : formatAmountCurrency(totalAmountCalculation.totalOriginalAmount, userSettings.base_currency_code, userSettings.currencies?.symbol)}
+                    </span>
                   </div>
                   {totalAmountCalculation.totalUnrealizedAmount !== 0 && (
                     <div className={`flex justify-between font-medium ${totalAmountCalculation.totalUnrealizedAmount >= 0 ? 'text-green-700' : 'text-red-600'}`}>
@@ -430,7 +485,14 @@ const MoneySummaryCard = ({
                         currencyData?.original_currency_symbol,
                         currencyData?.base_currency_code,
                         currencyData?.base_currency_symbol,
-                        show_in_base_currency && !same_original_and_base_currency ? currencyData?.latest_rate : undefined
+                        show_in_base_currency && !same_original_and_base_currency ? currencyData?.latest_rate : undefined,
+                        currencyData?.active_capital ?? 0,
+                        currencyData?.active_capital_base_currency ?? 0,
+                        currencyData?.unrealized_profit ?? 0,
+                        currencyData?.unrealized_asset_profit_base_currency ?? 0,
+                        currencyData?.unrealized_currency_profit ?? 0,
+                        currencyData?.current_value ?? 0,
+                        currencyData?.current_value_base_currency ?? 0
                       )}
                     />
                   </div>
@@ -504,7 +566,14 @@ const MoneySummaryCard = ({
                                       asset?.original_currency_symbol || instrument.original_currency_symbol,
                                       asset?.base_currency_code,
                                       asset?.base_currency_symbol,
-                                      asset && asset.latest_rate && asset.base_currency_code && asset.base_currency_code !== asset.original_currency_code ? asset.latest_rate : undefined
+                                      asset && asset.latest_rate && asset.base_currency_code && asset.base_currency_code !== asset.original_currency_code ? asset.latest_rate : undefined,
+                                      asset?.active_capital || instrument.active_capital,
+                                      asset?.active_capital_base_currency || instrument.active_capital_base_currency,
+                                      asset?.unrealized_profit || instrument.unrealized_profit,
+                                      asset?.unrealized_asset_profit_base_currency || instrument.unrealized_asset_profit_base_currency,
+                                      asset?.unrealized_currency_profit || instrument.unrealized_currency_profit,
+                                      asset?.current_value || instrument.current_value,
+                                      asset?.current_value_base_currency || instrument.current_value_base_currency
                                     )}
                                   />
                                 </div>
@@ -545,7 +614,14 @@ const MoneySummaryCard = ({
                                                 asset.original_currency_symbol,
                                                 asset.base_currency_code,
                                                 asset.base_currency_symbol,
-                                                asset.latest_rate && asset.base_currency_code !== asset.original_currency_code ? asset.latest_rate : undefined
+                                                asset.latest_rate && asset.base_currency_code !== asset.original_currency_code ? asset.latest_rate : undefined,
+                                                asset.active_capital,
+                                                asset.active_capital_base_currency,
+                                                asset.unrealized_profit,
+                                                asset.unrealized_asset_profit_base_currency,
+                                                asset.unrealized_currency_profit,
+                                                asset.current_value,
+                                                asset.current_value_base_currency
                                               )}
                                             />
                                           </div>

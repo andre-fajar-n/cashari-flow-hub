@@ -15,7 +15,7 @@ export const FourColumnLayout = ({
   <div className="grid grid-cols-4 gap-3 items-start">
     <InfoColumn data={infoData} />
 
-    {amountData.originalAmount === amountData.calculatedAmount ? (
+    {amountData.unrealized_profit === 0 ? (
       <div className="text-center space-y-1">
         <div className="text-xs text-muted-foreground font-medium">Nilai Awal</div>
         <div className="font-semibold">-</div>
@@ -23,10 +23,10 @@ export const FourColumnLayout = ({
     ) : (
       <AmountColumn
         label="Nilai Awal"
-        amount={amountData.originalAmount}
+        amount={amountData.active_capital}
         currency={amountData.currency}
         currencySymbol={amountData.currencySymbol}
-        baseCurrencyAmount={amountData.showBaseCurrency ? amountData.originalAmount * (amountData.exchangeRate || 0) : undefined}
+        baseCurrencyAmount={amountData.showBaseCurrency ? amountData.active_capital_base_currency : undefined}
         baseCurrency={amountData.baseCurrency}
         baseCurrencySymbol={amountData.baseCurrencySymbol}
         showBaseCurrency={amountData.showBaseCurrency}
@@ -37,10 +37,10 @@ export const FourColumnLayout = ({
 
     <AmountColumn
       label="Nilai Akhir"
-      amount={amountData.calculatedAmount}
+      amount={amountData.current_value}
       currency={amountData.currency}
       currencySymbol={amountData.currencySymbol}
-      baseCurrencyAmount={amountData.showBaseCurrency ? amountData.calculatedAmount * (amountData.exchangeRate || 0) : undefined}
+      baseCurrencyAmount={amountData.showBaseCurrency ? amountData.current_value_base_currency : undefined}
       baseCurrency={amountData.baseCurrency}
       baseCurrencySymbol={amountData.baseCurrencySymbol}
       showBaseCurrency={amountData.showBaseCurrency}

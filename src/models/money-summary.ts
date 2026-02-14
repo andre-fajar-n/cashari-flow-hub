@@ -6,6 +6,16 @@ export interface MoneySummaryGroupByCurrency {
   original_currency_code: string;
   original_currency_symbol: string;
   amount: number;
+  originalAmount: number;
+  calculatedAmount: number;
+  unrealizedAmount: number;
+  active_capital: number;
+  active_capital_base_currency: number;
+  unrealized_profit: number;
+  unrealized_asset_profit_base_currency: number;
+  unrealized_currency_profit: number;
+  current_value: number;
+  current_value_base_currency: number;
   base_currency_code: string | null;
   base_currency_symbol: string | null;
   latest_rate: number | null;
@@ -19,6 +29,13 @@ export interface WalletSummary {
   originalAmount: number;
   calculatedAmount: number;
   unrealizedAmount: number;
+  active_capital: number;
+  active_capital_base_currency: number;
+  unrealized_profit: number;
+  unrealized_asset_profit_base_currency: number;
+  unrealized_currency_profit: number;
+  current_value: number;
+  current_value_base_currency: number;
   original_currency_code: string;
   original_currency_symbol: string;
   latest_rate: number | null;
@@ -28,13 +45,20 @@ export interface WalletSummary {
   instruments: InstrumentSummary[];
 }
 
-interface InstrumentSummary {
+export interface InstrumentSummary {
   instrument_id: number | null;
   instrument_name: string | null;
   amount: number;
   originalAmount: number;
   calculatedAmount: number;
   unrealizedAmount: number;
+  active_capital: number;
+  active_capital_base_currency: number;
+  unrealized_profit: number;
+  unrealized_asset_profit_base_currency: number;
+  unrealized_currency_profit: number;
+  current_value: number;
+  current_value_base_currency: number;
   original_currency_code: string;
   original_currency_symbol: string;
   latest_rate: number | null;
@@ -44,13 +68,20 @@ interface InstrumentSummary {
   assets: AssetSummary[];
 }
 
-interface AssetSummary {
+export interface AssetSummary {
   asset_id: number | null;
   asset_name: string | null;
   amount: number;
   originalAmount: number;
   calculatedAmount: number;
   unrealizedAmount: number;
+  active_capital: number;
+  active_capital_base_currency: number;
+  unrealized_profit: number;
+  unrealized_asset_profit_base_currency: number;
+  unrealized_currency_profit: number;
+  current_value: number;
+  current_value_base_currency: number;
   amount_unit: number | null;
   original_currency_code: string;
   original_currency_symbol: string;
