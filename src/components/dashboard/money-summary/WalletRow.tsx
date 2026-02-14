@@ -30,12 +30,12 @@ export const WalletRow = ({ wallet, isExpanded }: WalletRowProps) => (
     {/* Column 2: Original Amount */}
     {wallet.originalAmount === wallet.calculatedAmount ? (
       <div className="text-center space-y-1">
-        <div className="text-xs text-muted-foreground font-medium">Amount Awal</div>
+        <div className="text-xs text-muted-foreground font-medium">Nilai Awal</div>
         <div className="font-semibold">-</div>
       </div>
     ) : (
       <AmountColumn
-        label="Amount Awal"
+        label="Nilai Awal"
         amount={wallet.originalAmount}
         currency={wallet.original_currency_code}
         currencySymbol={wallet.original_currency_symbol}
@@ -63,7 +63,7 @@ export const WalletRow = ({ wallet, isExpanded }: WalletRowProps) => (
 
     {/* Column 4: Calculated Amount */}
     <AmountColumn
-      label="Amount Akhir"
+      label="Nilai Akhir"
       amount={wallet.calculatedAmount}
       currency={wallet.original_currency_code}
       currencySymbol={wallet.original_currency_symbol}

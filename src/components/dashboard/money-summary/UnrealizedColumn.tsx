@@ -7,7 +7,7 @@ interface UnrealizedColumnProps {
 
 export const UnrealizedColumn = ({ data }: UnrealizedColumnProps) => (
   <div className="text-center space-y-1">
-    <div className="text-xs text-muted-foreground font-medium">Unrealized</div>
+    <div className="text-xs text-muted-foreground font-medium">Belum Terealisasi</div>
     {data.unrealizedAmount !== 0 ? (
       <div className="space-y-1">
         <div className={`font-semibold ${data.unrealizedAmount >= 0 ? 'text-green-600' : 'text-red-600'}`}>

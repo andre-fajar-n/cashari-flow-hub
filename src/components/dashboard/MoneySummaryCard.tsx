@@ -358,12 +358,12 @@ const MoneySummaryCard = ({
                 {/* Show breakdown of total amounts */}
                 <div className="mt-3 space-y-1 text-sm">
                   <div className="flex justify-between text-green-600">
-                    <span>Amount Awal:</span>
+                    <span>Nilai Awal:</span>
                     <span>{formatAmountCurrency(totalAmountCalculation.totalOriginalAmount, userSettings.base_currency_code, userSettings.currencies?.symbol)}</span>
                   </div>
                   {totalAmountCalculation.totalUnrealizedAmount !== 0 && (
                     <div className={`flex justify-between font-medium ${totalAmountCalculation.totalUnrealizedAmount >= 0 ? 'text-green-700' : 'text-red-600'}`}>
-                      <span>Total Unrealized:</span>
+                      <span>Total Belum Terealisasi:</span>
                       <span>
                         {totalAmountCalculation.totalUnrealizedAmount >= 0 ? '+' : ''}
                         {formatAmountCurrency(totalAmountCalculation.totalUnrealizedAmount, userSettings.base_currency_code, userSettings.currencies?.symbol)}

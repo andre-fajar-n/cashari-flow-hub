@@ -17,12 +17,12 @@ export const FourColumnLayout = ({
 
     {amountData.originalAmount === amountData.calculatedAmount ? (
       <div className="text-center space-y-1">
-        <div className="text-xs text-muted-foreground font-medium">Amount Awal</div>
+        <div className="text-xs text-muted-foreground font-medium">Nilai Awal</div>
         <div className="font-semibold">-</div>
       </div>
     ) : (
       <AmountColumn
-        label="Amount Awal"
+        label="Nilai Awal"
         amount={amountData.originalAmount}
         currency={amountData.currency}
         currencySymbol={amountData.currencySymbol}
@@ -36,7 +36,7 @@ export const FourColumnLayout = ({
     <UnrealizedColumn data={amountData} />
 
     <AmountColumn
-      label="Amount Akhir"
+      label="Nilai Akhir"
       amount={amountData.calculatedAmount}
       currency={amountData.currency}
       currencySymbol={amountData.currencySymbol}

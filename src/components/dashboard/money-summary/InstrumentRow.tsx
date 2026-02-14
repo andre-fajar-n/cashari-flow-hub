@@ -29,12 +29,12 @@ export const InstrumentRow = ({ instrument, isExpanded }: InstrumentRowProps) =>
     {/* Column 2: Original Amount */}
     {instrument.originalAmount === instrument.calculatedAmount ? (
       <div className="text-center space-y-1">
-        <div className="text-xs text-muted-foreground font-medium">Amount Awal</div>
+        <div className="text-xs text-muted-foreground font-medium">Nilai Awal</div>
         <div className="font-semibold">-</div>
       </div>
     ) : (
       <AmountColumn
-        label="Amount Awal"
+        label="Nilai Awal"
         amount={instrument.originalAmount}
         currency={instrument.original_currency_code}
         currencySymbol={instrument.original_currency_code}
@@ -62,7 +62,7 @@ export const InstrumentRow = ({ instrument, isExpanded }: InstrumentRowProps) =>
 
     {/* Column 4: Calculated Amount */}
     <AmountColumn
-      label="Amount Akhir"
+      label="Nilai Akhir"
       amount={instrument.calculatedAmount}
       currency={instrument.original_currency_code}
       currencySymbol={instrument.original_currency_code}
