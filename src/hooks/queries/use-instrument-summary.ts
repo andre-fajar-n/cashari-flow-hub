@@ -14,7 +14,7 @@ export interface InstrumentSummary {
   instrumentName: string;
   unitLabel: string | null;
   isTrackable: boolean;
-  
+
   // Base currency metrics (primary) - from user settings
   baseCurrencyCode: string;
   activeCapitalBaseCurrency: number;
@@ -22,7 +22,7 @@ export interface InstrumentSummary {
   totalProfitBaseCurrency: number;
   investedCapitalBaseCurrency: number;
   roi: number | null; // Calculated from base currency
-  
+
   // Currency breakdown for multi-currency display
   currencyBreakdown: CurrencyBreakdown[];
   isMultiCurrency: boolean;
@@ -41,6 +41,7 @@ interface InvestmentSummaryRow {
   current_value_base_currency: number | null;
   total_profit_base_currency: number | null;
   invested_capital_base_currency: number | null;
+  active_capital_base_currency: number | null;
   unrealized_asset_profit_base_currency: number | null;
 }
 
@@ -50,13 +51,13 @@ export const useInstrumentSummary = () => {
   return useQuery<InstrumentSummary[]>({
     queryKey: ["instrument_summary", user?.id],
     queryFn: async () => {
-      // Fetch investment summary data
+      // Fetch investment summary data from money_summary view
       const { data: summaryData, error: summaryError } = await supabase
-        .from("investment_summary")
+        .from("money_summary")
         .select("*");
 
       if (summaryError) {
-        console.error("Failed to fetch investment summary", summaryError);
+        console.error("Failed to fetch money summary", summaryError);
         throw summaryError;
       }
 
@@ -107,18 +108,16 @@ export const useInstrumentSummary = () => {
         const instrumentMeta = instrumentMap.get(item.instrument_id);
         const existing = summaryMap.get(item.instrument_id);
 
-        const activeCapitalBase = item.current_value_base_currency != null 
-          ? (item.current_value_base_currency - (item.total_profit_base_currency || 0))
-          : (item.invested_capital_base_currency || 0);
+        const activeCapitalBase = item.active_capital_base_currency || 0;
         const currentValueBase = item.current_value_base_currency || 0;
         const totalProfitBase = item.total_profit_base_currency || 0;
         const investedCapitalBase = item.invested_capital_base_currency || 0;
-        
+
         // Original currency values for breakdown
         const originalCurrency = item.original_currency_code || "IDR";
         const activeCapitalOriginal = item.active_capital || 0;
         const currentValueOriginal = item.current_value || 0;
-        
+
         // Check if this row has unrealized asset profit (indicator of trackable data)
         const hasUnrealizedAsset = item.unrealized_asset_profit_base_currency != null;
 
@@ -127,12 +126,12 @@ export const useInstrumentSummary = () => {
           existing.currentValueBaseCurrency += currentValueBase;
           existing.totalProfitBaseCurrency += totalProfitBase;
           existing.investedCapitalBaseCurrency += investedCapitalBase;
-          
+
           // Track if any row has unrealized asset profit
           if (hasUnrealizedAsset) {
             existing.hasUnrealizedAssetProfit = true;
           }
-          
+
           // Update currency breakdown
           const currencyBreakdown = existing.currencyBreakdownMap.get(originalCurrency);
           if (currencyBreakdown) {
@@ -172,7 +171,7 @@ export const useInstrumentSummary = () => {
       // Convert to final format and calculate ROI
       const result: InstrumentSummary[] = Array.from(summaryMap.values()).map(item => {
         const currencyBreakdown = Array.from(item.currencyBreakdownMap.values());
-        
+
         // ROI calculated from base currency
         const roi = item.investedCapitalBaseCurrency > 0
           ? (item.totalProfitBaseCurrency / item.investedCapitalBaseCurrency) * 100

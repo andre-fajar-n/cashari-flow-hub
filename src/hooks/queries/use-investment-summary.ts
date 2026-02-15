@@ -10,7 +10,7 @@ export const useInvestmentSummary = () => {
     queryKey: ["investment_summary", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("investment_summary")
+        .from("money_summary")
         .select("*");
 
       if (error) {
@@ -31,7 +31,7 @@ export const useGoalInvestmentSummary = () => {
     queryKey: ["goal_investment_summary", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("investment_summary")
+        .from("money_summary")
         .select("*")
         .not("goal_id", "is", null);
 

@@ -27,6 +27,7 @@ export interface InvestmentSummaryExtended {
   wallet_id: number | null;
   wallet_name: string | null;
   // Extended fields from the actual view
+  active_capital_base_currency?: number | null;
   avg_exchange_rate?: number | null;
   avg_unit_price?: number | null;
   unrealized_asset_profit_base_currency?: number | null;
@@ -108,7 +109,7 @@ export const useGoalDetailSummary = (goalId: number) => {
     queryKey: ["goal_detail_summary", goalId, user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("investment_summary")
+        .from("money_summary")
         .select("*")
         .eq("goal_id", goalId);
 
@@ -219,7 +220,7 @@ export const buildBreakdownData = (items: InvestmentSummaryExtended[]): WalletBr
       investedCapital: item.invested_capital || 0,
       investedCapitalBaseCurrency: item.invested_capital_base_currency || 0,
       activeCapital: item.active_capital || 0,
-      activeCapitalBaseCurrency: (item.active_capital || 0) * avgExchangeRate,
+      activeCapitalBaseCurrency: item.active_capital_base_currency || 0,
       realizedProfit: item.realized_profit || 0,
       realizedProfitBaseCurrency: item.realized_profit_base_currency || 0,
       totalProfit: item.total_profit || 0,

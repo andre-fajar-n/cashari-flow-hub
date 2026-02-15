@@ -11,14 +11,14 @@ export interface InstrumentDetailSummary {
   totalProfit: number;
   roi: number | null;
   originalCurrencyCode: string;
-  
+
   // Base currency aggregates (for multi-currency comparison)
   investedCapitalBaseCurrency: number;
   activeCapitalBaseCurrency: number;
   currentValueBaseCurrency: number;
   totalProfitBaseCurrency: number;
   baseCurrencyCode: string;
-  
+
   // Profit breakdown
   realizedProfit: number;
   realizedProfitBaseCurrency: number;
@@ -26,14 +26,14 @@ export interface InstrumentDetailSummary {
   unrealizedProfitBaseCurrency: number;
   unrealizedAssetProfit: number;
   unrealizedCurrencyProfit: number;
-  
+
   // Trackable indicator
   isTrackable: boolean;
-  
+
   // Currency context
   isMultiCurrency: boolean;
   uniqueCurrencies: string[];
-  
+
   // Raw data for breakdown
   items: InvestmentSummaryExtended[];
 }
@@ -133,7 +133,7 @@ export const useInstrumentDetailSummary = (instrumentId: number) => {
     queryKey: ["instrument_detail_summary", instrumentId, user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("investment_summary")
+        .from("money_summary")
         .select("*")
         .eq("instrument_id", instrumentId);
 
@@ -166,19 +166,19 @@ export const useInstrumentDetailSummary = (instrumentId: number) => {
 
       for (const item of items) {
         const avgExchangeRate = item.avg_exchange_rate || 1;
-        
+
         totalInvestedCapital += item.invested_capital || 0;
         activeCapital += item.active_capital || 0;
         currentValue += item.current_value || 0;
         totalProfit += item.total_profit || 0;
         investedCapitalBaseCurrency += item.invested_capital_base_currency || 0;
-        activeCapitalBaseCurrency += (item.active_capital || 0) * avgExchangeRate;
+        activeCapitalBaseCurrency += item.active_capital_base_currency || 0;
         currentValueBaseCurrency += item.current_value_base_currency || 0;
         totalProfitBaseCurrency += item.total_profit_base_currency || 0;
         realizedProfit += item.realized_profit || 0;
         realizedProfitBaseCurrency += item.realized_profit_base_currency || 0;
         unrealizedProfit += item.unrealized_profit || 0;
-        
+
         // Unrealized breakdown
         if (item.unrealized_asset_profit_base_currency != null) {
           unrealizedProfitBaseCurrency += item.unrealized_asset_profit_base_currency;
@@ -188,7 +188,7 @@ export const useInstrumentDetailSummary = (instrumentId: number) => {
         if (item.unrealized_currency_profit != null) {
           unrealizedCurrencyProfit += item.unrealized_currency_profit;
         }
-        
+
         if (item.original_currency_code) {
           currencySet.add(item.original_currency_code);
           if (!originalCurrencyCode) {
@@ -396,7 +396,7 @@ const createAssetFromItem = (item: InvestmentSummaryExtended): AssetBreakdownFor
     investedCapital: item.invested_capital || 0,
     investedCapitalBaseCurrency: item.invested_capital_base_currency || 0,
     activeCapital: item.active_capital || 0,
-    activeCapitalBaseCurrency: (item.active_capital || 0) * avgExchangeRate,
+    activeCapitalBaseCurrency: (item as any).active_capital_base_currency || 0,
     realizedProfit: item.realized_profit || 0,
     realizedProfitBaseCurrency: item.realized_profit_base_currency || 0,
     totalProfit: item.total_profit || 0,
