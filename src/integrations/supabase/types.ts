@@ -980,6 +980,7 @@ export type Database = {
           currency_code: string
           id: number
           initial_amount: number | null
+          initial_exchange_rate_date: string | null
           name: string
           updated_at: string | null
           user_id: string
@@ -989,6 +990,7 @@ export type Database = {
           currency_code: string
           id?: number
           initial_amount?: number | null
+          initial_exchange_rate_date?: string | null
           name: string
           updated_at?: string | null
           user_id: string
@@ -998,6 +1000,7 @@ export type Database = {
           currency_code?: string
           id?: number
           initial_amount?: number | null
+          initial_exchange_rate_date?: string | null
           name?: string
           updated_at?: string | null
           user_id?: string
