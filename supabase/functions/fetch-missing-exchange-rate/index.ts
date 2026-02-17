@@ -25,25 +25,45 @@ serve(async (req: Request) => {
 
         console.log("Starting job creation...", date ? `for date: ${date}` : "for all dates");
 
-        // Get missing exchange rates
-        let query = supabase
-            .from("missing_exchange_rate")
-            .select("base_currency_code, currency_code, date")
-            .order("date", { ascending: true });
+        // Get missing exchange rates with batching to overcome 1000 row limit
+        const missingRates: any[] = [];
+        let from = 0;
+        const batchSize = 1000;
+        let moreData = true;
 
-        // Filter by date if provided
-        if (date) {
-            query = query.eq("date", date);
+        while (moreData) {
+            console.log(`Fetching batch from ${from} to ${from + batchSize - 1}...`);
+            let query = supabase
+                .from("missing_exchange_rate")
+                .select("base_currency_code, currency_code, date")
+                .order("date", { ascending: true })
+                .range(from, from + batchSize - 1);
+
+            // Filter by date if provided
+            if (date) {
+                query = query.eq("date", date);
+            }
+
+            const { data, error: fetchError } = await query;
+
+            if (fetchError) {
+                console.error("Failed to fetch missing_exchange_rate", fetchError);
+                throw fetchError;
+            }
+
+            if (data && data.length > 0) {
+                missingRates.push(...data);
+                if (data.length < batchSize) {
+                    moreData = false;
+                } else {
+                    from += batchSize;
+                }
+            } else {
+                moreData = false;
+            }
         }
 
-        const { data: missingRates, error: fetchError } = await query;
-
-        if (fetchError) {
-            console.error("Failed to fetch missing_exchange_rate", fetchError);
-            throw fetchError;
-        }
-
-        if (!missingRates || missingRates.length === 0) {
+        if (missingRates.length === 0) {
             return new Response(
                 JSON.stringify({
                     message: "No missing exchange rates found",
@@ -56,29 +76,47 @@ serve(async (req: Request) => {
             );
         }
 
+
         console.log(`Found ${missingRates.length} missing exchange rates`);
 
-        // Get existing pending jobs to avoid duplicates
-        const { data: existingJobs, error: existingJobsError } = await supabase
-            .from("exchange_rate_jobs")
-            .select("date, currency_pairs")
-            .eq("status", "pending");
+        // Get existing pending jobs to avoid duplicates with batching
+        const existingJobs: any[] = [];
+        let jobsFrom = 0;
+        let moreJobs = true;
 
-        if (existingJobsError) {
-            console.error("Failed to fetch existing pending jobs", existingJobsError);
-            throw existingJobsError;
+        while (moreJobs) {
+            const { data, error: existingJobsError } = await supabase
+                .from("exchange_rate_jobs")
+                .select("date, currency_pairs")
+                .eq("status", "pending")
+                .range(jobsFrom, jobsFrom + batchSize - 1);
+
+            if (existingJobsError) {
+                console.error("Failed to fetch existing pending jobs", existingJobsError);
+                throw existingJobsError;
+            }
+
+            if (data && data.length > 0) {
+                existingJobs.push(...data);
+                if (data.length < batchSize) {
+                    moreJobs = false;
+                } else {
+                    jobsFrom += batchSize;
+                }
+            } else {
+                moreJobs = false;
+            }
         }
 
         // Create a set of existing pending job signatures (pair:start_date)
         const pendingSignatures = new Set<string>();
-        if (existingJobs) {
-            for (const job of existingJobs) {
-                const pairs = job.currency_pairs as string[];
-                if (pairs && pairs.length > 0) {
-                    pendingSignatures.add(`${pairs[0]}:${job.date}`);
-                }
+        for (const job of existingJobs) {
+            const pairs = job.currency_pairs as string[];
+            if (pairs && pairs.length > 0) {
+                pendingSignatures.add(`${pairs[0]}:${job.date}`);
             }
         }
+
 
         console.log(`Found ${pendingSignatures.size} existing pending job signatures`);
 
