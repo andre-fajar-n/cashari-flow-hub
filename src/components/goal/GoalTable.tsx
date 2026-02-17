@@ -111,7 +111,7 @@ export const GoalTable = ({
           <div className="flex flex-col gap-2 min-w-[200px]">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground">
-                {percentage.toFixed(1)}%
+                {percentage.toFixed(2)}%
               </span>
               <span className="text-xs text-muted-foreground">
                 {collectedAmount} / {targetAmount}

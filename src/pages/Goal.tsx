@@ -11,7 +11,6 @@ import { GoalModel } from "@/models/goals";
 import { useCreateGoal, useUpdateGoal, useDeleteGoal, useToggleGoalActive } from "@/hooks/queries/use-goals";
 import { useGoalsPaginated } from "@/hooks/queries/paginated/use-goals-paginated";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
-import { useMoneySummary } from "@/hooks/queries/use-money-summary";
 import { useGoalInvestmentSummary } from "@/hooks/queries/use-investment-summary";
 import { useTableState } from "@/hooks/use-table-state";
 import { GoalTable } from "@/components/goal/GoalTable";

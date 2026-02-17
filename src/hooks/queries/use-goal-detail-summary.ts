@@ -109,7 +109,7 @@ export const useGoalDetailSummary = (goalId: number) => {
     queryKey: ["goal_detail_summary", goalId, user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("money_summary")
+        .from("investment_summary")
         .select("*")
         .eq("goal_id", goalId);
 
@@ -201,15 +201,11 @@ export const buildBreakdownData = (items: InvestmentSummaryExtended[]): WalletBr
       wallet.instruments.push(instrument);
     }
 
-
     // Calculate latest unit price for trackable assets
     let latestUnitPrice: number | null = null;
     if (item.is_trackable && item.amount_unit && item.amount_unit > 0 && item.current_value) {
       latestUnitPrice = item.current_value / item.amount_unit;
     }
-
-    // Calculate base currency conversion using avg_exchange_rate
-    const avgExchangeRate = item.avg_exchange_rate || 1;
 
     // Create asset
     const asset: AssetBreakdown = {

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -24,7 +23,6 @@ import { useMoneyMovementsPaginatedByGoal } from "@/hooks/queries/paginated/use-
 import { useDeleteGoal, useGoalDetail, useGoals, useUpdateGoal, useToggleGoalActive } from "@/hooks/queries/use-goals";
 import { useCreateGoalTransfer } from "@/hooks/queries/use-goal-transfers";
 import { useCreateGoalInvestmentRecord } from "@/hooks/queries/use-goal-investment-records";
-import { useMoneySummary } from "@/hooks/queries/use-money-summary";
 import { useWallets } from "@/hooks/queries/use-wallets";
 import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
@@ -35,7 +33,6 @@ import { GoalFormData, defaultGoalFormValues, mapGoalToFormData } from "@/form-d
 import { GoalTransferFormData, defaultGoalTransferFormData, mapGoalTransferToFormData } from "@/form-dto/goal-transfers";
 import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData, mapGoalInvestmentRecordToFormData } from "@/form-dto/goal-investment-records";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
-import { MoneyMovementModel } from "@/models/money-movements";
 import { GoalTransferModel } from "@/models/goal-transfers";
 import { GoalInvestmentRecordModel } from "@/models/goal-investment-records";
 
@@ -43,7 +40,6 @@ const GoalDetail = () => {
   const { id } = useParams<{ id: string }>();
   const goalId = parseInt(id!);
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   // Delete goal modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -69,7 +65,6 @@ const GoalDetail = () => {
 
   // Queries
   const { data: goal, isLoading: isGoalLoading } = useGoalDetail(goalId);
-  const { data: goalFundsSummary, isLoading: isFundsSummaryLoading } = useMoneySummary({ goalId });
   const { data: wallets, isLoading: isWalletsLoading } = useWallets();
   const { data: goals, isLoading: isGoalsLoading } = useGoals();
   const { data: assets, isLoading: isAssetsLoading } = useInvestmentAssets();
@@ -108,8 +103,8 @@ const GoalDetail = () => {
     mapDataToForm: mapGoalInvestmentRecordToFormData,
   });
 
-  const isLoading = isGoalLoading || isFundsSummaryLoading || isWalletsLoading ||
-    isAssetsLoading || isInstrumentsLoading || isGoalsLoading || isCurrencyLoading || history.isLoading;
+  const isLoading = isGoalLoading || isWalletsLoading || isAssetsLoading ||
+    isInstrumentsLoading || isGoalsLoading || isCurrencyLoading || history.isLoading;
 
   // Reset transfer form when dialog opens with specific config
   useEffect(() => {
@@ -232,9 +227,6 @@ const GoalDetail = () => {
       </ProtectedRoute>
     );
   }
-
-  const totalAmount = goalFundsSummary?.reduce((sum, fund) => sum + fund.amount, 0) || 0;
-  const percentage = Math.min(totalAmount / goal.target_amount * 100, 100);
 
   // Calculate totals from movements for overview
   let totalAmountRecord = 0;

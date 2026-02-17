@@ -84,7 +84,7 @@ const RoiCard = ({
 }) => {
   const isPositive = (value || 0) >= 0;
   const Icon = isPositive ? TrendingUp : TrendingDown;
-  
+
   return (
     <div className="flex flex-col gap-2 p-4 rounded-lg border bg-card">
       <div className="flex items-center justify-between">
@@ -125,8 +125,8 @@ const ProgressSection = ({
   currencySymbol: string;
 }) => {
   const targetAmount = goal.target_amount || 0;
-  const progressPercentage = targetAmount > 0 
-    ? Math.min(Math.round((currentValue / targetAmount) * 100), 100) 
+  const progressPercentage = targetAmount > 0
+    ? Math.min(Math.round((currentValue / targetAmount) * 100), 100)
     : 0;
   const isAchieved = currentValue >= targetAmount && targetAmount > 0;
 
@@ -150,7 +150,7 @@ const ProgressSection = ({
           </Tooltip>
         </TooltipProvider>
       </div>
-      
+
       <div className="space-y-2">
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">
@@ -160,8 +160,8 @@ const ProgressSection = ({
             {progressPercentage}%
           </Badge>
         </div>
-        <Progress 
-          value={progressPercentage} 
+        <Progress
+          value={progressPercentage}
           className="h-3"
         />
         {isAchieved && (
@@ -176,8 +176,6 @@ const ProgressSection = ({
 };
 
 const GoalSummaryHeader = ({ goal, summary, currencySymbol }: GoalSummaryHeaderProps) => {
-  const baseCurrencyCode = summary.baseCurrencyCode || goal.currency_code;
-
   return (
     <Card>
       <CardHeader>
@@ -193,10 +191,10 @@ const GoalSummaryHeader = ({ goal, summary, currencySymbol }: GoalSummaryHeaderP
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Progress Bar */}
-        <ProgressSection 
-          goal={goal} 
-          currentValue={summary.currentValue} 
-          currencyCode={baseCurrencyCode}
+        <ProgressSection
+          goal={goal}
+          currentValue={summary.currentValue}
+          currencyCode={goal.currency_code}
           currencySymbol={currencySymbol}
         />
 
@@ -207,7 +205,7 @@ const GoalSummaryHeader = ({ goal, summary, currencySymbol }: GoalSummaryHeaderP
             tooltip="Total dana yang pernah dimasukkan ke goal ini. Mencakup semua investasi dari berbagai wallet dan mata uang."
             value={summary.totalInvestedCapital}
             icon={Wallet}
-            currencyCode={baseCurrencyCode}
+            currencyCode={goal.currency_code}
             currencySymbol={currencySymbol}
           />
           <MetricCard
@@ -215,7 +213,7 @@ const GoalSummaryHeader = ({ goal, summary, currencySymbol }: GoalSummaryHeaderP
             tooltip="Nilai goal berdasarkan kondisi terbaru. Untuk aset yang memiliki harga pasar, nilai dihitung dari harga terkini."
             value={summary.currentValue}
             icon={DollarSign}
-            currencyCode={baseCurrencyCode}
+            currencyCode={goal.currency_code}
             currencySymbol={currencySymbol}
           />
           <MetricCard
@@ -224,7 +222,7 @@ const GoalSummaryHeader = ({ goal, summary, currencySymbol }: GoalSummaryHeaderP
             value={summary.totalProfit}
             icon={summary.totalProfit >= 0 ? TrendingUp : TrendingDown}
             isProfit={true}
-            currencyCode={baseCurrencyCode}
+            currencyCode={goal.currency_code}
             currencySymbol={currencySymbol}
           />
           <RoiCard
@@ -236,7 +234,7 @@ const GoalSummaryHeader = ({ goal, summary, currencySymbol }: GoalSummaryHeaderP
 
         {/* Helper text */}
         <p className="text-xs text-muted-foreground text-center pt-2 border-t">
-          Semua nilai ditampilkan dalam {baseCurrencyCode}. Detail per wallet dan mata uang dapat dilihat di bagian Rincian Goal.
+          Semua nilai ditampilkan dalam {goal.currency_code}. Detail per wallet dan mata uang dapat dilihat di bagian Rincian Goal.
         </p>
       </CardContent>
     </Card>

@@ -31,7 +31,7 @@ export const useGoalInvestmentSummary = () => {
     queryKey: ["goal_investment_summary", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("money_summary")
+        .from("investment_summary")
         .select("*")
         .not("goal_id", "is", null);
 
@@ -47,11 +47,8 @@ export const useGoalInvestmentSummary = () => {
         if (!item.goal_id) continue;
 
         const existing = goalMap.get(item.goal_id);
-        const investedCapital = item.invested_capital || 0;
         const investedCapitalBaseCurrency = item.invested_capital_base_currency || 0;
-        const currentValue = item.current_value || 0;
         const currentValueBaseCurrency = item.current_value_base_currency || 0;
-        const totalProfit = item.total_profit || 0;
         const totalProfitBaseCurrency = item.total_profit_base_currency || 0;
 
         if (existing) {
