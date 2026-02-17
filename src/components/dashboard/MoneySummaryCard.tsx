@@ -102,15 +102,19 @@ const MoneySummaryCard = ({
       return {
         canCalculate: false,
         totalAmount: 0,
-        totalOriginalAmount: 0,
+        totalActiveCapital: 0,
         totalUnrealizedAmount: 0,
+        totalUnrealizedAssetProfit: 0,
+        totalUnrealizedCurrencyProfit: 0,
         missingRates: []
       };
     }
 
     const missingRates: string[] = [];
     let totalAmount = 0;
-    let totalOriginalAmount = 0;
+    let totalActiveCapital = 0;
+    let totalUnrealizedAssetProfit = 0;
+    let totalUnrealizedCurrencyProfit = 0;
     let canCalculate = true;
 
     for (const currency of currencies) {
@@ -118,12 +122,16 @@ const MoneySummaryCard = ({
       if (!currencyData) continue;
 
       const calculatedAmount = currencyData.calculatedAmount || 0;
-      const originalAmount = currencyData.originalAmount || 0;
+      const activeCapital = currencyData.active_capital || 0;
+
+      // Accumulate profit components (already in base currency)
+      totalUnrealizedAssetProfit += currencyData.unrealized_asset_profit_base_currency || 0;
+      totalUnrealizedCurrencyProfit += currencyData.unrealized_currency_profit || 0;
 
       // If it's the same as default currency, no conversion needed
       if (currency === userSettings?.base_currency_code) {
         totalAmount += calculatedAmount;
-        totalOriginalAmount += originalAmount;
+        totalActiveCapital += activeCapital;
       } else {
         // Need exchange rate for conversion
         if (currencyData.latest_rate === null) {
@@ -132,18 +140,20 @@ const MoneySummaryCard = ({
         } else {
           const rate = currencyData.latest_rate || 0;
           totalAmount += calculatedAmount * rate;
-          totalOriginalAmount += originalAmount * rate;
+          totalActiveCapital += currencyData.active_capital_base_currency || (activeCapital * rate);
         }
       }
     }
 
-    const totalUnrealizedAmount = totalAmount - totalOriginalAmount;
+    const totalUnrealizedAmount = totalAmount - totalActiveCapital;
 
     return {
       canCalculate,
       totalAmount,
-      totalOriginalAmount,
+      totalActiveCapital,
       totalUnrealizedAmount,
+      totalUnrealizedAssetProfit,
+      totalUnrealizedCurrencyProfit,
       missingRates
     };
   }, [currencies, currencyMap, userSettings]);
@@ -411,18 +421,36 @@ const MoneySummaryCard = ({
                   <div className="flex justify-between text-green-600">
                     <span>Nilai Awal:</span>
                     <span>
-                      {totalAmountCalculation.totalUnrealizedAmount === 0
-                        ? "-"
-                        : formatAmountCurrency(totalAmountCalculation.totalOriginalAmount, userSettings.base_currency_code, userSettings.currencies?.symbol)}
+                      {formatAmountCurrency(totalAmountCalculation.totalActiveCapital, userSettings.base_currency_code, userSettings.currencies?.symbol)}
                     </span>
                   </div>
                   {totalAmountCalculation.totalUnrealizedAmount !== 0 && (
-                    <div className={`flex justify-between font-medium ${totalAmountCalculation.totalUnrealizedAmount >= 0 ? 'text-green-700' : 'text-red-600'}`}>
-                      <span>Total Belum Terealisasi:</span>
-                      <span>
-                        {totalAmountCalculation.totalUnrealizedAmount >= 0 ? '+' : ''}
-                        {formatAmountCurrency(totalAmountCalculation.totalUnrealizedAmount, userSettings.base_currency_code, userSettings.currencies?.symbol)}
-                      </span>
+                    <div className="space-y-1">
+                      <div className={`flex justify-between font-medium ${totalAmountCalculation.totalUnrealizedAmount >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                        <span>Total Belum Terealisasi:</span>
+                        <span>
+                          {totalAmountCalculation.totalUnrealizedAmount >= 0 ? '+' : ''}
+                          {formatAmountCurrency(totalAmountCalculation.totalUnrealizedAmount, userSettings.base_currency_code, userSettings.currencies?.symbol)}
+                        </span>
+                      </div>
+
+                      {/* Breakdown */}
+                      <div className="text-[10px] space-y-0.5 mt-1 border-t border-green-200/50 pt-1">
+                        <div className={`flex justify-between gap-2 ${totalAmountCalculation.totalUnrealizedAssetProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          <span>Aset:</span>
+                          <span>
+                            {totalAmountCalculation.totalUnrealizedAssetProfit >= 0 ? '+' : ''}
+                            {formatAmountCurrency(totalAmountCalculation.totalUnrealizedAssetProfit, userSettings.base_currency_code, userSettings.currencies?.symbol)}
+                          </span>
+                        </div>
+                        <div className={`flex justify-between gap-2 ${totalAmountCalculation.totalUnrealizedCurrencyProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          <span>Kurs:</span>
+                          <span>
+                            {totalAmountCalculation.totalUnrealizedCurrencyProfit >= 0 ? '+' : ''}
+                            {formatAmountCurrency(totalAmountCalculation.totalUnrealizedCurrencyProfit, userSettings.base_currency_code, userSettings.currencies?.symbol)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>

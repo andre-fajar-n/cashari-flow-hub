@@ -28,23 +28,16 @@ export const WalletRow = ({ wallet, isExpanded }: WalletRowProps) => (
     </div>
 
     {/* Column 2: Original Amount */}
-    {wallet.unrealized_profit === 0 ? (
-      <div className="text-center space-y-1">
-        <div className="text-xs text-muted-foreground font-medium">Nilai Awal</div>
-        <div className="font-semibold">-</div>
-      </div>
-    ) : (
-      <AmountColumn
-        label="Nilai Awal"
-        amount={wallet.active_capital}
-        currency={wallet.original_currency_code}
-        currencySymbol={wallet.original_currency_symbol}
-        baseCurrencyAmount={wallet.base_currency_code !== wallet.original_currency_code ? wallet.active_capital_base_currency : undefined}
-        baseCurrency={wallet.base_currency_code || undefined}
-        baseCurrencySymbol={wallet.base_currency_symbol || undefined}
-        showBaseCurrency={wallet.base_currency_code !== wallet.original_currency_code}
-      />
-    )}
+    <AmountColumn
+      label="Nilai Awal"
+      amount={wallet.active_capital}
+      currency={wallet.original_currency_code}
+      currencySymbol={wallet.original_currency_symbol}
+      baseCurrencyAmount={wallet.base_currency_code !== wallet.original_currency_code ? wallet.active_capital_base_currency : undefined}
+      baseCurrency={wallet.base_currency_code || undefined}
+      baseCurrencySymbol={wallet.base_currency_symbol || undefined}
+      showBaseCurrency={wallet.base_currency_code !== wallet.original_currency_code}
+    />
 
     {/* Column 3: Unrealized Amount */}
     <UnrealizedColumn

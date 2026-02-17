@@ -28,23 +28,16 @@ export const InstrumentRow = ({ instrument, isExpanded }: InstrumentRowProps) =>
     </div>
 
     {/* Column 2: Original Amount */}
-    {instrument.unrealized_profit === 0 ? (
-      <div className="text-center space-y-1">
-        <div className="text-xs text-muted-foreground font-medium">Nilai Awal</div>
-        <div className="font-semibold">-</div>
-      </div>
-    ) : (
-      <AmountColumn
-        label="Nilai Awal"
-        amount={instrument.active_capital}
-        currency={instrument.original_currency_code}
-        currencySymbol={instrument.original_currency_symbol}
-        baseCurrencyAmount={instrument.base_currency_code !== instrument.original_currency_code ? instrument.active_capital_base_currency : undefined}
-        baseCurrency={instrument.base_currency_code || undefined}
-        baseCurrencySymbol={instrument.base_currency_symbol || undefined}
-        showBaseCurrency={instrument.base_currency_code !== instrument.original_currency_code}
-      />
-    )}
+    <AmountColumn
+      label="Nilai Awal"
+      amount={instrument.active_capital}
+      currency={instrument.original_currency_code}
+      currencySymbol={instrument.original_currency_symbol}
+      baseCurrencyAmount={instrument.base_currency_code !== instrument.original_currency_code ? instrument.active_capital_base_currency : undefined}
+      baseCurrency={instrument.base_currency_code || undefined}
+      baseCurrencySymbol={instrument.base_currency_symbol || undefined}
+      showBaseCurrency={instrument.base_currency_code !== instrument.original_currency_code}
+    />
 
     {/* Column 3: Unrealized Amount */}
     <UnrealizedColumn
