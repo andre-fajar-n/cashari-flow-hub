@@ -82,11 +82,11 @@ const AssetSummary = ({ assetId, assetName }: AssetSummaryProps) => {
 
     // Add record to goal
     walletGroups[walletKey].goals[goalKey].records.push(record);
-    walletGroups[walletKey].goals[goalKey].totalAmount += record.amount || 0;
+    walletGroups[walletKey].goals[goalKey].totalAmount += record.total_amount || 0;
     walletGroups[walletKey].goals[goalKey].totalUnit += record.amount_unit || 0;
 
     // Update wallet totals
-    walletGroups[walletKey].totalAmount += record.amount || 0;
+    walletGroups[walletKey].totalAmount += record.total_amount || 0;
     walletGroups[walletKey].totalUnit += record.amount_unit || 0;
 
     return walletGroups;

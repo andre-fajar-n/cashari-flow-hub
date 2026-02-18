@@ -31,7 +31,7 @@ const InvestmentAsset = () => {
   // Table state management using generic hook
   const { state: tableState, actions: tableActions } = useTableState({
     initialPage: 1,
-    initialPageSize: 5,
+    initialPageSize: 10,
   });
 
   const { data: paged, isLoading: isAssetsLoading } = useInvestmentAssetsPaginated({

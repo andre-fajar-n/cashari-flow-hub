@@ -30,7 +30,7 @@ export const useAssetSummaries = () => {
 
         if (existing) {
           // Aggregate amounts and units
-          existing.totalAmount += summary.amount || 0;
+          existing.totalAmount += summary.total_amount || 0;
           existing.totalAmountUnit += summary.amount_unit || 0;
 
           // Keep the latest asset value and date (assuming data is already sorted or we pick the most recent)
@@ -41,7 +41,7 @@ export const useAssetSummaries = () => {
           }
         } else {
           // Create new entry
-          const totalAmount = summary.amount || 0;
+          const totalAmount = summary.total_amount || 0;
           const totalAmountUnit = summary.amount_unit || 0;
 
           assetMap.set(assetId, {

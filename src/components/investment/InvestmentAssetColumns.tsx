@@ -89,7 +89,7 @@ export const getInvestmentAssetColumns = ({
               {formatAmountCurrency(assetSummary.totalAmount, assetSummary.currencyCode, assetSummary.currencySymbol)}
             </span>
             <span className="text-xs text-gray-500">
-              {assetSummary.totalAmountUnit.toLocaleString('id-ID')} unit
+              {assetSummary.totalAmountUnit.toLocaleString('id-ID', { maximumFractionDigits: 4 })} unit
             </span>
           </div>
         );
