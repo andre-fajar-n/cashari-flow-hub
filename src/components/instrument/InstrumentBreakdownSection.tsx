@@ -39,7 +39,6 @@ import {
 interface InstrumentBreakdownSectionProps {
   items: InvestmentSummaryExtended[];
   baseCurrencyCode: string;
-  originalCurrencyCode: string;
 }
 
 type BreakdownMode = "goal-first" | "wallet-first";
@@ -127,21 +126,29 @@ const AssetItem = ({
             <div className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-primary" />
               <div className="text-left">
-                <p className="font-medium text-sm">{asset.assetName || 'Tanpa Nama Aset'}</p>
+                <p className="font-medium text-sm">{asset.assetName || (asset.assetId === null ? 'Saldo / Tunai' : 'Tanpa Nama Aset')}</p>
                 <div className="flex items-center gap-1.5 mt-1">
                   <Badge variant="outline" className="text-xs py-0 px-1.5">
                     {asset.originalCurrencyCode}
                   </Badge>
-                  <Badge
-                    variant={asset.isTrackable ? "secondary" : "outline"}
-                    className="text-xs py-0 px-1.5"
-                  >
-                    {asset.isTrackable ? "Trackable" : "Non-trackable"}
-                  </Badge>
+                  {asset.assetId !== null && (
+                    <Badge
+                      variant={asset.isTrackable ? "secondary" : "outline"}
+                      className="text-xs py-0 px-1.5"
+                    >
+                      {asset.isTrackable ? "Trackable" : "Non-trackable"}
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <div className="text-right">
+                <p className={`text-sm font-semibold ${asset.currentValueBaseCurrency < 0 ? 'text-red-500' : ''}`}>
+                  {formatAmountCurrency(asset.currentValueBaseCurrency, baseCurrency, baseCurrency)}
+                </p>
+                <p className="text-xs text-muted-foreground">Nilai Saat Ini</p>
+              </div>
               <div className="text-right">
                 <AmountText amount={asset.totalProfitBaseCurrency} showSign={true} className="text-sm font-semibold">
                   {formatAmountCurrency(Math.abs(asset.totalProfitBaseCurrency), baseCurrency, baseCurrency)}
@@ -237,11 +244,11 @@ const AssetItem = ({
                         showSign={true}
                         className="text-sm font-medium"
                       >
-                        {formatAmountCurrency(Math.abs(asset.unrealizedProfitBaseCurrency || 0), baseCurrency, baseCurrency)}
+                        {formatAmountCurrency(Math.abs(asset.unrealizedProfit || 0), asset.originalCurrencyCode, asset.originalCurrencyCode)}
                       </AmountText>
                       {!isSameCurrency && (
                         <p className="text-xs text-muted-foreground italic">
-                          {asset.originalCurrencyCode}: {formatAmountCurrency(asset.unrealizedProfit, asset.originalCurrencyCode, asset.originalCurrencyCode)}
+                          {formatAmountCurrency(asset.unrealizedProfitBaseCurrency || 0, baseCurrency, baseCurrency)}
                         </p>
                       )}
                     </div>
@@ -376,7 +383,7 @@ const WalletItemUnderGoal = ({
   baseCurrency: string;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const hasAssets = wallet.assets.length > 0;
+  const hasAssets = wallet.assets.some(a => a.assetId !== null);
 
   if (!hasAssets) {
     return (
@@ -389,10 +396,10 @@ const WalletItemUnderGoal = ({
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-sm font-semibold">
+              <p className={`text-sm font-semibold ${wallet.currentValueBaseCurrency < 0 ? 'text-red-500' : ''}`}>
                 {formatAmountCurrency(wallet.currentValueBaseCurrency, baseCurrency, baseCurrency)}
               </p>
-              <p className="text-xs text-muted-foreground">Nilai</p>
+              <p className="text-xs text-muted-foreground">Nilai Saat Ini</p>
             </div>
             <div className="text-right">
               <AmountText amount={wallet.totalProfitBaseCurrency} showSign={true} className="text-sm font-semibold">
@@ -420,10 +427,10 @@ const WalletItemUnderGoal = ({
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-sm font-semibold">
+                <p className={`text-sm font-semibold ${wallet.currentValueBaseCurrency < 0 ? 'text-red-500' : ''}`}>
                   {formatAmountCurrency(wallet.currentValueBaseCurrency, baseCurrency, baseCurrency)}
                 </p>
-                <p className="text-xs text-muted-foreground">Nilai</p>
+                <p className="text-xs text-muted-foreground">Nilai Saat Ini</p>
               </div>
               <div className="text-right">
                 <AmountText amount={wallet.totalProfitBaseCurrency} showSign={true} className="text-sm font-semibold">
@@ -438,7 +445,7 @@ const WalletItemUnderGoal = ({
         <CollapsibleContent>
           <div className="p-3 space-y-2 border-t">
             {wallet.assets
-              .sort((a, b) => b.totalProfitBaseCurrency - a.totalProfitBaseCurrency)
+              .sort((a, b) => (b.currentValueBaseCurrency || 0) - (a.currentValueBaseCurrency || 0) || b.totalProfitBaseCurrency - a.totalProfitBaseCurrency)
               .map((asset, idx) => (
                 <AssetItem key={idx} asset={asset} baseCurrency={baseCurrency} />
               ))}
@@ -476,7 +483,7 @@ const GoalItem = ({
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-base font-bold">
+                <p className={`text-base font-bold ${goal.currentValueBaseCurrency < 0 ? 'text-red-500' : ''}`}>
                   {formatAmountCurrency(goal.currentValueBaseCurrency, baseCurrency, baseCurrency)}
                 </p>
                 <p className="text-xs text-muted-foreground">Nilai Saat Ini</p>
@@ -519,7 +526,7 @@ const GoalItemUnderWallet = ({
   baseCurrency: string;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const hasAssets = goal.assets.length > 0;
+  const hasAssets = goal.assets.some(a => a.assetId !== null);
 
   if (!hasAssets) {
     return (
@@ -531,10 +538,10 @@ const GoalItemUnderWallet = ({
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="text-sm font-semibold">
+              <p className={`text-sm font-semibold ${goal.currentValueBaseCurrency < 0 ? 'text-red-500' : ''}`}>
                 {formatAmountCurrency(goal.currentValueBaseCurrency, baseCurrency, baseCurrency)}
               </p>
-              <p className="text-xs text-muted-foreground">Nilai</p>
+              <p className="text-xs text-muted-foreground">Nilai Saat Ini</p>
             </div>
             <div className="text-right">
               <AmountText amount={goal.totalProfitBaseCurrency} showSign={true} className="text-sm font-semibold">
@@ -562,10 +569,10 @@ const GoalItemUnderWallet = ({
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-sm font-semibold">
+                <p className={`text-sm font-semibold ${goal.currentValueBaseCurrency < 0 ? 'text-red-500' : ''}`}>
                   {formatAmountCurrency(goal.currentValueBaseCurrency, baseCurrency, baseCurrency)}
                 </p>
-                <p className="text-xs text-muted-foreground">Nilai</p>
+                <p className="text-xs text-muted-foreground">Nilai Saat Ini</p>
               </div>
               <div className="text-right">
                 <AmountText amount={goal.totalProfitBaseCurrency} showSign={true} className="text-sm font-semibold">
@@ -580,7 +587,7 @@ const GoalItemUnderWallet = ({
         <CollapsibleContent>
           <div className="p-3 space-y-2 border-t">
             {goal.assets
-              .sort((a, b) => b.totalProfitBaseCurrency - a.totalProfitBaseCurrency)
+              .sort((a, b) => (b.currentValueBaseCurrency || 0) - (a.currentValueBaseCurrency || 0) || b.totalProfitBaseCurrency - a.totalProfitBaseCurrency)
               .map((asset, idx) => (
                 <AssetItem key={idx} asset={asset} baseCurrency={baseCurrency} />
               ))}
@@ -619,7 +626,7 @@ const WalletItem = ({
             </div>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-base font-bold">
+                <p className={`text-base font-bold ${wallet.currentValueBaseCurrency < 0 ? 'text-red-500' : ''}`}>
                   {formatAmountCurrency(wallet.currentValueBaseCurrency, baseCurrency, baseCurrency)}
                 </p>
                 <p className="text-xs text-muted-foreground">Nilai Saat Ini</p>
@@ -707,7 +714,6 @@ const WalletItem = ({
 const InstrumentBreakdownSection = ({
   items,
   baseCurrencyCode,
-  originalCurrencyCode,
 }: InstrumentBreakdownSectionProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<BreakdownMode>("goal-first");
@@ -735,8 +741,8 @@ const InstrumentBreakdownSection = ({
               </CardTitle>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">
-                  {mode === "goal-first" 
-                    ? `${goalFirstData.length} goal` 
+                  {mode === "goal-first"
+                    ? `${goalFirstData.length} goal`
                     : `${walletFirstData.length} wallet`}
                 </span>
                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -751,8 +757,8 @@ const InstrumentBreakdownSection = ({
             {/* Mode Switch */}
             <div className="flex items-center justify-between mb-4">
               <p className="text-xs text-muted-foreground">
-                {mode === "goal-first" 
-                  ? "Rincian per Goal → Dompet → Aset" 
+                {mode === "goal-first"
+                  ? "Rincian per Goal → Dompet → Aset"
                   : "Rincian per Dompet → Goal → Aset"}
               </p>
               <TooltipProvider>

@@ -26,10 +26,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { MOVEMENT_TYPES } from "@/constants/enums";
 import { GoalTransferModel } from "@/models/goal-transfers";
 import { GoalInvestmentRecordModel } from "@/models/goal-investment-records";
-import { useQueryClient } from "@tanstack/react-query";
 import { defaultGoalTransferFormData, GoalTransferFormData, mapGoalTransferToFormData } from "@/form-dto/goal-transfers";
 import { defaultGoalInvestmentRecordFormData, GoalInvestmentRecordFormData, mapGoalInvestmentRecordToFormData } from "@/form-dto/goal-investment-records";
 import { useGoalMovementHistory } from "@/hooks/use-goal-movement-history";
@@ -42,7 +40,6 @@ const InstrumentDetail = () => {
   const { id } = useParams<{ id: string }>();
   const instrumentId = parseInt(id!);
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   // Delete modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -88,21 +85,6 @@ const InstrumentDetail = () => {
     }),
   });
 
-  // Transfer config for new transfers
-  const [transferConfig, setTransferConfig] = useState<GoalTransferConfig | undefined>(undefined);
-
-  const transferDialog = useDialogState<GoalTransferModel, GoalTransferFormData>({
-    form: transferForm,
-    defaultValues: defaultGoalTransferFormData,
-    mapDataToForm: mapGoalTransferToFormData,
-  });
-
-  const recordDialog = useDialogState<GoalInvestmentRecordModel, GoalInvestmentRecordFormData>({
-    form: recordForm,
-    defaultValues: defaultGoalInvestmentRecordFormData,
-    mapDataToForm: mapGoalInvestmentRecordToFormData,
-  });
-
   const isLoading = isInstrumentLoading || history.isLoading || isWalletsLoading || isGoalsLoading || isAssetsLoading ||
     isInstrumensLoading || isInvestmentCategoriesLoading;
 
@@ -132,13 +114,6 @@ const InstrumentDetail = () => {
       }
     });
   };
-
-  // Reset record form when dialog opens
-  useEffect(() => {
-    if (recordDialog.open && instrument) {
-      recordForm.reset({ ...defaultGoalInvestmentRecordFormData, instrument_id: instrument.id });
-    }
-  }, [recordDialog.open, instrument, recordForm]);
 
   if (isLoading) {
     return (

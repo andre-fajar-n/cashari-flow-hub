@@ -165,8 +165,6 @@ export const useInstrumentDetailSummary = (instrumentId: number) => {
       const currencySet = new Set<string>();
 
       for (const item of items) {
-        const avgExchangeRate = item.avg_exchange_rate || 1;
-
         totalInvestedCapital += item.invested_capital || 0;
         activeCapital += item.active_capital || 0;
         currentValue += item.current_value || 0;

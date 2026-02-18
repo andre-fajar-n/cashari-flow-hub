@@ -40,22 +40,21 @@ const InstrumentOverview = ({ instrument }: InstrumentOverviewProps) => {
   return (
     <div className="space-y-4">
       {/* Header Section - Main KPIs */}
-      <InstrumentSummaryHeader 
-        instrument={instrument} 
-        summary={summary} 
+      <InstrumentSummaryHeader
+        instrument={instrument}
+        summary={summary}
       />
-      
+
       {/* Capital Breakdown Section */}
       <InstrumentCapitalBreakdown summary={summary} />
-      
+
       {/* Profit Breakdown Section */}
       <InstrumentProfitBreakdown summary={summary} />
-      
+
       {/* Asset List / Hierarchy Breakdown Section */}
-      <InstrumentBreakdownSection 
-        items={summary.items} 
+      <InstrumentBreakdownSection
+        items={summary.items}
         baseCurrencyCode={summary.baseCurrencyCode || summary.originalCurrencyCode}
-        originalCurrencyCode={summary.originalCurrencyCode}
       />
     </div>
   );
