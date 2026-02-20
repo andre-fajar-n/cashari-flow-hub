@@ -33,11 +33,24 @@ export const useAssetSummaries = () => {
           existing.totalAmount += summary.total_amount || 0;
           existing.totalAmountUnit += summary.amount_unit || 0;
 
+          existing.activeCapitalBaseCurrency += summary.active_capital_base_currency || 0;
+          existing.activeCapital += summary.active_capital || 0;
+          existing.unrealizedAmount += summary.unrealized_profit || 0;
+          existing.unrealizedAssetProfitBaseCurrency += summary.unrealized_asset_profit_base_currency || 0;
+          existing.unrealizedCurrencyProfit += summary.unrealized_currency_profit || 0;
+          existing.currentValue += summary.current_value || 0;
+          existing.currentValueBaseCurrency += summary.current_value_base_currency || 0;
+
           // Keep the latest asset value and date (assuming data is already sorted or we pick the most recent)
           if (summary.latest_asset_value_date &&
             (!existing.latestAssetValueDate || summary.latest_asset_value_date > existing.latestAssetValueDate)) {
             existing.latestAssetValue = summary.latest_asset_value;
             existing.latestAssetValueDate = summary.latest_asset_value_date;
+          }
+
+          if (summary.base_currency_code) {
+            existing.baseCurrencyCode = summary.base_currency_code;
+            existing.baseCurrencySymbol = summary.base_currency_symbol;
           }
         } else {
           // Create new entry
@@ -49,53 +62,25 @@ export const useAssetSummaries = () => {
             assetName: summary.asset_name || `Asset ${assetId}`,
             latestAssetValue: summary.latest_asset_value,
             latestAssetValueDate: summary.latest_asset_value_date,
-            totalAmount,
-            totalAmountUnit,
             currencyCode: summary.original_currency_code || '',
             currencySymbol: summary.original_currency_symbol || '',
-            averagePricePerUnit: null,
-            currentAssetAmount: null,
-            amountChange: null,
-            amountChangePercentage: null,
-            assetValueChange: null,
-            assetValueChangePercentage: null,
-            unrealizedAmount: null,
+            baseCurrencyCode: summary.base_currency_code,
+            baseCurrencySymbol: summary.base_currency_symbol,
+
+            totalAmount,
+            totalAmountUnit,
+            activeCapitalBaseCurrency: summary.active_capital_base_currency || 0,
+            activeCapital: summary.active_capital,
+            unrealizedAmount: summary.unrealized_profit,
+            unrealizedAssetProfitBaseCurrency: summary.unrealized_asset_profit_base_currency,
+            unrealizedCurrencyProfit: summary.unrealized_currency_profit,
+            currentValue: summary.current_value,
+            currentValueBaseCurrency: summary.current_value_base_currency,
           });
         }
       }
 
-      // Recalculate all derived values for aggregated data
-      const result = Array.from(assetMap.values()).map(asset => {
-        const averagePricePerUnit = asset.totalAmountUnit > 0 ? asset.totalAmount / asset.totalAmountUnit : null;
-        const currentAssetAmount = asset.latestAssetValue && asset.totalAmountUnit > 0
-          ? asset.latestAssetValue * asset.totalAmountUnit
-          : null;
-
-        const amountChange = currentAssetAmount !== null ? currentAssetAmount - asset.totalAmount : null;
-        const amountChangePercentage = amountChange !== null && asset.totalAmount > 0
-          ? (amountChange / asset.totalAmount) * 100
-          : null;
-
-        const assetValueChange = asset.latestAssetValue && averagePricePerUnit
-          ? asset.latestAssetValue - averagePricePerUnit
-          : null;
-        const assetValueChangePercentage = assetValueChange !== null && averagePricePerUnit && averagePricePerUnit > 0
-          ? (assetValueChange / averagePricePerUnit) * 100
-          : null;
-
-        return {
-          ...asset,
-          averagePricePerUnit,
-          currentAssetAmount,
-          amountChange,
-          amountChangePercentage,
-          assetValueChange,
-          assetValueChangePercentage,
-          unrealizedAmount: amountChange, // Same as amountChange (profit/loss)
-        };
-      });
-
-      return result;
+      return Array.from(assetMap.values());
     },
     enabled: !!user,
   });

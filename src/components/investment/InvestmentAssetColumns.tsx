@@ -4,10 +4,11 @@ import { AssetSummaryData } from "@/models/money-summary";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/advanced-data-table";
-import { Coins, Edit, Trash2, ArrowUp, ArrowDown, Eye, Ban } from "lucide-react";
+import { Coins, Edit, Trash2, ArrowUp, ArrowDown, Eye, Ban, HelpCircle } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/date";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatNumber, formatPercentage } from "@/lib/number";
 
 export interface InvestmentAssetColumnsProps {
   assetSummaryGrouped: Record<number, AssetSummaryData>;
@@ -21,6 +22,10 @@ export interface InvestmentAssetColumnsProps {
  */
 const isAssetTrackable = (asset: InvestmentAssetModel): boolean => {
   return asset.investment_instruments?.is_trackable ?? false;
+};
+
+const isZeroPosition = (assetSummary: AssetSummaryData): boolean => {
+  return assetSummary.totalAmount === 0 && assetSummary.totalAmountUnit === 0;
 };
 
 /**
@@ -41,13 +46,18 @@ export const getInvestmentAssetColumns = ({
       enableSorting: false,
       cell: ({ row }) => {
         const asset = row.original;
+        const assetSummary = assetSummaryGrouped[asset.id];
+        const zeroPosition = assetSummary && isZeroPosition(assetSummary);
+
         return (
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-green-100 rounded-lg">
-              <Coins className="w-4 h-4 text-green-600" />
+          <div className={`flex items-center gap-2 ${zeroPosition ? "opacity-50" : ""}`}>
+            <div className={`p-1.5 ${zeroPosition ? "bg-gray-100" : "bg-green-100"} rounded-lg`}>
+              <Coins className={`w-4 h-4 ${zeroPosition ? "text-gray-400" : "text-green-600"}`} />
             </div>
             <div className="flex flex-col">
-              <span className="font-semibold text-gray-900">{asset.name}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-gray-900">{asset.name}</span>
+              </div>
               {asset.symbol && (
                 <Badge variant="outline" className="w-fit text-xs mt-1">
                   {asset.symbol}
@@ -64,16 +74,33 @@ export const getInvestmentAssetColumns = ({
       enableSorting: false,
       cell: ({ row }) => {
         const instrumentName = row.original.investment_instruments?.name;
+        const assetSummary = assetSummaryGrouped[row.original.id];
+        const zeroPosition = assetSummary && isZeroPosition(assetSummary);
+
         return (
-          <Badge variant="secondary" className="font-medium">
+          <Badge variant="secondary" className={`font-medium ${zeroPosition ? "opacity-50" : ""}`}>
             {instrumentName || "-"}
           </Badge>
         );
       },
     },
     {
-      accessorKey: "Modal Investasi",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Modal Investasi" />,
+      accessorKey: "Modal Aktif",
+      header: ({ column }) => (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-1 cursor-help">
+                <DataTableColumnHeader column={column} title="Modal Aktif" />
+                <HelpCircle className="w-3.5 h-3.5 text-muted-foreground" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-xs">
+              <p className="text-sm">Total dana yang saat ini masih tertanam di aset ini dan menjadi dasar perhitungan keuntungan.</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ),
       enableSorting: false,
       cell: ({ row }) => {
         const asset = row.original;
@@ -83,13 +110,21 @@ export const getInvestmentAssetColumns = ({
           return <span className="text-gray-400 text-sm">-</span>;
         }
 
+        const zeroPosition = isZeroPosition(assetSummary);
+        const showBaseValue = assetSummary.baseCurrencyCode && assetSummary.currencyCode !== assetSummary.baseCurrencyCode;
+
         return (
-          <div className="flex flex-col">
-            <span className="font-semibold text-gray-900">
+          <div className={`flex flex-col ${zeroPosition ? "opacity-50" : ""}`}>
+            <span className="font-medium text-gray-900">
               {formatAmountCurrency(assetSummary.totalAmount, assetSummary.currencyCode, assetSummary.currencySymbol)}
             </span>
-            <span className="text-xs text-gray-500">
-              {assetSummary.totalAmountUnit.toLocaleString('id-ID', { maximumFractionDigits: 4 })} unit
+            {showBaseValue && (
+              <span className="text-[10px] text-muted-foreground italic">
+                ≈ {formatAmountCurrency(assetSummary.activeCapitalBaseCurrency, assetSummary.baseCurrencyCode!, assetSummary.baseCurrencySymbol!)}
+              </span>
+            )}
+            <span className="text-[10px] text-gray-500 mt-0.5">
+              {formatNumber(assetSummary.totalAmountUnit, 4)} unit
             </span>
           </div>
         );
@@ -111,10 +146,10 @@ export const getInvestmentAssetColumns = ({
 
         return (
           <div className="flex flex-col">
-            <span className="font-medium text-gray-900">
+            <span className="font-medium text-gray-900 text-sm">
               {formatAmountCurrency(averagePrice, assetSummary.currencyCode, assetSummary.currencySymbol, 4)}
             </span>
-            <span className="text-xs text-gray-500">per unit</span>
+            <span className="text-[10px] text-gray-500">per unit</span>
           </div>
         );
       },
@@ -131,24 +166,26 @@ export const getInvestmentAssetColumns = ({
         // Show "Tidak Dilacak" for non-trackable instruments
         if (!trackable) {
           return (
-            <div className="flex items-center gap-1.5 text-muted-foreground">
+            <div className="flex items-center gap-1.5 text-muted-foreground opacity-70">
               <Ban className="w-3.5 h-3.5" />
-              <span className="text-sm">Tidak Dilacak</span>
+              <span className="text-xs font-medium">Tidak Dilacak</span>
             </div>
           );
         }
 
         if (!assetSummary?.latestAssetValue) {
-          return <span className="text-muted-foreground text-sm">Belum ada data</span>;
+          return <span className="text-muted-foreground text-xs">Belum ada data</span>;
         }
 
+        const zeroPosition = isZeroPosition(assetSummary);
+
         return (
-          <div className="flex flex-col">
-            <span className="font-semibold text-foreground">
+          <div className={`flex flex-col ${zeroPosition ? "opacity-50" : ""}`}>
+            <span className="font-medium text-foreground text-sm">
               {formatAmountCurrency(assetSummary.latestAssetValue, assetSummary.currencyCode, assetSummary.currencySymbol, 4)}
             </span>
             {assetSummary.latestAssetValueDate && (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-[10px] text-muted-foreground">
                 {formatDate(assetSummary.latestAssetValueDate)}
               </span>
             )}
@@ -163,56 +200,70 @@ export const getInvestmentAssetColumns = ({
       cell: ({ row }) => {
         const asset = row.original;
         const assetSummary = assetSummaryGrouped[asset.id];
-        const trackable = isAssetTrackable(asset);
 
-        // Show "Tidak Dilacak" for non-trackable instruments
-        if (!trackable) {
-          return (
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Ban className="w-3.5 h-3.5" />
-              <span className="text-sm">Tidak Dilacak</span>
-            </div>
-          );
-        }
-
-        if (!assetSummary?.latestAssetValue) {
-          return <span className="text-muted-foreground text-sm">-</span>;
-        }
-
-        const currentValue = assetSummary.latestAssetValue * assetSummary.totalAmountUnit;
+        const zeroPosition = isZeroPosition(assetSummary)
+        const showBaseValue = assetSummary.baseCurrencyCode && assetSummary.currencyCode !== assetSummary.baseCurrencyCode;
 
         return (
-          <div className="flex flex-col">
-            <span className="font-semibold text-foreground">
-              {formatAmountCurrency(currentValue, assetSummary.currencyCode, assetSummary.currencySymbol)}
+          <div className={`flex flex-col ${zeroPosition ? "opacity-50" : ""}`}>
+            <span className="font-bold text-gray-900">
+              {formatAmountCurrency(assetSummary.currentValue, assetSummary.currencyCode, assetSummary.currencySymbol)}
             </span>
-            <span className="text-xs text-muted-foreground">
-              {assetSummary.totalAmountUnit.toLocaleString('id-ID')} unit × {formatAmountCurrency(assetSummary.latestAssetValue, assetSummary.currencyCode, assetSummary.currencySymbol, 4)}
+            {showBaseValue && (
+              <span className="text-[10px] text-muted-foreground italic">
+                ≈ {formatAmountCurrency(assetSummary.currentValueBaseCurrency || 0, assetSummary.baseCurrencyCode!, assetSummary.baseCurrencySymbol!)}
+              </span>
+            )}
+            <span className="text-[10px] text-muted-foreground mt-0.5">
+              {formatNumber(assetSummary.totalAmountUnit, 4)} unit
             </span>
           </div>
         );
       },
     },
     {
-      accessorKey: "Profit/Loss",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Profit/Loss" />,
+      accessorKey: "Keuntungan",
+      header: ({ column }) => (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-1 cursor-help">
+                <DataTableColumnHeader column={column} title="Keuntungan" />
+                <HelpCircle className="w-3.5 h-3.5 text-muted-foreground" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-xs">
+              <p className="text-sm">Dihitung berdasarkan nilai pasar saat ini dikurangi dengan modal aktif.</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ),
       enableSorting: false,
       cell: ({ row }) => {
         const asset = row.original;
         const assetSummary = assetSummaryGrouped[asset.id];
         const trackable = isAssetTrackable(asset);
 
-        // Show "Tidak Dilacak" for non-trackable instruments
         if (!trackable) {
           return (
-            <div className="flex items-center gap-1.5 text-muted-foreground">
+            <div className="flex items-center gap-1.5 text-muted-foreground opacity-70">
               <Ban className="w-3.5 h-3.5" />
-              <span className="text-sm">Tidak Dilacak</span>
+              <span className="text-xs font-medium">Tidak Dilacak</span>
             </div>
           );
         }
 
-        if (!assetSummary?.unrealizedAmount) {
+        if (!assetSummary) {
+          return <span className="text-muted-foreground text-sm">-</span>;
+        }
+
+        const zeroPosition = isZeroPosition(assetSummary);
+
+        if (zeroPosition) {
+          return <span className="text-muted-foreground font-medium">—</span>;
+        }
+
+        if (assetSummary.unrealizedAmount === null) {
           return <span className="text-muted-foreground text-sm">-</span>;
         }
 
@@ -220,16 +271,26 @@ export const getInvestmentAssetColumns = ({
         const Icon = isProfit ? ArrowUp : ArrowDown;
         const colorClass = isProfit ? "text-emerald-600" : "text-rose-600";
         const bgClass = isProfit ? "bg-emerald-50 dark:bg-emerald-950/30" : "bg-rose-50 dark:bg-rose-950/30";
+        const showBaseValue = assetSummary.baseCurrencyCode && assetSummary.currencyCode !== assetSummary.baseCurrencyCode;
+        const percentage = assetSummary.unrealizedAmount / assetSummary.activeCapital * 100;
+        const unrealizedProfitBaseCurrency = assetSummary.unrealizedAssetProfitBaseCurrency + assetSummary.unrealizedCurrencyProfit;
 
         return (
-          <div className={`flex items-center gap-1 ${bgClass} px-2 py-1 rounded-lg w-fit`}>
-            <Icon className={`w-3 h-3 ${colorClass}`} />
-            <span className={`font-semibold text-sm ${colorClass}`}>
-              {formatAmountCurrency(Math.abs(assetSummary.unrealizedAmount), assetSummary.currencyCode, assetSummary.currencySymbol)}
-            </span>
-            {assetSummary.amountChangePercentage !== null && (
-              <span className={`text-xs ${colorClass}`}>
-                ({assetSummary.amountChangePercentage.toFixed(2)}%)
+          <div className="flex flex-col">
+            <div className={`flex items-center gap-1 ${bgClass} px-2 py-0.5 rounded-md w-fit`}>
+              <Icon className={`w-3 h-3 ${colorClass}`} />
+              <span className={`font-bold text-sm ${colorClass}`}>
+                {formatAmountCurrency(Math.abs(assetSummary.unrealizedAmount), assetSummary.currencyCode, assetSummary.currencySymbol)}
+              </span>
+              {percentage !== null && (
+                <span className={`text-[11px] font-semibold ${colorClass}`}>
+                  ({formatPercentage(percentage)}%)
+                </span>
+              )}
+            </div>
+            {showBaseValue && (
+              <span className="text-[10px] text-muted-foreground italic mt-0.5 ml-1">
+                ≈ {isProfit ? "+" : "-"}{formatAmountCurrency(Math.abs(unrealizedProfitBaseCurrency || 0), assetSummary.baseCurrencyCode!, assetSummary.baseCurrencySymbol!)}
               </span>
             )}
           </div>

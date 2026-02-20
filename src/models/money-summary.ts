@@ -101,11 +101,15 @@ export interface AssetSummaryData {
   totalAmountUnit: number;
   currencyCode: string;
   currencySymbol: string;
-  averagePricePerUnit: number | null;
-  currentAssetAmount: number | null; // totalAmountUnit * latestAssetValue
-  amountChange: number | null; // currentAssetAmount - totalAmount
-  amountChangePercentage: number | null; // (amountChange / totalAmount) * 100
-  assetValueChange: number | null; // latestAssetValue - averagePricePerUnit
-  assetValueChangePercentage: number | null; // (assetValueChange / averagePricePerUnit) * 100
-  unrealizedAmount: number | null; // currentAssetAmount - totalAmount (same as amountChange)
+  activeCapital: number;
+  unrealizedAmount: number | null;
+  unrealizedCurrencyProfit: number | null;
+  currentValue: number | null;
+
+  // Base Currency fields
+  activeCapitalBaseCurrency: number;
+  unrealizedAssetProfitBaseCurrency: number | null;
+  currentValueBaseCurrency: number | null;
+  baseCurrencyCode: string | null;
+  baseCurrencySymbol: string | null;
 }
