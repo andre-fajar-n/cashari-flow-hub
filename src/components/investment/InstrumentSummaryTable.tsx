@@ -30,29 +30,6 @@ interface InstrumentSummaryTableProps {
   onView?: (instrument: InvestmentInstrumentModel) => void;
 }
 
-// Helper component for ROI with tooltip
-const ROICell = ({ roi }: { roi: number | null }) => {
-  if (roi === null) return <span className="text-muted-foreground">-</span>;
-
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="flex items-center gap-1 cursor-help">
-            <AmountText amount={roi} showSign className="font-semibold">
-              {formatPercentage(Math.abs(roi))}%
-            </AmountText>
-            <HelpCircle className="w-3 h-3 text-muted-foreground" />
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-xs text-xs">
-          ROI dihitung menggunakan base currency user agar konsisten dan dapat dibandingkan antar instrumen.
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-};
-
 // Helper to format currency breakdown as secondary info
 const formatCurrencyBreakdown = (breakdown: CurrencyBreakdown[], field: 'activeCapital' | 'currentValue') => {
   if (breakdown.length === 0) return null;
@@ -249,11 +226,31 @@ export function InstrumentSummaryTable({
     },
     {
       accessorKey: "roi",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="ROI" />,
+      header: ({ column }) => (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center gap-1 cursor-help">
+                <DataTableColumnHeader column={column} title="ROI" />
+                <HelpCircle className="w-3 h-3 text-muted-foreground" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-xs text-xs">
+              Return on Investment (ROI) adalah persentase keuntungan atau kerugian dari modal yang diinvestasikan.
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ),
       cell: ({ row }) => {
         const instrument = row.original;
         const summary = mapSummary[instrument.id];
-        return <ROICell roi={summary?.roi} />;
+        return (
+          <div className="flex items-center gap-1 cursor-help">
+            <AmountText amount={summary?.roi} showSign className="font-semibold">
+              {formatPercentage(Math.abs(summary?.roi))}%
+            </AmountText>
+          </div>
+        );
       },
     },
     {
