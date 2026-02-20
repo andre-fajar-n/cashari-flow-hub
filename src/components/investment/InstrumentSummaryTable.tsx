@@ -10,6 +10,7 @@ import { InstrumentSummary, CurrencyBreakdown } from "@/hooks/queries/use-instru
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
 import { InvestmentInstrumentModel } from "@/models/investment-instruments";
+import { formatPercentage } from "@/lib/number";
 
 interface InstrumentSummaryTableProps {
   data: InvestmentInstrumentModel[];
@@ -39,7 +40,7 @@ const ROICell = ({ roi }: { roi: number | null }) => {
         <TooltipTrigger asChild>
           <div className="flex items-center gap-1 cursor-help">
             <AmountText amount={roi} showSign className="font-semibold">
-              {Math.abs(roi).toFixed(2)}%
+              {formatPercentage(Math.abs(roi))}%
             </AmountText>
             <HelpCircle className="w-3 h-3 text-muted-foreground" />
           </div>

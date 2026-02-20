@@ -12,6 +12,7 @@ import { formatAmountCurrency } from "@/lib/currency";
 import AmountText from "@/components/ui/amount-text";
 import { GoalDetailSummary } from "@/hooks/queries/use-goal-detail-summary";
 import { GoalModel } from "@/models/goals";
+import { formatPercentage } from "@/lib/number";
 
 interface GoalSummaryHeaderProps {
   goal: GoalModel;
@@ -106,7 +107,7 @@ const RoiCard = ({
       <div className="flex items-center gap-2 mt-1">
         <Icon className={`w-5 h-5 ${isPositive ? 'text-green-600' : 'text-red-600'}`} />
         <span className={`text-xl font-bold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-          {value !== null ? `${value >= 0 ? '+' : ''}${value.toFixed(2)}%` : 'N/A'}
+          {value !== null ? `${value >= 0 ? '+' : ''}${formatPercentage(value)}%` : 'N/A'}
         </span>
       </div>
     </div>

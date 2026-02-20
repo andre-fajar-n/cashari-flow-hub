@@ -10,6 +10,7 @@ import { calculateTotalSpentInBaseCurrency } from "@/lib/budget-summary";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { UserSettingsModel } from "@/models/user-settings";
+import { formatPercentage } from "@/lib/number";
 
 export interface BudgetTableProps {
   budgets: BudgetModel[];
@@ -126,7 +127,7 @@ export const BudgetTable = ({
               />
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className={`text-xs font-semibold ${isOverBudget ? 'text-white' : 'text-gray-700'}`}>
-                  {spentPercentage.toFixed(1)}%
+                  {formatPercentage(spentPercentage)}%
                 </span>
               </div>
             </div>

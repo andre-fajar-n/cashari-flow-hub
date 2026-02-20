@@ -28,6 +28,7 @@ import { DebtHistoryFormData, defaultDebtHistoryFormValues, mapDebtHistoryToForm
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialogState } from "@/hooks/use-dialog-state";
+import { formatPercentage } from "@/lib/number";
 
 const DebtHistory = () => {
   const [activeTab, setActiveTab] = useState("summary");
@@ -303,7 +304,7 @@ const DebtHistory = () => {
                   <div className="bg-card rounded-lg border p-3 shadow-sm hover:shadow-md transition-shadow">
                     <p className="text-xs font-medium text-muted-foreground mb-1">Progress</p>
                     <div className="flex items-center gap-2">
-                      <p className="text-lg font-bold">{progressCalculation.progressPercentage.toFixed(1)}%</p>
+                      <p className="text-lg font-bold">{formatPercentage(progressCalculation.progressPercentage)}%</p>
                     </div>
                     {/* Progress Bar */}
                     <div className="mt-2 w-full bg-muted rounded-full h-1.5 overflow-hidden">

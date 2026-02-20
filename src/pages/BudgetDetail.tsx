@@ -25,6 +25,7 @@ import { TransactionFilter } from "@/form-dto/transactions";
 import { useDialogState } from "@/hooks/use-dialog-state";
 import { BudgetModel } from "@/models/budgets";
 import { useUserSettings } from "@/hooks/queries/use-user-settings";
+import { formatPercentage } from "@/lib/number";
 
 const BudgetDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -240,7 +241,7 @@ const BudgetDetail = () => {
               </div>
               <div className="sm:text-center">
                 <p className="text-xs text-muted-foreground">Progress</p>
-                <p className="font-semibold">{spentPercentage.toFixed(1)}%</p>
+                <p className="font-semibold">{formatPercentage(spentPercentage)}%</p>
               </div>
             </div>
           </div>

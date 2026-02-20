@@ -11,6 +11,7 @@ import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
 import { InstrumentDetailSummary } from "@/hooks/queries/use-instrument-detail-summary";
 import { InvestmentInstrumentModel } from "@/models/investment-instruments";
+import { formatPercentage } from "@/lib/number";
 
 interface InstrumentSummaryHeaderProps {
   instrument: InvestmentInstrumentModel;
@@ -39,7 +40,7 @@ const MetricCard = ({
   showBase?: boolean;
 }) => {
   const isSameCurrency = originalCurrency === baseCurrency;
-  
+
   return (
     <div className="p-4 rounded-lg border bg-card">
       <div className="flex items-center gap-2 mb-2">
@@ -104,7 +105,7 @@ const RoiCard = ({
     </div>
     {roi !== null ? (
       <AmountText amount={roi} showSign={true} className="text-xl font-bold">
-        {Math.abs(roi).toFixed(2)}%
+        {formatPercentage(Math.abs(roi))}%
       </AmountText>
     ) : (
       <p className="text-xl font-bold text-muted-foreground">—</p>
@@ -117,7 +118,7 @@ const InstrumentSummaryHeader = ({
   summary,
 }: InstrumentSummaryHeaderProps) => {
   const isSameCurrency = summary.originalCurrencyCode === summary.baseCurrencyCode;
-  
+
   return (
     <Card>
       <CardHeader className="pb-2">

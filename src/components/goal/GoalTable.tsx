@@ -14,6 +14,7 @@ import { CurrencyModel } from "@/models/currencies";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { GoalInvestmentSummary } from "@/models/investment-summary";
 import AmountText from "@/components/ui/amount-text";
+import { formatPercentage } from "@/lib/number";
 
 interface GoalTableProps {
   data: GoalModel[];
@@ -111,7 +112,7 @@ export const GoalTable = ({
           <div className="flex flex-col gap-2 min-w-[200px]">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-muted-foreground">
-                {percentage.toFixed(2)}%
+                {formatPercentage(percentage)}%
               </span>
               <span className="text-xs text-muted-foreground">
                 {collectedAmount} / {targetAmount}
@@ -164,7 +165,7 @@ export const GoalTable = ({
                 {isPositive && <TrendingUp className="w-3 h-3" />}
                 {isNegative && <TrendingDown className="w-3 h-3" />}
                 {!isPositive && !isNegative && <Minus className="w-3 h-3" />}
-                <span>{roi !== null ? `${roi.toFixed(2)}%` : '-'}</span>
+                <span>{roi !== null ? `${formatPercentage(roi)}%` : '-'}</span>
               </div>
             </div>
           </div>

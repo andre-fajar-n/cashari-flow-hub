@@ -3,6 +3,7 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 import { ReusableLineChart, PeriodType, filterDataByPeriod, ChartLineConfig } from "@/components/ui/charts";
 import { formatAmountCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/date";
+import { formatPercentage } from "@/lib/number";
 
 interface AssetValueData {
   date: string;
@@ -27,10 +28,10 @@ const AssetValueChart = ({ data, currencyCode, currencySymbol, assetName }: Asse
     return filteredData.map((item, index) => {
       const prevValue = index > 0 ? filteredData[index - 1].value : null;
       const change = prevValue !== null ? item.value - prevValue : null;
-      const changePercent = prevValue !== null && prevValue !== 0 
-        ? ((item.value - prevValue) / prevValue) * 100 
+      const changePercent = prevValue !== null && prevValue !== 0
+        ? ((item.value - prevValue) / prevValue) * 100
         : null;
-      
+
       return {
         label: formatDate(item.date),
         value: item.value,
@@ -55,12 +56,12 @@ const AssetValueChart = ({ data, currencyCode, currencySymbol, assetName }: Asse
 
   const customTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: typeof chartData[0] }> }) => {
     if (!active || !payload || payload.length === 0) return null;
-    
+
     const data = payload[0].payload;
     const value = data.value;
     const change = data.change;
     const changePercent = data.changePercent;
-    
+
     return (
       <div className="rounded-lg border bg-background p-3 shadow-lg">
         <p className="font-semibold mb-2">{formatDate(data.fullDate)}</p>
@@ -82,7 +83,7 @@ const AssetValueChart = ({ data, currencyCode, currencySymbol, assetName }: Asse
                   {change >= 0 ? '+' : ''}{formatCurrency(change)}
                   {changePercent !== null && (
                     <span className="ml-1">
-                      ({changePercent >= 0 ? '+' : ''}{changePercent.toFixed(2)}%)
+                      ({changePercent >= 0 ? '+' : ''}{formatPercentage(changePercent)}%)
                     </span>
                   )}
                 </span>
