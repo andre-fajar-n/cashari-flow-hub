@@ -14,7 +14,7 @@ import { useInvestmentAssets, useDeleteInvestmentAsset, useUpdateInvestmentAsset
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
 import { useInvestmentAssetValues, useCreateInvestmentAssetValue } from "@/hooks/queries/use-investment-asset-values";
 import InvestmentAssetDialog from "@/components/investment/InvestmentAssetDialog";
-import AssetSummary from "@/components/investment/AssetSummary";
+import AssetOverview from "@/components/investment/AssetOverview";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
 import { useMoneyMovements } from "@/hooks/queries/use-money-movements";
 import { useWallets } from "@/hooks/queries/use-wallets";
@@ -121,7 +121,7 @@ const AssetDetail = () => {
 
   // Check if instrument is trackable - must be before early return to follow Rules of Hooks
   const isTrackable = asset?.investment_instruments?.is_trackable ?? false;
-  
+
   // Check if there are legacy asset values when not trackable - must be before early return
   const hasLegacyAssetValues = useMemo(() => {
     if (isTrackable) return false;
@@ -339,9 +339,9 @@ const AssetDetail = () => {
                 />
 
                 {/* Value History Table */}
-                <AssetValueHistoryList 
-                  assetId={asset.id} 
-                  currencyCode={assetCurrencyCode} 
+                <AssetValueHistoryList
+                  assetId={asset.id}
+                  currencyCode={assetCurrencyCode}
                   currencySymbol={assetCurrencySymbol}
                   isReadOnly={!isTrackable}
                 />
@@ -349,7 +349,7 @@ const AssetDetail = () => {
             )}
 
             <TabsContent value="summary" className="space-y-4">
-              <AssetSummary assetId={asset.id} assetName={asset.name} />
+              <AssetOverview assetId={asset.id} />
             </TabsContent>
 
             <TabsContent value="movements" className="space-y-4">

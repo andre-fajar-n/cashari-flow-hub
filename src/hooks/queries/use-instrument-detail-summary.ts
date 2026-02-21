@@ -43,6 +43,7 @@ export interface GoalBreakdownForInstrument {
   goalId: number;
   goalName: string;
   baseCurrencyCode: string;
+  originalCurrencyCode: string;
   investedCapital: number;
   investedCapitalBaseCurrency: number;
   activeCapital: number;
@@ -51,6 +52,12 @@ export interface GoalBreakdownForInstrument {
   currentValueBaseCurrency: number;
   totalProfit: number;
   totalProfitBaseCurrency: number;
+  realizedProfit: number;
+  realizedProfitBaseCurrency: number;
+  unrealizedProfit: number;
+  unrealizedProfitBaseCurrency: number;
+  unrealizedAssetProfitBaseCurrency: number;
+  unrealizedCurrencyProfitBaseCurrency: number;
   wallets: WalletBreakdownForInstrument[];
 }
 
@@ -66,6 +73,11 @@ export interface WalletBreakdownForInstrument {
   currentValueBaseCurrency: number;
   totalProfit: number;
   totalProfitBaseCurrency: number;
+  realizedProfit: number;
+  realizedProfitBaseCurrency: number;
+  unrealizedProfit: number;
+  unrealizedAssetProfitBaseCurrency: number;
+  unrealizedCurrencyProfitBaseCurrency: number;
   assets: AssetBreakdownForInstrument[];
 }
 
@@ -88,7 +100,7 @@ export interface AssetBreakdownForInstrument {
   currentValue: number;
   currentValueBaseCurrency: number;
   unrealizedProfit: number;
-  unrealizedProfitBaseCurrency: number | null;
+  unrealizedAssetProfitBaseCurrency: number;
   unrealizedCurrencyProfit: number | null;
   // Extra context for instrument view
   goalId: number | null;
@@ -108,6 +120,11 @@ export interface WalletFirstBreakdown {
   currentValueBaseCurrency: number;
   totalProfit: number;
   totalProfitBaseCurrency: number;
+  realizedProfit: number;
+  realizedProfitBaseCurrency: number;
+  unrealizedProfit: number;
+  unrealizedAssetProfitBaseCurrency: number;
+  unrealizedCurrencyProfitBaseCurrency: number;
   goals: GoalUnderWallet[];
 }
 
@@ -115,6 +132,7 @@ export interface GoalUnderWallet {
   goalId: number;
   goalName: string;
   baseCurrencyCode: string;
+  originalCurrencyCode: string;
   investedCapital: number;
   investedCapitalBaseCurrency: number;
   activeCapital: number;
@@ -123,6 +141,11 @@ export interface GoalUnderWallet {
   currentValueBaseCurrency: number;
   totalProfit: number;
   totalProfitBaseCurrency: number;
+  realizedProfit: number;
+  realizedProfitBaseCurrency: number;
+  unrealizedProfit: number;
+  unrealizedAssetProfitBaseCurrency: number;
+  unrealizedCurrencyProfitBaseCurrency: number;
   assets: AssetBreakdownForInstrument[];
 }
 
@@ -250,6 +273,7 @@ export const buildGoalFirstBreakdown = (items: InvestmentSummaryExtended[]): Goa
         goalId,
         goalName,
         baseCurrencyCode: item.base_currency_code || "",
+        originalCurrencyCode: item.original_currency_code || "",
         investedCapital: 0,
         investedCapitalBaseCurrency: 0,
         activeCapital: 0,
@@ -258,6 +282,12 @@ export const buildGoalFirstBreakdown = (items: InvestmentSummaryExtended[]): Goa
         currentValueBaseCurrency: 0,
         totalProfit: 0,
         totalProfitBaseCurrency: 0,
+        realizedProfit: 0,
+        realizedProfitBaseCurrency: 0,
+        unrealizedProfit: 0,
+        unrealizedProfitBaseCurrency: 0,
+        unrealizedAssetProfitBaseCurrency: 0,
+        unrealizedCurrencyProfitBaseCurrency: 0,
         wallets: [],
       };
       goalMap.set(goalId, goal);
@@ -278,6 +308,11 @@ export const buildGoalFirstBreakdown = (items: InvestmentSummaryExtended[]): Goa
         currentValueBaseCurrency: 0,
         totalProfit: 0,
         totalProfitBaseCurrency: 0,
+        realizedProfit: 0,
+        realizedProfitBaseCurrency: 0,
+        unrealizedProfit: 0,
+        unrealizedAssetProfitBaseCurrency: 0,
+        unrealizedCurrencyProfitBaseCurrency: 0,
         assets: [],
       };
       goal.wallets.push(wallet);
@@ -322,6 +357,11 @@ export const buildWalletFirstBreakdown = (items: InvestmentSummaryExtended[]): W
         currentValueBaseCurrency: 0,
         totalProfit: 0,
         totalProfitBaseCurrency: 0,
+        realizedProfit: 0,
+        realizedProfitBaseCurrency: 0,
+        unrealizedProfit: 0,
+        unrealizedAssetProfitBaseCurrency: 0,
+        unrealizedCurrencyProfitBaseCurrency: 0,
         goals: [],
       };
       walletMap.set(walletId, wallet);
@@ -334,6 +374,7 @@ export const buildWalletFirstBreakdown = (items: InvestmentSummaryExtended[]): W
         goalId,
         goalName,
         baseCurrencyCode: item.base_currency_code || "",
+        originalCurrencyCode: item.original_currency_code || "",
         investedCapital: 0,
         investedCapitalBaseCurrency: 0,
         activeCapital: 0,
@@ -342,6 +383,11 @@ export const buildWalletFirstBreakdown = (items: InvestmentSummaryExtended[]): W
         currentValueBaseCurrency: 0,
         totalProfit: 0,
         totalProfitBaseCurrency: 0,
+        realizedProfit: 0,
+        realizedProfitBaseCurrency: 0,
+        unrealizedProfit: 0,
+        unrealizedAssetProfitBaseCurrency: 0,
+        unrealizedCurrencyProfitBaseCurrency: 0,
         assets: [],
       };
       wallet.goals.push(goal);
@@ -352,24 +398,10 @@ export const buildWalletFirstBreakdown = (items: InvestmentSummaryExtended[]): W
     goal.assets.push(asset);
 
     // Update goal totals
-    goal.investedCapital += asset.investedCapital;
-    goal.investedCapitalBaseCurrency += asset.investedCapitalBaseCurrency;
-    goal.activeCapital += asset.activeCapital;
-    goal.activeCapitalBaseCurrency += asset.activeCapitalBaseCurrency;
-    goal.currentValue += asset.currentValue;
-    goal.currentValueBaseCurrency += asset.currentValueBaseCurrency;
-    goal.totalProfit += asset.totalProfit;
-    goal.totalProfitBaseCurrency += asset.totalProfitBaseCurrency;
+    updateGoalTotals(goal, asset);
 
     // Update wallet totals
-    wallet.investedCapital += asset.investedCapital;
-    wallet.investedCapitalBaseCurrency += asset.investedCapitalBaseCurrency;
-    wallet.activeCapital += asset.activeCapital;
-    wallet.activeCapitalBaseCurrency += asset.activeCapitalBaseCurrency;
-    wallet.currentValue += asset.currentValue;
-    wallet.currentValueBaseCurrency += asset.currentValueBaseCurrency;
-    wallet.totalProfit += asset.totalProfit;
-    wallet.totalProfitBaseCurrency += asset.totalProfitBaseCurrency;
+    updateWalletTotals(wallet, asset);
   }
 
   return Array.from(walletMap.values()).sort((a, b) =>
@@ -383,8 +415,6 @@ const createAssetFromItem = (item: InvestmentSummaryExtended): AssetBreakdownFor
   if (item.is_trackable && item.amount_unit && item.amount_unit > 0 && item.current_value) {
     latestUnitPrice = item.current_value / item.amount_unit;
   }
-
-  const avgExchangeRate = item.avg_exchange_rate || 1;
 
   return {
     assetId: item.asset_id,
@@ -405,14 +435,14 @@ const createAssetFromItem = (item: InvestmentSummaryExtended): AssetBreakdownFor
     currentValue: item.current_value || 0,
     currentValueBaseCurrency: item.current_value_base_currency || 0,
     unrealizedProfit: item.unrealized_profit || 0,
-    unrealizedProfitBaseCurrency: item.unrealized_asset_profit_base_currency ?? null,
+    unrealizedAssetProfitBaseCurrency: item.unrealized_asset_profit_base_currency || 0,
     unrealizedCurrencyProfit: item.unrealized_currency_profit ?? null,
     goalId: item.goal_id,
     goalName: item.goal_name,
   };
 };
 
-const updateWalletTotals = (wallet: WalletBreakdownForInstrument, asset: AssetBreakdownForInstrument) => {
+const updateWalletTotals = (wallet: WalletBreakdownForInstrument | WalletFirstBreakdown, asset: AssetBreakdownForInstrument) => {
   wallet.investedCapital += asset.investedCapital;
   wallet.investedCapitalBaseCurrency += asset.investedCapitalBaseCurrency;
   wallet.activeCapital += asset.activeCapital;
@@ -421,9 +451,14 @@ const updateWalletTotals = (wallet: WalletBreakdownForInstrument, asset: AssetBr
   wallet.currentValueBaseCurrency += asset.currentValueBaseCurrency;
   wallet.totalProfit += asset.totalProfit;
   wallet.totalProfitBaseCurrency += asset.totalProfitBaseCurrency;
+  wallet.realizedProfit += asset.realizedProfit;
+  wallet.realizedProfitBaseCurrency += asset.realizedProfitBaseCurrency;
+  wallet.unrealizedProfit += asset.unrealizedProfit;
+  wallet.unrealizedAssetProfitBaseCurrency += asset.unrealizedAssetProfitBaseCurrency || 0;
+  wallet.unrealizedCurrencyProfitBaseCurrency += asset.unrealizedCurrencyProfit || 0;
 };
 
-const updateGoalTotals = (goal: GoalBreakdownForInstrument, asset: AssetBreakdownForInstrument) => {
+const updateGoalTotals = (goal: GoalBreakdownForInstrument | GoalUnderWallet, asset: AssetBreakdownForInstrument) => {
   goal.investedCapital += asset.investedCapital;
   goal.investedCapitalBaseCurrency += asset.investedCapitalBaseCurrency;
   goal.activeCapital += asset.activeCapital;
@@ -432,4 +467,9 @@ const updateGoalTotals = (goal: GoalBreakdownForInstrument, asset: AssetBreakdow
   goal.currentValueBaseCurrency += asset.currentValueBaseCurrency;
   goal.totalProfit += asset.totalProfit;
   goal.totalProfitBaseCurrency += asset.totalProfitBaseCurrency;
+  goal.realizedProfit += asset.realizedProfit;
+  goal.realizedProfitBaseCurrency += asset.realizedProfitBaseCurrency;
+  goal.unrealizedProfit += asset.unrealizedProfit;
+  goal.unrealizedAssetProfitBaseCurrency += asset.unrealizedAssetProfitBaseCurrency || 0;
+  goal.unrealizedCurrencyProfitBaseCurrency += asset.unrealizedCurrencyProfit || 0;
 };
