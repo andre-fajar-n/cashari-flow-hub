@@ -156,14 +156,14 @@ const InstrumentDetail = () => {
 
         <div className="space-y-4">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
               <Button
-                variant="ghost"
-                size="icon"
+                variant="outline"
                 onClick={() => navigate("/investment-instrument")}
               >
-                <ArrowLeft className="w-5 h-5" />
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Kembali
               </Button>
               <div>
                 <div className="flex items-center gap-2">
@@ -224,7 +224,7 @@ const InstrumentDetail = () => {
             </TabsList>
 
             <TabsContent value="overview" className="space-y-4">
-              <InstrumentOverview instrument={instrument} />
+              <InstrumentOverview instrumentId={instrument.id} />
             </TabsContent>
 
             <TabsContent value="history" className="space-y-4">

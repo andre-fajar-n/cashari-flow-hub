@@ -1,6 +1,6 @@
 import { useAssetDetailSummary } from "@/hooks/queries/use-asset-detail-summary";
 import AssetSummaryHeader from "@/components/investment/AssetSummaryHeader";
-import AssetProfitBreakdown from "@/components/investment/AssetProfitBreakdown";
+import ProfitBreakdown from "@/components/investment/ProfitBreakdown";
 import AssetBreakdownSection from "@/components/investment/AssetBreakdownSection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -20,8 +20,8 @@ const AssetOverview = ({ assetId }: AssetOverviewProps) => {
             <Skeleton className="h-6 w-48" />
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map((i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
                 <Skeleton key={i} className="h-24 w-full" />
               ))}
             </div>
@@ -43,7 +43,7 @@ const AssetOverview = ({ assetId }: AssetOverviewProps) => {
       />
 
       {/* Profit Breakdown Section */}
-      <AssetProfitBreakdown summary={summary} />
+      <ProfitBreakdown summary={summary} />
 
       {/* Goal/Wallet Allocation Section */}
       <AssetBreakdownSection

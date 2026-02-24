@@ -1,43 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { InvestmentSummaryExtended } from "@/hooks/queries/use-goal-detail-summary";
-
-export interface AssetDetailSummary {
-  // Aggregated values in original currency
-  investedCapital: number;
-  activeCapital: number;
-  currentValue: number;
-  totalProfit: number;
-  roi: number | null;
-  originalCurrencyCode: string;
-
-  // Base currency aggregates (for multi-currency comparison)
-  investedCapitalBaseCurrency: number;
-  activeCapitalBaseCurrency: number;
-  currentValueBaseCurrency: number;
-  totalProfitBaseCurrency: number;
-  baseCurrencyCode: string;
-
-  // Profit breakdown
-  realizedProfit: number;
-  realizedProfitBaseCurrency: number;
-  unrealizedProfit: number;
-  unrealizedAssetProfit: number;
-  unrealizedCurrencyProfit: number;
-  unrealizedProfitPercentage: number | null;
-
-  // Trackable indicator
-  isTrackable: boolean;
-
-  // Raw data for breakdown
-  items: InvestmentSummaryExtended[];
-}
+import { DetailSummary, InvestmentSummaryExtended } from "@/models/investment";
 
 export const useAssetDetailSummary = (assetId: number) => {
   const { user } = useAuth();
 
-  return useQuery<AssetDetailSummary>({
+  return useQuery<DetailSummary>({
     queryKey: ["asset_detail_summary", assetId, user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -130,6 +99,8 @@ export const useAssetDetailSummary = (assetId: number) => {
         unrealizedProfitPercentage,
         isTrackable,
         items,
+        isMultiCurrency: false,
+        uniqueCurrencies: [originalCurrencyCode],
       };
     },
     enabled: !!user && !!assetId,

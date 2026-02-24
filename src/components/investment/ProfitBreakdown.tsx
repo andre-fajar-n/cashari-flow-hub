@@ -11,68 +11,23 @@ import {
 import { ChevronDown, ChevronUp, TrendingUp, HelpCircle, ChevronRight } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
-import { AssetDetailSummary } from "@/hooks/queries/use-asset-detail-summary";
+import { DetailSummary } from "@/models/investment";
+import { LabelWithTooltip, ProfitMetricRow } from "@/components/investment/ProfitMetricRow";
 
-interface AssetProfitBreakdownProps {
-  summary: AssetDetailSummary;
+interface ProfitBreakdownProps {
+  summary: DetailSummary;
 }
 
-const LabelWithTooltip = ({ label, tooltip }: { label: string; tooltip: string }) => (
-  <TooltipProvider>
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span className="flex items-center gap-1.5 cursor-help text-muted-foreground text-sm">
-          {label}
-          <HelpCircle className="w-3 h-3" />
-        </span>
-      </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-xs">
-        <p className="text-sm">{tooltip}</p>
-      </TooltipContent>
-    </Tooltip>
-  </TooltipProvider>
-);
-
-const ProfitMetricRow = ({
-  label,
-  tooltip,
-  originalValue,
-  originalCurrency,
-  baseValue,
-  baseCurrency,
-}: {
-  label: string;
-  tooltip: string;
-  originalValue: number;
-  originalCurrency: string;
-  baseValue: number;
-  baseCurrency: string;
-}) => {
-  const isSameCurrency = originalCurrency === baseCurrency;
-
-  return (
-    <div className="flex justify-between items-start py-3 border-b last:border-b-0">
-      <LabelWithTooltip label={label} tooltip={tooltip} />
-      <div className="text-right">
-        <AmountText amount={originalValue} showSign={true} className="text-sm font-semibold">
-          {formatAmountCurrency(Math.abs(originalValue), originalCurrency, originalCurrency)}
-        </AmountText>
-        {!isSameCurrency && (
-          <p className="text-xs text-muted-foreground italic">
-            ≈ {formatAmountCurrency(baseValue, baseCurrency, baseCurrency)}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const AssetProfitBreakdown = ({ summary }: AssetProfitBreakdownProps) => {
-  const [isOpen, setIsOpen] = useState(true);
+export const ProfitBreakdown = ({ summary }: ProfitBreakdownProps) => {
+  const [isOpen, setIsOpen] = useState(false);
   const [showUnrealizedDetail, setShowUnrealizedDetail] = useState(false);
 
   const hasUnrealizedCurrencyProfit = summary.unrealizedCurrencyProfit !== 0;
   const totalUnrealizedProfitBaseCurrency = summary.unrealizedAssetProfit + summary.unrealizedCurrencyProfit;
+
+  const showBaseOnly = summary.isMultiCurrency || summary.originalCurrencyCode === summary.baseCurrencyCode;
+  const showedUnrealizedProfit = showBaseOnly ? totalUnrealizedProfitBaseCurrency : summary.unrealizedProfit;
+  const showedCurrency = showBaseOnly ? summary.baseCurrencyCode : summary.originalCurrencyCode;
 
   return (
     <Card>
@@ -100,6 +55,7 @@ const AssetProfitBreakdown = ({ summary }: AssetProfitBreakdownProps) => {
               originalCurrency={summary.originalCurrencyCode}
               baseValue={summary.totalProfitBaseCurrency}
               baseCurrency={summary.baseCurrencyCode}
+              showBaseOnly={showBaseOnly}
             />
 
             {/* Divider */}
@@ -114,6 +70,7 @@ const AssetProfitBreakdown = ({ summary }: AssetProfitBreakdownProps) => {
               originalCurrency={summary.originalCurrencyCode}
               baseValue={summary.realizedProfitBaseCurrency}
               baseCurrency={summary.baseCurrencyCode}
+              showBaseOnly={showBaseOnly}
             />
 
             {/* Unrealized Profit - Expandable */}
@@ -140,13 +97,13 @@ const AssetProfitBreakdown = ({ summary }: AssetProfitBreakdownProps) => {
                 </div>
                 <div className="text-right">
                   <AmountText
-                    amount={summary.unrealizedProfit}
+                    amount={showedUnrealizedProfit}
                     showSign={true}
                     className="text-sm font-semibold"
                   >
-                    {formatAmountCurrency(Math.abs(summary.unrealizedProfit), summary.originalCurrencyCode, summary.originalCurrencyCode)}
+                    {formatAmountCurrency(Math.abs(showedUnrealizedProfit), showedCurrency, showedCurrency)}
                   </AmountText>
-                  {summary.originalCurrencyCode !== summary.baseCurrencyCode && (
+                  {!showBaseOnly && (
                     <p className="text-xs text-muted-foreground italic">
                       ≈ {formatAmountCurrency(totalUnrealizedProfitBaseCurrency, summary.baseCurrencyCode, summary.baseCurrencyCode)}
                     </p>
@@ -211,4 +168,4 @@ const AssetProfitBreakdown = ({ summary }: AssetProfitBreakdownProps) => {
   );
 };
 
-export default AssetProfitBreakdown;
+export default ProfitBreakdown;

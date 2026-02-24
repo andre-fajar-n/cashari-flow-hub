@@ -23,9 +23,7 @@ import { useCategories } from "@/hooks/queries/use-categories";
 import { useCreateGoalInvestmentRecord, useUpdateGoalInvestmentRecord } from "@/hooks/queries/use-goal-investment-records";
 import { MoneyMovementModel } from "@/models/money-movements";
 import { GoalInvestmentRecordModel } from "@/models/goal-investment-records";
-import { formatDate } from "@/lib/date";
 import AssetValueHistoryList from "@/components/investment/AssetValueHistoryList";
-import PageLoading from "@/components/PageLoading";
 import AssetMovementList from "@/components/investment/AssetMovementList";
 import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData, mapGoalInvestmentRecordToFormData } from "@/form-dto/goal-investment-records";
 import { AssetFormData, defaultAssetFormValues, mapAssetToFormData } from "@/form-dto/investment-assets";
@@ -35,7 +33,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useDialogState } from "@/hooks/use-dialog-state";
 import { InvestmentAssetModel } from "@/models/investment-assets";
 import TrackableWarningBanner from "@/components/investment/TrackableWarningBanner";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AssetDetail = () => {
   const { id } = useParams<{ id: string }>();

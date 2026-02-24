@@ -1,42 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { InvestmentSummaryExtended } from "@/hooks/queries/use-goal-detail-summary";
-
-export interface InstrumentDetailSummary {
-  // Aggregated values in original currency
-  totalInvestedCapital: number;
-  activeCapital: number;
-  currentValue: number;
-  totalProfit: number;
-  roi: number | null;
-  originalCurrencyCode: string;
-
-  // Base currency aggregates (for multi-currency comparison)
-  investedCapitalBaseCurrency: number;
-  activeCapitalBaseCurrency: number;
-  currentValueBaseCurrency: number;
-  totalProfitBaseCurrency: number;
-  baseCurrencyCode: string;
-
-  // Profit breakdown
-  realizedProfit: number;
-  realizedProfitBaseCurrency: number;
-  unrealizedProfit: number;
-  unrealizedProfitBaseCurrency: number;
-  unrealizedAssetProfit: number;
-  unrealizedCurrencyProfit: number;
-
-  // Trackable indicator
-  isTrackable: boolean;
-
-  // Currency context
-  isMultiCurrency: boolean;
-  uniqueCurrencies: string[];
-
-  // Raw data for breakdown
-  items: InvestmentSummaryExtended[];
-}
+import { DetailSummary, InvestmentSummaryExtended } from "@/models/investment";
 
 // Breakdown types for Goal-first hierarchy
 export interface GoalBreakdownForInstrument {
@@ -55,7 +20,6 @@ export interface GoalBreakdownForInstrument {
   realizedProfit: number;
   realizedProfitBaseCurrency: number;
   unrealizedProfit: number;
-  unrealizedProfitBaseCurrency: number;
   unrealizedAssetProfitBaseCurrency: number;
   unrealizedCurrencyProfitBaseCurrency: number;
   wallets: WalletBreakdownForInstrument[];
@@ -152,7 +116,7 @@ export interface GoalUnderWallet {
 export const useInstrumentDetailSummary = (instrumentId: number) => {
   const { user } = useAuth();
 
-  return useQuery<InstrumentDetailSummary>({
+  return useQuery<DetailSummary>({
     queryKey: ["instrument_detail_summary", instrumentId, user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -168,7 +132,7 @@ export const useInstrumentDetailSummary = (instrumentId: number) => {
       const items = (data || []) as unknown as InvestmentSummaryExtended[];
 
       // Aggregate values
-      let totalInvestedCapital = 0;
+      let investedCapital = 0;
       let activeCapital = 0;
       let currentValue = 0;
       let totalProfit = 0;
@@ -179,7 +143,6 @@ export const useInstrumentDetailSummary = (instrumentId: number) => {
       let realizedProfit = 0;
       let realizedProfitBaseCurrency = 0;
       let unrealizedProfit = 0;
-      let unrealizedProfitBaseCurrency = 0;
       let unrealizedAssetProfit = 0;
       let unrealizedCurrencyProfit = 0;
       let originalCurrencyCode = "";
@@ -188,7 +151,7 @@ export const useInstrumentDetailSummary = (instrumentId: number) => {
       const currencySet = new Set<string>();
 
       for (const item of items) {
-        totalInvestedCapital += item.invested_capital || 0;
+        investedCapital += item.invested_capital || 0;
         activeCapital += item.active_capital || 0;
         currentValue += item.current_value || 0;
         totalProfit += item.total_profit || 0;
@@ -202,12 +165,11 @@ export const useInstrumentDetailSummary = (instrumentId: number) => {
 
         // Unrealized breakdown
         if (item.unrealized_asset_profit_base_currency != null) {
-          unrealizedProfitBaseCurrency += item.unrealized_asset_profit_base_currency;
-          unrealizedAssetProfit += item.unrealized_asset_profit_base_currency - (item.unrealized_currency_profit || 0);
+          unrealizedAssetProfit += item.unrealized_asset_profit_base_currency || 0;
           hasTrackableAsset = true;
         }
         if (item.unrealized_currency_profit != null) {
-          unrealizedCurrencyProfit += item.unrealized_currency_profit;
+          unrealizedCurrencyProfit += item.unrealized_currency_profit || 0;
         }
 
         if (item.original_currency_code) {
@@ -226,10 +188,15 @@ export const useInstrumentDetailSummary = (instrumentId: number) => {
         ? (totalProfitBaseCurrency / investedCapitalBaseCurrency) * 100
         : null;
 
+      // Unrealized ROI = Unrealized Profit / Active Capital
+      const unrealizedProfitPercentage = activeCapital !== 0
+        ? (unrealizedProfit / activeCapital) * 100
+        : null;
+
       const uniqueCurrencies = Array.from(currencySet);
 
       return {
-        totalInvestedCapital,
+        investedCapital,
         activeCapital,
         currentValue,
         totalProfit,
@@ -243,9 +210,9 @@ export const useInstrumentDetailSummary = (instrumentId: number) => {
         realizedProfit,
         realizedProfitBaseCurrency,
         unrealizedProfit,
-        unrealizedProfitBaseCurrency,
         unrealizedAssetProfit,
         unrealizedCurrencyProfit,
+        unrealizedProfitPercentage,
         isTrackable: hasTrackableAsset,
         isMultiCurrency: uniqueCurrencies.length > 1,
         uniqueCurrencies,
@@ -285,7 +252,6 @@ export const buildGoalFirstBreakdown = (items: InvestmentSummaryExtended[]): Goa
         realizedProfit: 0,
         realizedProfitBaseCurrency: 0,
         unrealizedProfit: 0,
-        unrealizedProfitBaseCurrency: 0,
         unrealizedAssetProfitBaseCurrency: 0,
         unrealizedCurrencyProfitBaseCurrency: 0,
         wallets: [],
