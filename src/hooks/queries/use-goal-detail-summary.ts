@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { GoalDetailSummary, InvestmentSummaryExtended } from "@/models/investment";
+import { GoalDetailSummary } from "@/models/investment";
 import { InvestmentSummaryModel } from "@/models/investment-summary";
 
 export interface WalletBreakdown {
@@ -111,7 +111,7 @@ export const useGoalDetailSummary = (goalId: number) => {
   });
 };
 
-export const buildBreakdownData = (items: InvestmentSummaryExtended[]): WalletBreakdown[] => {
+export const buildBreakdownData = (items: InvestmentSummaryModel[]): WalletBreakdown[] => {
   const walletMap = new Map<number, WalletBreakdown>();
 
   for (const item of items) {

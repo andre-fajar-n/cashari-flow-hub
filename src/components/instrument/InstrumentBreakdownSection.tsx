@@ -4,15 +4,15 @@ import {
   buildGoalFirstBreakdown,
   buildWalletFirstBreakdown,
 } from "@/hooks/queries/use-instrument-detail-summary";
-import { InvestmentSummaryExtended } from "@/models/investment";
+import { InvestmentSummaryModel } from "@/models/investment-summary";
 import {
   BreakdownSectionLayout,
   GoalHierarchyItem,
   WalletHierarchyItem,
-} from "../investment/breakdown/BreakdownUI";
+} from "@/components/investment/breakdown/BreakdownUI";
 
 interface InstrumentBreakdownSectionProps {
-  items: InvestmentSummaryExtended[];
+  items: InvestmentSummaryModel[];
   baseCurrencyCode: string;
 }
 

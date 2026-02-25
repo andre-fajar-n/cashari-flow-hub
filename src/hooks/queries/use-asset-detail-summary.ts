@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { DetailSummary, InvestmentSummaryExtended } from "@/models/investment";
+import { DetailSummary } from "@/models/investment";
+import { InvestmentSummaryModel } from "@/models/investment-summary";
 
 export const useAssetDetailSummary = (assetId: number) => {
   const { user } = useAuth();
@@ -19,7 +20,7 @@ export const useAssetDetailSummary = (assetId: number) => {
         throw error;
       }
 
-      const items = (data || []) as unknown as InvestmentSummaryExtended[];
+      const items = (data || []) as unknown as InvestmentSummaryModel[];
 
       // Aggregate values
       let investedCapital = 0;

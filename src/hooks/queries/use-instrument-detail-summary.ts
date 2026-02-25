@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { DetailSummary, InvestmentSummaryExtended } from "@/models/investment";
+import { DetailSummary } from "@/models/investment";
+import { InvestmentSummaryModel } from "@/models/investment-summary";
 
 // Breakdown types for Goal-first hierarchy
 export interface GoalBreakdownForInstrument {
@@ -129,7 +130,7 @@ export const useInstrumentDetailSummary = (instrumentId: number) => {
         throw error;
       }
 
-      const items = (data || []) as unknown as InvestmentSummaryExtended[];
+      const items = (data || []) as unknown as InvestmentSummaryModel[];
 
       // Aggregate values
       let investedCapital = 0;
@@ -224,7 +225,7 @@ export const useInstrumentDetailSummary = (instrumentId: number) => {
 };
 
 // Build Goal → Wallet → Asset hierarchy
-export const buildGoalFirstBreakdown = (items: InvestmentSummaryExtended[]): GoalBreakdownForInstrument[] => {
+export const buildGoalFirstBreakdown = (items: InvestmentSummaryModel[]): GoalBreakdownForInstrument[] => {
   const goalMap = new Map<number, GoalBreakdownForInstrument>();
 
   for (const item of items) {
@@ -299,7 +300,7 @@ export const buildGoalFirstBreakdown = (items: InvestmentSummaryExtended[]): Goa
 };
 
 // Build Wallet → Goal → Asset hierarchy
-export const buildWalletFirstBreakdown = (items: InvestmentSummaryExtended[]): WalletFirstBreakdown[] => {
+export const buildWalletFirstBreakdown = (items: InvestmentSummaryModel[]): WalletFirstBreakdown[] => {
   const walletMap = new Map<number, WalletFirstBreakdown>();
 
   for (const item of items) {
@@ -376,7 +377,7 @@ export const buildWalletFirstBreakdown = (items: InvestmentSummaryExtended[]): W
 };
 
 // Helper functions
-const createAssetFromItem = (item: InvestmentSummaryExtended): AssetBreakdownForInstrument => {
+const createAssetFromItem = (item: InvestmentSummaryModel): AssetBreakdownForInstrument => {
   let latestUnitPrice: number | null = null;
   if (item.is_trackable && item.amount_unit && item.amount_unit > 0 && item.current_value) {
     latestUnitPrice = item.current_value / item.amount_unit;

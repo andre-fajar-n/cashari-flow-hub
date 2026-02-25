@@ -7,10 +7,10 @@ import {
   BreakdownSectionLayout,
   WalletHierarchyItem,
 } from "@/components/investment/breakdown/BreakdownUI";
-import { InvestmentSummaryExtended } from "@/models/investment";
+import { InvestmentSummaryModel } from "@/models/investment-summary";
 
 interface GoalBreakdownSectionProps {
-  items: InvestmentSummaryExtended[];
+  items: InvestmentSummaryModel[];
   baseCurrencyCode: string;
 }
 
