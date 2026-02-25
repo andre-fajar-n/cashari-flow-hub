@@ -1219,6 +1219,7 @@ export type Database = {
       investment_summary: {
         Row: {
           active_capital: number | null
+          active_capital_base_currency: number | null
           amount_unit: number | null
           asset_id: number | null
           asset_name: string | null

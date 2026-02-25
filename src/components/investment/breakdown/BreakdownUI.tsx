@@ -17,6 +17,7 @@ import {
   ChevronRight,
   AlertCircle,
   ArrowLeftRight,
+  TrendingUp,
 } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
@@ -27,6 +28,11 @@ import {
   WalletBreakdownForInstrument,
   WalletFirstBreakdown,
 } from "@/hooks/queries/use-instrument-detail-summary";
+import {
+  InstrumentBreakdown as InstrumentBreakdownData,
+  AssetBreakdown as AssetBreakdownData,
+  WalletBreakdown as WalletBreakdownData
+} from "@/hooks/queries/use-goal-detail-summary";
 import { Wallet, Target } from "lucide-react";
 
 // ============= Base Components =============
@@ -533,16 +539,18 @@ export const WalletHierarchyItem = ({
   mode = "nested",
   Icon = Wallet,
 }: {
-  wallet: WalletBreakdownForInstrument | WalletFirstBreakdown;
+  wallet: WalletBreakdownForInstrument | WalletFirstBreakdown | WalletBreakdownData;
   baseCurrency: string;
   mode?: "nested" | "leaf";
   Icon?: ElementType;
 }) => {
   const isWalletFirst = "goals" in wallet;
+  const isGoalBreakdown = "instruments" in wallet;
   const hasGoals = isWalletFirst && wallet.goals.length > 0;
-  const hasAssets = !isWalletFirst && "assets" in wallet && wallet.assets.some((a) => a.assetId !== null);
+  const hasInstruments = isGoalBreakdown && wallet.instruments.length > 0;
+  const hasAssets = !isWalletFirst && !isGoalBreakdown && "assets" in wallet && wallet.assets.some((a) => a.assetId !== null);
 
-  if (mode === "leaf" || (!hasGoals && !hasAssets)) {
+  if (mode === "leaf" || (!hasGoals && !hasAssets && !hasInstruments)) {
     return (
       <BreakdownHierarchyLeaf
         Icon={Icon}
@@ -552,22 +560,30 @@ export const WalletHierarchyItem = ({
         activeCapitalBase={wallet.activeCapitalBaseCurrency}
         currentValue={wallet.currentValue}
         currentValueBase={wallet.currentValueBaseCurrency}
-        totalProfit={wallet.totalProfit}
+        totalProfit={isGoalBreakdown ? (wallet as WalletBreakdownData).totalProfitBaseCurrency : (wallet as any).totalProfit}
         totalProfitBase={wallet.totalProfitBaseCurrency}
-        realizedProfitBase={wallet.realizedProfitBaseCurrency}
-        unrealizedAssetProfitBase={wallet.unrealizedAssetProfitBaseCurrency}
-        unrealizedCurrencyProfitBase={wallet.unrealizedCurrencyProfitBaseCurrency}
+        realizedProfitBase={(wallet as any).realizedProfitBaseCurrency || 0}
+        unrealizedAssetProfitBase={(wallet as any).unrealizedAssetProfitBaseCurrency || 0}
+        unrealizedCurrencyProfitBase={(wallet as any).unrealizedCurrencyProfitBaseCurrency || 0}
         baseCurrency={baseCurrency}
       />
     );
   }
+
+  const childCount = isWalletFirst
+    ? wallet.goals.length
+    : isGoalBreakdown
+      ? wallet.instruments.length
+      : (wallet as WalletBreakdownForInstrument).assets.length;
+
+  const childLabel = isWalletFirst ? "Goal" : isGoalBreakdown ? "Instrumen" : "Aset";
 
   return (
     <BreakdownHierarchyGroup
       Icon={Icon}
       name={wallet.walletName}
       badgeContent={
-        isWalletFirst ? (
+        isWalletFirst || isGoalBreakdown ? (
           <Badge variant="outline" className="text-[10px] py-0 px-1.5 h-4 mt-0.5">
             {wallet.originalCurrencyCode}
           </Badge>
@@ -578,11 +594,11 @@ export const WalletHierarchyItem = ({
       activeCapitalBase={wallet.activeCapitalBaseCurrency}
       currentValue={wallet.currentValue}
       currentValueBase={wallet.currentValueBaseCurrency}
-      totalProfit={wallet.totalProfit}
+      totalProfit={isGoalBreakdown ? (wallet as WalletBreakdownData).totalProfitBaseCurrency : (wallet as any).totalProfit}
       totalProfitBase={wallet.totalProfitBaseCurrency}
       baseCurrency={baseCurrency}
-      childCount={isWalletFirst ? wallet.goals.length : (wallet as WalletBreakdownForInstrument).assets.length}
-      childLabel={isWalletFirst ? "Goal" : "Aset"}
+      childCount={childCount}
+      childLabel={childLabel}
     >
       {isWalletFirst
         ? (wallet as WalletFirstBreakdown).goals
@@ -592,13 +608,17 @@ export const WalletHierarchyItem = ({
               b.totalProfitBaseCurrency - a.totalProfitBaseCurrency
           )
           .map((goal) => <GoalHierarchyItem key={goal.goalId} goal={goal} baseCurrency={baseCurrency} mode="nested" />)
-        : (wallet as WalletBreakdownForInstrument).assets
-          .sort(
-            (a, b) =>
-              (b.currentValueBaseCurrency || 0) - (a.currentValueBaseCurrency || 0) ||
-              b.totalProfitBaseCurrency - a.totalProfitBaseCurrency
-          )
-          .map((asset, idx) => <AssetItemHierarchy key={idx} asset={asset} baseCurrency={baseCurrency} />)}
+        : isGoalBreakdown
+          ? (wallet as WalletBreakdownData).instruments
+            .sort((a, b) => b.currentValueBaseCurrency - a.currentValueBaseCurrency || b.totalProfitBaseCurrency - a.totalProfitBaseCurrency)
+            .map((instrument, idx) => <InstrumentHierarchyItem key={idx} instrument={instrument} baseCurrency={baseCurrency} />)
+          : (wallet as WalletBreakdownForInstrument).assets
+            .sort(
+              (a, b) =>
+                (b.currentValueBaseCurrency || 0) - (a.currentValueBaseCurrency || 0) ||
+                b.totalProfitBaseCurrency - a.totalProfitBaseCurrency
+            )
+            .map((asset, idx) => <AssetItemHierarchy key={idx} asset={asset} baseCurrency={baseCurrency} />)}
     </BreakdownHierarchyGroup>
   );
 };
@@ -679,14 +699,77 @@ export const GoalHierarchyItem = ({
   );
 };
 
+export const InstrumentHierarchyItem = ({
+  instrument,
+  baseCurrency,
+  Icon = TrendingUp,
+}: {
+  instrument: InstrumentBreakdownData;
+  baseCurrency: string;
+  Icon?: ElementType;
+}) => {
+  const hasAssets = instrument.assets.length > 0;
+
+  if (!hasAssets) {
+    return (
+      <BreakdownHierarchyLeaf
+        Icon={Icon}
+        name={instrument.instrumentName}
+        originalCurrency={instrument.originalCurrencyCode}
+        activeCapital={instrument.activeCapital}
+        activeCapitalBase={instrument.activeCapitalBaseCurrency}
+        currentValue={instrument.currentValue}
+        currentValueBase={instrument.currentValueBaseCurrency}
+        totalProfit={instrument.totalProfit}
+        totalProfitBase={instrument.totalProfitBaseCurrency}
+        realizedProfitBase={0} // Goal breakdown doesn't have these separate yet in its instrument level
+        unrealizedAssetProfitBase={0}
+        unrealizedCurrencyProfitBase={0}
+        baseCurrency={baseCurrency}
+      />
+    );
+  }
+
+  return (
+    <BreakdownHierarchyGroup
+      Icon={Icon}
+      name={instrument.instrumentName}
+      originalCurrency={instrument.originalCurrencyCode}
+      activeCapital={instrument.activeCapital}
+      activeCapitalBase={instrument.activeCapitalBaseCurrency}
+      currentValue={instrument.currentValue}
+      currentValueBase={instrument.currentValueBaseCurrency}
+      totalProfit={instrument.totalProfit}
+      totalProfitBase={instrument.totalProfitBaseCurrency}
+      baseCurrency={baseCurrency}
+      childCount={instrument.assets.length}
+      childLabel="Aset"
+    >
+      {instrument.assets
+        .sort((a, b) => (b.currentValueBaseCurrency || 0) - (a.currentValueBaseCurrency || 0))
+        .map((asset, idx) => (
+          <AssetItemHierarchy
+            key={idx}
+            asset={{
+              ...asset,
+              unrealizedAssetProfitBaseCurrency: asset.unrealizedProfitBaseCurrency || 0,
+              // Map other fields as needed if types differ slightly
+            } as any}
+            baseCurrency={baseCurrency}
+          />
+        ))}
+    </BreakdownHierarchyGroup>
+  );
+};
+
 // ============= Section Layout Container =============
 interface BreakdownSectionLayoutProps {
   title: string;
   icon: ElementType;
   childCount: number;
   childLabel: string;
-  hierarchyDescription: string;
-  onModeToggle: () => void;
+  hierarchyDescription?: string;
+  onModeToggle?: () => void;
   children: ReactNode;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -728,23 +811,27 @@ export const BreakdownSectionLayout = ({
         </CardHeader>
         <CollapsibleContent>
           <CardContent className="space-y-4 pt-0">
-            <div className="flex items-center justify-between py-2 border-b border-dashed">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
-                Hierarki: {hierarchyDescription}
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onModeToggle();
-                }}
-                className="h-7 gap-1.5 text-[10px] font-bold"
-              >
-                <ArrowLeftRight className="w-3 h-3" />
-                Ganti Tampilan
-              </Button>
-            </div>
+            {hierarchyDescription && (
+              <div className="flex items-center justify-between py-2 border-b border-dashed">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
+                  Hierarki: {hierarchyDescription}
+                </p>
+                {onModeToggle && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onModeToggle();
+                    }}
+                    className="h-7 gap-1.5 text-[10px] font-bold"
+                  >
+                    <ArrowLeftRight className="w-3 h-3" />
+                    Ganti Tampilan
+                  </Button>
+                )}
+              </div>
+            )}
             <div className="space-y-4 pt-2">
               {children}
             </div>

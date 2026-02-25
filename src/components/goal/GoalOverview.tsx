@@ -39,15 +39,14 @@ const GoalOverview = ({ goal, currency }: GoalOverviewProps) => {
 
   return (
     <div className="space-y-4">
-      <GoalSummaryHeader 
-        goal={goal} 
-        summary={summary} 
-        currencySymbol={currency.symbol} 
+      <GoalSummaryHeader
+        goal={goal}
+        summary={summary}
+        currencySymbol={currency.symbol}
       />
-      <GoalBreakdownSection 
-        items={summary.items} 
+      <GoalBreakdownSection
+        items={summary.items}
         baseCurrencyCode={summary.baseCurrencyCode || goal.currency_code}
-        baseCurrencySymbol={currency.symbol}
       />
     </div>
   );

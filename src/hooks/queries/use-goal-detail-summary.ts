@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { GoalDetailSummary, InvestmentSummaryExtended } from "@/models/investment";
+import { InvestmentSummaryModel } from "@/models/investment-summary";
 
 export interface WalletBreakdown {
   walletId: number;
@@ -76,7 +77,7 @@ export const useGoalDetailSummary = (goalId: number) => {
       }
 
       // Cast to extended type since the view has more fields than the auto-generated types
-      const items = (data || []) as unknown as InvestmentSummaryExtended[];
+      const items = (data || []) as unknown as InvestmentSummaryModel[];
 
       // Aggregate values
       let totalInvestedCapital = 0;
