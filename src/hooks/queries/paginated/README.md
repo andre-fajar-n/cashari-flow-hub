@@ -40,7 +40,7 @@ export const useTransactionsPaginated = (params: PaginatedParams) => {
     table: "transactions",
     select: `*,
       categories(id, name, is_income, parent_id, application),
-      wallets(id, name, currency_code, initial_amount)`,
+      wallets(id, name, currency_code)`,
     orderBy: [
       { column: "date", ascending: false },
       { column: "created_at", ascending: false }

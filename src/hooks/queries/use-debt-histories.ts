@@ -16,7 +16,7 @@ export const useDebtHistories = (params: DebtHistoryFilter = {}) => {
         .from("debt_histories")
         .select(`
           *,
-          wallets (id, name, currency_code, initial_amount),
+          wallets (id, name, currency_code),
           categories (id, name, is_income, application, parent_id),
           debts (id, name, type, due_date)
         `)
