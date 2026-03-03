@@ -1,3 +1,5 @@
+-- reference: https://github.com/orgs/supabase/discussions/17790#discussioncomment-11763669
+
 CREATE SCHEMA analytics;
 CREATE MATERIALIZED VIEW analytics.portfolio_valuation_mv
 AS
