@@ -73,18 +73,13 @@ export const useBalanceTrend = (
       // depending on how it's implemented. We aggregate by movement_date just in case.
       const dailyMap = new Map<string, number>();
 
-      const walletMap = new Map<string, number>();
       data.forEach((item: DailyCumulative) => {
         const date = item.movement_date;
         if (!date) return;
 
         const currentValue = item.historical_current_value_base_currency || 0;
-        const key = item.wallet_name + "@" + item.movement_date
-        walletMap.set(key, (walletMap.get(key) || 0) + currentValue);
         dailyMap.set(date, (dailyMap.get(date) || 0) + currentValue);
       });
-
-      console.log("walletMap", walletMap);
 
       // Transform to BalanceTrendItem array and sort by date
       return Array.from(dailyMap.entries())
