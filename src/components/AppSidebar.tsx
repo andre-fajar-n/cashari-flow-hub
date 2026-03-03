@@ -52,6 +52,10 @@ const AppSidebar = () => {
     { path: "/investment-asset", label: "Aset Investasi", icon: Wallet },
   ];
 
+  const reportMenuItems = [
+    { path: "/analytics/balance-trend", label: "Tren Saldo", icon: TrendingUp },
+  ];
+
   return (
     <Sidebar>
       <SidebarHeader className="border-b px-6 py-4">
@@ -116,6 +120,32 @@ const AppSidebar = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               {featureMenuItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path;
+                return (
+                  <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive}
+                      onClick={() => navigate(item.path)}
+                    >
+                      <button className="flex items-center gap-2 w-full">
+                        <Icon className="w-4 h-4" />
+                        <span>{item.label}</span>
+                      </button>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Analisis & Laporan</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {reportMenuItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
                 return (

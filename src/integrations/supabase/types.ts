@@ -1011,6 +1011,30 @@ export type Database = {
       }
     }
     Views: {
+      daily_cumulative: {
+        Row: {
+          user_id: string | null
+          wallet_id: number | null
+          wallet_name: string | null
+          goal_id: number | null
+          goal_name: string | null
+          instrument_id: number | null
+          instrument_name: string | null
+          asset_id: number | null
+          asset_name: string | null
+          movement_date: string | null
+          cumulative_amount: number | null
+          cumulative_unit: number | null
+          historical_asset_price: number | null
+          asset_price_date_used: string | null
+          historical_fx_rate: number | null
+          fx_rate_date_used: string | null
+          original_currency_code: string | null
+          base_currency_code: string | null
+          historical_current_value: number | null
+          historical_current_value_base_currency: number | null
+        }
+      }
       all_currency_movement: {
         Row: {
           base_currency_code: string | null
