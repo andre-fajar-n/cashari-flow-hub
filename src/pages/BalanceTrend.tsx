@@ -8,7 +8,7 @@ import TrendSummaryCards from "@/components/analytics/TrendSummaryCards";
 import { useBalanceTrend, Granularity } from "@/hooks/queries/use-balance-trend";
 
 const BalanceTrend = () => {
-  const [periodType, setPeriodType] = useState<PeriodType>("monthly");
+  const [periodType, setPeriodType] = useState<PeriodType>("daily");
   const [startDate, setStartDate] = useState<Date>(startOfMonth(new Date()));
   const [endDate, setEndDate] = useState<Date>(endOfMonth(new Date()));
 
@@ -18,8 +18,8 @@ const BalanceTrend = () => {
     setEndDate(end);
   };
 
-  const granularity: Granularity = periodType === "yearly" ? "month" :
-    (periodType === "custom" && (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24) > 60) ? "month" : "day";
+  const granularity: Granularity = periodType === "yearly" ? "year" :
+    periodType === "monthly" ? "month" : "day";
 
   const { data, isLoading } = useBalanceTrend(
     format(startDate, "yyyy-MM-dd"),

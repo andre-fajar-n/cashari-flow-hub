@@ -23,7 +23,9 @@ const BalanceTrendChart = ({ data, granularity }: BalanceTrendChartProps) => {
       const date = parseISO(item.period_date);
       let label: string;
 
-      if (granularity === 'month') {
+      if (granularity === 'year') {
+        label = format(date, "yyyy", { locale: id });
+      } else if (granularity === 'month') {
         label = format(date, "MMM yyyy", { locale: id });
       } else {
         label = format(date, "dd MMM", { locale: id });
@@ -58,9 +60,11 @@ const BalanceTrendChart = ({ data, granularity }: BalanceTrendChartProps) => {
     return (
       <div className="rounded-lg border bg-background p-3 shadow-lg">
         <p className="font-semibold mb-1 text-sm">
-          {granularity === 'month'
-            ? format(parseISO(item.fullDate), "MMMM yyyy", { locale: id })
-            : format(parseISO(item.fullDate), "eeee, dd MMMM yyyy", { locale: id })
+          {granularity === 'year'
+            ? format(parseISO(item.fullDate), "yyyy", { locale: id })
+            : granularity === 'month'
+              ? format(parseISO(item.fullDate), "MMMM yyyy", { locale: id })
+              : format(parseISO(item.fullDate), "eeee, dd MMMM yyyy", { locale: id })
           }
         </p>
         <div className="flex items-center justify-between gap-4">

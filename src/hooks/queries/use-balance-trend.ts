@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { DailyCumulative } from "@/models/daily-cumulative";
 
-export type Granularity = 'day' | 'month';
+export type Granularity = 'day' | 'month' | 'year';
 
 export interface BalanceTrendItem {
   period_date: string;
@@ -59,18 +59,70 @@ export const useBalanceTrend = (
       if (!user?.id) return [];
 
       // Call the simplified RPC that handles all the gap-filling and cumulative logic on the backend
-      const query = supabase
+      // Build the query
+      let query = supabase
         .from("daily_cumulative")
         .select("*")
         .eq("user_id", user.id)
-        .gte("movement_date", startDate)
-        .lte("movement_date", endDate)
         .order("movement_date", { ascending: true });
+
+      if (granularity === 'day') {
+        query = query
+          .gte("movement_date", startDate)
+          .lte("movement_date", endDate);
+      } else {
+        // For other granularities, we only want the last date of each period
+        const periodEndDates: string[] = [];
+        const current = new Date(startDate);
+        const end = new Date(endDate);
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+
+        while (current <= end) {
+          let periodEnd: Date;
+          if (granularity === 'month') {
+            periodEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0);
+
+            // If the calculated period end is in the same month and year as today, use yesterday
+            if (periodEnd.getFullYear() === today.getFullYear() &&
+              periodEnd.getMonth() === today.getMonth()) {
+              periodEnd = yesterday;
+            }
+          } else { // year
+            periodEnd = new Date(current.getFullYear(), 11, 31);
+
+            // If the calculated period end is in the same year as today, use yesterday
+            if (periodEnd.getFullYear() === today.getFullYear()) {
+              periodEnd = yesterday;
+            }
+          }
+
+          // Ensure we don't go beyond the requested end date
+          const dateToPush = periodEnd > end ? end : periodEnd;
+          const formattedDate = dateToPush.toLocaleString().split(',')[0];
+
+          if (!periodEndDates.includes(formattedDate)) {
+            periodEndDates.push(formattedDate);
+          }
+
+          // Move to next period
+          if (granularity === 'month') {
+            current.setMonth(current.getMonth() + 1);
+            current.setDate(1);
+          } else { // year
+            current.setFullYear(current.getFullYear() + 1);
+            current.setMonth(0);
+            current.setDate(1);
+          }
+        }
+
+        query = query.in("movement_date", periodEndDates);
+      }
 
       const data = await fetchAllRows(query);
 
-      // Even though the RPC handles gaps, it might return multiple rows per date (for different assets/wallets)
-      // depending on how it's implemented. We aggregate by movement_date just in case.
+      // Aggregate by movement_date
       const dailyMap = new Map<string, number>();
 
       data.forEach((item: DailyCumulative) => {
