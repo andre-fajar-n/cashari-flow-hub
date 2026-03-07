@@ -2,12 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { DailyCumulative } from "@/models/daily-cumulative";
+import { getStatus, ValuationStatus } from "@/lib/balance-trend";
 
 export type Granularity = 'day' | 'month' | 'year';
 
 export interface BalanceTrendItem {
   period_date: string;
   total_balance: number;
+  status: 'Exact' | 'Warning' | 'Missing';
 }
 
 /**
@@ -100,7 +102,7 @@ export const useBalanceTrend = (
 
           // Ensure we don't go beyond the requested end date
           const dateToPush = periodEnd > end ? end : periodEnd;
-          const formattedDate = dateToPush.toLocaleString().split(',')[0];
+          const formattedDate = dateToPush.toDateString();
 
           if (!periodEndDates.includes(formattedDate)) {
             periodEndDates.push(formattedDate);
@@ -123,22 +125,41 @@ export const useBalanceTrend = (
       const data = await fetchAllRows(query);
 
       // Aggregate by movement_date
-      const dailyMap = new Map<string, number>();
+      const dailyMap = new Map<string, { total: number; statuses: ValuationStatus[] }>();
 
       data.forEach((item: DailyCumulative) => {
         const date = item.movement_date;
         if (!date) return;
 
         const currentValue = item.historical_current_value_base_currency || 0;
-        dailyMap.set(date, (dailyMap.get(date) || 0) + currentValue);
+
+        // Calculate status for this asset
+        const status = getStatus(item, date);
+
+        const existing = dailyMap.get(date) || { total: 0, statuses: [] };
+        dailyMap.set(date, {
+          total: existing.total + currentValue,
+          statuses: [...existing.statuses, status]
+        });
       });
 
       // Transform to BalanceTrendItem array and sort by date
       return Array.from(dailyMap.entries())
-        .map(([date, total]) => ({
-          period_date: date,
-          total_balance: total
-        }))
+        .map(([date, { total, statuses }]) => {
+          // Determine aggregate status
+          let aggregateStatus: 'Exact' | 'Warning' | 'Missing' = 'Exact';
+          if (statuses.some(s => s === 'Missing')) {
+            aggregateStatus = 'Missing';
+          } else if (statuses.some(s => s === 'Old Price' || s === 'Old FX')) {
+            aggregateStatus = 'Warning';
+          }
+
+          return {
+            period_date: date,
+            total_balance: total,
+            status: aggregateStatus,
+          };
+        })
         .sort((a, b) => a.period_date.localeCompare(b.period_date));
     },
     enabled: !!user && !!startDate && !!endDate,

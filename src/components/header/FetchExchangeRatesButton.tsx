@@ -16,7 +16,7 @@ const FetchExchangeRatesButton = () => {
 
   const handleClick = () => {
     if (!isFetching && hasPendingRates) {
-      fetchRates();
+      fetchRates(undefined);
     }
   };
 

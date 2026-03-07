@@ -25,6 +25,7 @@ const ReusableLineChart = ({
   showPeriodSelector = false,
   selectedPeriod = "ALL",
   onPeriodChange,
+  onDotClick,
   emptyMessage = "Belum ada data untuk ditampilkan",
   noPeriodDataMessage = "Tidak ada data untuk periode ini",
   xAxisDataKey = "label",
@@ -48,6 +49,49 @@ const ReusableLineChart = ({
       activeDot = { r: 6, strokeWidth: 2 },
     } = config;
 
+    const CustomDot = (props: any) => {
+      const { cx, cy, payload } = props;
+      if (cx === undefined || cy === undefined) return null;
+
+      let fill = dot.fill || stroke;
+      if (payload.status === 'Missing') {
+        fill = "hsl(var(--destructive))";
+      } else if (payload.status === 'Warning') {
+        fill = "#eab308"; // yellow-500
+      } else if (payload.status === 'Exact') {
+        fill = "#22c55e"; // green-500
+      }
+
+      return (
+        <g
+          className="cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDotClick?.(payload);
+          }}
+        >
+          {/* Larger invisible hit area for better touch/click experience */}
+          <circle
+            cx={cx}
+            cy={cy}
+            r={dot.r + 8}
+            fill="transparent"
+            style={{ pointerEvents: 'all' }}
+          />
+          <circle
+            cx={cx}
+            cy={cy}
+            r={dot.r}
+            fill={fill}
+            stroke={stroke}
+            strokeWidth={dot.strokeWidth}
+            className={cn("transition-all hover:opacity-80")}
+            style={{ pointerEvents: 'none' }}
+          />
+        </g>
+      );
+    };
+
     return (
       <Line
         key={dataKey}
@@ -57,7 +101,7 @@ const ReusableLineChart = ({
         stroke={stroke}
         strokeWidth={strokeWidth}
         strokeDasharray={strokeDasharray}
-        dot={{ fill: dot.fill || stroke, strokeWidth: dot.strokeWidth, r: dot.r }}
+        dot={<CustomDot />}
         activeDot={{ r: activeDot.r, strokeWidth: activeDot.strokeWidth }}
       />
     );
@@ -92,12 +136,12 @@ const ReusableLineChart = ({
       )}
       <CardContent>
         {isEmpty ? (
-          <div 
+          <div
             className="flex items-center justify-center text-muted-foreground"
             style={{ height }}
           >
-            {showPeriodSelector && selectedPeriod !== "ALL" 
-              ? noPeriodDataMessage 
+            {showPeriodSelector && selectedPeriod !== "ALL"
+              ? noPeriodDataMessage
               : emptyMessage}
           </div>
         ) : (

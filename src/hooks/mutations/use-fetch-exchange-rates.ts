@@ -6,8 +6,11 @@ export const useFetchExchangeRates = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke('fetch-exchange-rate-by-date');
+    mutationFn: async (date?: string) => {
+      const { data, error } = await supabase.functions.invoke('fetch-exchange-rate-by-date', {
+        body: date ? { date } : undefined,
+      });
+
       if (error) throw error;
       return data;
     },

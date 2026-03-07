@@ -1031,6 +1031,7 @@ export type Database = {
           fx_rate_date_used: string | null
           original_currency_code: string | null
           base_currency_code: string | null
+          is_trackable: boolean | null
           historical_current_value: number | null
           historical_current_value_base_currency: number | null
         }
