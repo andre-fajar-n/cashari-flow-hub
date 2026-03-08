@@ -6,6 +6,8 @@ import PeriodFilter, { PeriodType } from "@/components/analytics/PeriodFilter";
 import BalanceTrendChart from "@/components/analytics/BalanceTrendChart";
 import TrendSummaryCards from "@/components/analytics/TrendSummaryCards";
 import { useBalanceTrend, Granularity } from "@/hooks/queries/use-balance-trend";
+import { useGoldPriceTrend } from "@/hooks/queries/use-gold-price-trend";
+import { useUserSettings } from "@/hooks/queries/use-user-settings";
 
 const BalanceTrend = () => {
   const [periodType, setPeriodType] = useState<PeriodType>("daily");
@@ -21,10 +23,20 @@ const BalanceTrend = () => {
   const granularity: Granularity = periodType === "yearly" ? "year" :
     periodType === "monthly" ? "month" : "day";
 
+  const { data: userSettings } = useUserSettings();
+  const baseCurrency = userSettings?.base_currency_code || 'IDR';
+
   const { data, isLoading } = useBalanceTrend(
     format(startDate, "yyyy-MM-dd"),
     format(endDate, "yyyy-MM-dd"),
     granularity
+  );
+
+  const { data: goldTrendData, isLoading: isLoadingGoldPrice } = useGoldPriceTrend(
+    format(startDate, "yyyy-MM-dd"),
+    format(endDate, "yyyy-MM-dd"),
+    granularity,
+    baseCurrency
   );
 
   return (
@@ -49,7 +61,9 @@ const BalanceTrend = () => {
 
           <BalanceTrendChart
             data={data || []}
+            goldTrendData={goldTrendData || []}
             granularity={granularity}
+            isLoadingGoldPrice={isLoadingGoldPrice}
           />
         </div>
       </Layout>

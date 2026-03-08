@@ -1,3 +1,4 @@
+import React from "react";
 import {
   LineChart,
   Line,
@@ -49,48 +50,85 @@ const ReusableLineChart = ({
       activeDot = { r: 6, strokeWidth: 2 },
     } = config;
 
-    const CustomDot = (props: any) => {
+    const renderDot = (props: any): React.ReactElement | null => {
       const { cx, cy, payload } = props;
       if (cx === undefined || cy === undefined) return null;
 
-      let fill = dot.fill || stroke;
-      if (payload.status === 'Missing') {
-        fill = "hsl(var(--destructive))";
-      } else if (payload.status === 'Warning') {
-        fill = "#eab308"; // yellow-500
-      } else if (payload.status === 'Exact') {
-        fill = "#22c55e"; // green-500
+      if (typeof dot === 'function') {
+        const customDot = dot(props);
+        if (customDot) {
+          return React.cloneElement(customDot as React.ReactElement, {
+            key: `dot-${dataKey}-${payload.fullDate || payload.label}`
+          });
+        }
+        return null;
       }
 
-      return (
-        <g
-          className="cursor-pointer"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDotClick?.(payload);
-          }}
-        >
-          {/* Larger invisible hit area for better touch/click experience */}
-          <circle
-            cx={cx}
-            cy={cy}
-            r={dot.r + 8}
-            fill="transparent"
-            style={{ pointerEvents: 'all' }}
-          />
-          <circle
-            cx={cx}
-            cy={cy}
-            r={dot.r}
-            fill={fill}
-            stroke={stroke}
-            strokeWidth={dot.strokeWidth}
-            className={cn("transition-all hover:opacity-80")}
-            style={{ pointerEvents: 'none' }}
-          />
-        </g>
-      );
+      if (typeof dot === 'object' && dot !== null && !('$$typeof' in dot)) {
+        const dotConfig = dot as { fill?: string; strokeWidth?: number; r?: number };
+        const radius = dotConfig.r ?? 4;
+        const sWidth = dotConfig.strokeWidth ?? 2;
+
+        let fill = dotConfig.fill || stroke;
+        let finalStroke = stroke;
+
+        // Determine status based on dataKey
+        const currentStatus = dataKey === 'goldValue' ? payload.goldStatus : payload.status;
+
+        // Apply status-based coloring
+        if (currentStatus === 'Missing') {
+          fill = "#ef4444"; // red-500
+          finalStroke = fill;
+        } else if (currentStatus === 'Old' || currentStatus === 'Warning') {
+          fill = "#eab308"; // yellow-500
+          finalStroke = fill;
+        } else if (currentStatus === 'Exact') {
+          fill = "#22c55e"; // green-500
+          finalStroke = fill;
+        }
+
+        return (
+          <g
+            key={`dot-group-${dataKey}-${payload.fullDate || payload.label}`}
+            className="cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDotClick?.({ ...payload, dataKey });
+            }}
+          >
+            <circle
+              cx={cx}
+              cy={cy}
+              r={radius + 8}
+              fill="transparent"
+              style={{ pointerEvents: 'all' }}
+            />
+            <circle
+              cx={cx}
+              cy={cy}
+              r={radius}
+              fill={fill}
+              stroke={finalStroke}
+              strokeWidth={sWidth}
+              className={cn("transition-all hover:opacity-80")}
+              style={{ pointerEvents: 'none' }}
+            />
+          </g>
+        );
+      }
+
+      return React.cloneElement(dot as React.ReactElement, {
+        key: `dot-${dataKey}-${payload.fullDate || payload.label}`
+      });
     };
+
+    // Correctly determine the activeDot prop for Recharts Line
+    let activeDotProp: any = activeDot;
+    if (typeof activeDot === 'object' && activeDot !== null && !('$$typeof' in activeDot)) {
+      // It's a config object, pass it as is
+      const activeConfig = activeDot as { r?: number; strokeWidth?: number };
+      activeDotProp = { r: activeConfig.r ?? 6, strokeWidth: activeConfig.strokeWidth ?? 2 };
+    }
 
     return (
       <Line
@@ -101,8 +139,8 @@ const ReusableLineChart = ({
         stroke={stroke}
         strokeWidth={strokeWidth}
         strokeDasharray={strokeDasharray}
-        dot={<CustomDot />}
-        activeDot={{ r: activeDot.r, strokeWidth: activeDot.strokeWidth }}
+        dot={renderDot}
+        activeDot={activeDotProp}
       />
     );
   };
@@ -149,7 +187,7 @@ const ReusableLineChart = ({
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={data}
-                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                margin={{ top: 20, right: 10, left: 0, bottom: 0 }}
               >
                 <CartesianGrid
                   strokeDasharray="3 3"

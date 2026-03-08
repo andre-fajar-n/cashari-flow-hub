@@ -15,11 +15,11 @@ export interface ChartLineConfig {
     fill?: string;
     strokeWidth?: number;
     r?: number;
-  };
+  } | React.ReactNode | ((props: any) => React.ReactElement | null);
   activeDot?: {
     r?: number;
     strokeWidth?: number;
-  };
+  } | React.ReactNode | ((props: any) => React.ReactElement | null);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -41,7 +41,7 @@ export interface ReusableLineChartProps {
   emptyMessage?: string;
   noPeriodDataMessage?: string;
   xAxisDataKey?: string;
-  yAxisDomain?: [string | number, string | number];
+  yAxisDomain?: any[];
   yAxisWidth?: number;
   yAxisFormatter?: (value: number) => string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
