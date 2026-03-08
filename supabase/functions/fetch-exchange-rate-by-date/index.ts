@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { rateConversion } from "../_shared/rate-conversion.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,17 +19,25 @@ serve(async (req: any) => {
   }
 
   try {
-    let { date } = await req.json().catch(() => ({
-      date: null
+    let { date, from_currency, to_currency } = await req.json().catch(() => ({
+      date: null,
+      from_currency: null,
+      to_currency: null
     }));
 
     if (!date) {
       date = new Date(Date.now()).toISOString().split("T")[0];
     }
 
-    const { data: currencyPairs, error: errorCurrencyPairs } = await supabase
+    let query = supabase
       .from("currency_pairs")
       .select("base_currency_code, currency_code");
+
+    if (from_currency && to_currency) {
+      query = query.eq("currency_code", from_currency).eq("base_currency_code", to_currency);
+    }
+
+    const { data: currencyPairs, error: errorCurrencyPairs } = await query;
 
     if (errorCurrencyPairs) {
       console.error("Failed to fetch currency_pairs", errorCurrencyPairs);

@@ -39,7 +39,7 @@ async function fetchExchangeRate(
     endDate?: string | null
 ): Promise<any> {
     const isRange = !!startDate && !!endDate && endDate !== startDate;
-    console.log(`Fetching exchange rate for ${base}/${quote}: ${startDate || "best-effort"}${endDate ? ` up to ${endDate}` : "latest"}`);
+    console.log(`Fetching exchange rate for ${base}/${quote}: ${startDate || "best-effort"}${endDate ? ` up to ${endDate}` : " latest"}`);
 
     const apiKey = Deno.env.get("TWELVE_API_KEY");
     const queryParams = new URLSearchParams({

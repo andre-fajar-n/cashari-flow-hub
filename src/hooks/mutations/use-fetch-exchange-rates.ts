@@ -6,9 +6,13 @@ export const useFetchExchangeRates = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (date?: string) => {
+    mutationFn: async (params?: { date?: string, fromCurrency?: string, toCurrency?: string }) => {
       const { data, error } = await supabase.functions.invoke('fetch-exchange-rate-by-date', {
-        body: date ? { date } : undefined,
+        body: params ? {
+          date: params.date,
+          from_currency: params.fromCurrency,
+          to_currency: params.toCurrency
+        } : undefined,
       });
 
       if (error) throw error;
@@ -19,7 +23,7 @@ export const useFetchExchangeRates = () => {
       queryClient.invalidateQueries({ queryKey: ['pending-exchange-rates'] });
       queryClient.invalidateQueries({ queryKey: ['exchange-rates'] });
       queryClient.invalidateQueries({ queryKey: ['money-summary'] });
-      toast.success('Exchange rates berhasil diupdate');
+      toast.success('Exchange rates sedang di update, silahkan cek kembali beberapa saat lagi.');
     },
     onError: (error: Error) => {
       console.error('Failed to fetch exchange rates:', error);

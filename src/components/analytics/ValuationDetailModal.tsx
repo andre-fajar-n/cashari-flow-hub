@@ -122,7 +122,11 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
                           variant="ghost"
                           size="icon"
                           className="h-6 w-6 text-amber-600 hover:text-amber-700 hover:bg-amber-100"
-                          onClick={() => date && fetchFXRate.mutate(date)}
+                          onClick={() => date && fetchFXRate.mutate({
+                            date,
+                            fromCurrency: 'XAU',
+                            toCurrency: userSettings?.base_currency_code
+                          })}
                           disabled={fetchFXRate.isPending}
                           title="Sync FX Rate"
                         >
@@ -206,13 +210,13 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
                       {detail.original_currency_code}
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
-                      {detail.price_date ? format(parseISO(detail.price_date), "dd MMM", { locale: id }) : "-"}
+                      {detail.price_date ? format(parseISO(detail.price_date), "dd MMM yyyy", { locale: id }) : "-"}
                     </TableCell>
                     <TableCell className="text-right">
                       {detail.fx_rate ? detail.fx_rate.toLocaleString() : "-"}
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
-                      {detail.fx_date ? format(parseISO(detail.fx_date), "dd MMM", { locale: id }) : "-"}
+                      {detail.fx_date ? format(parseISO(detail.fx_date), "dd MMM yyyy", { locale: id }) : "-"}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -227,7 +231,11 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            onClick={() => date && fetchFXRate.mutate(date)}
+                            onClick={() => date && fetchFXRate.mutate({
+                              date,
+                              fromCurrency: detail.original_currency_code,
+                              toCurrency: userSettings?.base_currency_code
+                            })}
                             disabled={fetchFXRate.isPending}
                           >
                             {fetchFXRate.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
