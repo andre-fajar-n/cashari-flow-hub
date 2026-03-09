@@ -3,8 +3,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // Supabase client
 const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  Deno.env.get("SUPABASE_URL")!,
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
 /**
@@ -19,236 +19,236 @@ const supabase = createClient(
  * Runtime: ~5 seconds (just database operations)
  */
 serve(async (req: Request) => {
-    try {
-        // Get optional date filter from request body
-        const { date } = await req.json().catch(() => ({ date: null }));
+  try {
+    // Get optional date filter from request body
+    const { date } = await req.json().catch(() => ({ date: null }));
 
-        console.log("Starting job creation...", date ? `for date: ${date}` : "for all dates");
+    console.log("Starting job creation...", date ? `for date: ${date}` : "for all dates");
 
-        // Get missing exchange rates with batching to overcome 1000 row limit
-        const missingRates: any[] = [];
-        let from = 0;
-        const batchSize = 1000;
-        let moreData = true;
+    // Get missing exchange rates with batching to overcome 1000 row limit
+    const missingRates: any[] = [];
+    let from = 0;
+    const batchSize = 1000;
+    let moreData = true;
 
-        while (moreData) {
-            console.log(`Fetching batch from ${from} to ${from + batchSize - 1}...`);
-            let query = supabase
-                .from("missing_exchange_rate")
-                .select("base_currency_code, currency_code, date")
-                .order("date", { ascending: true })
-                .range(from, from + batchSize - 1);
+    while (moreData) {
+      console.log(`Fetching batch from ${from} to ${from + batchSize - 1}...`);
+      let query = supabase
+        .from("missing_exchange_rate")
+        .select("base_currency_code, currency_code, date")
+        .order("date", { ascending: true })
+        .range(from, from + batchSize - 1);
 
-            // Filter by date if provided
-            if (date) {
-                query = query.eq("date", date);
-            }
+      // Filter by date if provided
+      if (date) {
+        query = query.eq("date", date);
+      }
 
-            const { data, error: fetchError } = await query;
+      const { data, error: fetchError } = await query;
 
-            if (fetchError) {
-                console.error("Failed to fetch missing_exchange_rate", fetchError);
-                throw fetchError;
-            }
+      if (fetchError) {
+        console.error("Failed to fetch missing_exchange_rate", fetchError);
+        throw fetchError;
+      }
 
-            if (data && data.length > 0) {
-                missingRates.push(...data);
-                if (data.length < batchSize) {
-                    moreData = false;
-                } else {
-                    from += batchSize;
-                }
-            } else {
-                moreData = false;
-            }
+      if (data && data.length > 0) {
+        missingRates.push(...data);
+        if (data.length < batchSize) {
+          moreData = false;
+        } else {
+          from += batchSize;
         }
-
-        if (missingRates.length === 0) {
-            return new Response(
-                JSON.stringify({
-                    message: "No missing exchange rates found",
-                    jobs_created: 0,
-                }),
-                {
-                    status: 200,
-                    headers: { "Content-Type": "application/json" },
-                }
-            );
-        }
-
-
-        console.log(`Found ${missingRates.length} missing exchange rates`);
-
-        // Get existing pending jobs to avoid duplicates with batching
-        const existingJobs: any[] = [];
-        let jobsFrom = 0;
-        let moreJobs = true;
-
-        while (moreJobs) {
-            const { data, error: existingJobsError } = await supabase
-                .from("exchange_rate_jobs")
-                .select("date, currency_pairs")
-                .eq("status", "pending")
-                .range(jobsFrom, jobsFrom + batchSize - 1);
-
-            if (existingJobsError) {
-                console.error("Failed to fetch existing pending jobs", existingJobsError);
-                throw existingJobsError;
-            }
-
-            if (data && data.length > 0) {
-                existingJobs.push(...data);
-                if (data.length < batchSize) {
-                    moreJobs = false;
-                } else {
-                    jobsFrom += batchSize;
-                }
-            } else {
-                moreJobs = false;
-            }
-        }
-
-        // Create a set of existing pending job signatures (pair:start_date)
-        const pendingSignatures = new Set<string>();
-        for (const job of existingJobs) {
-            const pairs = job.currency_pairs as string[];
-            if (pairs && pairs.length > 0) {
-                pendingSignatures.add(`${pairs[0]}:${job.date}`);
-            }
-        }
-
-
-        console.log(`Found ${pendingSignatures.size} existing pending job signatures`);
-
-        // Group missing rates by currency pair
-        const groups: Record<string, { currencyPair: string, dates: string[] }> = {};
-        for (const rate of missingRates) {
-            const pair = `${rate.currency_code}/${rate.base_currency_code}`;
-            if (!groups[pair]) {
-                groups[pair] = { currencyPair: pair, dates: [] };
-            }
-            if (!groups[pair].dates.includes(rate.date)) {
-                groups[pair].dates.push(rate.date);
-            }
-        }
-
-        // Helper to get day difference between two YYYY-MM-DD strings
-        const getDiffDays = (d1: string, d2: string) => {
-            const start = new Date(d1);
-            const end = new Date(d2);
-            return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-        };
-
-        // Create jobs for each currency pair group, splitting into chunks if necessary
-        const jobs = [];
-        let skippedCount = 0;
-
-        for (const pair in groups) {
-            const group = groups[pair];
-            group.dates.sort();
-
-            // Split dates into chunks of max 5000 days range
-            const chunks: string[][] = [];
-            let currentChunk: string[] = [];
-
-            for (const dateStr of group.dates) {
-                if (currentChunk.length === 0) {
-                    currentChunk.push(dateStr);
-                } else {
-                    const diff = getDiffDays(currentChunk[0], dateStr);
-                    if (diff < 5000) {
-                        currentChunk.push(dateStr);
-                    } else {
-                        chunks.push(currentChunk);
-                        currentChunk = [dateStr];
-                    }
-                }
-            }
-            if (currentChunk.length > 0) {
-                chunks.push(currentChunk);
-            }
-
-            for (const chunk of chunks) {
-                const minDate = chunk[0];
-                const maxDate = chunk[chunk.length - 1];
-                const signature = `${group.currencyPair}:${minDate}`;
-
-                if (pendingSignatures.has(signature)) {
-                    console.log(`Skipping duplicate job for ${group.currencyPair} starting ${minDate} (already pending)`);
-                    skippedCount++;
-                    continue;
-                }
-
-                jobs.push({
-                    date: minDate,
-                    end_date: maxDate,
-                    missing_dates: chunk,
-                    currency_pairs: [group.currencyPair],
-                    status: "pending",
-                    retry_count: 0,
-                    max_retries: 5,
-                });
-            }
-        }
-
-        console.log(`Jobs to create: ${jobs.length}, Skipped (pending): ${skippedCount}`);
-
-        if (jobs.length === 0) {
-            console.log("No new jobs to create");
-            return new Response(
-                JSON.stringify({
-                    message: skippedCount > 0
-                        ? `No new jobs created. ${skippedCount} job chunks already pending.`
-                        : "No missing exchange rates found",
-                    stats: {
-                        jobsCreated: 0,
-                        jobsSkipped: skippedCount,
-                    }
-                }),
-                {
-                    status: 200,
-                    headers: { "Content-Type": "application/json" },
-                }
-            );
-        }
-
-        // Insert jobs into database
-        const { data: _createdJobs, error: insertError } = await supabase
-            .from("exchange_rate_jobs")
-            .insert(jobs)
-            .select();
-
-        if (insertError) {
-            console.error("Failed to create jobs", insertError);
-            throw insertError;
-        }
-
-        console.log(`Successfully created ${jobs.length} job chunks, skipped ${skippedCount} already pending`);
-
-        return new Response(
-            JSON.stringify({
-                message: "Jobs created successfully",
-                stats: {
-                    jobsCreated: jobs.length,
-                    jobsSkipped: skippedCount,
-                    totalProcessed: jobs.length + skippedCount,
-                }
-            }),
-            {
-                status: 200,
-                headers: { "Content-Type": "application/json" },
-            }
-        );
-    } catch (err) {
-        console.error("Unexpected error:", err);
-        return new Response(
-            JSON.stringify({
-                error: err instanceof Error ? err.message : String(err),
-            }),
-            {
-                status: 500,
-                headers: { "Content-Type": "application/json" },
-            }
-        );
+      } else {
+        moreData = false;
+      }
     }
+
+    if (missingRates.length === 0) {
+      return new Response(
+        JSON.stringify({
+          message: "No missing exchange rates found",
+          jobs_created: 0,
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+
+    console.log(`Found ${missingRates.length} missing exchange rates`);
+
+    // Get existing pending jobs to avoid duplicates with batching
+    const existingJobs: any[] = [];
+    let jobsFrom = 0;
+    let moreJobs = true;
+
+    while (moreJobs) {
+      const { data, error: existingJobsError } = await supabase
+        .from("exchange_rate_jobs")
+        .select("date, currency_pairs")
+        .eq("status", "pending")
+        .range(jobsFrom, jobsFrom + batchSize - 1);
+
+      if (existingJobsError) {
+        console.error("Failed to fetch existing pending jobs", existingJobsError);
+        throw existingJobsError;
+      }
+
+      if (data && data.length > 0) {
+        existingJobs.push(...data);
+        if (data.length < batchSize) {
+          moreJobs = false;
+        } else {
+          jobsFrom += batchSize;
+        }
+      } else {
+        moreJobs = false;
+      }
+    }
+
+    // Create a set of existing pending job signatures (pair:start_date)
+    const pendingSignatures = new Set<string>();
+    for (const job of existingJobs) {
+      const pairs = job.currency_pairs as string[];
+      if (pairs && pairs.length > 0) {
+        pendingSignatures.add(`${pairs[0]}:${job.date}`);
+      }
+    }
+
+
+    console.log(`Found ${pendingSignatures.size} existing pending job signatures`);
+
+    // Group missing rates by currency pair
+    const groups: Record<string, { currencyPair: string, dates: string[] }> = {};
+    for (const rate of missingRates) {
+      const pair = `${rate.currency_code}/${rate.base_currency_code}`;
+      if (!groups[pair]) {
+        groups[pair] = { currencyPair: pair, dates: [] };
+      }
+      if (!groups[pair].dates.includes(rate.date)) {
+        groups[pair].dates.push(rate.date);
+      }
+    }
+
+    // Helper to get day difference between two YYYY-MM-DD strings
+    const getDiffDays = (d1: string, d2: string) => {
+      const start = new Date(d1);
+      const end = new Date(d2);
+      return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    };
+
+    // Create jobs for each currency pair group, splitting into chunks if necessary
+    const jobs = [];
+    let skippedCount = 0;
+
+    for (const pair in groups) {
+      const group = groups[pair];
+      group.dates.sort();
+
+      // Split dates into chunks of max 5000 days range
+      const chunks: string[][] = [];
+      let currentChunk: string[] = [];
+
+      for (const dateStr of group.dates) {
+        if (currentChunk.length === 0) {
+          currentChunk.push(dateStr);
+        } else {
+          const diff = getDiffDays(currentChunk[0], dateStr);
+          if (diff < 5000) {
+            currentChunk.push(dateStr);
+          } else {
+            chunks.push(currentChunk);
+            currentChunk = [dateStr];
+          }
+        }
+      }
+      if (currentChunk.length > 0) {
+        chunks.push(currentChunk);
+      }
+
+      for (const chunk of chunks) {
+        const minDate = chunk[0];
+        const maxDate = chunk[chunk.length - 1];
+        const signature = `${group.currencyPair}:${minDate}`;
+
+        if (pendingSignatures.has(signature)) {
+          console.log(`Skipping duplicate job for ${group.currencyPair} starting ${minDate} (already pending)`);
+          skippedCount++;
+          continue;
+        }
+
+        jobs.push({
+          date: minDate,
+          end_date: maxDate,
+          missing_dates: chunk,
+          currency_pairs: [group.currencyPair],
+          status: "pending",
+          retry_count: 0,
+          max_retries: 5,
+        });
+      }
+    }
+
+    console.log(`Jobs to create: ${jobs.length}, Skipped (pending): ${skippedCount}`);
+
+    if (jobs.length === 0) {
+      console.log("No new jobs to create");
+      return new Response(
+        JSON.stringify({
+          message: skippedCount > 0
+            ? `No new jobs created. ${skippedCount} job chunks already pending.`
+            : "No missing exchange rates found",
+          stats: {
+            jobsCreated: 0,
+            jobsSkipped: skippedCount,
+          }
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Insert jobs into database
+    const { data: _createdJobs, error: insertError } = await supabase
+      .from("exchange_rate_jobs")
+      .insert(jobs)
+      .select();
+
+    if (insertError) {
+      console.error("Failed to create jobs", insertError);
+      throw insertError;
+    }
+
+    console.log(`Successfully created ${jobs.length} job chunks, skipped ${skippedCount} already pending`);
+
+    return new Response(
+      JSON.stringify({
+        message: "Jobs created successfully",
+        stats: {
+          jobsCreated: jobs.length,
+          jobsSkipped: skippedCount,
+          totalProcessed: jobs.length + skippedCount,
+        }
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    return new Response(
+      JSON.stringify({
+        error: err instanceof Error ? err.message : String(err),
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
 });
