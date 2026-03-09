@@ -274,6 +274,10 @@ async function processJob(job: Job, startTime: number): Promise<{
 
             if (isMissingBase) {
                 console.warn(`API returned 404 for ${currencyPair} with range ${job.date} - ${job.end_date || job.date}. Retrying without start_date (fallback to previous available).`);
+
+                await sleep(RATE_LIMIT_WAIT_MS);
+                console.log(`Waiting ${RATE_LIMIT_WAIT_MS / 1000} seconds before retrying fallback...`);
+
                 // Fallback: fetch latest available rate for this pair up to requested end date
                 json = await fetchExchangeRate(base, quote, null, job.end_date || job.date);
                 console.log(`Fallback successful for ${currencyPair} up to ${job.end_date || job.date}. Using best available data.`);
