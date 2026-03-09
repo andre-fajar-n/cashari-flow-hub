@@ -26,6 +26,7 @@ interface Job {
   status: string;
   retry_count: number;
   max_retries: number;
+  error_message: string | null;
 }
 
 /**
@@ -263,28 +264,23 @@ async function processJob(job: Job, startTime: number): Promise<{
 
     const [base, quote] = currencyPair.split("/");
 
-    // Fetch exchange rate for this pair (single or range)
-    let json;
-    try {
-      json = await fetchExchangeRate(base, quote, job.date, job.end_date);
-    } catch (err: any) {
-      // Check for 404 "base parameter missing" or actual 404 status
-      const is404 = err.code === 404 || err.status === 404;
-      const isMissingBase = is404 || (err.message && err.message.toLowerCase().includes("base parameter is missing"));
+    // Determine if we should use fallback mode based on previous error
+    const isRetryWithMissingBase = job.retry_count > 0 &&
+      job.error_message &&
+      (job.error_message.toLowerCase().includes("**base** parameter is missing") ||
+        job.error_message.includes("404"));
 
-      if (isMissingBase) {
-        console.warn(`API returned 404 for ${currencyPair} with range ${job.date} - ${job.end_date || job.date}. Retrying without start_date (fallback to previous available).`);
+    let currentStartDate: string | null = job.date;
+    let currentEndDate: string | null = job.end_date;
 
-        await sleep(RATE_LIMIT_WAIT_MS);
-        console.log(`Waiting ${RATE_LIMIT_WAIT_MS / 1000} seconds before retrying fallback...`);
-
-        // Fallback: fetch latest available rate for this pair up to requested end date
-        json = await fetchExchangeRate(base, quote, null, job.end_date || job.date);
-        console.log(`Fallback successful for ${currencyPair} up to ${job.end_date || job.date}. Using best available data.`);
-      } else {
-        throw err;
-      }
+    if (isRetryWithMissingBase) {
+      console.log(`Job ${job.id} is a retry after 404. Using fallback (no start_date for best-effort).`);
+      currentStartDate = null;
+      currentEndDate = job.end_date || job.date;
     }
+
+    // Fetch exchange rate once and let error bubble to outer catch
+    const json = await fetchExchangeRate(base, quote, currentStartDate, currentEndDate);
 
     // Increment the daily counter after successful API call
     await incrementDailyCounter();
@@ -394,6 +390,8 @@ async function processJob(job: Job, startTime: number): Promise<{
     const isMinuteLimit = errorMessage.includes("run out of API credits for the current minute");
     const isDailyLimit = errorMessage.includes("run out of API credits for the day");
     const is429 = err.code === 429 || errorMessage.includes("429") || isMinuteLimit || isDailyLimit;
+    const is404 = err.code === 404 || err.status === 404;
+    const isMissingBase = is404 || errorMessage.toLowerCase().includes("**base** parameter is missing");
 
     if (isDailyLimit) {
       console.warn(`Daily API limit reached for job ${job.id}: ${errorMessage}`);
@@ -402,24 +400,26 @@ async function processJob(job: Job, startTime: number): Promise<{
       return { success: false, rateLimitHit: true, shouldWait: false, dailyLimitReached: true, errorMessage };
     }
 
-    if (is429 && job.retry_count < job.max_retries - 1) {
+    if ((is429 || isMissingBase) && job.retry_count < job.max_retries - 1) {
       // Check if we have enough time to wait for rate limit (usually for minute limits)
+      // For 404, we don't necessarily need the RATE_LIMIT_WAIT_MS, but we'll follow the pattern
       const elapsedTime = Date.now() - startTime;
-      const timeAfterWait = elapsedTime + RATE_LIMIT_WAIT_MS;
+      const waitTime = is429 ? RATE_LIMIT_WAIT_MS : 1000; // Small wait for 404
+      const timeAfterWait = elapsedTime + waitTime;
 
       if (timeAfterWait < MAX_EXECUTION_TIME_MS) {
         // We have time to wait - signal caller to wait and retry
-        console.log(`Rate limit hit (minute) for job ${job.id}. Will wait ${RATE_LIMIT_WAIT_MS}ms before retrying.`);
+        console.log(`${isMissingBase ? '404' : '429'} hit for job ${job.id}. Will wait ${waitTime}ms before retrying.`);
         await updateJobStatus(job.id, "pending", errorMessage, true);
-        return { success: false, rateLimitHit: true, shouldWait: true, dailyLimitReached: false, errorMessage };
+        return { success: false, rateLimitHit: is429, shouldWait: true, dailyLimitReached: false, errorMessage };
       } else {
         // Not enough time to wait - mark for next run
-        console.log(`Rate limit hit but not enough time to wait. Stopping for next cron run.`);
+        console.log(`${isMissingBase ? '404' : '429'} hit but not enough time to wait. Stopping for next cron run.`);
         await updateJobStatus(job.id, "pending", errorMessage, true);
-        return { success: false, rateLimitHit: true, shouldWait: false, dailyLimitReached: false, errorMessage };
+        return { success: false, rateLimitHit: is429, shouldWait: false, dailyLimitReached: false, errorMessage };
       }
     } else {
-      // Mark as failed if not 429 or exceeded retries
+      // Mark as failed if not retryable or exceeded retries
       await updateJobStatus(job.id, "failed", errorMessage, true);
       return { success: false, rateLimitHit: is429, shouldWait: false, dailyLimitReached: false, errorMessage };
     }
@@ -484,22 +484,22 @@ serve(async (_req: Request) => {
         break;
       }
 
+      if (result.shouldWait) {
+        // Wait for rate limit to expire, then continue processing
+        console.log(`Waiting ${RATE_LIMIT_WAIT_MS}ms for rate limit to expire...`);
+        await sleep(RATE_LIMIT_WAIT_MS);
+        console.log("Rate limit wait complete. Continuing job processing...");
+        // Continue to next job in the loop
+      }
+
       // If rate limit hit, handle based on whether we should wait
       if (result.rateLimitHit) {
         rateLimitHit = true;
 
-        if (result.shouldWait) {
-          // Wait for rate limit to expire, then continue processing
-          console.log(`Waiting ${RATE_LIMIT_WAIT_MS}ms for rate limit to expire...`);
-          await sleep(RATE_LIMIT_WAIT_MS);
-          console.log("Rate limit wait complete. Continuing job processing...");
-          // Continue to next job in the loop
-        } else {
-          // Not enough time to wait - stop processing
-          console.log("Rate limit hit. Not enough time to wait. Stopping for next cron run.");
-          stopReason = "rate_limit";
-          break;
-        }
+        // Not enough time to wait - stop processing
+        console.log("Rate limit hit. Not enough time to wait. Stopping for next cron run.");
+        stopReason = "rate_limit";
+        break;
       }
 
       // Log progress every 10 jobs
