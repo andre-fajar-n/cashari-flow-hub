@@ -6,6 +6,7 @@ import { getStatus, ValuationStatus } from "@/lib/balance-trend";
 export interface ValuationDetail {
   asset_id: string;
   asset_name: string;
+  instrument_name: string;
   units: number;
   price: number | null;
   price_date: string | null;
@@ -79,7 +80,8 @@ export const useValuationDetail = (date: string | null) => {
 
           return {
             asset_id: item.asset_id?.toString() || '',
-            asset_name: item.asset_name || item.original_currency_code || 'Unnamed Asset',
+            asset_name: item.asset_name ? item.asset_name : `Mata Uang ${item.original_currency_code}`,
+            instrument_name: item.asset_name ? item.instrument_name : 'Mata Uang',
             units: item.cumulative_unit || 0,
             price: item.historical_asset_price,
             price_date: item.asset_price_date_used,

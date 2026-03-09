@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useValuationDetail } from "@/hooks/queries/use-valuation-detail";
@@ -78,15 +78,15 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="flex flex-row items-center justify-between space-y-0">
+      <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-0">
+        <DialogHeader className="px-6 py-4 flex flex-row items-center justify-between border-b shrink-0">
           <DialogTitle>
             {isGoldMode ? "Detail Nisab Zakat" : "Detail Valuasi"} - {formattedDate}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="py-4 space-y-6">
-          {isGoldMode && (
+        {isGoldMode ? (
+          <div className="px-6 py-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="p-4 rounded-xl border bg-amber-50/50 border-amber-100 space-y-3">
                 <div className="flex items-center justify-between">
@@ -157,21 +157,21 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
                 </div>
               </div>
             </div>
-          )}
-
-          {!isGoldMode && (
-            <Table>
-              <TableHeader>
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto">
+            <table className="w-full caption-bottom text-sm">
+              <TableHeader className="sticky top-0 bg-background z-10">
                 <TableRow>
-                  <TableHead>Aset</TableHead>
+                  <TableHead className="px-6">Aset</TableHead>
                   <TableHead className="text-right">Unit</TableHead>
                   <TableHead className="text-right">Harga</TableHead>
-                  <TableHead>Mata Uang</TableHead>
                   <TableHead>Tgl Harga</TableHead>
-                  <TableHead className="text-right">Kurs FX</TableHead>
-                  <TableHead>Tgl FX</TableHead>
+                  <TableHead>Mata Uang</TableHead>
+                  <TableHead className="text-right">Kurs Mata Uang</TableHead>
+                  <TableHead>Tgl Mata Uang</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Aksi</TableHead>
+                  <TableHead className="pr-6">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -185,7 +185,12 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
                   ))
                 ) : details?.map((detail) => (
                   <TableRow key={detail.asset_id + detail.original_currency_code}>
-                    <TableCell className="font-medium">{detail.asset_name}</TableCell>
+                    <TableCell className="font-medium min-w-[200px] px-6">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold">{detail.asset_name}</span>
+                        <span className="text-xs text-muted-foreground">{detail.instrument_name}</span>
+                      </div>
+                    </TableCell>
                     <TableCell className="text-right">{detail.units.toLocaleString()}</TableCell>
                     <TableCell className="text-right">
                       {editingPrice?.asset_id === detail.asset_id ? (
@@ -206,11 +211,11 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
                         detail.price ? formatAmountCurrency(detail.price, "", "") : "-"
                       )}
                     </TableCell>
-                    <TableCell className="text-center font-mono text-xs">
-                      {detail.original_currency_code}
-                    </TableCell>
                     <TableCell className="whitespace-nowrap">
                       {detail.price_date ? format(parseISO(detail.price_date), "dd MMM yyyy", { locale: id }) : "-"}
+                    </TableCell>
+                    <TableCell className="text-center font-mono text-xs">
+                      {detail.original_currency_code}
                     </TableCell>
                     <TableCell className="text-right">
                       {detail.fx_rate ? detail.fx_rate.toLocaleString() : "-"}
@@ -277,9 +282,9 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
                   </TableRow>
                 ))}
               </TableBody>
-            </Table>
-          )}
-        </div>
+            </table>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
