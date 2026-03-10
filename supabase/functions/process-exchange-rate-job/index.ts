@@ -265,15 +265,16 @@ async function processJob(job: Job, startTime: number): Promise<{
     const [base, quote] = currencyPair.split("/");
 
     // Determine if we should use fallback mode based on previous error
-    const isRetryWithMissingBase = job.retry_count > 0 &&
+    const isRetryWithMissingBaseOrQuote = job.retry_count > 0 &&
       job.error_message &&
       (job.error_message.toLowerCase().includes("**base** parameter is missing") ||
+        job.error_message.toLowerCase().includes("**quote** parameter is missing") ||
         job.error_message.includes("404"));
 
     let currentStartDate: string | null = job.date;
     let currentEndDate: string | null = job.end_date;
 
-    if (isRetryWithMissingBase) {
+    if (isRetryWithMissingBaseOrQuote) {
       console.log(`Job ${job.id} is a retry after 404. Using fallback (no start_date for best-effort).`);
       currentStartDate = null;
       currentEndDate = job.end_date || job.date;
@@ -391,7 +392,9 @@ async function processJob(job: Job, startTime: number): Promise<{
     const isDailyLimit = errorMessage.includes("run out of API credits for the day");
     const is429 = err.code === 429 || errorMessage.includes("429") || isMinuteLimit || isDailyLimit;
     const is404 = err.code === 404 || err.status === 404;
-    const isMissingBase = is404 || errorMessage.toLowerCase().includes("**base** parameter is missing");
+    const isMissingBaseOrQuote = is404 ||
+      errorMessage.toLowerCase().includes("**base** parameter is missing") ||
+      errorMessage.toLowerCase().includes("**quote** parameter is missing");
 
     if (isDailyLimit) {
       console.warn(`Daily API limit reached for job ${job.id}: ${errorMessage}`);
@@ -400,7 +403,7 @@ async function processJob(job: Job, startTime: number): Promise<{
       return { success: false, rateLimitHit: true, shouldWait: false, dailyLimitReached: true, errorMessage };
     }
 
-    if ((is429 || isMissingBase) && job.retry_count < job.max_retries - 1) {
+    if ((is429 || isMissingBaseOrQuote) && job.retry_count < job.max_retries - 1) {
       // Check if we have enough time to wait for rate limit (usually for minute limits)
       // For 404, we don't necessarily need the RATE_LIMIT_WAIT_MS, but we'll follow the pattern
       const elapsedTime = Date.now() - startTime;
@@ -409,12 +412,12 @@ async function processJob(job: Job, startTime: number): Promise<{
 
       if (timeAfterWait < MAX_EXECUTION_TIME_MS) {
         // We have time to wait - signal caller to wait and retry
-        console.log(`${isMissingBase ? '404' : '429'} hit for job ${job.id}. Will wait ${waitTime}ms before retrying.`);
+        console.log(`${isMissingBaseOrQuote ? '404' : '429'} hit for job ${job.id}. Will wait ${waitTime}ms before retrying.`);
         await updateJobStatus(job.id, "pending", errorMessage, true);
         return { success: false, rateLimitHit: is429, shouldWait: true, dailyLimitReached: false, errorMessage };
       } else {
         // Not enough time to wait - mark for next run
-        console.log(`${isMissingBase ? '404' : '429'} hit but not enough time to wait. Stopping for next cron run.`);
+        console.log(`${isMissingBaseOrQuote ? '404' : '429'} hit but not enough time to wait. Stopping for next cron run.`);
         await updateJobStatus(job.id, "pending", errorMessage, true);
         return { success: false, rateLimitHit: is429, shouldWait: false, dailyLimitReached: false, errorMessage };
       }
