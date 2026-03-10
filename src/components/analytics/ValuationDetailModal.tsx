@@ -266,7 +266,7 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
                                 <X className="h-4 w-4" />
                               </Button>
                             </div>
-                          ) : (
+                          ) : detail.price_date !== date ? (
                             <Button
                               variant="ghost"
                               size="icon"
@@ -275,6 +275,8 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
+                          ) : (
+                            <></>
                           )
                         )}
                       </div>
