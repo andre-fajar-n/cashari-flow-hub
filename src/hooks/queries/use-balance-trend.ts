@@ -66,7 +66,13 @@ export const useBalanceTrend = (
         .from("daily_cumulative")
         .select("*")
         .eq("user_id", user.id)
-        .order("movement_date", { ascending: true });
+        .order("movement_date", { ascending: true })
+        .order("wallet_name", { ascending: true })
+        .order("goal_name", { ascending: true })
+        .order("instrument_name", { ascending: true })
+        .order("asset_name", { ascending: true })
+        .order("cumulative_amount", { ascending: true })
+        .order("cumulative_unit", { ascending: true });
 
       if (granularity === 'day') {
         query = query
