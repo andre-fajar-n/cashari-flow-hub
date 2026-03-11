@@ -45,6 +45,7 @@ export const useValuationDetail = (date: string | null) => {
           acc[key] = { ...item, cumulative_unit: 0 };
         }
         acc[key].cumulative_unit += (item.cumulative_unit || 0);
+        acc[key].cumulative_amount += (item.cumulative_amount || 0);
         return acc;
       }, {});
 
@@ -53,7 +54,7 @@ export const useValuationDetail = (date: string | null) => {
       // Step 2: Identify currencies that are already represented by a specific asset
       const currenciesWithAssets = new Set(
         processedRows
-          .filter((item: DailyCumulative) => item.asset_id && item.is_trackable)
+          .filter((item: DailyCumulative) => item.asset_id && item.is_trackable && item.cumulative_unit > 0)
           .map((item: DailyCumulative) => item.original_currency_code)
       );
 
