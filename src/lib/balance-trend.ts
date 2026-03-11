@@ -1,6 +1,6 @@
 import { DailyCumulative } from "@/models/daily-cumulative";
 
-export type ValuationStatus = 'Exact' | 'Old Price' | 'Old FX' | 'Missing';
+export type ValuationStatus = 'Exact' | 'Old Price' | 'Old FX' | 'Missing' | 'Old Price & FX';
 
 export const getStatus = (item: DailyCumulative, date: string) => {
   let status: ValuationStatus = 'Exact';
@@ -19,6 +19,8 @@ export const getStatus = (item: DailyCumulative, date: string) => {
 
   if (isMissingPrice && isMissingFX) {
     status = 'Missing';
+  } else if (AssetPriceDateNotSameAsDate && FXRateDateNotSameAsDate) {
+    status = 'Old Price & FX';
   } else if (AssetPriceDateNotSameAsDate) {
     status = 'Old Price';
   } else if (FXRateDateNotSameAsDate) {

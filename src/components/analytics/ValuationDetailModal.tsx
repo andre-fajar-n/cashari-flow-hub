@@ -54,6 +54,7 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
   const getStatusIcon = (status: ValuationStatus) => {
     switch (status) {
       case 'Exact': return <CheckCircle2 className="w-4 h-4 text-green-500" />;
+      case 'Old Price & FX':
       case 'Old Price':
       case 'Old FX': return <AlertCircle className="w-4 h-4 text-yellow-500" />;
       case 'Missing': return <AlertCircle className="w-4 h-4 text-destructive" />;
@@ -63,6 +64,7 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
   const getStatusBadge = (status: ValuationStatus) => {
     switch (status) {
       case 'Exact': return <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">Lengkap</Badge>;
+      case 'Old Price & FX': return <Badge variant="outline" className="text-yellow-600 border-yellow-200 bg-yellow-50">Harga & Kurs Lama</Badge>;
       case 'Old Price': return <Badge variant="outline" className="text-yellow-600 border-yellow-200 bg-yellow-50">Harga Lama</Badge>;
       case 'Old FX': return <Badge variant="outline" className="text-yellow-600 border-yellow-200 bg-yellow-50">Kurs Lama</Badge>;
       case 'Missing': return <Badge variant="destructive">Tidak Lengkap</Badge>;
@@ -231,21 +233,6 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {(detail.status === 'Old FX' || detail.status === 'Missing') && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => date && fetchFXRate.mutate({
-                              date,
-                              fromCurrency: detail.original_currency_code,
-                              toCurrency: userSettings?.base_currency_code
-                            })}
-                            disabled={fetchFXRate.isPending}
-                          >
-                            {fetchFXRate.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                          </Button>
-                        )}
                         {detail.is_trackable && (
                           editingPrice?.asset_id === detail.asset_id ? (
                             <div className="flex gap-1">
@@ -278,6 +265,21 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
                           ) : (
                             <></>
                           )
+                        )}
+                        {(detail.status === 'Old FX' || detail.status === 'Missing' || detail.status === 'Old Price & FX') && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => date && fetchFXRate.mutate({
+                              date,
+                              fromCurrency: detail.original_currency_code,
+                              toCurrency: userSettings?.base_currency_code
+                            })}
+                            disabled={fetchFXRate.isPending}
+                          >
+                            {fetchFXRate.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                          </Button>
                         )}
                       </div>
                     </TableCell>
