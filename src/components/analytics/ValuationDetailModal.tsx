@@ -40,6 +40,7 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
   const updatePrice = useCreateInvestmentAssetValue();
 
   const [editingPrice, setEditingPrice] = useState<{ asset_id: string; price: string } | null>(null);
+  const [fetchingRowKey, setFetchingRowKey] = useState<string | null>(null);
 
   const handleUpdatePrice = async (asset_id: number) => {
     if (!editingPrice || !date) return;
@@ -271,14 +272,20 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            onClick={() => date && fetchFXRate.mutate({
-                              date,
-                              fromCurrency: detail.original_currency_code,
-                              toCurrency: userSettings?.base_currency_code
-                            })}
-                            disabled={fetchFXRate.isPending}
+                            onClick={() => {
+                              if (!date) return;
+                              const rowKey = `${detail.asset_id}:${detail.original_currency_code}`;
+                              setFetchingRowKey(rowKey);
+                              fetchFXRate.mutate(
+                                { date, fromCurrency: detail.original_currency_code, toCurrency: userSettings?.base_currency_code },
+                                { onSettled: () => setFetchingRowKey(null) }
+                              );
+                            }}
+                            disabled={fetchingRowKey === `${detail.asset_id}:${detail.original_currency_code}`}
                           >
-                            {fetchFXRate.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                            {fetchingRowKey === `${detail.asset_id}:${detail.original_currency_code}`
+                              ? <Loader2 className="h-4 w-4 animate-spin" />
+                              : <RefreshCw className="h-4 w-4" />}
                           </Button>
                         )}
                       </div>
