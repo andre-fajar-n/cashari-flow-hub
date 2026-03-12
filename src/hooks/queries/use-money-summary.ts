@@ -13,7 +13,8 @@ export const useMoneySummary = (filter?: MoneySummaryFilter) => {
       let query = supabase
         .from("money_summary")
         .select('*')
-        .eq("user_id", user?.id);
+        .eq("user_id", user?.id)
+        .neq("current_value", 0);
 
       if (filter?.walletId) {
         query = query.eq("wallet_id", filter.walletId);
