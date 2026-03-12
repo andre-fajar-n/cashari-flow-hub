@@ -27,6 +27,7 @@ const ReusableLineChart = ({
   selectedPeriod = "ALL",
   onPeriodChange,
   onDotClick,
+  isLoading = false,
   emptyMessage = "Belum ada data untuk ditampilkan",
   noPeriodDataMessage = "Tidak ada data untuk periode ini",
   xAxisDataKey = "label",
@@ -37,7 +38,7 @@ const ReusableLineChart = ({
   legendFormatter,
   className,
 }: ReusableLineChartProps) => {
-  const isEmpty = data.length === 0;
+  const isEmpty = !isLoading && data.length === 0;
 
   const renderLine = (config: ChartLineConfig) => {
     const {

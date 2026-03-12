@@ -38,6 +38,7 @@ export interface ReusableLineChartProps {
   selectedPeriod?: PeriodType;
   onPeriodChange?: (period: PeriodType) => void;
   onDotClick?: (data: any) => void;
+  isLoading?: boolean;
   emptyMessage?: string;
   noPeriodDataMessage?: string;
   xAxisDataKey?: string;

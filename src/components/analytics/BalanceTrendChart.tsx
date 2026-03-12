@@ -19,9 +19,10 @@ interface BalanceTrendChartProps {
   goldTrendData: GoldTrendItem[];
   granularity: Granularity;
   isLoadingGoldPrice?: boolean;
+  isLoading?: boolean;
 }
 
-const BalanceTrendChart = ({ data, goldTrendData, granularity, isLoadingGoldPrice }: BalanceTrendChartProps) => {
+const BalanceTrendChart = ({ data, goldTrendData, granularity, isLoadingGoldPrice, isLoading }: BalanceTrendChartProps) => {
   const { data: userSettings } = useUserSettings();
   const baseCurrencyCode = userSettings?.base_currency_code;
 
@@ -153,6 +154,7 @@ const BalanceTrendChart = ({ data, goldTrendData, granularity, isLoadingGoldPric
 
       <ReusableLineChart
         data={chartData}
+        isLoading={isLoadingGoldPrice || isLoading}
         lines={lines}
         title="Grafik Pertumbuhan Saldo"
         height={350}

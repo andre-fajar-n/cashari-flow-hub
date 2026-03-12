@@ -64,6 +64,7 @@ const BalanceTrend = () => {
             goldTrendData={goldTrendData || []}
             granularity={granularity}
             isLoadingGoldPrice={isLoadingGoldPrice}
+            isLoading={isLoading}
           />
         </div>
       </Layout>
