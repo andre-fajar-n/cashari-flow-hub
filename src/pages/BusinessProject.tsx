@@ -19,7 +19,7 @@ import { useDialogState } from "@/hooks/use-dialog-state";
 
 const BusinessProject = () => {
   const navigate = useNavigate();
-  
+
   const createProject = useCreateBusinessProject();
   const updateProject = useUpdateBusinessProject();
   const { mutate: deleteBusinessProject } = useDeleteBusinessProject();

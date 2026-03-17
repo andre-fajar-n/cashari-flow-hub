@@ -2,7 +2,7 @@ import { AdvancedDataTable, DataTableColumnHeader } from "@/components/ui/advanc
 import { AdvancedDataTableToolbar, SelectFilterConfig } from "@/components/ui/advanced-data-table/advanced-data-table-toolbar";
 import { ColumnDef } from "@tanstack/react-table";
 import { BusinessProjectModel, BusinessProjectSummaryModel } from "@/models/business-projects";
-import { Edit, Trash2, Eye, Calendar, AlertTriangle, ArrowUpCircle, ArrowDownCircle, TrendingUp } from "lucide-react";
+import { Edit, Trash2, Eye, Calendar, AlertTriangle, ArrowUpCircle, ArrowDownCircle, TrendingUp, Minus, MinusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/date";
 import { formatAmountCurrency } from "@/lib/currency";
@@ -106,20 +106,25 @@ export const BusinessProjectTable = ({
       cell: ({ row }) => {
         const project = row.original;
         const summary = summaryMap[project.id];
-        
+
         if (!summary) {
           return <span className="text-xs text-muted-foreground">-</span>;
         }
 
         const hasRate = summary.income_amount_in_base_currency !== null;
-        
+        const incomeAmount = summary.income_amount_in_base_currency || 0;
+        const isZero = incomeAmount === 0;
+
         return (
           <div className="flex items-center gap-1">
-            <ArrowUpCircle className="w-3 h-3 text-green-600" />
+            {isZero
+              ? <MinusCircle className="w-3 h-3 text-muted-foreground" />
+              : <ArrowUpCircle className="w-3 h-3 text-green-600" />
+            }
             {hasRate ? (
-              <span className="text-sm font-medium text-green-700">
+              <span className={`text-sm font-medium ${isZero ? "text-muted-foreground" : "text-green-700"}`}>
                 {formatAmountCurrency(
-                  summary.income_amount_in_base_currency || 0,
+                  incomeAmount,
                   summary.base_currency_code,
                   summary.base_currency_symbol
                 )}
@@ -140,20 +145,25 @@ export const BusinessProjectTable = ({
       cell: ({ row }) => {
         const project = row.original;
         const summary = summaryMap[project.id];
-        
+
         if (!summary) {
           return <span className="text-xs text-muted-foreground">-</span>;
         }
 
         const hasRate = summary.expense_amount_in_base_currency !== null;
-        
+        const expenseAmount = summary.expense_amount_in_base_currency || 0;
+        const isZero = expenseAmount === 0;
+
         return (
           <div className="flex items-center gap-1">
-            <ArrowDownCircle className="w-3 h-3 text-red-600" />
+            {isZero
+              ? <MinusCircle className="w-3 h-3 text-muted-foreground" />
+              : <ArrowDownCircle className="w-3 h-3 text-red-600" />
+            }
             {hasRate ? (
-              <span className="text-sm font-medium text-red-700">
+              <span className={`text-sm font-medium ${isZero ? "text-muted-foreground" : "text-red-700"}`}>
                 {formatAmountCurrency(
-                  summary.expense_amount_in_base_currency || 0,
+                  expenseAmount,
                   summary.base_currency_code,
                   summary.base_currency_symbol
                 )}
@@ -174,20 +184,26 @@ export const BusinessProjectTable = ({
       cell: ({ row }) => {
         const project = row.original;
         const summary = summaryMap[project.id];
-        
+
         if (!summary) {
           return <span className="text-xs text-muted-foreground">-</span>;
         }
 
         const hasRate = summary.net_amount_in_base_currency !== null;
         const netAmount = summary.net_amount_in_base_currency || 0;
-        
+        const isZero = netAmount === 0;
+
         return (
           <div className="flex items-center gap-1">
-            <TrendingUp className="w-3 h-3" />
+            {isZero
+              ? <Minus className="w-3 h-3 text-muted-foreground" />
+              : <TrendingUp className={`w-3 h-3 ${netAmount > 0 ? "text-green-600" : "text-red-600"}`} />
+            }
             {hasRate ? (
-              <span className={`text-sm font-bold ${netAmount >= 0 ? "text-green-700" : "text-red-700"}`}>
-                {netAmount >= 0 ? "+" : ""}{formatAmountCurrency(
+              <span className={`text-sm font-bold ${
+                isZero ? "text-muted-foreground" : netAmount > 0 ? "text-green-700" : "text-red-700"
+              }`}>
+                {!isZero && netAmount > 0 ? "+" : ""}{formatAmountCurrency(
                   netAmount,
                   summary.base_currency_code,
                   summary.base_currency_symbol
