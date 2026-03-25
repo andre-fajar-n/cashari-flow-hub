@@ -25,7 +25,7 @@ const isAssetTrackable = (asset: InvestmentAssetModel): boolean => {
 };
 
 const isZeroPosition = (assetSummary: AssetSummaryData): boolean => {
-  return assetSummary.totalAmount === 0 && assetSummary.totalAmountUnit === 0;
+  return assetSummary?.totalAmount === 0 && assetSummary?.totalAmountUnit === 0;
 };
 
 /**
@@ -202,20 +202,20 @@ export const getInvestmentAssetColumns = ({
         const assetSummary = assetSummaryGrouped[asset.id];
 
         const zeroPosition = isZeroPosition(assetSummary)
-        const showBaseValue = assetSummary.baseCurrencyCode && assetSummary.currencyCode !== assetSummary.baseCurrencyCode;
+        const showBaseValue = assetSummary?.baseCurrencyCode && assetSummary?.currencyCode !== assetSummary?.baseCurrencyCode;
 
         return (
           <div className={`flex flex-col ${zeroPosition ? "opacity-50" : ""}`}>
             <span className="font-bold text-gray-900">
-              {formatAmountCurrency(assetSummary.currentValue, assetSummary.currencyCode, assetSummary.currencySymbol)}
+              {formatAmountCurrency(assetSummary?.currentValue, assetSummary?.currencyCode, assetSummary?.currencySymbol)}
             </span>
             {showBaseValue && (
               <span className="text-[10px] text-muted-foreground italic">
-                ≈ {formatAmountCurrency(assetSummary.currentValueBaseCurrency || 0, assetSummary.baseCurrencyCode!, assetSummary.baseCurrencySymbol!)}
+                ≈ {formatAmountCurrency(assetSummary?.currentValueBaseCurrency || 0, assetSummary?.baseCurrencyCode!, assetSummary?.baseCurrencySymbol!)}
               </span>
             )}
             <span className="text-[10px] text-muted-foreground mt-0.5">
-              {formatNumber(assetSummary.totalAmountUnit, 4)} unit
+              {formatNumber(assetSummary?.totalAmountUnit || 0, 4)} unit
             </span>
           </div>
         );
