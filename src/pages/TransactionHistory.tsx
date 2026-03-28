@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import Layout from "@/components/Layout";
@@ -29,12 +28,11 @@ import { GoalTransferModel, GoalTransferWithRelations } from "@/models/goal-tran
 import { GoalInvestmentRecordModel, GoalInvestmentRecordWithRelations } from "@/models/goal-investment-records";
 import { DebtHistoryModel } from "@/models/debt-histories";
 import { MoneyMovementModel } from "@/models/money-movements";
-import { CATEGORY_APPLICATIONS, MOVEMENT_TYPES } from "@/constants/enums";
+import { MOVEMENT_TYPES } from "@/constants/enums";
 import { useMoneyMovementsPaginated } from "@/hooks/queries/paginated/use-money-movements-paginated";
 import { useTableState } from "@/hooks/use-table-state";
 import { TransactionHistoryTable } from "@/components/transactions/TransactionHistoryTable";
 import { getTransactionHistoryColumns } from "@/components/transactions/TransactionHistoryColumns";
-import { useBudgets, useBusinessProjects, useCategories, useDebtCategories, useDebts, useGoals, useInvestmentAssets, useInvestmentCategories, useInvestmentInstruments } from "@/hooks/queries";
 import { defaultTransactionFormValues, mapTransactionToFormData, TransactionFormData } from "@/form-dto/transactions";
 import { defaultTransferFormData, mapTransferToFormData, TransferFormData } from "@/form-dto/transfer";
 import { defaultGoalTransferFormData, GoalTransferFormData, mapGoalTransferToFormData } from "@/form-dto/goal-transfers";
@@ -44,6 +42,13 @@ import { useInsertTransactionWithRelations, useUpdateTransactionWithRelations } 
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useAuth } from "@/hooks/use-auth";
 import { useDialogState } from "@/hooks/use-dialog-state";
+import { useCategories, useDebtCategories, useInvestmentCategories } from "@/hooks/queries/use-categories";
+import { useGoals } from "@/hooks/queries/use-goals";
+import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
+import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
+import { useDebts } from "@/hooks/queries/use-debts";
+import { useBudgets } from "@/hooks/queries/use-budgets";
+import { useBusinessProjects } from "@/hooks/queries/use-business-projects";
 
 const TransactionHistory = () => {
   const queryClient = useQueryClient();
