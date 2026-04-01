@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Wallet, DollarSign, Coins, ChevronRight, Search, ChevronLeft, Calculator, Info } from "lucide-react";
+import { Wallet, DollarSign, Coins, ChevronRight, Search, ChevronLeft, Calculator, Info, TrendingUp, TrendingDown } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { MoneySummaryGroupByCurrency, MoneySummaryModel, WalletSummary } from "@/models/money-summary";
 import {
@@ -375,75 +375,92 @@ const MoneySummaryCard = ({
 
   if (isLoading) {
     return (
-      <Card className="p-6">
-        <div className="flex items-center gap-2 mb-4">
+      <Card className="overflow-hidden">
+        <div className="px-6 py-5 border-b bg-gradient-to-r from-slate-50 to-white flex items-center gap-2">
           <DollarSign className="w-5 h-5 text-green-600" />
-          <h3 className="text-lg font-semibold">Ringkasan Keuangan</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Ringkasan Keuangan</h3>
         </div>
-        <div className="space-y-4">
-          <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+        <div className="p-6 space-y-5">
+          <div className="animate-pulse rounded-xl bg-green-100 h-28" />
+          <div className="animate-pulse space-y-3">
+            <div className="h-4 bg-gray-200 rounded w-1/3" />
+            <div className="h-16 bg-gray-100 rounded-lg" />
+            <div className="h-16 bg-gray-100 rounded-lg" />
+          </div>
+          <div className="animate-pulse space-y-3">
+            <div className="h-4 bg-gray-200 rounded w-1/4" />
+            <div className="h-20 bg-gray-100 rounded-lg" />
+            <div className="h-20 bg-gray-100 rounded-lg" />
+            <div className="h-20 bg-gray-100 rounded-lg" />
           </div>
         </div>
       </Card>
     );
   }
 
+  const isProfit = totalAmountCalculation.totalUnrealizedAmount >= 0;
+
   return (
-    <Card className="p-6">
-      <div className="flex items-center gap-2 mb-6">
+    <Card className="overflow-hidden">
+      {/* Card Header */}
+      <div className="px-6 py-5 border-b bg-gradient-to-r from-slate-50 to-white flex items-center gap-2">
         <DollarSign className="w-5 h-5 text-green-600" />
-        <h3 className="text-lg font-semibold">Ringkasan Keuangan</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Ringkasan Keuangan</h3>
       </div>
 
-      <div className="space-y-6">
+      <div className="p-6 space-y-6">
         {/* Total Amount Section */}
         {userSettings?.base_currency_code && currencies.length > 0 && (
           <div className="space-y-3">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
               <Calculator className="w-4 h-4 text-green-600" />
-              <h4 className="font-medium">Total Keseluruhan</h4>
+              <h4 className="font-medium text-gray-700 text-sm">Total Keseluruhan</h4>
             </div>
+
             {totalAmountCalculation.canCalculate ? (
-              <div className="p-4 bg-green-50 rounded-lg border-l-4 border-l-green-500">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-green-700">
-                    Total dalam {userSettings.base_currency_code}:
-                  </span>
-                  <span className="text-lg font-bold text-green-800">
-                    {formatAmountCurrency(totalAmountCalculation.totalAmount, userSettings.base_currency_code, userSettings.currencies?.symbol)}
-                  </span>
+              <div className="rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 p-5 text-white shadow-sm">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-green-100 text-xs font-medium uppercase tracking-wide">
+                      Total dalam {userSettings.base_currency_code}
+                    </p>
+                    <p className="text-3xl font-bold mt-1 tracking-tight">
+                      {formatAmountCurrency(totalAmountCalculation.totalAmount, userSettings.base_currency_code, userSettings.currencies?.symbol)}
+                    </p>
+                  </div>
+                  {totalAmountCalculation.totalUnrealizedAmount !== 0 ? (
+                    isProfit
+                      ? <TrendingUp className="w-8 h-8 text-green-200 opacity-80 mt-1" />
+                      : <TrendingDown className="w-8 h-8 text-red-200 opacity-80 mt-1" />
+                  ) : (
+                    <TrendingUp className="w-8 h-8 text-green-200 opacity-80 mt-1" />
+                  )}
                 </div>
 
-                {/* Show breakdown of total amounts */}
-                <div className="mt-3 space-y-1 text-sm">
-                  <div className="flex justify-between text-green-600">
-                    <span>Nilai Awal:</span>
-                    <span>
+                <div className="mt-4 pt-4 border-t border-white/20 grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-green-100 text-xs">Nilai Awal</p>
+                    <p className="font-semibold mt-0.5">
                       {formatAmountCurrency(totalAmountCalculation.totalActiveCapital, userSettings.base_currency_code, userSettings.currencies?.symbol)}
-                    </span>
+                    </p>
                   </div>
                   {totalAmountCalculation.totalUnrealizedAmount !== 0 && (
-                    <div className="space-y-1">
-                      <div className={`flex justify-between font-medium ${totalAmountCalculation.totalUnrealizedAmount >= 0 ? 'text-green-700' : 'text-red-600'}`}>
-                        <span>Total Belum Terealisasi:</span>
-                        <span>
-                          {totalAmountCalculation.totalUnrealizedAmount >= 0 ? '+' : ''}
-                          {formatAmountCurrency(totalAmountCalculation.totalUnrealizedAmount, userSettings.base_currency_code, userSettings.currencies?.symbol)}
-                        </span>
-                      </div>
-
+                    <div>
+                      <p className="text-green-100 text-xs">Belum Terealisasi</p>
+                      <p className={`font-semibold mt-0.5 ${isProfit ? 'text-white' : 'text-red-200'}`}>
+                        {isProfit ? '+' : ''}
+                        {formatAmountCurrency(totalAmountCalculation.totalUnrealizedAmount, userSettings.base_currency_code, userSettings.currencies?.symbol)}
+                      </p>
                       {/* Breakdown */}
-                      <div className="text-[10px] space-y-0.5 mt-1 border-t border-green-200/50 pt-1">
-                        <div className={`flex justify-between gap-2 ${totalAmountCalculation.totalUnrealizedAssetProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <div className="mt-2 space-y-0.5 text-[10px] border-t border-white/20 pt-1">
+                        <div className={`flex justify-between gap-2 ${totalAmountCalculation.totalUnrealizedAssetProfit >= 0 ? 'text-green-100' : 'text-red-200'}`}>
                           <span>Aset:</span>
                           <span>
                             {totalAmountCalculation.totalUnrealizedAssetProfit >= 0 ? '+' : ''}
                             {formatAmountCurrency(totalAmountCalculation.totalUnrealizedAssetProfit, userSettings.base_currency_code, userSettings.currencies?.symbol)}
                           </span>
                         </div>
-                        <div className={`flex justify-between gap-2 ${totalAmountCalculation.totalUnrealizedCurrencyProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <div className={`flex justify-between gap-2 ${totalAmountCalculation.totalUnrealizedCurrencyProfit >= 0 ? 'text-green-100' : 'text-red-200'}`}>
                           <span>Kurs:</span>
                           <span>
                             {totalAmountCalculation.totalUnrealizedCurrencyProfit >= 0 ? '+' : ''}
@@ -456,15 +473,13 @@ const MoneySummaryCard = ({
                 </div>
               </div>
             ) : (
-              <div className="p-4 bg-amber-50 rounded-lg border-l-4 border-l-amber-500">
-                <div className="flex items-start gap-2">
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <div className="flex items-start gap-3">
                   <Info className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-amber-700">
-                      Total tidak dapat dihitung
-                    </p>
-                    <p className="text-xs text-amber-600">
-                      kurs tidak tersedia untuk mata uang: {totalAmountCalculation.missingRates.join(', ')}
+                  <div>
+                    <p className="text-sm font-medium text-amber-800">Total tidak dapat dihitung</p>
+                    <p className="text-xs text-amber-600 mt-0.5">
+                      Kurs tidak tersedia untuk mata uang: {totalAmountCalculation.missingRates.join(', ')}
                     </p>
                   </div>
                 </div>
@@ -485,9 +500,9 @@ const MoneySummaryCard = ({
 
         {/* Grand Totals - Only Original Currency with Base Currency conversion */}
         <div className="space-y-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
             <Coins className="w-4 h-4 text-blue-600" />
-            <h4 className="font-medium">Total per Mata Uang</h4>
+            <h4 className="font-medium text-gray-700 text-sm">Total per Mata Uang</h4>
           </div>
           <div className="space-y-2">
             {currencies.length > 0 ? (
@@ -498,7 +513,7 @@ const MoneySummaryCard = ({
                 const hasNullRate = currencyData?.latest_rate === null && currencyData?.base_currency_code;
 
                 return (
-                  <div key={currency} className="p-4 bg-blue-50 rounded-lg">
+                  <div key={currency} className="p-4 bg-blue-50 rounded-xl border border-blue-100">
                     <FourColumnLayout
                       infoData={{
                         name: currency,
@@ -527,7 +542,7 @@ const MoneySummaryCard = ({
                 );
               })
             ) : (
-              <p className="text-sm text-muted-foreground">Belum ada data</p>
+              <p className="text-sm text-muted-foreground px-1">Belum ada data</p>
             )}
           </div>
         </div>
@@ -535,31 +550,29 @@ const MoneySummaryCard = ({
         {/* Wallet Summaries with Search and Pagination */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
               <Wallet className="w-4 h-4 text-purple-600" />
-              <h4 className="font-medium">Ringkasan per Dompet</h4>
+              <h4 className="font-medium text-gray-700 text-sm">Ringkasan per Dompet</h4>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Cari dompet..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 w-48"
-                />
-              </div>
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Cari dompet..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8 w-44 h-9 text-sm"
+              />
             </div>
           </div>
 
           {filteredWallets.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {paginatedWallets.map((wallet) => (
-                <Card key={wallet.wallet_id} className="border-l-4 border-l-purple-500">
+                <Card key={wallet.wallet_id} className="border border-purple-100 shadow-sm overflow-hidden">
                   <Collapsible>
                     <CollapsibleTrigger asChild>
                       <div
-                        className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                        className="px-4 py-3 cursor-pointer hover:bg-purple-50/60 transition-colors border-l-4 border-l-purple-500"
                         onClick={() => toggleWalletExpansion(wallet.wallet_id)}
                       >
                         <WalletRow
@@ -570,8 +583,8 @@ const MoneySummaryCard = ({
                     </CollapsibleTrigger>
 
                     <CollapsibleContent>
-                      <div className="px-4 pb-4 border-t bg-gray-50">
-                        <div className="space-y-3 pt-3">
+                      <div className="px-4 pb-4 border-t bg-gray-50/70">
+                        <div className="space-y-2 pt-3">
                           {wallet.instruments.map((instrument) => {
                             const instrumentKey = `${wallet.wallet_id}-${instrument.instrument_id || 0}`;
                             const hasAssets = instrument.assets.length > 1 || (instrument.assets.length === 1 && instrument.assets[0].asset_id !== null);
@@ -580,7 +593,7 @@ const MoneySummaryCard = ({
                               // Direct card without expandable for instruments without assets
                               const asset = instrument.assets[0];
                               return (
-                                <div key={`${instrument.instrument_id || 0}`} className="bg-white p-4 rounded border">
+                                <div key={`${instrument.instrument_id || 0}`} className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
                                   <FourColumnLayout
                                     infoData={{
                                       name: instrument.instrument_name || 'Bukan instrumen',
@@ -610,7 +623,7 @@ const MoneySummaryCard = ({
 
                             // Expandable instrument with assets
                             return (
-                              <div key={`${instrument.instrument_id || 0}`} className="bg-white rounded border">
+                              <div key={`${instrument.instrument_id || 0}`} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                                 <Collapsible>
                                   <CollapsibleTrigger asChild>
                                     <div
@@ -625,10 +638,10 @@ const MoneySummaryCard = ({
                                   </CollapsibleTrigger>
 
                                   <CollapsibleContent>
-                                    <div className="px-3 pb-3 border-t bg-gray-25">
+                                    <div className="px-3 pb-3 border-t bg-gray-50/50">
                                       <div className="space-y-2 pt-2">
                                         {instrument.assets.map((asset) => (
-                                          <div key={`${asset.asset_id || 0}`} className="bg-white p-3 rounded border border-gray-200">
+                                          <div key={`${asset.asset_id || 0}`} className="bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
                                             <FourColumnLayout
                                               infoData={{
                                                 name: asset.asset_name || 'Bukan aset',
@@ -670,21 +683,21 @@ const MoneySummaryCard = ({
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-muted-foreground">
-                    Menampilkan {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredWallets.length)} dari {filteredWallets.length} dompet
-                  </div>
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between pt-1">
+                  <p className="text-xs text-muted-foreground">
+                    {startIndex + 1}–{Math.min(startIndex + itemsPerPage, filteredWallets.length)} dari {filteredWallets.length} dompet
+                  </p>
+                  <div className="flex items-center gap-1">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
+                      className="h-8 px-2"
                     >
                       <ChevronLeft className="w-4 h-4" />
-                      Sebelumnya
                     </Button>
-                    <span className="text-sm">
+                    <span className="text-sm px-2 text-muted-foreground">
                       {currentPage} / {totalPages}
                     </span>
                     <Button
@@ -692,8 +705,8 @@ const MoneySummaryCard = ({
                       size="sm"
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
+                      className="h-8 px-2"
                     >
-                      Selanjutnya
                       <ChevronRight className="w-4 h-4" />
                     </Button>
                   </div>
@@ -701,11 +714,12 @@ const MoneySummaryCard = ({
               )}
             </div>
           ) : (
-            <Card className="p-4 text-center text-muted-foreground">
-              <p className="text-sm">
+            <div className="rounded-xl border border-dashed border-gray-200 p-6 text-center">
+              <Wallet className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">
                 {searchTerm ? `Tidak ada dompet yang cocok dengan "${searchTerm}"` : "Belum ada data ringkasan dompet"}
               </p>
-            </Card>
+            </div>
           )}
         </div>
       </div>
