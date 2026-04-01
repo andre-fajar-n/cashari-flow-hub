@@ -1,6 +1,5 @@
-
+import { Settings2, Wallet, Tag } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import WalletManagement from "@/components/settings/WalletManagement";
@@ -11,20 +10,28 @@ const Settings = () => {
   return (
     <ProtectedRoute>
       <Layout>
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Pengaturan</CardTitle>
-            <CardDescription>
-              Kelola mata uang, dompet, dan kategori untuk aplikasi keuangan Anda
-            </CardDescription>
-          </CardHeader>
-        </Card>
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Pengaturan</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Kelola mata uang, dompet, dan kategori untuk aplikasi keuangan Anda
+          </p>
+        </div>
 
         <Tabs defaultValue="general" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-3">
-            <TabsTrigger value="general" className="text-xs sm:text-sm">Umum</TabsTrigger>
-            <TabsTrigger value="wallets" className="text-xs sm:text-sm">Dompet</TabsTrigger>
-            <TabsTrigger value="categories" className="text-xs sm:text-sm">Kategori</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 mb-4 h-11">
+            <TabsTrigger value="general" className="text-xs sm:text-sm flex items-center gap-1.5">
+              <Settings2 className="w-4 h-4" />
+              <span>Umum</span>
+            </TabsTrigger>
+            <TabsTrigger value="wallets" className="text-xs sm:text-sm flex items-center gap-1.5">
+              <Wallet className="w-4 h-4" />
+              <span>Dompet</span>
+            </TabsTrigger>
+            <TabsTrigger value="categories" className="text-xs sm:text-sm flex items-center gap-1.5">
+              <Tag className="w-4 h-4" />
+              <span>Kategori</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="general">

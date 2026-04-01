@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { DataTable, ColumnFilter } from "@/components/ui/data-table";
 import { CurrencyDropdown } from "@/components/ui/dropdowns";
 import { useForm } from "react-hook-form";
-import { Plus, Trash, Pen } from "lucide-react";
+import { Plus, Trash, Pen, Wallet } from "lucide-react";
 import { useCurrencies } from "@/hooks/queries/use-currencies";
 import { useCreateWallet, useDeleteWallet, useUpdateWallet, useWallets } from "@/hooks/queries/use-wallets";
 import { defaultWalletFormValues, WalletFormData } from "@/form-dto/wallets";
@@ -105,40 +106,50 @@ const WalletManagement = () => {
   ];
 
   const renderWalletItem = (wallet: WalletModel) => {
+    const currencyType = currencyMap?.[wallet.currency_code]?.type;
     return (
-      <div className="flex items-center justify-between p-4 border rounded-lg">
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <p className="font-medium">{wallet.name}</p>
+      <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50/50 transition-colors">
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+            <Wallet className="w-5 h-5 text-purple-600" />
+          </div>
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-2 min-w-0">
+            <div>
+              <p className="font-medium text-gray-900 truncate">{wallet.name}</p>
+              <p className="text-xs text-muted-foreground">Nama Dompet</p>
             </div>
-            <p className="text-sm text-muted-foreground">Nama Dompet</p>
-          </div>
-          <div>
-            <p className="font-medium">{wallet.currency_code}</p>
-            <p className="text-sm text-muted-foreground">Mata Uang</p>
-          </div>
-          <div>
-            <p className="font-medium">{currencyMap?.[wallet.currency_code]?.type}</p>
-            <p className="text-sm text-muted-foreground">Tipe</p>
+            <div>
+              <p className="font-medium">{wallet.currency_code}</p>
+              <p className="text-xs text-muted-foreground">Mata Uang</p>
+            </div>
+            <div>
+              {currencyType ? (
+                <Badge variant="outline" className="text-xs capitalize">{currencyType}</Badge>
+              ) : (
+                <span className="text-sm text-gray-400">—</span>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">Tipe</p>
+            </div>
           </div>
         </div>
-        <div className="flex gap-2 ml-4">
+        <div className="flex gap-2 ml-4 flex-shrink-0">
           <Button
             variant="outline"
             size="sm"
             onClick={() => startEdit(wallet)}
             disabled={editingWallet?.id === wallet.id}
+            className="h-8 w-8 p-0"
           >
-            <Pen className="w-4 h-4" />
+            <Pen className="w-3.5 h-3.5" />
           </Button>
           <Button
             variant="destructive"
             size="sm"
             onClick={() => deleteMutation.mutate(wallet.id)}
             disabled={deleteMutation.isPending}
+            className="h-8 w-8 p-0"
           >
-            <Trash className="w-4 h-4" />
+            <Trash className="w-3.5 h-3.5" />
           </Button>
         </div>
       </div>
@@ -148,11 +159,13 @@ const WalletManagement = () => {
   return (
     <div className="space-y-6">
       {isAdding || editingWallet ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{editingWallet ? "Edit Dompet" : "Tambah Dompet Baru"}</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <Card className="overflow-hidden">
+          <div className="px-6 py-5 border-b bg-gradient-to-r from-slate-50 to-white">
+            <CardTitle className="text-base">
+              {editingWallet ? "Edit Dompet" : "Tambah Dompet Baru"}
+            </CardTitle>
+          </div>
+          <CardContent className="p-6">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -177,7 +190,7 @@ const WalletManagement = () => {
                   />
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 pt-2 border-t">
                   <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                     {editingWallet ? "Update" : "Simpan"}
                   </Button>
