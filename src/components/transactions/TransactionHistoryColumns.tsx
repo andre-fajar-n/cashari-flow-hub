@@ -82,7 +82,7 @@ export const getTransactionHistoryColumns = ({
         return (
           <div className="flex items-start gap-3 min-w-0">
             {/* Icon */}
-            <div className={`flex-shrink-0 p-2 rounded-full bg-gray-50 ${!hasDescription ? 'self-center' : ''}`}>
+            <div className={`flex-shrink-0 p-2 rounded-full ${isIncome ? 'bg-green-50' : isExpense ? 'bg-red-50' : 'bg-blue-50'} ${!hasDescription ? 'self-center' : ''}`}>
               {isIncome ? (
                 <ArrowUpCircle className="w-5 h-5 text-green-600" />
               ) : isExpense ? (

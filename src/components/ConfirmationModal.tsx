@@ -1,3 +1,4 @@
+import { AlertTriangle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,9 +39,20 @@ const ConfirmationModal = ({
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
+        {variant === "destructive" && (
+          <div className="flex justify-center mb-2">
+            <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+              <AlertTriangle className="w-6 h-6 text-red-500" />
+            </div>
+          </div>
+        )}
         <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
+          <AlertDialogTitle className={variant === "destructive" ? "text-center" : ""}>
+            {title}
+          </AlertDialogTitle>
+          <AlertDialogDescription className={variant === "destructive" ? "text-center" : ""}>
+            {description}
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{cancelText}</AlertDialogCancel>

@@ -2,7 +2,8 @@ import { useWallets } from "@/hooks/queries/use-wallets";
 import { useTransactionCategories } from "@/hooks/queries/use-categories";
 import { useBudgets } from "@/hooks/queries/use-budgets";
 import { useBusinessProjects } from "@/hooks/queries/use-business-projects";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Receipt } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import TransactionFormFields from "@/components/transactions/TransactionFormFields";
@@ -35,12 +36,23 @@ const TransactionDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {transaction ? "Ubah Transaksi" : "Tambah Transaksi Baru"}
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[460px] max-h-[90vh] overflow-y-auto p-0">
+        <div className="px-6 pt-6 pb-4 border-b bg-gradient-to-r from-slate-50 to-white">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
+              <Receipt className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <DialogTitle className="text-base font-semibold">
+                {transaction ? "Ubah Transaksi" : "Tambah Transaksi Baru"}
+              </DialogTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {transaction ? "Perbarui detail transaksi" : "Catat pemasukan atau pengeluaran baru"}
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="px-6 py-4">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <TransactionFormFields
@@ -55,7 +67,7 @@ const TransactionDialog = ({
               businessProjects={businessProjects}
             />
 
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-2 pt-4 border-t mt-2">
               <Button
                 type="button"
                 variant="ghost"
@@ -69,6 +81,7 @@ const TransactionDialog = ({
             </div>
           </form>
         </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );

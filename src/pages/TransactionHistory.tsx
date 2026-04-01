@@ -3,11 +3,13 @@ import { useForm } from "react-hook-form";
 import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
-import { Plus, ChevronDown } from "lucide-react";
+import { Plus, ChevronDown, Receipt, ArrowLeftRight, Target, TrendingUp, CreditCard } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import TransactionDialog from "@/components/transactions/TransactionDialog";
@@ -539,8 +541,8 @@ const TransactionHistory = () => {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Riwayat Transaksi</h1>
-              <p className="text-sm text-gray-600 mt-1">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Riwayat Transaksi</h1>
+              <p className="text-sm text-gray-500 mt-1">
                 Semua riwayat transaksi, transfer, dan pergerakan dana dalam satu tempat
               </p>
             </div>
@@ -552,25 +554,27 @@ const TransactionHistory = () => {
                   <ChevronDown className="w-4 h-4 ml-2" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">Pilih jenis entri</DropdownMenuLabel>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.TRANSACTION)}>
-                  <Plus className="w-4 h-4 mr-2" />
+                  <Receipt className="w-4 h-4 mr-2 text-blue-600" />
                   Transaksi
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.TRANSFER)}>
-                  <Plus className="w-4 h-4 mr-2" />
+                  <ArrowLeftRight className="w-4 h-4 mr-2 text-purple-600" />
                   Transfer
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.GOAL_TRANSFER)}>
-                  <Plus className="w-4 h-4 mr-2" />
+                  <Target className="w-4 h-4 mr-2 text-green-600" />
                   Transfer Target
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.INVESTMENT_GROWTH)}>
-                  <Plus className="w-4 h-4 mr-2" />
+                  <TrendingUp className="w-4 h-4 mr-2 text-orange-500" />
                   Progres Investasi
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.DEBT_HISTORY)}>
-                  <Plus className="w-4 h-4 mr-2" />
+                  <CreditCard className="w-4 h-4 mr-2 text-red-600" />
                   Hutang/Piutang
                 </DropdownMenuItem>
               </DropdownMenuContent>

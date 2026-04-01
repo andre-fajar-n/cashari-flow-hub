@@ -1,5 +1,6 @@
 import { UseFormReturn } from "react-hook-form";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InputNumber } from "@/components/ui/input-number";
@@ -52,14 +53,25 @@ const GoalInvestmentRecordDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {record ? "Ubah Investment Record" : "Update Progress Investasi"}
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto p-0">
+        <div className="px-6 pt-6 pb-4 border-b bg-gradient-to-r from-slate-50 to-white">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="w-5 h-5 text-orange-600" />
+            </div>
+            <div>
+              <DialogTitle className="text-base font-semibold">
+                {record ? "Ubah Investment Record" : "Update Progress Investasi"}
+              </DialogTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {record ? "Perbarui data catatan investasi" : "Catat perkembangan investasi terbaru"}
+              </p>
+            </div>
+          </div>
+        </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="px-6 py-4 space-y-4">
             {!goalId && (
               <GoalDropdown
                 control={form.control}
@@ -235,7 +247,7 @@ const GoalInvestmentRecordDialog = ({
               )}
             />
 
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-2 pt-4 border-t mt-2">
               <Button
                 type="button"
                 variant="ghost"
@@ -246,6 +258,7 @@ const GoalInvestmentRecordDialog = ({
               <Button type="submit" disabled={isLoading}>
                 {isLoading ? "Menyimpan..." : record ? "Perbarui" : "Simpan"}
               </Button>
+            </div>
             </div>
           </form>
         </Form>

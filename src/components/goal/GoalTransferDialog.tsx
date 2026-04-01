@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -111,7 +112,7 @@ const GoalTransferDialog = ({
         wallets={wallets}
       />
 
-      <div className="flex justify-end gap-2 pt-4">
+      <div className="flex justify-end gap-2 pt-4 border-t mt-2">
         <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
           Batal
         </Button>
@@ -124,33 +125,45 @@ const GoalTransferDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{dialogTitle}</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto p-0">
+        <div className="px-6 pt-6 pb-4 border-b bg-gradient-to-r from-slate-50 to-white">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+              <Target className="w-5 h-5 text-green-600" />
+            </div>
+            <div>
+              <DialogTitle className="text-base font-semibold">{dialogTitle}</DialogTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {transfer ? "Perbarui data transfer target" : "Catat perpindahan dana ke/dari target"}
+              </p>
+            </div>
+          </div>
+        </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {showTabs ? (
-              <Tabs
-                value={activeTab}
-                onValueChange={(val) => setActiveTab(val as TabMode)}
-              >
-                <TabsList className="w-full">
+            <div className="px-6 py-4 space-y-4">
+              {showTabs ? (
+                <Tabs
+                  value={activeTab}
+                  onValueChange={(val) => setActiveTab(val as TabMode)}
+                >
+                  <TabsList className="w-full">
+                    {(Object.keys(TAB_LABELS) as TabMode[]).map((tab) => (
+                      <TabsTrigger key={tab} value={tab} className="flex-1 text-xs">
+                        {TAB_LABELS[tab]}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
                   {(Object.keys(TAB_LABELS) as TabMode[]).map((tab) => (
-                    <TabsTrigger key={tab} value={tab} className="flex-1 text-xs">
-                      {TAB_LABELS[tab]}
-                    </TabsTrigger>
+                    <TabsContent key={tab} value={tab} className="space-y-4 mt-4">
+                      {formContent}
+                    </TabsContent>
                   ))}
-                </TabsList>
-                {(Object.keys(TAB_LABELS) as TabMode[]).map((tab) => (
-                  <TabsContent key={tab} value={tab} className="space-y-4 mt-4">
-                    {formContent}
-                  </TabsContent>
-                ))}
-              </Tabs>
-            ) : (
-              formContent
-            )}
+                </Tabs>
+              ) : (
+                formContent
+              )}
+            </div>
           </form>
         </Form>
       </DialogContent>
