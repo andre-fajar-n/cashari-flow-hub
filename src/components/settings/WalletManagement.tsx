@@ -216,6 +216,7 @@ const WalletManagement = () => {
           itemsPerPage={10}
           renderItem={renderWalletItem}
           emptyStateMessage="Belum ada dompet yang dibuat"
+          useUrlParams={false}
           title="Kelola Dompet"
           headerActions={
             !isAdding && !editingWallet && (

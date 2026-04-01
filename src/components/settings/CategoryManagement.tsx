@@ -294,6 +294,7 @@ const CategoryManagement = () => {
           itemsPerPage={10}
           renderItem={renderCategoryItem}
           emptyStateMessage="Belum ada kategori yang dibuat"
+          useUrlParams={false}
           title="Kelola Kategori"
           headerActions={
             !isAdding && (
