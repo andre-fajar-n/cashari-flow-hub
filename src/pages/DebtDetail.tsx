@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, CheckCircle, Plus, RotateCcw, Calendar, AlertTriangle, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { ArrowLeft, CheckCircle, Plus, RotateCcw, Calendar, AlertTriangle, TrendingUp, TrendingDown, Minus, Landmark } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import { useDebtDetail, useMarkDebtAsActive, useMarkDebtAsPaid } from "@/hooks/queries/use-debts";
@@ -186,8 +186,12 @@ const DebtHistory = () => {
     return (
       <ProtectedRoute>
         <Layout>
-          <div className="flex flex-col items-center justify-center py-16">
-            <p className="text-muted-foreground mb-4">Hutang/piutang tidak ditemukan</p>
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+              <Landmark className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <p className="font-medium mb-1">Hutang/piutang tidak ditemukan</p>
+            <p className="text-sm text-muted-foreground mb-4">Data yang Anda cari tidak ada atau telah dihapus</p>
             <Button onClick={() => navigate("/debt")} variant="outline">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Kembali ke Daftar Hutang/Piutang
@@ -259,13 +263,13 @@ const DebtHistory = () => {
               <div className="border-t bg-muted/30">
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 p-4">
                   {/* Total Initial Amount */}
-                  <div className="bg-card rounded-lg border p-3 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="bg-card rounded-lg border border-l-4 border-l-orange-400 p-3 shadow-sm hover:shadow-md transition-shadow">
                     <p className="text-xs font-medium text-muted-foreground mb-1">{labels.initial}</p>
                     <p className="text-lg font-bold">{formatAmountCurrency(progressCalculation.totalInitial, userSettings?.base_currency_code, userSettings?.currencies?.symbol)}</p>
                   </div>
 
                   {/* Total Paid */}
-                  <div className="bg-card rounded-lg border p-3 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="bg-card rounded-lg border border-l-4 border-l-green-400 p-3 shadow-sm hover:shadow-md transition-shadow">
                     <p className="text-xs font-medium text-muted-foreground mb-1">{labels.paid}</p>
                     {totalCalculation.can_calculate ? (
                       <p className="text-lg font-bold text-green-600">
@@ -280,7 +284,7 @@ const DebtHistory = () => {
                   </div>
 
                   {/* Remaining Amount */}
-                  <div className="bg-card rounded-lg border p-3 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="bg-card rounded-lg border border-l-4 border-l-blue-400 p-3 shadow-sm hover:shadow-md transition-shadow">
                     <p className="text-xs font-medium text-muted-foreground mb-1">{labels.remaining}</p>
                     <AmountText amount={progressCalculation.remaining} showSign className="text-lg font-bold">
                       {formatAmountCurrency(Math.abs(progressCalculation.remaining), userSettings?.base_currency_code, userSettings?.currencies?.symbol)}
@@ -301,7 +305,7 @@ const DebtHistory = () => {
                   </div>
 
                   {/* Progress */}
-                  <div className="bg-card rounded-lg border p-3 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="bg-card rounded-lg border border-l-4 border-l-purple-400 p-3 shadow-sm hover:shadow-md transition-shadow">
                     <p className="text-xs font-medium text-muted-foreground mb-1">Progress</p>
                     <div className="flex items-center gap-2">
                       <p className="text-lg font-bold">{formatPercentage(progressCalculation.progressPercentage)}%</p>
@@ -334,8 +338,12 @@ const DebtHistory = () => {
                   debtType={debt.type}
                 />
               ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">Belum ada transaksi dalam {debt.type === 'loan' ? 'hutang' : 'piutang'} ini</p>
+                <div className="text-center py-12">
+                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                    <TrendingUp className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                  <p className="font-medium text-sm mb-1">Belum ada transaksi</p>
+                  <p className="text-xs text-muted-foreground">Tambahkan riwayat pembayaran untuk melihat ringkasan</p>
                 </div>
               )}
             </TabsContent>

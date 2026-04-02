@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Landmark } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import DebtDialog from "@/components/debt/DebtDialog";
@@ -124,9 +124,14 @@ const Debt = () => {
         <div className="space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Manajemen Hutang/Piutang</h1>
-              <p className="text-sm text-muted-foreground mt-1">Kelola hutang dan piutang Anda</p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center flex-shrink-0">
+                <Landmark className="w-5 h-5 text-orange-600" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Manajemen Hutang/Piutang</h1>
+                <p className="text-sm text-muted-foreground mt-1">Kelola hutang dan piutang Anda</p>
+              </div>
             </div>
             <Button onClick={dialog.openAdd}>
               <Plus className="w-4 h-4 mr-2" />
