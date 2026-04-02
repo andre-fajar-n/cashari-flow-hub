@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle, Calculator } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { groupBudgetSummaryByCurrency, calculateTotalSpentInBaseCurrency } from "@/lib/budget-summary";
@@ -16,11 +16,14 @@ const BudgetSummaryCard = ({ summaryData, title = "Ringkasan Pengeluaran Budget"
 
   if (!summaryData || summaryData.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <Card className="overflow-hidden">
+        <div className="px-6 py-4 border-b bg-gradient-to-r from-slate-50 to-white">
+          <div className="flex items-center gap-2">
+            <Calculator className="w-4 h-4 text-gray-600" />
+            <span className="font-semibold text-gray-900 text-sm">{title}</span>
+          </div>
+        </div>
+        <CardContent className="p-6">
           <p className="text-sm text-muted-foreground">Belum ada transaksi dalam budget ini</p>
         </CardContent>
       </Card>
@@ -28,34 +31,34 @@ const BudgetSummaryCard = ({ summaryData, title = "Ringkasan Pengeluaran Budget"
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Calculator className="w-4 h-4" />
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <Card className="overflow-hidden">
+      <div className="px-6 py-4 border-b bg-gradient-to-r from-slate-50 to-white">
+        <div className="flex items-center gap-2">
+          <Calculator className="w-4 h-4 text-gray-600" />
+          <span className="font-semibold text-gray-900 text-sm">{title}</span>
+        </div>
+      </div>
+      <CardContent className="p-6 space-y-4">
         {/* Currency breakdown table */}
         {groupedByCurrency.length > 0 && (
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-gray-700">Rincian per Mata Uang</h4>
             <div className="overflow-hidden rounded-lg border">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50">
+                <thead className="bg-gradient-to-r from-slate-50 to-gray-50">
                   <tr>
-                    <th rowSpan={2} className="px-3 py-2 text-left font-medium text-gray-700 border-r">
+                    <th rowSpan={2} className="px-3 py-2 text-left font-medium text-gray-600 text-xs uppercase tracking-wide border-r">
                       Mata Uang
                     </th>
-                    <th colSpan={2} className="px-3 py-2 text-center font-medium text-gray-700">
+                    <th colSpan={2} className="px-3 py-2 text-center font-medium text-gray-600 text-xs uppercase tracking-wide">
                       Total Terpakai
                     </th>
                   </tr>
                   <tr>
-                    <th className="px-3 py-2 text-center font-medium text-gray-600 border-r">
+                    <th className="px-3 py-2 text-center font-medium text-gray-600 text-xs uppercase tracking-wide border-r">
                       Mata Uang Asli
                     </th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-600">
+                    <th className="px-3 py-2 text-center font-medium text-gray-600 text-xs uppercase tracking-wide">
                       Mata Uang Dasar
                     </th>
                   </tr>
@@ -91,7 +94,7 @@ const BudgetSummaryCard = ({ summaryData, title = "Ringkasan Pengeluaran Budget"
                 </tbody>
                 {/* Total row as table footer */}
                 {totalCalculation.can_calculate && (
-                  <tfoot className="bg-red-50 border-t-2 border-red-200">
+                  <tfoot className="bg-gradient-to-r from-red-50 to-red-50/50 border-t-2 border-red-200">
                     <tr>
                       <td className="px-3 py-3 font-bold text-red-900 border-r">
                         Total dalam {totalCalculation.base_currency_code}

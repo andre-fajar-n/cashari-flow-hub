@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, PiggyBank } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import BudgetDialog from "@/components/budget/BudgetDialog";
@@ -121,9 +121,14 @@ const Budget = () => {
         <div className="space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Manajemen Budget</h1>
-              <p className="text-sm text-muted-foreground mt-1">Kelola anggaran keuangan Anda</p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                <PiggyBank className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Manajemen Budget</h1>
+                <p className="text-gray-500 text-sm mt-1">Kelola anggaran keuangan Anda</p>
+              </div>
             </div>
             <Button onClick={dialog.openAdd}>
               <Plus className="w-4 h-4 mr-2" />

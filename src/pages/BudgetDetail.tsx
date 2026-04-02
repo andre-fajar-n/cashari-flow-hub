@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit, Trash2, Calendar, Plus, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Calendar, Plus, AlertTriangle, PiggyBank } from "lucide-react";
 import { useBudget, useDeleteBudget, useUpdateBudget } from "@/hooks/queries/use-budgets";
 import BudgetTransactionList from "@/components/budget/BudgetTransactionList";
 import BudgetDialog from "@/components/budget/BudgetDialog";
@@ -187,18 +187,23 @@ const BudgetDetail = () => {
       <Layout>
         <div className="space-y-6">
           {/* Sticky Header */}
-          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+          <div className="sticky top-0 z-10 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 border-b shadow-sm">
             <div className="flex items-center justify-between py-3">
               <div className="flex items-center gap-4">
                 <Button variant="ghost" size="sm" onClick={() => navigate("/budget")}>
                   <ArrowLeft className="w-4 h-4 mr-2" /> Kembali
                 </Button>
-                <div>
-                  <h1 className="text-2xl font-bold">{budget.name}</h1>
-                  <p className="text-muted-foreground mt-0.5 flex items-center gap-2">
-                    <Calendar className="w-3.5 h-3.5" />
-                    {formatDate(budget.start_date)} - {formatDate(budget.end_date)}
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                    <PiggyBank className="w-4 h-4 text-green-600" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-bold">{budget.name}</h1>
+                    <p className="text-muted-foreground text-xs mt-0.5 flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5" />
+                      {formatDate(budget.start_date)} - {formatDate(budget.end_date)}
+                    </p>
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-2 pr-1">
@@ -215,12 +220,12 @@ const BudgetDetail = () => {
             </div>
 
             {/* Compact stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 py-2 px-2 border-t">
-              <div className="sm:text-center">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-3 px-2 border-t">
+              <div className="bg-blue-50/50 rounded-lg px-3 py-2">
                 <p className="text-xs text-muted-foreground">Total Budget</p>
-                <p className="font-semibold">{formatAmountCurrency(budget.amount, userSettings?.currencies.code, userSettings?.currencies.symbol)}</p>
+                <p className="font-semibold text-blue-700">{formatAmountCurrency(budget.amount, userSettings?.currencies.code, userSettings?.currencies.symbol)}</p>
               </div>
-              <div className="sm:text-center">
+              <div className="bg-red-50/50 rounded-lg px-3 py-2">
                 <p className="text-xs text-center text-muted-foreground">Terpakai</p>
                 {totalCalculation.can_calculate ? (
                   <AmountText amount={totalSpent} showSign className="font-semibold">
@@ -233,15 +238,15 @@ const BudgetDetail = () => {
                   </div>
                 )}
               </div>
-              <div className="sm:text-center">
+              <div className="bg-green-50/50 rounded-lg px-3 py-2">
                 <p className="text-xs text-muted-foreground">{remainingBudget >= 0 ? 'Sisa Budget' : 'Kelebihan'}</p>
                 <AmountText amount={remainingBudget} showSign className="font-semibold">
                   {formatAmountCurrency(Math.abs(remainingBudget), userSettings?.currencies.code, userSettings?.currencies.symbol)}
                 </AmountText>
               </div>
-              <div className="sm:text-center">
+              <div className="bg-purple-50/50 rounded-lg px-3 py-2">
                 <p className="text-xs text-muted-foreground">Progress</p>
-                <p className="font-semibold">{formatPercentage(spentPercentage)}%</p>
+                <p className="font-semibold text-purple-700">{formatPercentage(spentPercentage)}%</p>
               </div>
             </div>
           </div>
