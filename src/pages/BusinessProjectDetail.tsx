@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { useState, useEffect, useMemo } from "react";
-import { ArrowLeft, Edit, Calendar, Trash2, Plus, AlertTriangle, ArrowUpCircle, ArrowDownCircle, TrendingUp } from "lucide-react";
+import { ArrowLeft, Edit, Calendar, Trash2, Plus, AlertTriangle, ArrowUpCircle, ArrowDownCircle, TrendingUp, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import BusinessProjectTransactionDialog from "@/components/business-project/BusinessProjectTransactionDialog";
@@ -154,8 +154,12 @@ const BusinessProjectDetail = () => {
     return (
       <ProtectedRoute>
         <Layout>
-          <div className="flex flex-col items-center justify-center py-16">
-            <p className="text-muted-foreground mb-4">Proyek tidak ditemukan</p>
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+              <Briefcase className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <p className="font-medium mb-1">Proyek tidak ditemukan</p>
+            <p className="text-sm text-muted-foreground mb-4">Proyek yang Anda cari tidak ada atau telah dihapus</p>
             <Button onClick={() => navigate("/business-project")} variant="outline">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Kembali ke Daftar Proyek
@@ -220,50 +224,59 @@ const BusinessProjectDetail = () => {
 
             {/* Compact stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-2 px-2 border-t">
-              <div className="sm:text-center">
-                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                  <ArrowUpCircle className="w-3 h-3 text-green-600" /> Total Pemasukan
-                </p>
-                {totalCalculation.can_calculate ? (
-                  <p className="font-semibold text-green-700">
-                    {formatAmountCurrency(totalCalculation.total_income, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
-                  </p>
-                ) : (
-                  <div className="flex justify-center gap-1 text-xs text-yellow-600 mt-1">
-                    <AlertTriangle className="w-3 h-3" />
-                    <span>Kurs belum tersedia</span>
-                  </div>
-                )}
+              <div className="flex items-center gap-3 p-2 rounded-lg bg-green-50/50">
+                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                  <ArrowUpCircle className="w-4 h-4 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Total Pemasukan</p>
+                  {totalCalculation.can_calculate ? (
+                    <p className="font-semibold text-green-700">
+                      {formatAmountCurrency(totalCalculation.total_income, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
+                    </p>
+                  ) : (
+                    <div className="flex items-center gap-1 text-xs text-yellow-600 mt-0.5">
+                      <AlertTriangle className="w-3 h-3" />
+                      <span>Kurs belum tersedia</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="sm:text-center">
-                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                  <ArrowDownCircle className="w-3 h-3 text-red-600" /> Total Pengeluaran
-                </p>
-                {totalCalculation.can_calculate ? (
-                  <p className="font-semibold text-red-700">
-                    {formatAmountCurrency(totalCalculation.total_expense, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
-                  </p>
-                ) : (
-                  <div className="flex justify-center gap-1 text-xs text-yellow-600 mt-1">
-                    <AlertTriangle className="w-3 h-3" />
-                    <span>Kurs belum tersedia</span>
-                  </div>
-                )}
+              <div className="flex items-center gap-3 p-2 rounded-lg bg-red-50/50">
+                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                  <ArrowDownCircle className="w-4 h-4 text-red-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Total Pengeluaran</p>
+                  {totalCalculation.can_calculate ? (
+                    <p className="font-semibold text-red-700">
+                      {formatAmountCurrency(totalCalculation.total_expense, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
+                    </p>
+                  ) : (
+                    <div className="flex items-center gap-1 text-xs text-yellow-600 mt-0.5">
+                      <AlertTriangle className="w-3 h-3" />
+                      <span>Kurs belum tersedia</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="sm:text-center">
-                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                  <TrendingUp className="w-3 h-3" /> Net
-                </p>
-                {totalCalculation.can_calculate ? (
-                  <AmountText amount={totalCalculation.total_net} showSign className="font-semibold">
-                    {formatAmountCurrency(Math.abs(totalCalculation.total_net), totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
-                  </AmountText>
-                ) : (
-                  <div className="flex justify-center gap-1 text-xs text-yellow-600 mt-1">
-                    <AlertTriangle className="w-3 h-3" />
-                    <span>Kurs belum tersedia</span>
-                  </div>
-                )}
+              <div className="flex items-center gap-3 p-2 rounded-lg bg-blue-50/50">
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="w-4 h-4 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Net</p>
+                  {totalCalculation.can_calculate ? (
+                    <AmountText amount={totalCalculation.total_net} showSign className="font-semibold">
+                      {formatAmountCurrency(Math.abs(totalCalculation.total_net), totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
+                    </AmountText>
+                  ) : (
+                    <div className="flex items-center gap-1 text-xs text-yellow-600 mt-0.5">
+                      <AlertTriangle className="w-3 h-3" />
+                      <span>Kurs belum tersedia</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -297,8 +310,12 @@ const BusinessProjectDetail = () => {
                   )}
                 </>
               ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">Belum ada transaksi dalam proyek ini</p>
+                <div className="text-center py-12">
+                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                    <TrendingUp className="w-6 h-6 text-muted-foreground" />
+                  </div>
+                  <p className="font-medium text-sm mb-1">Belum ada transaksi</p>
+                  <p className="text-xs text-muted-foreground">Tambahkan transaksi ke proyek ini untuk melihat ringkasan</p>
                 </div>
               )}
             </TabsContent>

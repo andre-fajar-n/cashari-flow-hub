@@ -1,10 +1,10 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { Search, ArrowUpCircle, ArrowDownCircle, ListChecks } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
 import { BusinessProjectModel } from "@/models/business-projects";
@@ -48,14 +48,20 @@ const BusinessProjectTransactionDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col bg-background">
-        <DialogHeader>
-          <DialogTitle>
-            Tambah Transaksi ke Proyek: {project.name}
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col p-0">
+        <div className="px-6 pt-6 pb-4 border-b bg-gradient-to-r from-slate-50 to-white flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center flex-shrink-0">
+              <ListChecks className="w-5 h-5 text-purple-600" />
+            </div>
+            <div>
+              <DialogTitle className="text-base font-semibold">Tambah Transaksi ke Proyek</DialogTitle>
+              <p className="text-xs text-muted-foreground mt-0.5">{project.name}</p>
+            </div>
+          </div>
+        </div>
 
-        <div className="space-y-4 flex-1 min-h-0">
+        <div className="px-6 py-4 flex flex-col gap-4 flex-1 min-h-0">
           {/* Search and Select All */}
           <div className="space-y-3">
             <div className="relative">
@@ -103,7 +109,7 @@ const BusinessProjectTransactionDialog = ({
                   {filteredTransactions.map((transaction) => (
                     <div
                       key={transaction.id}
-                      className="flex items-center gap-3 p-3 border-b last:border-b-0 hover:bg-muted/50 transition-colors"
+                      className={`flex items-center gap-3 p-3 border-b last:border-b-0 hover:bg-muted/50 transition-colors ${selectedTransactionIds.includes(transaction.id) ? "bg-accent/30" : ""}`}
                     >
                       <Checkbox
                         checked={selectedTransactionIds.includes(transaction.id)}
@@ -154,8 +160,8 @@ const BusinessProjectTransactionDialog = ({
           </div>
         </div>
 
-        {/* Action Buttons - Fixed with proper background and z-index */}
-        <div className="flex justify-end gap-2 pt-4 border-t bg-background relative z-10">
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-2 pt-4 border-t mt-2 px-6 pb-6 bg-background relative z-10 flex-shrink-0">
           <Button
             type="button"
             variant="ghost"

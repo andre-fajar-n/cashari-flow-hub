@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle, Calculator, ArrowUpCircle, ArrowDownCircle, TrendingUp } from "lucide-react";
 import { formatAmountCurrency } from "@/lib/currency";
 import { BusinessProjectSummaryModel } from "@/models/business-projects";
@@ -126,11 +126,14 @@ const BusinessProjectSummaryCard = ({ summaryData, title = "Ringkasan Proyek Bis
 
   if (!summaryData || summaryData.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <Card className="overflow-hidden">
+        <div className="px-6 py-4 border-b bg-gradient-to-r from-slate-50 to-white">
+          <div className="flex items-center gap-2">
+            <Calculator className="w-4 h-4 text-gray-600" />
+            <span className="font-semibold text-gray-900 text-sm">{title}</span>
+          </div>
+        </div>
+        <CardContent className="p-6 space-y-4">
           <p className="text-sm text-muted-foreground">Belum ada transaksi dalam proyek ini</p>
         </CardContent>
       </Card>
@@ -138,62 +141,62 @@ const BusinessProjectSummaryCard = ({ summaryData, title = "Ringkasan Proyek Bis
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Calculator className="w-4 h-4" />
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <Card className="overflow-hidden">
+      <div className="px-6 py-4 border-b bg-gradient-to-r from-slate-50 to-white">
+        <div className="flex items-center gap-2">
+          <Calculator className="w-4 h-4 text-gray-600" />
+          <span className="font-semibold text-gray-900 text-sm">{title}</span>
+        </div>
+      </div>
+      <CardContent className="p-6 space-y-4">
         {/* Currency breakdown table */}
         {groupedByCurrency.length > 0 && (
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-muted-foreground">Rincian per Mata Uang</h4>
             <div className="overflow-hidden rounded-lg border">
               <table className="w-full text-sm">
-                <thead className="bg-muted/50">
+                <thead className="bg-gradient-to-r from-slate-50 to-gray-50">
                   <tr>
-                    <th rowSpan={2} className="px-3 py-2 text-left font-medium border-r">
+                    <th rowSpan={2} className="px-3 py-2 text-left font-medium border-r text-xs uppercase tracking-wide text-gray-600">
                       Mata Uang
                     </th>
-                    <th colSpan={3} className="px-3 py-2 text-center font-medium">
+                    <th colSpan={3} className="px-3 py-2 text-center font-medium text-xs uppercase tracking-wide text-gray-600">
                       Nilai dalam Mata Uang Asli
                     </th>
-                    <th colSpan={3} className="px-3 py-2 text-center font-medium border-l">
+                    <th colSpan={3} className="px-3 py-2 text-center font-medium border-l text-xs uppercase tracking-wide text-gray-600">
                       Nilai dalam Mata Uang Dasar
                     </th>
                   </tr>
                   <tr>
-                    <th className="px-3 py-2 text-center font-medium text-green-700">
+                    <th className="px-3 py-2 text-center font-medium text-green-700 text-xs uppercase tracking-wide text-gray-600">
                       <div className="flex items-center justify-center gap-1">
                         <ArrowUpCircle className="w-3 h-3" /> Pemasukan
                       </div>
                     </th>
-                    <th className="px-3 py-2 text-center font-medium text-red-700">
+                    <th className="px-3 py-2 text-center font-medium text-red-700 text-xs uppercase tracking-wide text-gray-600">
                       <div className="flex items-center justify-center gap-1">
                         <ArrowDownCircle className="w-3 h-3" /> Pengeluaran
                       </div>
                     </th>
-                    <th className="px-3 py-2 text-center font-medium">
+                    <th className="px-3 py-2 text-center font-medium text-xs uppercase tracking-wide text-gray-600">
                       <div className="flex items-center justify-center gap-1">
                         <TrendingUp className="w-3 h-3" /> Net
                       </div>
                     </th>
-                    <th className="px-3 py-2 text-center font-medium text-green-700 border-l">
+                    <th className="px-3 py-2 text-center font-medium text-green-700 border-l text-xs uppercase tracking-wide text-gray-600">
                       Pemasukan
                     </th>
-                    <th className="px-3 py-2 text-center font-medium text-red-700">
+                    <th className="px-3 py-2 text-center font-medium text-red-700 text-xs uppercase tracking-wide text-gray-600">
                       Pengeluaran
                     </th>
-                    <th className="px-3 py-2 text-center font-medium">
+                    <th className="px-3 py-2 text-center font-medium text-xs uppercase tracking-wide text-gray-600">
                       Net
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y">
+                <tbody className="divide-y divide-gray-200">
                   {groupedByCurrency.map((group, index) => (
-                    <tr key={group.currency_code} className={index % 2 === 0 ? "bg-background" : "bg-muted/30"}>
+                    <tr key={group.currency_code} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-3 py-2 font-medium border-r">
                         {group.currency_code}
                       </td>
@@ -257,20 +260,20 @@ const BusinessProjectSummaryCard = ({ summaryData, title = "Ringkasan Proyek Bis
                 </tbody>
                 {/* Total row as table footer */}
                 {totalCalculation.can_calculate && (
-                  <tfoot className="bg-primary/10 border-t-2 border-primary/20">
+                  <tfoot className="bg-gradient-to-r from-blue-50 to-blue-50/50 border-t-2 border-blue-200">
                     <tr>
-                      <td className="px-3 py-3 font-bold border-r">
+                      <td className="px-3 py-3 font-bold border-r text-blue-900">
                         Total ({totalCalculation.base_currency_code})
                       </td>
                       <td colSpan={3} className="px-3 py-3"></td>
-                      <td className="px-3 py-3 text-center font-bold text-green-700 border-l">
+                      <td className="px-3 py-3 text-center font-bold text-blue-800 border-l">
                         {formatAmountCurrency(totalCalculation.total_income, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
                       </td>
-                      <td className="px-3 py-3 text-center font-bold text-red-700">
+                      <td className="px-3 py-3 text-center font-bold text-red-800">
                         {formatAmountCurrency(totalCalculation.total_expense, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
                       </td>
                       <td className="px-3 py-3 text-center">
-                        <span className={`text-lg font-bold ${totalCalculation.total_net >= 0 ? "text-green-700" : "text-red-700"}`}>
+                        <span className={`text-lg font-bold ${totalCalculation.total_net >= 0 ? "text-green-800" : "text-red-800"}`}>
                           {totalCalculation.total_net >= 0 ? "+" : ""}{formatAmountCurrency(totalCalculation.total_net, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
                         </span>
                       </td>
