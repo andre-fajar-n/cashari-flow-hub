@@ -90,9 +90,17 @@ export const GoalTable = ({
       cell: ({ row }) => {
         const goal = row.original;
         if (goal.is_active) {
-          return <Badge variant="default" className="bg-blue-100 text-blue-800 hover:bg-blue-100">🎯 Aktif</Badge>;
+          return (
+            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800 font-medium">
+              Aktif
+            </Badge>
+          );
         }
-        return <Badge variant="secondary">⏸️ Tidak Aktif</Badge>;
+        return (
+          <Badge variant="outline" className="bg-muted/50 text-muted-foreground border-border font-medium">
+            Tidak Aktif
+          </Badge>
+        );
       },
     },
     {

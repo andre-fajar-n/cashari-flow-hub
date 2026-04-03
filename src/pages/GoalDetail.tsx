@@ -300,34 +300,42 @@ const GoalDetail = () => {
       <Layout>
         <div className="space-y-6">
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="outline"
-                onClick={() => navigate('/goal')}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Kembali
-              </Button>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-3xl font-bold">{goal.name}</h1>
-                  <Badge variant={goal.is_active ? "default" : "secondary"}>
-                    {goal.is_active ? 'Aktif' : 'Tidak Aktif'}
-                  </Badge>
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/10 px-6 py-5">
+            <div className="relative flex items-start justify-between gap-4">
+              <div className="flex items-start gap-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('/goal')}
+                  className="shrink-0 mt-0.5"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-1.5" />
+                  Kembali
+                </Button>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="text-2xl font-bold tracking-tight">{goal.name}</h1>
+                    <Badge
+                      variant="outline"
+                      className={goal.is_active
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800"
+                        : "bg-muted/50 text-muted-foreground border-border"
+                      }
+                    >
+                      {goal.is_active ? 'Aktif' : 'Tidak Aktif'}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-0.5">Detail Target Keuangan</p>
                 </div>
-                <p className="text-muted-foreground">Detail Target Keuangan</p>
               </div>
-            </div>
-            <div className="flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <Edit className="w-4 h-4 mr-2" />
+                  <Button variant="outline" size="sm" className="shrink-0">
+                    <Edit className="w-4 h-4 mr-1.5" />
                     Aksi
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
                     <Edit className="w-4 h-4 mr-2" />
                     Edit Goal
@@ -357,27 +365,24 @@ const GoalDetail = () => {
           {/* Action Buttons */}
           {goal.is_active && (
             <div className="flex flex-wrap gap-2">
-              <Button onClick={handleAddToGoal} size="sm" className="shrink-0">
-                <Plus className="w-4 h-4 mr-1" />
+              <Button onClick={handleAddToGoal} size="sm" className="shrink-0 shadow-sm">
+                <Plus className="w-4 h-4 mr-1.5" />
                 Tambah Dana
               </Button>
               <Button onClick={handleTakeFromGoal} variant="outline" size="sm" className="shrink-0">
-                <Minus className="w-4 h-4 mr-1" />
+                <Minus className="w-4 h-4 mr-1.5" />
                 Ambil Dana
               </Button>
               <Button onClick={handleTransferBetweenGoals} variant="outline" size="sm" className="shrink-0">
-                <ArrowRightLeft className="w-4 h-4 mr-1" />
-                Transfer Ke Goal Lain
+                <ArrowRightLeft className="w-4 h-4 mr-1.5" />
+                Transfer ke Goal Lain
               </Button>
-              <Button onClick={handleTransferBetweenInstrumentsOrAssets} variant="outline" size="sm" className="shrink-0 text-left">
-                <ArrowRightLeft className="w-4 h-4 mr-1" />
-                <span className="leading-tight">
-                  Transfer Ke Instrumen/Aset Lain
-                  <span className="block text-xs text-muted-foreground">Dalam Goal Ini</span>
-                </span>
+              <Button onClick={handleTransferBetweenInstrumentsOrAssets} variant="outline" size="sm" className="shrink-0">
+                <ArrowRightLeft className="w-4 h-4 mr-1.5" />
+                Transfer ke Instrumen/Aset Lain
               </Button>
               <Button onClick={handleAddRecord} variant="outline" size="sm" className="shrink-0">
-                <BarChart3 className="w-4 h-4 mr-1" />
+                <BarChart3 className="w-4 h-4 mr-1.5" />
                 Update Progress
               </Button>
             </div>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Target } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import GoalDialog from "@/components/goal/GoalDialog";
@@ -127,17 +127,24 @@ const Goal = () => {
   return (
     <ProtectedRoute>
       <Layout>
-        <div className="space-y-4">
+        <div className="space-y-5">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-2xl font-bold">Manajemen Target</h1>
-              <p className="text-muted-foreground">Kelola target keuangan Anda</p>
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/10 px-6 py-5">
+            <div className="relative flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 border border-primary/20 shadow-sm shrink-0">
+                  <Target className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tight">Manajemen Target</h1>
+                  <p className="text-sm text-muted-foreground mt-0.5">Kelola dan pantau target keuangan Anda</p>
+                </div>
+              </div>
+              <Button onClick={dialog.openAdd} className="shrink-0">
+                <Plus className="w-4 h-4 mr-2" />
+                Tambah Target
+              </Button>
             </div>
-            <Button onClick={dialog.openAdd}>
-              <Plus className="w-4 h-4 mr-2" />
-              Tambah Target
-            </Button>
           </div>
 
           {/* Table */}
