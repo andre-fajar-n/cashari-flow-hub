@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Card, CardContent } from "@/components/ui/card";
+import { CalendarDays, BarChart2 } from "lucide-react";
 
 export type PeriodType = "daily" | "monthly" | "yearly";
 
@@ -18,6 +19,12 @@ interface PeriodFilterProps {
   initialStart?: Date;
   initialEnd?: Date;
 }
+
+const periodLabels: Record<PeriodType, string> = {
+  daily: "Harian",
+  monthly: "Bulanan",
+  yearly: "Tahunan",
+};
 
 const PeriodFilter = ({
   onPeriodChange,
@@ -36,38 +43,50 @@ const PeriodFilter = ({
   }, [type, range, onPeriodChange]);
 
   return (
-    <Card className="bg-white/50 backdrop-blur-sm border-gray-200">
-      <CardContent className="pt-6">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="w-full sm:w-[200px]">
-            <label className="text-xs font-medium text-muted-foreground uppercase mb-1.5 block">
-              Jenis Pilihan
-            </label>
-            <Select value={type} onValueChange={(v) => setType(v as PeriodType)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih Periode" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="daily">Harian</SelectItem>
-                <SelectItem value="monthly">Bulanan</SelectItem>
-                <SelectItem value="yearly">Tahunan</SelectItem>
-              </SelectContent>
-            </Select>
+    <Card className="border bg-card shadow-none">
+      <CardContent className="py-4 px-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          {/* Label */}
+          <div className="flex items-center gap-2 text-muted-foreground shrink-0">
+            <BarChart2 className="h-4 w-4" />
+            <span className="text-xs font-semibold uppercase tracking-wide">Filter Periode</span>
           </div>
 
-          <div className="w-full sm:w-auto">
-            <label className="text-xs font-medium text-muted-foreground uppercase mb-1.5 block">
-              Rentang Tanggal
-            </label>
-            <DateRangePicker
-              value={range}
-              onChange={(newRange) => {
-                if (newRange?.from && newRange?.to) {
-                  setRange({ from: newRange.from, to: newRange.to });
-                }
-              }}
-              mode={type}
-            />
+          <div className="flex flex-col sm:flex-row gap-3 flex-1">
+            {/* Period type selector */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                <BarChart2 className="h-3 w-3" />
+                Granularitas
+              </label>
+              <Select value={type} onValueChange={(v) => setType(v as PeriodType)}>
+                <SelectTrigger className="h-9 w-full sm:w-[160px] text-sm">
+                  <SelectValue placeholder="Pilih Periode" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">Harian</SelectItem>
+                  <SelectItem value="monthly">Bulanan</SelectItem>
+                  <SelectItem value="yearly">Tahunan</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Date range */}
+            <div className="flex flex-col gap-1.5 flex-1">
+              <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                <CalendarDays className="h-3 w-3" />
+                Rentang Tanggal
+              </label>
+              <DateRangePicker
+                value={range}
+                onChange={(newRange) => {
+                  if (newRange?.from && newRange?.to) {
+                    setRange({ from: newRange.from, to: newRange.to });
+                  }
+                }}
+                mode={type}
+              />
+            </div>
           </div>
         </div>
       </CardContent>

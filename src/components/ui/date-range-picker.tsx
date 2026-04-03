@@ -247,7 +247,7 @@ export function DateRangePicker({
         <Button
           variant="outline"
           className={cn(
-            "justify-center items-center font-normal h-[52px] px-3",
+            "justify-start items-center font-normal min-h-9 h-auto py-2 px-3 w-full",
             !date && "text-muted-foreground",
             className
           )}
@@ -255,36 +255,36 @@ export function DateRangePicker({
           <CalendarIcon className="mr-2 h-4 w-4 flex-shrink-0" />
           {date?.from ? (
             date.to && !isSameDay(date.from, date.to) ? (
-              <div className="flex flex-col text-sm leading-tight text-center">
-                <span className="truncate">
+              <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-sm leading-snug min-w-0">
+                <span className="whitespace-nowrap">
                   {mode === 'yearly' ? format(date.from, "yyyy") :
                     mode === 'monthly' ? format(date.from, "MMM yyyy", { locale: id }) :
                       format(date.from, "dd MMM yyyy", { locale: id })}
                 </span>
-                <span className="truncate">-</span>
-                <span className="truncate">
+                <span className="text-muted-foreground">—</span>
+                <span className="whitespace-nowrap">
                   {mode === 'yearly' ? format(date.to, "yyyy") :
                     mode === 'monthly' ? format(date.to, "MMM yyyy", { locale: id }) :
                       format(date.to, "dd MMM yyyy", { locale: id })}
                 </span>
-              </div>
+              </span>
             ) : (
-              <div className="flex flex-col text-sm leading-tight text-center">
-                <span className="truncate">
+              <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-sm leading-snug min-w-0">
+                <span className="whitespace-nowrap">
                   {mode === 'yearly' ? format(date.from, "yyyy") :
                     mode === 'monthly' ? format(date.from, "MMM yyyy", { locale: id }) :
                       format(date.from, "dd MMM yyyy", { locale: id })}
                 </span>
                 {mode === 'daily' && (
                   <>
-                    <span className="truncate">-</span>
-                    <span className="truncate">Sekarang</span>
+                    <span className="text-muted-foreground">—</span>
+                    <span className="whitespace-nowrap">Sekarang</span>
                   </>
                 )}
-              </div>
+              </span>
             )
           ) : (
-            <span className="text-sm text-center">{placeholder}</span>
+            <span className="text-sm">{placeholder}</span>
           )}
         </Button>
       </PopoverTrigger>

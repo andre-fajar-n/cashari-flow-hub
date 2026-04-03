@@ -8,6 +8,7 @@ import TrendSummaryCards from "@/components/analytics/TrendSummaryCards";
 import { useBalanceTrend, Granularity } from "@/hooks/queries/use-balance-trend";
 import { useGoldPriceTrend } from "@/hooks/queries/use-gold-price-trend";
 import { useUserSettings } from "@/hooks/queries/use-user-settings";
+import { TrendingUp } from "lucide-react";
 
 const BalanceTrend = () => {
   const [periodType, setPeriodType] = useState<PeriodType>("daily");
@@ -43,11 +44,20 @@ const BalanceTrend = () => {
     <ProtectedRoute>
       <Layout>
         <div className="space-y-6">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Tren Saldo</h1>
-            <p className="text-muted-foreground">
-              Analisis pertumbuhan total saldo portofolio Anda.
-            </p>
+          {/* Page Header */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/10 px-6 py-5">
+            <div className="absolute inset-0 bg-grid-white/5 [mask-image:radial-gradient(ellipse_at_top_left,white,transparent_70%)]" />
+            <div className="relative flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 border border-primary/20 shadow-sm">
+                <TrendingUp className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight">Tren Saldo</h1>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Analisis pertumbuhan total saldo portofolio Anda dari waktu ke waktu.
+                </p>
+              </div>
+            </div>
           </div>
 
           <PeriodFilter

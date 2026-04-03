@@ -6,7 +6,7 @@ import { useValuationDetail } from "@/hooks/queries/use-valuation-detail";
 import { formatAmountCurrency } from "@/lib/currency";
 import { format, parseISO, isValid } from "date-fns";
 import { id } from "date-fns/locale";
-import { AlertCircle, CheckCircle2, RefreshCw, Pencil, Loader2, X, Save, Coins } from "lucide-react";
+import { AlertCircle, CheckCircle2, RefreshCw, Pencil, Loader2, X, Save, Coins, BarChart2, Calendar } from "lucide-react";
 import { useFetchExchangeRates } from "@/hooks/mutations/use-fetch-exchange-rates";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import { ValuationStatus } from "@/lib/balance-trend";
 import { useUserSettings } from "@/hooks/queries/use-user-settings";
 import { ZAKAT_CONSTANTS } from "@/lib/zakat";
 import { useGoldPriceTrend } from "@/hooks/queries/use-gold-price-trend";
+import { cn } from "@/lib/utils/cn";
 
 interface ValuationDetailModalProps {
   isOpen: boolean;
@@ -28,7 +29,6 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
   const { data: userSettings } = useUserSettings();
   const { data: details, isLoading } = useValuationDetail(isOpen && !isGoldMode ? date : null);
 
-  // Fetch gold trend data for this specific date if in gold mode
   const { data: goldTrend } = useGoldPriceTrend(
     date || "",
     date || "",
@@ -54,21 +54,26 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
 
   const getStatusIcon = (status: ValuationStatus) => {
     switch (status) {
-      case 'Exact': return <CheckCircle2 className="w-4 h-4 text-green-500" />;
+      case 'Exact': return <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />;
       case 'Old Price & FX':
       case 'Old Price':
-      case 'Old FX': return <AlertCircle className="w-4 h-4 text-yellow-500" />;
-      case 'Missing': return <AlertCircle className="w-4 h-4 text-destructive" />;
+      case 'Old FX': return <AlertCircle className="w-3.5 h-3.5 text-amber-500" />;
+      case 'Missing': return <AlertCircle className="w-3.5 h-3.5 text-destructive" />;
     }
   };
 
   const getStatusBadge = (status: ValuationStatus) => {
     switch (status) {
-      case 'Exact': return <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">Lengkap</Badge>;
-      case 'Old Price & FX': return <Badge variant="outline" className="text-yellow-600 border-yellow-200 bg-yellow-50">Harga & Kurs Lama</Badge>;
-      case 'Old Price': return <Badge variant="outline" className="text-yellow-600 border-yellow-200 bg-yellow-50">Harga Lama</Badge>;
-      case 'Old FX': return <Badge variant="outline" className="text-yellow-600 border-yellow-200 bg-yellow-50">Kurs Lama</Badge>;
-      case 'Missing': return <Badge variant="destructive">Tidak Lengkap</Badge>;
+      case 'Exact':
+        return <Badge variant="outline" className="text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-800 dark:text-emerald-400 text-[10px] px-1.5 py-0.5 h-auto leading-tight whitespace-nowrap">Lengkap</Badge>;
+      case 'Old Price & FX':
+        return <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-400 text-[10px] px-1.5 py-0.5 h-auto leading-tight whitespace-nowrap">Harga &<br />Kurs<br />Lama</Badge>;
+      case 'Old Price':
+        return <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-400 text-[10px] px-1.5 py-0.5 h-auto leading-tight whitespace-nowrap">Harga<br />Lama</Badge>;
+      case 'Old FX':
+        return <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-400 text-[10px] px-1.5 py-0.5 h-auto leading-tight whitespace-nowrap">Kurs<br />Lama</Badge>;
+      case 'Missing':
+        return <Badge variant="destructive" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight whitespace-nowrap">Tidak Lengkap</Badge>;
     }
   };
 
@@ -81,50 +86,74 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-0">
-        <DialogHeader className="px-6 py-4 flex flex-row items-center justify-between border-b shrink-0">
-          <DialogTitle>
-            {isGoldMode ? "Detail Nisab Zakat" : "Detail Valuasi"} - {formattedDate}
-          </DialogTitle>
+      <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-0 gap-0">
+        {/* Header */}
+        <DialogHeader className="px-6 py-4 border-b shrink-0 bg-muted/30">
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              "flex h-9 w-9 items-center justify-center rounded-lg shrink-0",
+              isGoldMode ? "bg-amber-100 dark:bg-amber-900/50" : "bg-primary/10"
+            )}>
+              {isGoldMode
+                ? <Coins className="h-4.5 w-4.5 text-amber-600 dark:text-amber-400" />
+                : <BarChart2 className="h-4.5 w-4.5 text-primary" />
+              }
+            </div>
+            <div className="flex-1 min-w-0">
+              <DialogTitle className="text-base font-semibold">
+                {isGoldMode ? "Detail Nisab Zakat" : "Detail Valuasi Aset"}
+              </DialogTitle>
+              {formattedDate && (
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <Calendar className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">{formattedDate}</span>
+                </div>
+              )}
+            </div>
+          </div>
         </DialogHeader>
 
         {isGoldMode ? (
-          <div className="px-6 py-4">
+          <div className="px-6 py-5">
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="p-4 rounded-xl border bg-amber-50/50 border-amber-100 space-y-3">
+              {/* Gold calculation card */}
+              <div className="p-5 rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-amber-50/30 dark:from-amber-950/30 dark:to-amber-950/10 dark:border-amber-800 space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-amber-800 font-semibold">
-                    <Coins className="w-5 h-5" />
-                    <h3>Kalkulasi Nisab Gold</h3>
+                  <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-semibold">
+                    <Coins className="w-4 h-4" />
+                    <h3 className="text-sm">Kalkulasi Nisab Emas</h3>
                   </div>
                   {isGoldPriceOld && (
-                    <Badge variant="outline" className="text-yellow-600 border-yellow-200 bg-yellow-50">
-                      Kurs Lama
+                    <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-100 dark:bg-amber-900/50 dark:border-amber-700 dark:text-amber-300 text-[10px]">
+                      Harga Lama
                     </Badge>
                   )}
                 </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-amber-700/70">Nisab (Standar)</span>
-                    <span className="font-medium text-amber-900">{ZAKAT_CONSTANTS.NISAB_GOLD_GRAMS} gram</span>
+
+                <div className="space-y-2.5">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-amber-700/70 dark:text-amber-400/70">Standar Nisab</span>
+                    <span className="font-semibold text-amber-900 dark:text-amber-200">{ZAKAT_CONSTANTS.NISAB_GOLD_GRAMS} gram emas</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-amber-700/70">Harga Emas (per gram)</span>
-                    <span className="font-medium text-amber-900">
-                      {goldData ? formatAmountCurrency(goldData.nisab_value / ZAKAT_CONSTANTS.NISAB_GOLD_GRAMS, userSettings?.base_currency_code || "", userSettings?.currencies?.symbol) : "-"}
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-amber-700/70 dark:text-amber-400/70">Harga per gram</span>
+                    <span className="font-semibold text-amber-900 dark:text-amber-200">
+                      {goldData
+                        ? formatAmountCurrency(goldData.nisab_value / ZAKAT_CONSTANTS.NISAB_GOLD_GRAMS, userSettings?.base_currency_code || "", userSettings?.currencies?.symbol)
+                        : "—"}
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm items-center">
-                    <span className="text-amber-700/70">Tanggal Harga</span>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-amber-700/70 dark:text-amber-400/70">Tanggal harga</span>
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-amber-900 italic">
-                        {goldData?.actual_date ? format(parseISO(goldData.actual_date), "dd MMM yyyy", { locale: id }) : "-"}
+                      <span className="font-medium text-amber-900 dark:text-amber-200">
+                        {goldData?.actual_date ? format(parseISO(goldData.actual_date), "dd MMM yyyy", { locale: id }) : "—"}
                       </span>
                       {isGoldPriceOld && (
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6 text-amber-600 hover:text-amber-700 hover:bg-amber-100"
+                          className="h-6 w-6 text-amber-600 hover:text-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900/50"
                           onClick={() => date && fetchFXRate.mutate({
                             date,
                             fromCurrency: 'XAU',
@@ -138,25 +167,32 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
                       )}
                     </div>
                   </div>
-                  <div className="pt-2 border-t border-amber-200 flex justify-between items-center">
-                    <span className="text-amber-800 font-bold">Total Nisab</span>
-                    <span className="text-lg font-black text-amber-900">
-                      {goldData ? formatAmountCurrency(goldData.nisab_value, userSettings?.base_currency_code || "", userSettings?.currencies?.symbol) : "-"}
+
+                  <div className="pt-3 border-t border-amber-200 dark:border-amber-700/50 flex justify-between items-center">
+                    <span className="text-sm font-bold text-amber-800 dark:text-amber-200">Total Nisab</span>
+                    <span className="text-xl font-black text-amber-900 dark:text-amber-100">
+                      {goldData ? formatAmountCurrency(goldData.nisab_value, userSettings?.base_currency_code || "", userSettings?.currencies?.symbol) : "—"}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl border bg-muted/30 space-y-3">
-                <div className="flex items-center gap-2 text-muted-foreground font-semibold">
-                  <AlertCircle className="w-5 h-5" />
-                  <h3>Informasi</h3>
+              {/* Info card */}
+              <div className="p-5 rounded-xl border bg-muted/30 space-y-3">
+                <div className="flex items-center gap-2 font-semibold text-sm">
+                  <AlertCircle className="w-4 h-4 text-muted-foreground" />
+                  <h3>Tentang Nisab Zakat</h3>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Nisab zakat mal setara dengan 85 gram emas murni. Jika total kekayaan (saldo) Anda pada tanggal ini melebihi nilai nisab di samping, maka Anda diwajibkan menunaikan zakat sebesar 2,5%.
+                  Nisab zakat mal setara dengan <strong>85 gram emas murni</strong>. Jika total kekayaan (saldo) Anda pada tanggal ini melebihi nilai nisab, maka Anda diwajibkan menunaikan zakat sebesar <strong>2,5%</strong>.
                 </p>
-                <div className="flex items-center gap-2 pt-1">
-                  <Badge variant="outline" className="bg-background">XAU / {userSettings?.base_currency_code}</Badge>
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <Badge variant="outline" className="bg-background text-xs">
+                    XAU / {userSettings?.base_currency_code}
+                  </Badge>
+                  <Badge variant="outline" className="bg-background text-xs">
+                    Standar: {ZAKAT_CONSTANTS.NISAB_GOLD_GRAMS}g emas
+                  </Badge>
                 </div>
               </div>
             </div>
@@ -164,43 +200,53 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
         ) : (
           <div className="flex-1 overflow-y-auto">
             <table className="w-full caption-bottom text-sm">
-              <TableHeader className="sticky top-0 bg-background z-10">
-                <TableRow>
-                  <TableHead className="px-6">Aset</TableHead>
-                  <TableHead className="text-right">Unit</TableHead>
-                  <TableHead className="text-right">Harga</TableHead>
-                  <TableHead>Tgl Harga</TableHead>
-                  <TableHead>Mata Uang</TableHead>
-                  <TableHead className="text-right">Kurs Mata Uang</TableHead>
-                  <TableHead>Tgl Mata Uang</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="pr-6">Aksi</TableHead>
+              <TableHeader className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 border-b">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Aset</TableHead>
+                  <TableHead className="text-right py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Unit</TableHead>
+                  <TableHead className="text-right py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Harga</TableHead>
+                  <TableHead className="py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tgl Harga</TableHead>
+                  <TableHead className="py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Mata Uang</TableHead>
+                  <TableHead className="text-right py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Kurs</TableHead>
+                  <TableHead className="py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tgl Kurs</TableHead>
+                  <TableHead className="py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</TableHead>
+                  <TableHead className="pr-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <TableRow key={i}>
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <TableRow key={i} className={i % 2 === 0 ? "bg-muted/20" : ""}>
                       {Array.from({ length: 9 }).map((_, j) => (
-                        <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
+                        <TableCell key={j} className="py-3">
+                          <Skeleton className="h-4 w-full" />
+                        </TableCell>
                       ))}
                     </TableRow>
                   ))
-                ) : details?.map((detail) => (
-                  <TableRow key={detail.asset_id + detail.original_currency_code}>
-                    <TableCell className="font-medium min-w-[200px] px-6">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-semibold">{detail.asset_name}</span>
-                        <span className="text-xs text-muted-foreground">{detail.instrument_name}</span>
+                ) : details?.map((detail, idx) => (
+                  <TableRow
+                    key={detail.asset_id + detail.original_currency_code}
+                    className={cn(
+                      "transition-colors",
+                      idx % 2 === 0 ? "bg-muted/20 hover:bg-muted/40" : "hover:bg-muted/20"
+                    )}
+                  >
+                    <TableCell className="font-medium min-w-[180px] px-5 py-3">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-sm font-semibold leading-tight">{detail.asset_name}</span>
+                        <span className="text-[11px] text-muted-foreground">{detail.instrument_name}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">{detail.units.toLocaleString()}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right py-3 tabular-nums text-sm">
+                      {detail.units.toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-right py-3">
                       {editingPrice?.asset_id === detail.asset_id ? (
                         <div className="flex items-center gap-1 justify-end">
                           <Input
                             type="number"
-                            className="w-24 h-8 text-right"
+                            className="w-24 h-7 text-right text-sm"
                             value={editingPrice.price}
                             onChange={(e) => setEditingPrice({ ...editingPrice, price: e.target.value })}
                             autoFocus
@@ -211,67 +257,69 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
                           />
                         </div>
                       ) : (
-                        detail.price ? formatAmountCurrency(detail.price, "", "") : "-"
+                        <span className="tabular-nums text-sm">
+                          {detail.price ? formatAmountCurrency(detail.price, "", "") : "—"}
+                        </span>
                       )}
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      {detail.price_date ? format(parseISO(detail.price_date), "dd MMM yyyy", { locale: id }) : "-"}
+                    <TableCell className="whitespace-nowrap py-3 text-sm text-muted-foreground">
+                      {detail.price_date ? format(parseISO(detail.price_date), "dd MMM yyyy", { locale: id }) : "—"}
                     </TableCell>
-                    <TableCell className="text-center font-mono text-xs">
-                      {detail.original_currency_code}
+                    <TableCell className="text-center py-3">
+                      <Badge variant="outline" className="font-mono text-[10px] px-1.5 h-5 bg-background">
+                        {detail.original_currency_code}
+                      </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                      {detail.fx_rate ? detail.fx_rate.toLocaleString() : "-"}
+                    <TableCell className="text-right py-3 tabular-nums text-sm text-muted-foreground">
+                      {detail.fx_rate ? detail.fx_rate.toLocaleString() : "—"}
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      {detail.fx_date ? format(parseISO(detail.fx_date), "dd MMM yyyy", { locale: id }) : "-"}
+                    <TableCell className="whitespace-nowrap py-3 text-sm text-muted-foreground">
+                      {detail.fx_date ? format(parseISO(detail.fx_date), "dd MMM yyyy", { locale: id }) : "—"}
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
+                    <TableCell className="py-3">
+                      <div className="flex items-center gap-1.5">
                         {getStatusIcon(detail.status)}
                         {getStatusBadge(detail.status)}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
+                    <TableCell className="pr-5 py-3">
+                      <div className="flex items-center gap-1">
                         {detail.is_trackable && (
                           editingPrice?.asset_id === detail.asset_id ? (
                             <div className="flex gap-1">
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-green-600 hover:text-green-700"
+                                className="h-7 w-7 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
                                 onClick={() => handleUpdatePrice(Number(detail.asset_id))}
                               >
-                                <Save className="h-4 w-4" />
+                                <Save className="h-3.5 w-3.5" />
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-destructive hover:text-destructive/80"
+                                className="h-7 w-7 text-destructive hover:text-destructive/80"
                                 onClick={() => setEditingPrice(null)}
                               >
-                                <X className="h-4 w-4" />
+                                <X className="h-3.5 w-3.5" />
                               </Button>
                             </div>
                           ) : detail.price_date !== date ? (
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8"
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground"
                               onClick={() => setEditingPrice({ asset_id: detail.asset_id, price: detail.price?.toString() || "" })}
                             >
-                              <Pencil className="h-4 w-4" />
+                              <Pencil className="h-3.5 w-3.5" />
                             </Button>
-                          ) : (
-                            <></>
-                          )
+                          ) : null
                         )}
                         {(detail.status === 'Old FX' || detail.status === 'Missing' || detail.status === 'Old Price & FX') && (
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8"
+                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
                             onClick={() => {
                               if (!date) return;
                               const rowKey = `${detail.asset_id}:${detail.original_currency_code}`;
@@ -284,8 +332,8 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
                             disabled={fetchingRowKey === `${detail.asset_id}:${detail.original_currency_code}`}
                           >
                             {fetchingRowKey === `${detail.asset_id}:${detail.original_currency_code}`
-                              ? <Loader2 className="h-4 w-4 animate-spin" />
-                              : <RefreshCw className="h-4 w-4" />}
+                              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              : <RefreshCw className="h-3.5 w-3.5" />}
                           </Button>
                         )}
                       </div>

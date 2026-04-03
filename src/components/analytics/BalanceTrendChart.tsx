@@ -12,7 +12,8 @@ import ValuationDetailModal from "@/components/analytics/ValuationDetailModal";
 import { GoldTrendItem } from "@/hooks/queries/use-gold-price-trend";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Coins } from "lucide-react";
+import { Coins, TrendingUp } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface BalanceTrendChartProps {
   data: BalanceTrendItem[];
@@ -70,9 +71,8 @@ const BalanceTrendChart = ({ data, goldTrendData, granularity, isLoadingGoldPric
       configs.push({
         dataKey: "goldValue",
         name: "Nisab Zakat (85g Emas)",
-        stroke: "#f59e0b", // amber-500
+        stroke: "#f59e0b",
         strokeWidth: 2,
-        // The coloring is handled by ReusableLineChart's renderDot which looks at goldStatus
         dot: { r: 3, strokeWidth: 1 },
       });
     }
@@ -98,8 +98,8 @@ const BalanceTrendChart = ({ data, goldTrendData, granularity, isLoadingGoldPric
     const goldValue = item.goldValue;
 
     return (
-      <div className="rounded-lg border bg-background p-3 shadow-lg">
-        <p className="font-semibold mb-2 text-sm">
+      <div className="rounded-xl border bg-background/95 backdrop-blur-sm p-3.5 shadow-xl">
+        <p className="font-semibold mb-2.5 text-sm border-b pb-2">
           {granularity === 'year'
             ? format(parseISO(item.fullDate), "yyyy", { locale: id })
             : granularity === 'month'
@@ -107,25 +107,27 @@ const BalanceTrendChart = ({ data, goldTrendData, granularity, isLoadingGoldPric
               : format(parseISO(item.fullDate), "eeee, dd MMMM yyyy", { locale: id })
           }
         </p>
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between gap-4">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-primary" />
-              <span className="text-xs text-muted-foreground">Total Saldo:</span>
+              <div className="w-2.5 h-2.5 rounded-full bg-primary shrink-0" />
+              <span className="text-xs text-muted-foreground">Total Saldo</span>
             </div>
-            <span className="text-sm font-bold">{formatCurrency(value)}</span>
+            <span className="text-sm font-bold tabular-nums">{formatCurrency(value)}</span>
           </div>
           {showGoldLine && goldValue !== undefined && (
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center justify-between gap-6">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-amber-500" />
-                <span className="text-xs text-muted-foreground">Nisab Zakat:</span>
+                <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" />
+                <span className="text-xs text-muted-foreground">Nisab Zakat</span>
               </div>
-              <span className="text-sm font-bold">{formatCurrency(goldValue)}</span>
+              <span className="text-sm font-bold tabular-nums">{formatCurrency(goldValue)}</span>
             </div>
           )}
         </div>
-        <p className="mt-2 text-[10px] text-muted-foreground italic border-t pt-2">Klik untuk detail valuasi</p>
+        <p className="mt-2.5 text-[10px] text-muted-foreground italic border-t pt-2">
+          Klik titik untuk detail valuasi
+        </p>
       </div>
     );
   };
@@ -138,11 +140,32 @@ const BalanceTrendChart = ({ data, goldTrendData, granularity, isLoadingGoldPric
   }, [data, goldTrendData, showGoldLine]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-end">
-        <div className="flex items-center space-x-2 bg-muted/30 px-3 py-1.5 rounded-full border">
-          <Coins className="w-4 h-4 text-amber-500" />
-          <Label htmlFor="show-gold-line" className="text-xs font-medium cursor-pointer">Tampilkan Nisab Zakat</Label>
+    <div className="space-y-0">
+      {/* Chart header row */}
+      <div className="flex items-center justify-between mb-2 px-1">
+        <div className="flex items-center gap-2">
+          <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-semibold text-muted-foreground">Grafik Pertumbuhan Saldo</span>
+        </div>
+
+        {/* Gold toggle */}
+        <div className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full border transition-all ${
+          showGoldLine
+            ? "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
+            : "bg-muted/40 border-border"
+        }`}>
+          <Coins className={`h-3.5 w-3.5 transition-colors ${showGoldLine ? "text-amber-500" : "text-muted-foreground"}`} />
+          <Label
+            htmlFor="show-gold-line"
+            className={`text-xs font-medium cursor-pointer transition-colors ${showGoldLine ? "text-amber-700 dark:text-amber-400" : "text-muted-foreground"}`}
+          >
+            Nisab Zakat
+          </Label>
+          {showGoldLine && (
+            <Badge variant="outline" className="h-4 px-1.5 text-[10px] bg-amber-100 border-amber-200 text-amber-700 dark:bg-amber-900/50 dark:border-amber-700 dark:text-amber-300">
+              85g Emas
+            </Badge>
+          )}
           <Switch
             id="show-gold-line"
             checked={showGoldLine}
@@ -156,8 +179,7 @@ const BalanceTrendChart = ({ data, goldTrendData, granularity, isLoadingGoldPric
         data={chartData}
         isLoading={isLoadingGoldPrice || isLoading}
         lines={lines}
-        title="Grafik Pertumbuhan Saldo"
-        height={350}
+        height={380}
         xAxisDataKey="label"
         showLegend={showGoldLine}
         yAxisDomain={[0, yAxisMax]}
