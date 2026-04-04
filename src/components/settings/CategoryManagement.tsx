@@ -132,22 +132,22 @@ const CategoryManagement = () => {
       : null;
 
     return (
-      <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50/50 transition-colors">
+      <div className="flex items-center justify-between p-4 rounded-xl border hover:bg-muted/50 transition-colors">
         <div className="flex items-center gap-4 flex-1 min-w-0">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${category.is_income ? 'bg-green-100' : 'bg-red-100'}`}>
-            <Tag className={`w-5 h-5 ${category.is_income ? 'text-green-600' : 'text-red-500'}`} />
+          <div className={`p-2 rounded-lg flex items-center justify-center flex-shrink-0 ${category.is_income ? 'bg-emerald-50' : 'bg-rose-50'}`}>
+            <Tag className={`w-5 h-5 ${category.is_income ? 'text-emerald-600' : 'text-rose-500'}`} />
           </div>
           <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-2 min-w-0">
             <div>
-              <p className="font-medium text-gray-900 truncate">{category.name}</p>
+              <p className="font-medium text-foreground truncate">{category.name}</p>
               <p className="text-xs text-muted-foreground">Nama</p>
             </div>
             <div>
               <Badge
                 variant="outline"
                 className={`text-xs ${category.is_income
-                  ? 'border-green-200 bg-green-50 text-green-700'
-                  : 'border-red-200 bg-red-50 text-red-700'
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                  : 'border-rose-200 bg-rose-50 text-rose-700'
                 }`}
               >
                 {category.is_income ? "Pemasukan" : "Pengeluaran"}
@@ -158,7 +158,7 @@ const CategoryManagement = () => {
               {category.application ? (
                 <Badge variant="outline" className="text-xs capitalize">{category.application}</Badge>
               ) : (
-                <span className="text-sm text-gray-400">—</span>
+                <span className="text-sm text-muted-foreground">—</span>
               )}
               <p className="text-xs text-muted-foreground mt-1">Aplikasi</p>
             </div>
@@ -166,7 +166,7 @@ const CategoryManagement = () => {
               {parentName ? (
                 <p className="font-medium text-sm truncate">{parentName}</p>
               ) : (
-                <span className="text-sm text-gray-400">—</span>
+                <span className="text-sm text-muted-foreground">—</span>
               )}
               <p className="text-xs text-muted-foreground">Induk</p>
             </div>
@@ -210,7 +210,11 @@ const CategoryManagement = () => {
 
       {isAdding ? (
         <Card className="overflow-hidden">
-          <div className="px-6 py-5 border-b bg-gradient-to-r from-slate-50 to-white">
+          <div className="h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
+          <div className="px-6 py-4 border-b flex items-center gap-2">
+            <div className="p-1.5 rounded-md bg-primary/10">
+              <Tag className="w-4 h-4 text-primary" />
+            </div>
             <CardTitle className="text-base">
               {editingCategory ? "Edit Kategori" : "Tambah Kategori Baru"}
             </CardTitle>

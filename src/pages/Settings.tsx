@@ -11,11 +11,16 @@ const Settings = () => {
     <ProtectedRoute>
       <Layout>
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Pengaturan</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Kelola mata uang, dompet, dan kategori untuk aplikasi keuangan Anda
-          </p>
+        <div className="mb-6 flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-primary/10 shrink-0">
+            <Settings2 className="w-6 h-6 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Pengaturan</h1>
+            <p className="text-muted-foreground text-sm mt-0.5">
+              Kelola mata uang, dompet, dan kategori untuk aplikasi keuangan Anda
+            </p>
+          </div>
         </div>
 
         <Tabs defaultValue="general" className="w-full">

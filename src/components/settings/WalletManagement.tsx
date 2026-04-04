@@ -108,14 +108,14 @@ const WalletManagement = () => {
   const renderWalletItem = (wallet: WalletModel) => {
     const currencyType = currencyMap?.[wallet.currency_code]?.type;
     return (
-      <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50/50 transition-colors">
+      <div className="flex items-center justify-between p-4 rounded-xl border hover:bg-muted/50 transition-colors">
         <div className="flex items-center gap-4 flex-1 min-w-0">
-          <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-            <Wallet className="w-5 h-5 text-purple-600" />
+          <div className="p-2 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <Wallet className="w-5 h-5 text-primary" />
           </div>
           <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-2 min-w-0">
             <div>
-              <p className="font-medium text-gray-900 truncate">{wallet.name}</p>
+              <p className="font-medium text-foreground truncate">{wallet.name}</p>
               <p className="text-xs text-muted-foreground">Nama Dompet</p>
             </div>
             <div>
@@ -126,7 +126,7 @@ const WalletManagement = () => {
               {currencyType ? (
                 <Badge variant="outline" className="text-xs capitalize">{currencyType}</Badge>
               ) : (
-                <span className="text-sm text-gray-400">—</span>
+                <span className="text-sm text-muted-foreground">—</span>
               )}
               <p className="text-xs text-muted-foreground mt-1">Tipe</p>
             </div>
@@ -160,7 +160,11 @@ const WalletManagement = () => {
     <div className="space-y-6">
       {isAdding || editingWallet ? (
         <Card className="overflow-hidden">
-          <div className="px-6 py-5 border-b bg-gradient-to-r from-slate-50 to-white">
+          <div className="h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
+          <div className="px-6 py-4 border-b flex items-center gap-2">
+            <div className="p-1.5 rounded-md bg-primary/10">
+              <Wallet className="w-4 h-4 text-primary" />
+            </div>
             <CardTitle className="text-base">
               {editingWallet ? "Edit Dompet" : "Tambah Dompet Baru"}
             </CardTitle>
