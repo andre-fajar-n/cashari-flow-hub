@@ -32,8 +32,8 @@ const Dashboard = () => {
         {/* Header */}
         <div className="mb-8">
           <p className="text-sm font-medium text-primary mb-0.5">{getGreeting()}</p>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{displayName}</h1>
-          <p className="text-gray-500 text-sm mt-1">{today}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{displayName}</h1>
+          <p className="text-muted-foreground text-sm mt-1">{today}</p>
         </div>
 
         {/* Money Summary */}

@@ -43,7 +43,7 @@ export const ZakatInfo = ({ totalWealth, baseCurrency, baseCurrencySymbol, canCa
               </div>
               <div className="flex items-center gap-2">
                 <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-20"></div>
+                  <div className="h-4 bg-muted/40 rounded w-20"></div>
                 </div>
                 {isExpanded ? (
                   <ChevronDown className="w-4 h-4" />
@@ -55,9 +55,9 @@ export const ZakatInfo = ({ totalWealth, baseCurrency, baseCurrencySymbol, canCa
           </CollapsibleTrigger>
           <CollapsibleContent>
             <div className="mt-4 animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+              <div className="h-4 bg-muted/40 rounded w-3/4 mb-2"></div>
+              <div className="h-4 bg-muted/40 rounded w-1/2 mb-2"></div>
+              <div className="h-4 bg-muted/40 rounded w-2/3"></div>
             </div>
           </CollapsibleContent>
         </Card>
@@ -149,18 +149,18 @@ export const ZakatInfo = ({ totalWealth, baseCurrency, baseCurrencySymbol, canCa
             <div className="flex items-center gap-2">
               {/* Status Badge */}
               {zakatCalculation.isAboveNisab ? (
-                <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
+                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
                   Wajib Zakat
                 </Badge>
               ) : (
-                <Badge variant="outline" className="border-amber-200 text-amber-800">
+                <Badge variant="outline" className="border-amber-200 text-amber-800 bg-amber-50">
                   Belum Mencapai Nisab
                 </Badge>
               )}
 
               {/* Zakat Amount */}
               {zakatCalculation.isAboveNisab && (
-                <span className="text-sm font-semibold text-green-600">
+                <span className="text-sm font-semibold text-emerald-600 tabular-nums">
                   {zakatInfo.zakatAmountText}
                 </span>
               )}
@@ -211,8 +211,8 @@ export const ZakatInfo = ({ totalWealth, baseCurrency, baseCurrencySymbol, canCa
                 <div className="flex items-center gap-2">
                   {zakatCalculation.isAboveNisab ? (
                     <>
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
+                      <CheckCircle className="w-4 h-4 text-emerald-600" />
+                      <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
                         Wajib Zakat
                       </Badge>
                     </>
@@ -233,11 +233,11 @@ export const ZakatInfo = ({ totalWealth, baseCurrency, baseCurrencySymbol, canCa
               <div className="border-t pt-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Coins className="w-4 h-4 text-green-600" />
+                    <Coins className="w-4 h-4 text-emerald-600" />
                     <span className="text-sm font-medium text-muted-foreground">Jumlah Zakat yang Harus Dibayar</span>
                   </div>
                   <div className="pl-6">
-                    <div className="text-xl font-bold text-green-600">
+                    <div className="text-xl font-bold text-emerald-600 tabular-nums">
                       {zakatInfo.zakatAmountText}
                     </div>
                     <div className="text-sm text-muted-foreground">
