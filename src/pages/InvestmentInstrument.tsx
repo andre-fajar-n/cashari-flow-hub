@@ -1,7 +1,8 @@
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Plus, TrendingUp, PiggyBank, BarChart3, Layers } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import InvestmentInstrumentDialog from "@/components/investment/InvestmentInstrumentDialog";
 import Layout from "@/components/Layout";
@@ -17,6 +18,8 @@ import { useDialogState } from "@/hooks/use-dialog-state";
 import { useTableState } from "@/hooks/use-table-state";
 import { useMemo } from "react";
 import { useInvestmentInstrumentsPaginated } from "@/hooks/queries/paginated/use-investment-instruments-paginated";
+import { AmountText } from "@/components/ui/amount-text";
+import { formatAmountCurrency } from "@/lib/currency";
 
 const InvestmentInstrument = () => {
   const { user } = useAuth();
@@ -50,7 +53,18 @@ const InvestmentInstrument = () => {
       acc[summary.instrumentId] = summary;
       return acc;
     }, {} as Record<number, InstrumentSummary>) || {};
-  }, [summaryData])
+  }, [summaryData]);
+
+  const aggregateSummary = useMemo(() => {
+    if (!summaryData || summaryData.length === 0) return null;
+    const baseCurrency = summaryData[0]?.baseCurrencyCode || "IDR";
+    return {
+      baseCurrency,
+      totalActiveCapital: summaryData.reduce((s, x) => s + (x.activeCapitalBaseCurrency || 0), 0),
+      totalCurrentValue: summaryData.reduce((s, x) => s + (x.currentValueBaseCurrency || 0), 0),
+      totalProfit: summaryData.reduce((s, x) => s + (x.totalProfitBaseCurrency || 0), 0),
+    };
+  }, [summaryData]);
 
   // Form
   const form = useForm<InstrumentFormData>({
@@ -117,18 +131,79 @@ const InvestmentInstrument = () => {
           onConfirm={(id) => deleteInstrument(id)}
         />
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Instrumen Investasi</h1>
-              <p className="text-muted-foreground text-sm">Kelola dan pantau performa instrumen investasi Anda</p>
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-primary/10 shrink-0">
+                <TrendingUp className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">Instrumen Investasi</h1>
+                <p className="text-muted-foreground text-sm">Kelola dan pantau performa instrumen investasi Anda</p>
+              </div>
             </div>
-            <Button onClick={dialog.openAdd}>
+            <Button onClick={dialog.openAdd} className="shrink-0">
               <Plus className="w-4 h-4 mr-2" />
               Tambah Instrumen
             </Button>
           </div>
+
+          {/* Summary Stats */}
+          {aggregateSummary && !isLoading && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <Card className="border-0 bg-muted/40">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-blue-500/10 shrink-0">
+                    <Layers className="w-4 h-4 text-blue-500" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">Instrumen</p>
+                    <p className="text-lg font-bold truncate">{summaryData?.length || 0}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-0 bg-muted/40">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-orange-500/10 shrink-0">
+                    <PiggyBank className="w-4 h-4 text-orange-500" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">Modal Aktif</p>
+                    <p className="text-sm font-bold truncate">
+                      {formatAmountCurrency(aggregateSummary.totalActiveCapital, aggregateSummary.baseCurrency, aggregateSummary.baseCurrency)}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-0 bg-muted/40">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10 shrink-0">
+                    <BarChart3 className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">Nilai Saat Ini</p>
+                    <p className="text-sm font-bold truncate">
+                      {formatAmountCurrency(aggregateSummary.totalCurrentValue, aggregateSummary.baseCurrency, aggregateSummary.baseCurrency)}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-0 bg-muted/40">
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className={`p-2 rounded-lg shrink-0 ${aggregateSummary.totalProfit >= 0 ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
+                    <TrendingUp className={`w-4 h-4 ${aggregateSummary.totalProfit >= 0 ? 'text-green-500' : 'text-red-500'}`} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-muted-foreground">Total Profit</p>
+                    <AmountText amount={aggregateSummary.totalProfit} showSign className="text-sm font-bold truncate block">
+                      {formatAmountCurrency(Math.abs(aggregateSummary.totalProfit), aggregateSummary.baseCurrency, aggregateSummary.baseCurrency)}
+                    </AmountText>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           {/* Table with financial metrics */}
           <InstrumentSummaryTable

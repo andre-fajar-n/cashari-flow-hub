@@ -24,19 +24,28 @@ export const MetricCard = ({
   showSign?: boolean;
   showBaseOnly?: boolean;
 }) => {
-  const showedValue = showBaseOnly ? baseValue : originalValue;
-  const showedCurrency = showBaseOnly ? baseCurrency : originalCurrency;
+  const showedValue = showBaseOnly ? (baseValue ?? 0) : originalValue;
+  const showedCurrency = showBaseOnly ? (baseCurrency ?? originalCurrency) : originalCurrency;
+
+  const isPositive = showSign && showedValue > 0;
+  const isNegative = showSign && showedValue < 0;
 
   return (
-    <div className="p-4 rounded-lg border bg-card flex flex-col items-center text-center">
-      <div className="flex items-center gap-2 mb-2">
-        <Icon className="w-4 h-4 text-muted-foreground" />
+    <div className="p-4 rounded-xl border bg-card hover:shadow-sm transition-shadow">
+      <div className="flex items-center gap-2 mb-3">
+        <div className={`p-1.5 rounded-md shrink-0 ${
+          isPositive ? 'bg-green-500/10' : isNegative ? 'bg-red-500/10' : 'bg-primary/10'
+        }`}>
+          <Icon className={`w-3.5 h-3.5 ${
+            isPositive ? 'text-green-500' : isNegative ? 'text-red-500' : 'text-primary'
+          }`} />
+        </div>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="text-sm text-muted-foreground flex items-center gap-1 cursor-help">
+              <span className="text-xs text-muted-foreground flex items-center gap-1 cursor-help font-medium">
                 {label}
-                <HelpCircle className="w-3 h-3" />
+                <HelpCircle className="w-3 h-3 shrink-0" />
               </span>
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-xs">
@@ -45,18 +54,18 @@ export const MetricCard = ({
           </Tooltip>
         </TooltipProvider>
       </div>
-      <div>
+      <div className="space-y-0.5">
         {showSign ? (
-          <AmountText amount={showedValue} showSign={true} className="text-xl font-bold">
+          <AmountText amount={showedValue} showSign={true} className="text-lg font-bold">
             {formatAmountCurrency(Math.abs(showedValue), showedCurrency, showedCurrency)}
           </AmountText>
         ) : (
-          <p className="text-xl font-bold">
+          <p className="text-lg font-bold">
             {formatAmountCurrency(showedValue, showedCurrency, showedCurrency)}
           </p>
         )}
         {!showBaseOnly && (
-          <p className="text-xs text-muted-foreground italic mt-0.5">
+          <p className="text-xs text-muted-foreground">
             ≈ {formatAmountCurrency(baseValue, baseCurrency, baseCurrency)}
           </p>
         )}
