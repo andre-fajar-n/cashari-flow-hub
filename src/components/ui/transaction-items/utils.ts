@@ -32,7 +32,7 @@ export const getTransactionTypeConfig = (resourceType: string): TransactionTypeC
         text: "Transfer Target",
         icon: Target,
         variant: "outline" as const,
-        className: "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+        className: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
       };
     case MOVEMENT_TYPES.INVESTMENT_GROWTH:
       return {
@@ -46,14 +46,14 @@ export const getTransactionTypeConfig = (resourceType: string): TransactionTypeC
         text: "Hutang/Piutang",
         icon: CreditCard,
         variant: "destructive" as const,
-        className: "bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+        className: "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100"
       };
     default:
       return {
         text: "Tidak Diketahui",
         icon: Receipt,
         variant: "outline" as const,
-        className: "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+        className: "bg-muted/50 text-muted-foreground border hover:bg-muted"
       };
   }
 };

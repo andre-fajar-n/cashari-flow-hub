@@ -540,11 +540,16 @@ const TransactionHistory = () => {
         <div className="space-y-4">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Riwayat Transaksi</h1>
-              <p className="text-sm text-gray-500 mt-1">
-                Semua riwayat transaksi, transfer, dan pergerakan dana dalam satu tempat
-              </p>
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-primary/10 shrink-0">
+                <Receipt className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Riwayat Transaksi</h1>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Semua riwayat transaksi, transfer, dan pergerakan dana dalam satu tempat
+                </p>
+              </div>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -566,15 +571,15 @@ const TransactionHistory = () => {
                   Transfer
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.GOAL_TRANSFER)}>
-                  <Target className="w-4 h-4 mr-2 text-green-600" />
+                  <Target className="w-4 h-4 mr-2 text-emerald-600" />
                   Transfer Target
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.INVESTMENT_GROWTH)}>
-                  <TrendingUp className="w-4 h-4 mr-2 text-orange-500" />
+                  <TrendingUp className="w-4 h-4 mr-2 text-orange-600" />
                   Progres Investasi
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.DEBT_HISTORY)}>
-                  <CreditCard className="w-4 h-4 mr-2 text-red-600" />
+                  <CreditCard className="w-4 h-4 mr-2 text-rose-600" />
                   Hutang/Piutang
                 </DropdownMenuItem>
               </DropdownMenuContent>

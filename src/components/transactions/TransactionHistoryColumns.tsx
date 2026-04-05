@@ -82,11 +82,11 @@ export const getTransactionHistoryColumns = ({
         return (
           <div className="flex items-start gap-3 min-w-0">
             {/* Icon */}
-            <div className={`flex-shrink-0 p-2 rounded-full ${isIncome ? 'bg-green-50' : isExpense ? 'bg-red-50' : 'bg-blue-50'} ${!hasDescription ? 'self-center' : ''}`}>
+            <div className={`flex-shrink-0 p-2 rounded-lg ${isIncome ? 'bg-emerald-50' : isExpense ? 'bg-rose-50' : 'bg-blue-50'} ${!hasDescription ? 'self-center' : ''}`}>
               {isIncome ? (
-                <ArrowUpCircle className="w-5 h-5 text-green-600" />
+                <ArrowUpCircle className="w-5 h-5 text-emerald-600" />
               ) : isExpense ? (
-                <ArrowDownCircle className="w-5 h-5 text-red-600" />
+                <ArrowDownCircle className="w-5 h-5 text-rose-600" />
               ) : (
                 <ArrowLeftRight className="w-5 h-5 text-blue-600" />
               )}
@@ -94,11 +94,11 @@ export const getTransactionHistoryColumns = ({
 
             {/* Content */}
             <div className={`flex-1 min-w-0 ${!hasDescription ? 'self-center' : ''}`}>
-              <div className="font-semibold text-gray-900 truncate">
+              <div className="font-semibold text-foreground truncate">
                 {movement.category_name || "-"}
               </div>
               {hasDescription && (
-                <div className="text-sm text-gray-600 truncate mt-0.5">
+                <div className="text-sm text-muted-foreground truncate mt-0.5">
                   {movement.description}
                 </div>
               )}
@@ -121,14 +121,14 @@ export const getTransactionHistoryColumns = ({
           <div className="space-y-1">
             {/* Primary Wallet/Goal */}
             <div className="flex items-center gap-1.5">
-              <div className="font-medium text-gray-900 text-sm">
+              <div className="font-medium text-foreground text-sm">
                 {movement.wallet_name || movement.goal_name || "-"}
               </div>
             </div>
 
             {/* Transfer Info - Simple display */}
             {hasTransfer && (
-              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <ArrowLeftRight className="w-3 h-3" />
                 <span>
                   {movement.amount > 0 ? "Dari" : "Ke"}{" "}
@@ -149,7 +149,7 @@ export const getTransactionHistoryColumns = ({
       cell: ({ row }) => {
         const movement = row.original;
         return (
-          <div className="text-sm text-gray-700 whitespace-nowrap">
+          <div className="text-sm text-foreground whitespace-nowrap">
             {formatDate(movement.date)}
           </div>
         );
@@ -178,7 +178,7 @@ export const getTransactionHistoryColumns = ({
       const hasAnyInfo = budgetCount > 0 || projectCount > 0 || hasInvestmentInfo || hasGoalTransferInfo || (isDebt && movement.debt_name);
 
       if (!hasAnyInfo) {
-        return <div className="text-xs text-center text-gray-400">-</div>;
+        return <div className="text-xs text-center text-muted-foreground">-</div>;
       }
 
       return (
@@ -188,11 +188,11 @@ export const getTransactionHistoryColumns = ({
             <div className="space-y-1">
               <div className="flex items-center gap-1">
                 <Target className="w-3 h-3 text-blue-600 flex-shrink-0" />
-                <span className="text-xs font-medium text-blue-700">Budget:</span>
+                <span className="text-xs font-medium text-blue-600">Budget:</span>
               </div>
               <div className="pl-4 space-y-0.5">
                 {movement.budget_names_text?.split(",").map((name, idx) => (
-                  <div key={idx} className="text-xs text-gray-700">
+                  <div key={idx} className="text-xs text-muted-foreground">
                     • {name.trim()}
                   </div>
                 ))}
@@ -204,12 +204,12 @@ export const getTransactionHistoryColumns = ({
           {isTransaction && projectCount > 0 && (
             <div className="space-y-1">
               <div className="flex items-center gap-1">
-                <Building2 className="w-3 h-3 text-green-600 flex-shrink-0" />
-                <span className="text-xs font-medium text-green-700">Proyek:</span>
+                <Building2 className="w-3 h-3 text-emerald-600 flex-shrink-0" />
+                <span className="text-xs font-medium text-emerald-700">Proyek:</span>
               </div>
               <div className="pl-4 space-y-0.5">
                 {movement.business_project_names_text?.split(",").map((name, idx) => (
-                  <div key={idx} className="text-xs text-gray-700">
+                  <div key={idx} className="text-xs text-muted-foreground">
                     • {name.trim()}
                   </div>
                 ))}
@@ -222,10 +222,10 @@ export const getTransactionHistoryColumns = ({
             <div className="space-y-1">
               {movement.goal_name && (
                 <div className="flex items-start gap-1.5">
-                  <Target className="w-3 h-3 text-green-600 mt-0.5 flex-shrink-0" />
+                  <Target className="w-3 h-3 text-emerald-600 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                    <span className="text-xs font-medium text-gray-700">Goal: </span>
-                    <span className="text-xs text-gray-600">{movement.goal_name}</span>
+                    <span className="text-xs font-medium text-muted-foreground">Goal: </span>
+                    <span className="text-xs text-muted-foreground">{movement.goal_name}</span>
                   </div>
                 </div>
               )}
@@ -233,8 +233,8 @@ export const getTransactionHistoryColumns = ({
                 <div className="flex items-start gap-1.5">
                   <Building2 className="w-3 h-3 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                    <span className="text-xs font-medium text-gray-700">Instrumen: </span>
-                    <span className="text-xs text-gray-600">{movement.instrument_name}</span>
+                    <span className="text-xs font-medium text-muted-foreground">Instrumen: </span>
+                    <span className="text-xs text-muted-foreground">{movement.instrument_name}</span>
                   </div>
                 </div>
               )}
@@ -242,8 +242,8 @@ export const getTransactionHistoryColumns = ({
                 <div className="flex items-start gap-1.5">
                   <TrendingUp className="w-3 h-3 text-orange-600 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                    <span className="text-xs font-medium text-gray-700">Aset: </span>
-                    <span className="text-xs text-gray-600">{movement.asset_name}</span>
+                    <span className="text-xs font-medium text-muted-foreground">Aset: </span>
+                    <span className="text-xs text-muted-foreground">{movement.asset_name}</span>
                   </div>
                 </div>
               )}
@@ -256,11 +256,11 @@ export const getTransactionHistoryColumns = ({
               {/* Goal Transfer */}
               {(movement.goal_name) && (
                 <div className="flex items-start gap-1.5">
-                  <Target className="w-3 h-3 text-green-600 mt-0.5 flex-shrink-0" />
+                  <Target className="w-3 h-3 text-emerald-600 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                    <span className="text-xs font-medium text-gray-700">Goal: </span>
+                    <span className="text-xs font-medium text-muted-foreground">Goal: </span>
                     {movement.goal_name && movement.opposite_goal_name && movement.opposite_goal_name !== movement.goal_name ? (
-                      <span className="text-xs text-gray-600">
+                      <span className="text-xs text-muted-foreground">
                         {movement.amount > 0 ? (
                           <>{movement.opposite_goal_name} → {movement.goal_name}</>
                         ) : (
@@ -268,7 +268,7 @@ export const getTransactionHistoryColumns = ({
                         )}
                       </span>
                     ) : (
-                      <span className="text-xs text-gray-600">
+                      <span className="text-xs text-muted-foreground">
                         {movement.goal_name}
                       </span>
                     )}
@@ -280,9 +280,9 @@ export const getTransactionHistoryColumns = ({
                 <div className="flex items-start gap-1.5">
                   <Building2 className="w-3 h-3 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                    <span className="text-xs font-medium text-gray-700">Instrumen: </span>
+                    <span className="text-xs font-medium text-muted-foreground">Instrumen: </span>
                     {movement.instrument_name && movement.opposite_instrument_name && movement.opposite_instrument_name !== movement.instrument_name ? (
-                      <span className="text-xs text-gray-600">
+                      <span className="text-xs text-muted-foreground">
                         {movement.amount > 0 ? (
                           <>{movement.opposite_instrument_name} → {movement.instrument_name}</>
                         ) : (
@@ -290,7 +290,7 @@ export const getTransactionHistoryColumns = ({
                         )}
                       </span>
                     ) : (
-                      <span className="text-xs text-gray-600">
+                      <span className="text-xs text-muted-foreground">
                         {movement.instrument_name}
                       </span>
                     )}
@@ -302,9 +302,9 @@ export const getTransactionHistoryColumns = ({
                 <div className="flex items-start gap-1.5">
                   <TrendingUp className="w-3 h-3 text-orange-600 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                    <span className="text-xs font-medium text-gray-700">Aset: </span>
+                    <span className="text-xs font-medium text-muted-foreground">Aset: </span>
                     {movement.asset_name && movement.opposite_asset_name && movement.opposite_asset_name !== movement.asset_name ? (
-                      <span className="text-xs text-gray-600">
+                      <span className="text-xs text-muted-foreground">
                         {movement.amount > 0 ? (
                           <>{movement.opposite_asset_name} → {movement.asset_name}</>
                         ) : (
@@ -312,7 +312,7 @@ export const getTransactionHistoryColumns = ({
                         )}
                       </span>
                     ) : (
-                      <span className="text-xs text-gray-600">
+                      <span className="text-xs text-muted-foreground">
                         {movement.asset_name}
                       </span>
                     )}
@@ -325,10 +325,10 @@ export const getTransactionHistoryColumns = ({
           {/* Debt Info */}
           {isDebt && movement.debt_name && (
             <div className="flex items-start gap-1.5">
-              <CreditCard className="w-3 h-3 text-red-600 mt-0.5 flex-shrink-0" />
+              <CreditCard className="w-3 h-3 text-rose-600 mt-0.5 flex-shrink-0" />
               <div className="flex-1">
-                <span className="text-xs font-medium text-gray-700">Hutang/Piutang: </span>
-                <span className="text-xs text-red-600">{movement.debt_name}</span>
+                <span className="text-xs font-medium text-muted-foreground">Hutang/Piutang: </span>
+                <span className="text-xs text-rose-600">{movement.debt_name}</span>
               </div>
             </div>
           )}
@@ -352,14 +352,14 @@ export const getTransactionHistoryColumns = ({
       const isIncome = movement.amount > 0;
       const isExpense = movement.amount < 0;
       const colorClass = isIncome
-        ? "text-green-600"
+        ? "text-emerald-600"
         : isExpense
-          ? "text-red-600"
+          ? "text-rose-600"
           : "text-blue-600";
 
       return (
         <div className="text-right">
-          <div className={`font-bold text-base ${colorClass}`}>
+          <div className={`font-bold text-base tabular-nums ${colorClass}`}>
             {formatAmountCurrency(movement.amount, movement.currency_code, movement.currency_symbol)}
           </div>
 

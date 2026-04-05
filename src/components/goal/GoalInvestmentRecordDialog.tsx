@@ -54,10 +54,11 @@ const GoalInvestmentRecordDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto p-0">
-        <div className="px-6 pt-6 pb-4 border-b bg-gradient-to-r from-slate-50 to-white">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center flex-shrink-0">
-              <TrendingUp className="w-5 h-5 text-orange-600" />
+        <div className="border-b">
+          <div className="h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
+          <div className="px-6 pt-4 pb-4 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="w-5 h-5 text-primary" />
             </div>
             <div>
               <DialogTitle className="text-base font-semibold">
