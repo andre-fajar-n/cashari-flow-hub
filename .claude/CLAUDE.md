@@ -63,3 +63,44 @@ State: `.omc/state/`, `.omc/state/sessions/{sessionId}/`, `.omc/notepad.md`, `.o
 Say "setup omc" or run `/oh-my-claudecode:omc-setup`.
 
 <!-- OMC:END -->
+
+---
+
+## Project Context (Cashari Flow Hub)
+
+> **MANDATORY — read these files before doing any work in this repository.**
+
+This project ships two authoritative reference documents that must be consulted at the start of every task:
+
+### 1. `PROJECT_DESCRIPTION.md` — Domain & Product Context
+Read this file **first** to understand:
+- What Cashari is (personal finance & investment tracker)
+- The core domain model: `Wallet → Goal → Instrument → Asset`
+- Analytics metrics: Active Capital, Invested Capital, Current Value, Realized/Unrealized Profit, ROI
+- Product philosophy: Accuracy First, Progressive Complexity, Transparency, Performance-Aware UX
+- Current challenges: multi-currency, data gaps (missing FX / asset price), performance constraints
+- Designer rules — what Claude **must**, **should**, and **must not** do when proposing changes
+
+### 2. `DESIGN_GUIDANCE.md` — UI/UX & Code Standards
+Read this file before touching any UI component to understand:
+- Tech stack: React 18 + Vite, shadcn/ui, Tailwind CSS v3, Recharts, react-hook-form, TanStack Table, Lucide icons
+- **UI language:** Indonesian (Bahasa Indonesia) for all user-facing copy
+- Color tokens and financial semantic colors (emerald = profit, rose = loss, amber = stale/warning)
+- Page layout patterns (gradient banner vs plain row header, detail page header, dashboard header)
+- Chart patterns via `ReusableLineChart` (heights, axis, tooltip, data-quality dot colors)
+- Card patterns (metric card, summary cards row, hero total card, missing-data warning card)
+- Table patterns via `AdvancedDataTableToolbar` + TanStack Table
+- Form & dialog patterns (header gradient, field structure, validation copy in Indonesian, delete confirmation)
+- Financial color-coding rules and `AmountText` component usage
+- Badge, status, empty state, and loading patterns
+- Anti-patterns to avoid
+
+### Quick Reference Rules (always apply)
+- Never hardcode HSL values — use Tailwind tokens from `src/index.css`
+- All monetary values must use `tabular-nums`
+- All user-visible text must be in Indonesian
+- Never trigger expensive backend operations directly from UI — use materialized views and RPCs
+- Never simplify away wallet/goal/instrument/asset hierarchy
+- Always provide tooltips for financial metric cards
+- Use `AmountText` with `showSign` for profit/loss columns
+- Use `DeleteConfirmationModal` + `useDeleteConfirmation` for all delete actions
