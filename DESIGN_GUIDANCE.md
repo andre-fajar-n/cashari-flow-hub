@@ -108,11 +108,9 @@ AppSidebar (collapsible) → SidebarInset
 
 The `Layout` component handles all of this. Pages only render content inside `<Layout>`.
 
-### Page Header — Two Canonical Variants
+### Page Header — Canonical Pattern (Gradient Banner)
 
-**Variant A — Gradient Banner (use for analytics and goal-tracking pages)**
-
-Pages: BalanceTrend, Goal
+All list, management, analytics, and goal-tracking pages use the Gradient Banner pattern. It provides a consistent premium feel across the app and uses `rounded-xl` for the icon container.
 
 ```tsx
 <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/10 px-6 py-5">
@@ -134,38 +132,7 @@ Pages: BalanceTrend, Goal
 </div>
 ```
 
-**Variant B — Plain Row (use for management/list pages)**
-
-Pages: Budget, Debt, BusinessProject, InvestmentAsset, TransactionHistory
-
-```tsx
-<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-  <div className="flex items-center gap-3">
-    <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
-      <PiggyBank className="w-5 h-5 text-green-600" />
-    </div>
-    <div>
-      <h1 className="text-2xl font-bold text-gray-900">Page Title</h1>
-      <p className="text-sm text-muted-foreground mt-1">Short description.</p>
-    </div>
-  </div>
-  <Button>
-    <Plus className="w-4 h-4 mr-2" />
-    Action
-  </Button>
-</div>
-```
-
-**When to use which:**
-
-| Variant | Signal |
-|---|---|
-| Gradient Banner | Analytics, trends, overview pages, or pages with a prominent emotional goal (Goal management) |
-| Plain Row | Operational list/management pages where the table is the primary content |
-
-**Rule:** Never mix the two patterns on the same level. All pages must use exactly one of these two header patterns, not a custom one-off.
-
-**Known inconsistency to fix:** The icon container in Variant A uses `rounded-xl` but Variant B uses `rounded-full`. These should be unified. The preferred form going forward is `rounded-xl` (feels more premium than the pill shape). Migration should happen when each page is touched.
+**Rule:** All pages must use this header pattern. No custom one-off headers. Icon container always uses `rounded-xl`.
 
 ### Detail Page Header (Drill-down pages)
 
@@ -873,17 +840,9 @@ This section addresses one of the core product philosophy requirements: showing 
 
 ### FX Rate Date Display
 
-Whenever a cross-currency value is shown, display the rate date as a secondary label. Use the pattern:
+Whenever a cross-currency value is shown, display the rate date via a tooltip on the amount. This works consistently in all contexts — tables, cards, and collapsible sections.
 
 ```tsx
-// Inline in a collapsible card (FourColumnLayout pattern)
-{rateDate && (
-  <p className="text-[10px] text-muted-foreground italic">
-    Kurs {format(new Date(rateDate), "dd MMM yyyy", { locale: id })}
-  </p>
-)}
-
-// In a tooltip (preferred for dense tables)
 <TooltipProvider>
   <Tooltip>
     <TooltipTrigger asChild>
@@ -971,14 +930,7 @@ This modal is the primary mechanism for data transparency. It must always be acc
 
 ### Forward-fill Indicator Pattern (Summary sections)
 
-In the `FourColumnLayout` (Dashboard), show the FX rate date next to converted amounts:
-
-```tsx
-// Rate date shown as italic caption below the converted amount
-<p className="text-[10px] text-muted-foreground italic">
-  Kurs: {rate} — {format(new Date(rateDate), "dd MMM yyyy")}
-</p>
-```
+In the `FourColumnLayout` (Dashboard), show the FX rate date via a tooltip on the converted amount (same tooltip pattern as the FX Rate Date Display section above).
 
 When `hasNullRate` is true, show a "kurs tidak tersedia" indicator instead of a value.
 
@@ -988,7 +940,7 @@ When `hasNullRate` is true, show a "kurs tidak tersedia" indicator instead of a 
 
 ### Loading States
 
-**Skeleton loading** (preferred — avoids layout shift):
+**Skeleton loading** (avoids layout shift — use for all component-level loading states):
 
 ```tsx
 // For metric card grids
@@ -1011,16 +963,6 @@ When `hasNullRate` is true, show a "kurs tidak tersedia" indicator instead of a 
     </div>
   </CardContent>
 </Card>
-```
-
-**Animate-pulse loading** (for the dashboard hero section, which is a non-standard layout):
-
-```tsx
-<div className="animate-pulse rounded-xl bg-green-100 h-28" />
-<div className="animate-pulse space-y-3">
-  <div className="h-4 bg-gray-200 rounded w-1/3" />
-  <div className="h-16 bg-gray-100 rounded-lg" />
-</div>
 ```
 
 **PageLoading** (full-page, for pages that must fully load before rendering):
@@ -1150,7 +1092,7 @@ These are hard requirements. Any page that deviates must be updated during the n
 
 ### Header Consistency
 
-1. Every list/management page must have **exactly one** of the two canonical header patterns (Gradient Banner or Plain Row). No custom headers.
+1. Every list/management page must use the canonical Gradient Banner header pattern. No custom headers.
 2. All page `h1` elements use `text-2xl font-bold` minimum. Detail pages can use `text-3xl`.
 3. Page subtitle text always uses `text-sm text-muted-foreground mt-1` (or `mt-0.5` for the Banner variant).
 4. Primary CTA button is always at the far right of the header row on desktop. On mobile it stacks below the title.
