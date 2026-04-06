@@ -115,18 +115,18 @@ export const BudgetTable = ({
         return (
           <div className="space-y-2 min-w-[200px]">
             {/* Progress Bar */}
-            <div className="relative w-full h-5 bg-gray-100 rounded-full overflow-hidden">
+            <div className="relative w-full h-5 bg-muted rounded-full overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 ${isOverBudget
-                  ? 'bg-gradient-to-r from-red-500 to-red-600'
+                  ? 'bg-rose-500'
                   : spentPercentage > 80
-                    ? 'bg-gradient-to-r from-yellow-400 to-yellow-500'
-                    : 'bg-gradient-to-r from-green-500 to-green-600'
+                    ? 'bg-amber-400'
+                    : 'bg-emerald-500'
                   }`}
                 style={{ width: `${Math.min(spentPercentage, 100)}%` }}
               />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className={`text-xs font-semibold ${isOverBudget ? 'text-white' : 'text-gray-700'}`}>
+                <span className={`text-xs font-semibold tabular-nums ${isOverBudget || spentPercentage > 60 ? 'text-white' : 'text-foreground'}`}>
                   {formatPercentage(spentPercentage)}%
                 </span>
               </div>
@@ -135,22 +135,22 @@ export const BudgetTable = ({
             {/* Budget Details */}
             <div className="grid grid-cols-3 gap-3 text-xs">
               <div>
-                <span className="text-gray-600">Budget: </span>
-                <span className="font-semibold">
+                <p className="text-muted-foreground mb-0.5">Budget</p>
+                <p className="font-semibold tabular-nums">
                   {formatAmountCurrency(budget.amount, userSettings.currencies.code, userSettings.currencies.symbol)}
-                </span>
+                </p>
               </div>
               <div>
-                <span className="text-gray-600">Terpakai: </span>
-                <span className={`font-semibold ${isOverBudget ? 'text-red-700' : 'text-blue-700'}`}>
+                <p className="text-muted-foreground mb-0.5">Terpakai</p>
+                <p className={`font-semibold tabular-nums ${isOverBudget ? 'text-rose-600' : 'text-rose-600'}`}>
                   {formatAmountCurrency(Math.abs(totalSpent.total_spent) || 0, totalSpent.base_currency_code, totalSpent.base_currency_symbol)}
-                </span>
+                </p>
               </div>
               <div>
-                <span className="text-gray-600">{isOverBudget ? 'Berlebih: ' : 'Sisa: '}</span>
-                <span className={`font-semibold ${isOverBudget ? 'text-red-700' : 'text-green-700'}`}>
+                <p className="text-muted-foreground mb-0.5">{isOverBudget ? 'Berlebih' : 'Sisa'}</p>
+                <p className={`font-semibold tabular-nums ${isOverBudget ? 'text-rose-600' : 'text-emerald-600'}`}>
                   {formatAmountCurrency(Math.abs(remainingBudget), totalSpent.base_currency_code, totalSpent.base_currency_symbol)}
-                </span>
+                </p>
               </div>
             </div>
           </div>

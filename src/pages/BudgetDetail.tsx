@@ -4,14 +4,14 @@ import { useForm } from "react-hook-form";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit, Trash2, Calendar, Plus, AlertTriangle, PiggyBank } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Calendar, Plus, AlertTriangle, PiggyBank, TrendingDown, Wallet, BarChart3, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useBudget, useDeleteBudget, useUpdateBudget } from "@/hooks/queries/use-budgets";
 import BudgetTransactionList from "@/components/budget/BudgetTransactionList";
 import BudgetDialog from "@/components/budget/BudgetDialog";
 import ConfirmationModal from "@/components/ConfirmationModal";
 import BudgetTransactionDialog from "@/components/budget/BudgetTransactionDialog";
 import BudgetSummaryCard from "@/components/budget/BudgetSummaryCard";
-import { AmountText } from "@/components/ui/amount-text";
 import { formatAmountCurrency } from "@/lib/currency";
 import { formatDate } from "@/lib/date";
 import { useBudgetSummary } from "@/hooks/queries/use-budget-summary";
@@ -186,67 +186,115 @@ const BudgetDetail = () => {
     <ProtectedRoute>
       <Layout>
         <div className="space-y-6">
-          {/* Sticky Header */}
-          <div className="sticky top-0 z-10 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 border-b shadow-sm">
-            <div className="flex items-center justify-between py-3">
-              <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm" onClick={() => navigate("/budget")}>
-                  <ArrowLeft className="w-4 h-4 mr-2" /> Kembali
-                </Button>
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                    <PiggyBank className="w-4 h-4 text-green-600" />
-                  </div>
-                  <div>
-                    <h1 className="text-xl font-bold">{budget.name}</h1>
-                    <p className="text-muted-foreground text-xs mt-0.5 flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5" />
-                      {formatDate(budget.start_date)} - {formatDate(budget.end_date)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 pr-1">
-                <Button onClick={() => setIsAddDialogOpen(true)}>
-                  <Plus className="w-4 h-4 mr-2" /> Tambah Transaksi
-                </Button>
-                <Button variant="outline" onClick={() => budget && budgetDialog.openEdit(budget)}>
-                  <Edit className="w-4 h-4 mr-2" /> Ubah
-                </Button>
-                <Button variant="destructive" onClick={() => setIsDeleteModalOpen(true)}>
-                  <Trash2 className="w-4 h-4 mr-2" /> Hapus
-                </Button>
+          {/* Page Header */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Button variant="outline" onClick={() => navigate("/budget")}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Kembali
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold">{budget.name}</h1>
+                <p className="text-muted-foreground text-sm mt-0.5 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5" />
+                  {formatDate(budget.start_date)} — {formatDate(budget.end_date)}
+                </p>
               </div>
             </div>
+            <div className="flex gap-2">
+              <Button onClick={() => setIsAddDialogOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Tambah Transaksi
+              </Button>
+              <Button variant="outline" onClick={() => budget && budgetDialog.openEdit(budget)}>
+                <Edit className="w-4 h-4 mr-2" />
+                Ubah
+              </Button>
+              <Button variant="outline" onClick={() => setIsDeleteModalOpen(true)}>
+                <Trash2 className="w-4 h-4 mr-2" />
+                Hapus
+              </Button>
+            </div>
+          </div>
 
-            {/* Compact stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-3 px-2 border-t">
-              <div className="bg-blue-50/50 rounded-lg px-3 py-2">
-                <p className="text-xs text-muted-foreground">Total Budget</p>
-                <p className="font-semibold text-blue-700">{formatAmountCurrency(budget.amount, userSettings?.currencies.code, userSettings?.currencies.symbol)}</p>
+          {/* Metric cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {/* Total Budget */}
+            <div className="p-4 rounded-xl border border-blue-100 bg-blue-50/50 shadow-none">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-1.5 rounded-md bg-blue-500/10 shrink-0">
+                  <Wallet className="w-3.5 h-3.5 text-blue-600" />
+                </div>
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Total Budget</span>
               </div>
-              <div className="bg-red-50/50 rounded-lg px-3 py-2">
-                <p className="text-xs text-center text-muted-foreground">Terpakai</p>
-                {totalCalculation.can_calculate ? (
-                  <AmountText amount={totalSpent} showSign className="font-semibold">
-                    {formatAmountCurrency(Math.abs(totalSpent), userSettings?.currencies.code, userSettings?.currencies.symbol)}
-                  </AmountText>
-                ) : (
-                  <div className="flex justify-center gap-1 text-xs text-yellow-600 mt-1">
-                    <AlertTriangle className="w-3 h-3" />
-                    <span>Kurs belum tersedia</span>
-                  </div>
-                )}
+              <p className="text-lg font-bold tabular-nums">
+                {formatAmountCurrency(budget.amount, userSettings?.currencies.code, userSettings?.currencies.symbol)}
+              </p>
+            </div>
+
+            {/* Terpakai */}
+            <div className="p-4 rounded-xl border border-rose-100 bg-rose-50 shadow-none">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-1.5 rounded-md bg-rose-500/10 shrink-0">
+                  <TrendingDown className="w-3.5 h-3.5 text-rose-600" />
+                </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground flex items-center gap-1 cursor-help">
+                      Terpakai
+                      <HelpCircle className="w-3 h-3 shrink-0" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs">
+                    <p className="text-sm">Total pengeluaran yang dikonversi ke mata uang dasar</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-              <div className="bg-green-50/50 rounded-lg px-3 py-2">
-                <p className="text-xs text-muted-foreground">{remainingBudget >= 0 ? 'Sisa Budget' : 'Kelebihan'}</p>
-                <AmountText amount={remainingBudget} showSign className="font-semibold">
-                  {formatAmountCurrency(Math.abs(remainingBudget), userSettings?.currencies.code, userSettings?.currencies.symbol)}
-                </AmountText>
+              {totalCalculation.can_calculate ? (
+                <p className="text-lg font-bold tabular-nums text-rose-600">
+                  {formatAmountCurrency(Math.abs(totalSpent), userSettings?.currencies.code, userSettings?.currencies.symbol)}
+                </p>
+              ) : (
+                <div className="flex items-center gap-1 text-xs text-amber-600 mt-1">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>Kurs belum tersedia</span>
+                </div>
+              )}
+            </div>
+
+            {/* Sisa / Kelebihan */}
+            <div className={`p-4 rounded-xl shadow-none ${remainingBudget >= 0 ? 'border border-emerald-100 bg-emerald-50' : 'border border-rose-100 bg-rose-50'}`}>
+              <div className="flex items-center gap-2 mb-3">
+                <div className={`p-1.5 rounded-md shrink-0 ${remainingBudget >= 0 ? 'bg-emerald-500/10' : 'bg-rose-500/10'}`}>
+                  <PiggyBank className={`w-3.5 h-3.5 ${remainingBudget >= 0 ? 'text-emerald-600' : 'text-rose-600'}`} />
+                </div>
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {remainingBudget >= 0 ? 'Sisa Budget' : 'Kelebihan'}
+                </span>
               </div>
-              <div className="bg-purple-50/50 rounded-lg px-3 py-2">
-                <p className="text-xs text-muted-foreground">Progress</p>
-                <p className="font-semibold text-purple-700">{formatPercentage(spentPercentage)}%</p>
+              <p className={`text-lg font-bold tabular-nums ${remainingBudget >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {formatAmountCurrency(Math.abs(remainingBudget), userSettings?.currencies.code, userSettings?.currencies.symbol)}
+              </p>
+            </div>
+
+            {/* Progress */}
+            <div className={`p-4 rounded-xl shadow-none ${spentPercentage > 100 ? 'border border-rose-100 bg-rose-50' : spentPercentage > 80 ? 'border border-amber-200 bg-amber-50' : 'border border-violet-100 bg-violet-50/50'}`}>
+              <div className="flex items-center gap-2 mb-3">
+                <div className={`p-1.5 rounded-md shrink-0 ${spentPercentage > 100 ? 'bg-rose-500/10' : spentPercentage > 80 ? 'bg-amber-500/10' : 'bg-violet-500/10'}`}>
+                  <BarChart3 className={`w-3.5 h-3.5 ${spentPercentage > 100 ? 'text-rose-600' : spentPercentage > 80 ? 'text-amber-600' : 'text-violet-600'}`} />
+                </div>
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Progress</span>
+              </div>
+              <div className="space-y-1.5">
+                <p className={`text-lg font-bold tabular-nums ${spentPercentage > 100 ? 'text-rose-600' : spentPercentage > 80 ? 'text-amber-600' : 'text-violet-600'}`}>
+                  {formatPercentage(spentPercentage)}%
+                </p>
+                <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${spentPercentage > 100 ? 'bg-rose-500' : spentPercentage > 80 ? 'bg-amber-400' : 'bg-emerald-500'}`}
+                    style={{ width: `${Math.min(spentPercentage, 100)}%` }}
+                  />
+                </div>
               </div>
             </div>
           </div>
