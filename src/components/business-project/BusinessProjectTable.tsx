@@ -2,7 +2,7 @@ import { AdvancedDataTable, DataTableColumnHeader } from "@/components/ui/advanc
 import { AdvancedDataTableToolbar, SelectFilterConfig } from "@/components/ui/advanced-data-table/advanced-data-table-toolbar";
 import { ColumnDef } from "@tanstack/react-table";
 import { BusinessProjectModel, BusinessProjectSummaryModel } from "@/models/business-projects";
-import { Edit, Trash2, Eye, Calendar, AlertTriangle, ArrowUpCircle, ArrowDownCircle, TrendingUp, Minus, MinusCircle } from "lucide-react";
+import { Edit, Trash2, Eye, Calendar, AlertTriangle, ArrowUpCircle, ArrowDownCircle, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/date";
 import { formatAmountCurrency } from "@/lib/currency";
@@ -74,9 +74,16 @@ export const BusinessProjectTable = ({
         const project = row.original;
         return (
           <div className="space-y-1">
-            <div className="font-semibold">{project.name}</div>
+            <div className="font-semibold text-gray-900">{project.name}</div>
+            <div className="flex items-center gap-1 text-xs text-blue-700">
+              <Calendar className="w-3 h-3" />
+              <span>
+                {project.start_date ? formatDate(project.start_date) : "Belum ditentukan"}
+                {project.end_date && ` - ${formatDate(project.end_date)}`}
+              </span>
+            </div>
             {project.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2">
+              <p className="text-xs text-muted-foreground line-clamp-1">
                 {project.description}
               </p>
             )}
@@ -85,136 +92,66 @@ export const BusinessProjectTable = ({
       },
     },
     {
-      accessorKey: "date_range",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Periode" />,
-      cell: ({ row }) => {
-        const project = row.original;
-        return (
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <Calendar className="w-3 h-3" />
-            <span>
-              {project.start_date ? formatDate(project.start_date) : "Belum ditentukan"}
-              {project.end_date && ` - ${formatDate(project.end_date)}`}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "income",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Pemasukan" />,
+      id: "ringkasan",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Ringkasan" className="justify-center" />,
       cell: ({ row }) => {
         const project = row.original;
         const summary = summaryMap[project.id];
 
         if (!summary) {
-          return <span className="text-xs text-muted-foreground">-</span>;
+          return (
+            <div className="text-right">
+              <span className="text-xs text-muted-foreground">Belum ada transaksi</span>
+            </div>
+          );
         }
 
-        const hasRate = summary.income_amount_in_base_currency !== null;
-        const incomeAmount = summary.income_amount_in_base_currency || 0;
-        const isZero = incomeAmount === 0;
+        const canCalculate =
+          summary.income_amount_in_base_currency !== null ||
+          summary.expense_amount_in_base_currency !== null;
 
-        return (
-          <div className="flex items-center gap-1">
-            {isZero
-              ? <MinusCircle className="w-3 h-3 text-muted-foreground" />
-              : <ArrowUpCircle className="w-3 h-3 text-green-600" />
-            }
-            {hasRate ? (
-              <span className={`text-sm font-medium ${isZero ? "text-muted-foreground" : "text-green-700"}`}>
-                {formatAmountCurrency(
-                  incomeAmount,
-                  summary.base_currency_code,
-                  summary.base_currency_symbol
-                )}
-              </span>
-            ) : (
-              <div className="flex items-center gap-1 text-xs text-yellow-600">
-                <AlertTriangle className="w-3 h-3" />
-                <span>Kurs N/A</span>
-              </div>
-            )}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "expense",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Pengeluaran" />,
-      cell: ({ row }) => {
-        const project = row.original;
-        const summary = summaryMap[project.id];
-
-        if (!summary) {
-          return <span className="text-xs text-muted-foreground">-</span>;
+        if (!canCalculate) {
+          return (
+            <div className="flex items-center justify-end gap-1 text-xs text-amber-600">
+              <AlertTriangle className="w-3 h-3" />
+              <span>Kurs tidak tersedia</span>
+            </div>
+          );
         }
 
-        const hasRate = summary.expense_amount_in_base_currency !== null;
-        const expenseAmount = summary.expense_amount_in_base_currency || 0;
-        const isZero = expenseAmount === 0;
+        const income = summary.income_amount_in_base_currency || 0;
+        const expense = summary.expense_amount_in_base_currency || 0;
+        const net = summary.net_amount_in_base_currency || 0;
 
         return (
-          <div className="flex items-center gap-1">
-            {isZero
-              ? <MinusCircle className="w-3 h-3 text-muted-foreground" />
-              : <ArrowDownCircle className="w-3 h-3 text-red-600" />
-            }
-            {hasRate ? (
-              <span className={`text-sm font-medium ${isZero ? "text-muted-foreground" : "text-red-700"}`}>
-                {formatAmountCurrency(
-                  expenseAmount,
-                  summary.base_currency_code,
-                  summary.base_currency_symbol
-                )}
-              </span>
-            ) : (
-              <div className="flex items-center gap-1 text-xs text-yellow-600">
-                <AlertTriangle className="w-3 h-3" />
-                <span>Kurs N/A</span>
+          <div className="grid grid-cols-3 gap-3 text-xs min-w-[240px]">
+            <div>
+              <div className="flex items-center gap-1 text-muted-foreground mb-0.5">
+                <ArrowUpCircle className="w-3 h-3 text-emerald-600" />
+                <span>Pemasukan</span>
               </div>
-            )}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "net",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Net" />,
-      cell: ({ row }) => {
-        const project = row.original;
-        const summary = summaryMap[project.id];
-
-        if (!summary) {
-          return <span className="text-xs text-muted-foreground">-</span>;
-        }
-
-        const hasRate = summary.net_amount_in_base_currency !== null;
-        const netAmount = summary.net_amount_in_base_currency || 0;
-        const isZero = netAmount === 0;
-
-        return (
-          <div className="flex items-center gap-1">
-            {isZero
-              ? <Minus className="w-3 h-3 text-muted-foreground" />
-              : <TrendingUp className={`w-3 h-3 ${netAmount > 0 ? "text-green-600" : "text-red-600"}`} />
-            }
-            {hasRate ? (
-              <span className={`text-sm font-bold ${
-                isZero ? "text-muted-foreground" : netAmount > 0 ? "text-green-700" : "text-red-700"
-              }`}>
-                {!isZero && netAmount > 0 ? "+" : ""}{formatAmountCurrency(
-                  netAmount,
-                  summary.base_currency_code,
-                  summary.base_currency_symbol
-                )}
-              </span>
-            ) : (
-              <div className="flex items-center gap-1 text-xs text-yellow-600">
-                <AlertTriangle className="w-3 h-3" />
-                <span>Kurs N/A</span>
+              <p className="font-semibold tabular-nums text-emerald-700">
+                {formatAmountCurrency(income, summary.base_currency_code, summary.base_currency_symbol)}
+              </p>
+            </div>
+            <div>
+              <div className="flex items-center gap-1 text-muted-foreground mb-0.5">
+                <ArrowDownCircle className="w-3 h-3 text-rose-600" />
+                <span>Pengeluaran</span>
               </div>
-            )}
+              <p className="font-semibold tabular-nums text-rose-700">
+                {formatAmountCurrency(expense, summary.base_currency_code, summary.base_currency_symbol)}
+              </p>
+            </div>
+            <div>
+              <div className="flex items-center gap-1 text-muted-foreground mb-0.5">
+                <TrendingUp className="w-3 h-3" />
+                <span>Net</span>
+              </div>
+              <p className={`font-semibold tabular-nums ${net >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
+                {net >= 0 ? "+" : ""}{formatAmountCurrency(Math.abs(net), summary.base_currency_code, summary.base_currency_symbol)}
+              </p>
+            </div>
           </div>
         );
       },
@@ -229,11 +166,7 @@ export const BusinessProjectTable = ({
           <div className="flex items-center justify-end gap-1">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onView(project)}
-                >
+                <Button variant="ghost" size="sm" onClick={() => onView(project)}>
                   <Eye className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
@@ -241,15 +174,11 @@ export const BusinessProjectTable = ({
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onEdit(project)}
-                >
+                <Button variant="ghost" size="sm" onClick={() => onEdit(project)}>
                   <Edit className="w-4 h-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Edit</TooltipContent>
+              <TooltipContent>Ubah</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>

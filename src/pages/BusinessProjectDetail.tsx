@@ -180,110 +180,104 @@ const BusinessProjectDetail = () => {
     <ProtectedRoute>
       <Layout>
         <div className="space-y-6">
-          {/* Sticky Header */}
-          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-            <div className="flex items-center justify-between py-3">
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate("/business-project")}
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Kembali
-                </Button>
-                <div>
-                  <h1 className="text-2xl font-bold">{project.name}</h1>
-                  <p className="text-muted-foreground mt-0.5 flex items-center gap-2">
-                    <Calendar className="w-3.5 h-3.5" />
-                    {project.start_date ? formatDate(project.start_date) : "Belum ditentukan"}
-                    {project.end_date && ` - ${formatDate(project.end_date)}`}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 pr-1">
-                <Button onClick={() => setIsAddDialogOpen(true)}>
-                  <Plus className="w-4 h-4 mr-2" /> Tambah Transaksi
-                </Button>
-                <Button
-                  onClick={() => project && projectDialog.openEdit(project)}
-                  variant="outline"
-                >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Ubah
-                </Button>
-                <Button
-                  onClick={() => setIsDeleteModalOpen(true)}
-                  variant="destructive"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Hapus
-                </Button>
+          {/* Page Header */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Button variant="outline" onClick={() => navigate("/business-project")}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Kembali
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold">{project.name}</h1>
+                <p className="text-muted-foreground text-sm mt-0.5 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5" />
+                  {project.start_date ? formatDate(project.start_date) : "Belum ditentukan"}
+                  {project.end_date && ` — ${formatDate(project.end_date)}`}
+                </p>
               </div>
             </div>
+            <div className="flex gap-2">
+              <Button onClick={() => setIsAddDialogOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Tambah Transaksi
+              </Button>
+              <Button variant="outline" onClick={() => project && projectDialog.openEdit(project)}>
+                <Edit className="w-4 h-4 mr-2" />
+                Ubah
+              </Button>
+              <Button variant="outline" onClick={() => setIsDeleteModalOpen(true)}>
+                <Trash2 className="w-4 h-4 mr-2" />
+                Hapus
+              </Button>
+            </div>
+          </div>
 
-            {/* Compact stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-2 px-2 border-t">
-              <div className="flex items-center gap-3 p-2 rounded-lg bg-green-50/50">
-                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                  <ArrowUpCircle className="w-4 h-4 text-green-600" />
+          {/* Metric cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Total Pemasukan */}
+            <div className="p-4 rounded-xl border border-emerald-100 bg-emerald-50 shadow-none">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-1.5 rounded-md bg-emerald-500/10 shrink-0">
+                  <ArrowUpCircle className="w-3.5 h-3.5 text-emerald-600" />
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Total Pemasukan</p>
-                  {totalCalculation.can_calculate ? (
-                    <p className="font-semibold text-green-700">
-                      {formatAmountCurrency(totalCalculation.total_income, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
-                    </p>
-                  ) : (
-                    <div className="flex items-center gap-1 text-xs text-yellow-600 mt-0.5">
-                      <AlertTriangle className="w-3 h-3" />
-                      <span>Kurs belum tersedia</span>
-                    </div>
-                  )}
-                </div>
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Total Pemasukan</span>
               </div>
-              <div className="flex items-center gap-3 p-2 rounded-lg bg-red-50/50">
-                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                  <ArrowDownCircle className="w-4 h-4 text-red-600" />
+              {totalCalculation.can_calculate ? (
+                <p className="text-lg font-bold tabular-nums text-emerald-600">
+                  {formatAmountCurrency(totalCalculation.total_income, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
+                </p>
+              ) : (
+                <div className="flex items-center gap-1 text-xs text-amber-600 mt-1">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>Kurs belum tersedia</span>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Total Pengeluaran</p>
-                  {totalCalculation.can_calculate ? (
-                    <p className="font-semibold text-red-700">
-                      {formatAmountCurrency(totalCalculation.total_expense, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
-                    </p>
-                  ) : (
-                    <div className="flex items-center gap-1 text-xs text-yellow-600 mt-0.5">
-                      <AlertTriangle className="w-3 h-3" />
-                      <span>Kurs belum tersedia</span>
-                    </div>
-                  )}
+              )}
+            </div>
+
+            {/* Total Pengeluaran */}
+            <div className="p-4 rounded-xl border border-rose-100 bg-rose-50 shadow-none">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-1.5 rounded-md bg-rose-500/10 shrink-0">
+                  <ArrowDownCircle className="w-3.5 h-3.5 text-rose-600" />
                 </div>
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Total Pengeluaran</span>
               </div>
-              <div className="flex items-center gap-3 p-2 rounded-lg bg-blue-50/50">
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                  <TrendingUp className="w-4 h-4 text-blue-600" />
+              {totalCalculation.can_calculate ? (
+                <p className="text-lg font-bold tabular-nums text-rose-600">
+                  {formatAmountCurrency(totalCalculation.total_expense, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
+                </p>
+              ) : (
+                <div className="flex items-center gap-1 text-xs text-amber-600 mt-1">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>Kurs belum tersedia</span>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Net</p>
-                  {totalCalculation.can_calculate ? (
-                    <AmountText amount={totalCalculation.total_net} showSign className="font-semibold">
-                      {formatAmountCurrency(Math.abs(totalCalculation.total_net), totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
-                    </AmountText>
-                  ) : (
-                    <div className="flex items-center gap-1 text-xs text-yellow-600 mt-0.5">
-                      <AlertTriangle className="w-3 h-3" />
-                      <span>Kurs belum tersedia</span>
-                    </div>
-                  )}
+              )}
+            </div>
+
+            {/* Net */}
+            <div className={`p-4 rounded-xl shadow-none ${totalCalculation.total_net >= 0 ? 'border border-emerald-100 bg-emerald-50/50' : 'border border-rose-100 bg-rose-50'}`}>
+              <div className="flex items-center gap-2 mb-3">
+                <div className={`p-1.5 rounded-md shrink-0 ${totalCalculation.total_net >= 0 ? 'bg-emerald-500/10' : 'bg-rose-500/10'}`}>
+                  <TrendingUp className={`w-3.5 h-3.5 ${totalCalculation.total_net >= 0 ? 'text-emerald-600' : 'text-rose-600'}`} />
                 </div>
+                <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Net</span>
               </div>
+              {totalCalculation.can_calculate ? (
+                <AmountText amount={totalCalculation.total_net} showSign className="text-lg font-bold tabular-nums">
+                  {formatAmountCurrency(Math.abs(totalCalculation.total_net), totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
+                </AmountText>
+              ) : (
+                <div className="flex items-center gap-1 text-xs text-amber-600 mt-1">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span>Kurs belum tersedia</span>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Description if available */}
           {project.description && (
-            <p className="text-muted-foreground">{project.description}</p>
+            <p className="text-muted-foreground text-sm">{project.description}</p>
           )}
 
           {/* Tabs */}

@@ -107,20 +107,22 @@ const BusinessProject = () => {
       <Layout>
         <div className="space-y-6">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-                <Briefcase className="w-5 h-5 text-blue-600" />
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/10 px-6 py-5">
+            <div className="relative flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 border border-primary/20 shadow-sm shrink-0">
+                  <Briefcase className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tight">Proyek Bisnis</h1>
+                  <p className="text-sm text-muted-foreground mt-0.5">Kelola proyek bisnis dan investasi Anda</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold">Proyek Bisnis</h1>
-                <p className="text-sm text-muted-foreground mt-1">Kelola proyek bisnis dan investasi Anda</p>
-              </div>
+              <Button onClick={dialog.openAdd} className="shrink-0">
+                <Plus className="w-4 h-4 mr-2" />
+                Tambah Proyek
+              </Button>
             </div>
-            <Button onClick={dialog.openAdd}>
-              <Plus className="w-4 h-4 mr-2" />
-              Tambah Proyek
-            </Button>
           </div>
 
           {/* Business Project Table */}

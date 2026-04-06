@@ -111,26 +111,29 @@ const BusinessProjectTrendChart = ({
     const net = income - expense;
     
     return (
-      <div className="rounded-lg border bg-background p-3 shadow-lg">
-        <p className="font-semibold mb-2">{label}</p>
-        <div className="space-y-1 text-sm">
-          <div className="flex items-center justify-between gap-4">
+      <div className="rounded-xl border bg-background/95 backdrop-blur-sm p-3.5 shadow-xl">
+        <p className="font-semibold mb-2.5 text-sm border-b pb-2">{label}</p>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-emerald-500" />
-              <span>Pemasukan:</span>
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
+              <span className="text-xs text-muted-foreground">Pemasukan</span>
             </div>
-            <span className="font-medium text-emerald-600">{formatCurrency(income)}</span>
+            <span className="text-sm font-bold tabular-nums text-emerald-600">{formatCurrency(income)}</span>
           </div>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-rose-500" />
-              <span>Pengeluaran:</span>
+              <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0" />
+              <span className="text-xs text-muted-foreground">Pengeluaran</span>
             </div>
-            <span className="font-medium text-rose-600">{formatCurrency(expense)}</span>
+            <span className="text-sm font-bold tabular-nums text-rose-600">{formatCurrency(expense)}</span>
           </div>
-          <div className="border-t pt-1 mt-1 flex items-center justify-between gap-4">
-            <span className={net >= 0 ? "text-emerald-600" : "text-rose-600"}>Net:</span>
-            <span className={`font-semibold ${net >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+          <div className="flex items-center justify-between gap-6 border-t pt-2 mt-1">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0" style={{ borderStyle: "dashed" }} />
+              <span className="text-xs text-muted-foreground">Net</span>
+            </div>
+            <span className={`text-sm font-bold tabular-nums ${net >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
               {net >= 0 ? "+" : ""}{formatCurrency(net)}
             </span>
           </div>
@@ -152,7 +155,7 @@ const BusinessProjectTrendChart = ({
       lines={lines}
       title="Tren Bulanan"
       titleIcon={<TrendingUp className="w-5 h-5" />}
-      height={300}
+      height={380}
       showLegend
       emptyMessage="Belum ada data untuk ditampilkan"
       customTooltip={customTooltip}
