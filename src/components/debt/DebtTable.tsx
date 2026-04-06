@@ -3,7 +3,7 @@ import { AdvancedDataTableToolbar, SelectFilterConfig } from "@/components/ui/ad
 import { ColumnDef } from "@tanstack/react-table";
 import { DebtModel } from "@/models/debts";
 import { DebtSummaryModel } from "@/models/debt-summary";
-import { Edit, Trash2, Eye } from "lucide-react";
+import { Edit, Trash2, Eye, Calendar, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/date";
 import { formatAmountCurrency } from "@/lib/currency";
@@ -85,60 +85,32 @@ export const DebtTable = ({
       cell: ({ row }) => {
         const debt = row.original;
         return (
-          <div className="space-y-2">
+          <div className="space-y-1">
             <div className="font-semibold text-gray-900">{debt.name}</div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge
+                variant="outline"
+                className={`text-xs ${debt.type === DEBT_TYPES.LOAN ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'}`}
+              >
+                {debt.type === DEBT_TYPES.LOAN ? 'Hutang' : 'Piutang'}
+              </Badge>
+              <Badge variant={debt.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                {debt.status === 'active' ? 'Aktif' : 'Lunas'}
+              </Badge>
+            </div>
+            {debt.due_date && (
+              <div className="flex items-center gap-1 text-xs text-blue-700">
+                <Calendar className="w-3 h-3" />
+                <span>Jatuh Tempo: {formatDate(debt.due_date)}</span>
+              </div>
+            )}
           </div>
-        );
-      },
-    },
-    {
-      accessorKey: "tipe",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Tipe" />,
-      enableSorting: false,
-      cell: ({ row }) => {
-        const debt = row.original;
-        return (
-          <span className={`text-xs px-2 py-1 rounded-md font-medium ${debt.type === DEBT_TYPES.LOAN
-            ? 'bg-red-50 text-red-700'
-            : 'bg-green-50 text-green-700'
-            }`}>
-            {debt.type === DEBT_TYPES.LOAN ? 'Hutang' : 'Piutang'}
-          </span>
-        );
-      },
-    },
-    {
-      accessorKey: "Tenggat Waktu",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Tenggat Waktu" />,
-      enableSorting: false,
-      cell: ({ row }) => {
-        const debt = row.original;
-        return (
-          <div className="text-xs text-gray-700">
-            {debt.due_date ? formatDate(debt.due_date) : 'Tidak ada'}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "status",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Status" />,
-      enableSorting: false,
-      cell: ({ row }) => {
-        const debt = row.original;
-        return (
-          <Badge
-            variant={debt.status === 'active' ? 'default' : 'secondary'}
-            className="text-xs"
-          >
-            {debt.status === 'active' ? 'Aktif' : 'Lunas'}
-          </Badge>
         );
       },
     },
     {
       accessorKey: "total",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Total" className="justify-end" />,
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Saldo" className="justify-end" />,
       enableSorting: false,
       cell: ({ row }) => {
         const debt = row.original;
@@ -148,43 +120,28 @@ export const DebtTable = ({
         if (!totalAmount) {
           return (
             <div className="text-right">
-              <div className="text-sm font-medium text-gray-600">
-                {userSettings?.base_currency_code}
-              </div>
-              <Badge variant="secondary" className="bg-yellow-50 text-yellow-700 border-yellow-200 mt-1">
-                Belum ada transaksi
-              </Badge>
+              <span className="text-xs text-muted-foreground">Belum ada transaksi</span>
             </div>
           );
         }
 
         if (!totalAmount.can_calculate) {
           return (
-            <div className="text-right">
-              <div className="text-sm font-medium text-gray-600">
-                {userSettings?.base_currency_code}
-              </div>
-              <Badge variant="secondary" className="bg-yellow-50 text-yellow-700 border-yellow-200 mt-1">
-                Kurs belum tersedia
-              </Badge>
+            <div className="flex items-center justify-end gap-1 text-xs text-amber-600">
+              <AlertTriangle className="w-3 h-3" />
+              <span>Kurs tidak tersedia</span>
             </div>
           );
         }
 
         const balance = totalAmount.total_income + totalAmount.total_outcome;
-        const colorClass = balance > 0
-          ? 'text-green-700'
-          : balance < 0
-            ? 'text-red-700'
-            : 'text-gray-700';
+        const colorClass = balance > 0 ? 'text-emerald-700' : balance < 0 ? 'text-rose-700' : 'text-muted-foreground';
 
         return (
-          <div className="text-right space-y-1">
-            <div className="text-xs text-gray-500">
-              Total dalam {totalAmount.base_currency_code}
-            </div>
-            <div className={`text-lg font-bold ${colorClass}`}>
-              {formatAmountCurrency(balance, totalAmount.base_currency_code, totalAmount.base_currency_symbol)}
+          <div className="text-right space-y-0.5">
+            <div className="text-xs text-muted-foreground">dalam {totalAmount.base_currency_code}</div>
+            <div className={`text-base font-bold tabular-nums ${colorClass}`}>
+              {formatAmountCurrency(Math.abs(balance), totalAmount.base_currency_code, totalAmount.base_currency_symbol)}
             </div>
           </div>
         );

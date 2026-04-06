@@ -41,15 +41,14 @@ const DebtHistoryDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto p-0">
-        <div className="border-b">
-          <div className="h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
-          <div className="px-6 pt-4 pb-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+        <div className="px-6 pt-6 pb-4 border-b bg-gradient-to-br from-primary/10 via-primary/5 to-background border-primary/10">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 border border-primary/20 shadow-sm shrink-0">
               <CreditCard className="w-5 h-5 text-primary" />
             </div>
             <div>
               <DialogTitle className="text-base font-semibold">
-                {(history ? "Ubah" : "Tambah") + " History Pembayaran"}
+                {(history ? "Ubah" : "Tambah") + " Riwayat Pembayaran"}
               </DialogTitle>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {history ? "Perbarui data riwayat pembayaran" : "Catat riwayat pembayaran hutang/piutang"}

@@ -41,10 +41,12 @@ const DebtSummaryCard = ({
   if (!summaryData || summaryData.length === 0) {
     return (
       <Card className="overflow-hidden">
-        <div className="px-6 py-4 border-b bg-gradient-to-r from-slate-50 to-white">
-          <div className="flex items-center gap-2">
-            <Calculator className="w-4 h-4 text-gray-600" />
-            <span className="font-semibold text-gray-900 text-sm">{title}</span>
+        <div className="px-6 py-4 border-b bg-gradient-to-br from-primary/10 via-primary/5 to-background">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 border border-primary/20 shrink-0">
+              <Calculator className="w-4 h-4 text-primary" />
+            </div>
+            <span className="font-semibold text-sm">{title}</span>
           </div>
         </div>
         <CardContent className="p-6">
@@ -69,10 +71,12 @@ const DebtSummaryCard = ({
 
   return (
     <Card className="overflow-hidden">
-      <div className="px-6 py-4 border-b bg-gradient-to-r from-slate-50 to-white">
-        <div className="flex items-center gap-2">
-          <Calculator className="w-4 h-4 text-gray-600" />
-          <span className="font-semibold text-gray-900 text-sm">{title}</span>
+      <div className="px-6 py-4 border-b bg-gradient-to-br from-primary/10 via-primary/5 to-background">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 border border-primary/20 shrink-0">
+            <Calculator className="w-4 h-4 text-primary" />
+          </div>
+          <span className="font-semibold text-sm">{title}</span>
         </div>
       </div>
       <CardContent className="p-6 space-y-4">
@@ -82,45 +86,45 @@ const DebtSummaryCard = ({
             <h4 className="text-sm font-medium text-gray-700">Rincian per Mata Uang</h4>
             <div className="overflow-hidden rounded-lg border">
               <table className="w-full text-sm">
-                <thead className="bg-gradient-to-r from-slate-50 to-gray-50">
+                <thead className="bg-muted/50">
                   <tr>
-                    <th rowSpan={2} className="px-3 py-2 text-left font-medium text-gray-700 border-r text-xs uppercase tracking-wide">
+                    <th rowSpan={2} className="px-3 py-2 text-left font-semibold border-r text-[11px] uppercase tracking-wide text-muted-foreground">
                       Mata Uang
                     </th>
-                    <th colSpan={2} className="px-3 py-2 text-center font-medium text-gray-700 border-b text-xs uppercase tracking-wide">
+                    <th colSpan={2} className="px-3 py-2 text-center font-semibold border-b text-[11px] uppercase tracking-wide text-muted-foreground">
                       {labels.income}
                     </th>
-                    <th colSpan={2} className="px-3 py-2 text-center font-medium text-gray-700 border-b text-xs uppercase tracking-wide">
+                    <th colSpan={2} className="px-3 py-2 text-center font-semibold border-b text-[11px] uppercase tracking-wide text-muted-foreground">
                       {labels.outcome}
                     </th>
-                    <th colSpan={2} className="px-3 py-2 text-center font-medium text-gray-700 text-xs uppercase tracking-wide">
+                    <th colSpan={2} className="px-3 py-2 text-center font-semibold text-[11px] uppercase tracking-wide text-muted-foreground">
                       Saldo/Net
                     </th>
                   </tr>
                   <tr>
-                    <th className="px-3 py-2 text-center font-medium text-gray-600 border-r text-xs uppercase tracking-wide">
+                    <th className="px-3 py-2 text-center font-semibold border-r text-[11px] uppercase tracking-wide text-muted-foreground">
                       Mata Uang Asli
                     </th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-600 border-r text-xs uppercase tracking-wide">
+                    <th className="px-3 py-2 text-center font-semibold border-r text-[11px] uppercase tracking-wide text-muted-foreground">
                       Mata Uang Dasar
                     </th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-600 border-r text-xs uppercase tracking-wide">
+                    <th className="px-3 py-2 text-center font-semibold border-r text-[11px] uppercase tracking-wide text-muted-foreground">
                       Mata Uang Asli
                     </th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-600 border-r text-xs uppercase tracking-wide">
+                    <th className="px-3 py-2 text-center font-semibold border-r text-[11px] uppercase tracking-wide text-muted-foreground">
                       Mata Uang Dasar
                     </th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-600 border-r text-xs uppercase tracking-wide">
+                    <th className="px-3 py-2 text-center font-semibold border-r text-[11px] uppercase tracking-wide text-muted-foreground">
                       Mata Uang Asli
                     </th>
-                    <th className="px-3 py-2 text-center font-medium text-gray-600 text-xs uppercase tracking-wide">
+                    <th className="px-3 py-2 text-center font-semibold text-[11px] uppercase tracking-wide text-muted-foreground">
                       Mata Uang Dasar
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y">
                   {groupedByCurrency.map((group, index) => (
-                    <tr key={group.currency_code} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                    <tr key={group.currency_code} className={index % 2 === 0 ? "bg-background" : "bg-muted/30"}>
                       <td className="px-3 py-2 font-medium border-r">
                         {group.currency_code}
                       </td>
@@ -195,22 +199,22 @@ const DebtSummaryCard = ({
                 </tbody>
                 {/* Total row as table footer */}
                 {totalCalculation.can_calculate && (
-                  <tfoot className="bg-blue-50 border-t-2 border-blue-200">
+                  <tfoot className="bg-primary/5 border-t-2 border-primary/20">
                     <tr>
-                      <td className="px-3 py-3 font-bold text-blue-900 border-r" colSpan={1}>
+                      <td className="px-3 py-3 font-bold border-r text-foreground text-sm" colSpan={1}>
                         Total dalam {totalCalculation.base_currency_code}
                       </td>
                       {/* Income - we skip original currency column, only show base currency */}
                       <td className="px-3 py-3 text-center border-r"></td>
                       <td className="px-3 py-3 text-center border-r">
-                        <AmountText amount={totalCalculation.total_income || 0} className="font-bold text-green-700">
+                        <AmountText amount={totalCalculation.total_income || 0} className="font-bold text-emerald-700">
                           {formatAmountCurrency(totalCalculation.total_income || 0, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
                         </AmountText>
                       </td>
                       {/* Outcome */}
                       <td className="px-3 py-3 text-center border-r"></td>
                       <td className="px-3 py-3 text-center border-r">
-                        <AmountText amount={totalCalculation.total_outcome || 0} className="font-bold text-red-700">
+                        <AmountText amount={totalCalculation.total_outcome || 0} className="font-bold text-rose-700">
                           {formatAmountCurrency(totalCalculation.total_outcome || 0, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
                         </AmountText>
                       </td>
@@ -218,7 +222,7 @@ const DebtSummaryCard = ({
                       <td className="px-3 py-3 text-center border-r"></td>
                       <td className="px-3 py-3 text-center">
                         <div className="flex flex-col items-center gap-1">
-                          <AmountText amount={totalCalculation.total_net || 0} className="font-bold text-blue-900">
+                          <AmountText amount={totalCalculation.total_net || 0} className="font-bold text-foreground">
                             {formatAmountCurrency(totalCalculation.total_net || 0, totalCalculation.base_currency_code, totalCalculation.base_currency_symbol)}
                           </AmountText>
                           {renderNetAmountBadge(totalCalculation.total_net || 0)}
@@ -232,15 +236,13 @@ const DebtSummaryCard = ({
 
             {/* Warning if cannot calculate */}
             {!totalCalculation.can_calculate && (
-              <div className="p-3 bg-yellow-50 rounded-lg border-l-4 border-l-yellow-500">
+              <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
                 <div className="flex items-start gap-3">
-                  <AlertTriangle className="w-4 h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-yellow-800">
-                      Tidak dapat menghitung total dalam mata uang dasar
-                    </p>
-                    <p className="text-xs text-yellow-700">
-                      Beberapa transaksi tidak memiliki kurs mata uang yang diperlukan untuk konversi.
+                  <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-amber-800">Total tidak dapat dihitung</p>
+                    <p className="text-xs text-amber-600 mt-0.5">
+                      Beberapa transaksi tidak memiliki kurs mata uang yang diperlukan untuk konversi ke mata uang dasar.
                     </p>
                   </div>
                 </div>
