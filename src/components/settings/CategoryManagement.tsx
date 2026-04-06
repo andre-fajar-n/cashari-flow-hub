@@ -10,15 +10,13 @@ import { CATEGORY_APPLICATIONS, CategoryApplication } from "@/constants/enums";
 import { CategoryDropdown } from "@/components/ui/dropdowns";
 import { useForm } from "react-hook-form";
 import { Plus, Trash, Pen, Tag } from "lucide-react";
-import ConfirmationModal from "@/components/ConfirmationModal";
+import { DeleteConfirmationModal, useDeleteConfirmation } from "@/components/DeleteConfirmationModal";
 import { useCategories, useCreateCategory, useDeleteCategory, useUpdateCategory } from "@/hooks/queries/use-categories";
 import { CategoryModel } from "@/models/categories";
 import { CategoryFormData, defaultCategoryFormValues } from "@/form-dto/categories";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 
 const CategoryManagement = () => {
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState<number | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryModel | null>(null);
   const { mutate: deleteCategory } = useDeleteCategory();
@@ -30,6 +28,15 @@ const CategoryManagement = () => {
   const form = useForm<CategoryFormData>({
     defaultValues: defaultCategoryFormValues,
   });
+
+  const deleteConfirmation = useDeleteConfirmation<number>({
+    title: "Hapus Kategori",
+    description: "Apakah Anda yakin ingin menghapus kategori ini? Tindakan ini tidak dapat dibatalkan.",
+  });
+
+  const handleConfirmDelete = (categoryId: number) => {
+    deleteCategory(categoryId);
+  };
 
   // Reset form when adding/editing state changes
   useEffect(() => {
@@ -50,14 +57,7 @@ const CategoryManagement = () => {
   }, [editingCategory, form]);
 
   const handleDeleteClick = (categoryId: number) => {
-    setCategoryToDelete(categoryId);
-    setIsDeleteModalOpen(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (categoryToDelete) {
-      deleteCategory(categoryToDelete);
-    }
+    deleteConfirmation.openModal(categoryId);
   };
 
   // Use mutation callbacks utility
@@ -197,15 +197,9 @@ const CategoryManagement = () => {
 
   return (
     <div className="space-y-6">
-      <ConfirmationModal
-        open={isDeleteModalOpen}
-        onOpenChange={setIsDeleteModalOpen}
+      <DeleteConfirmationModal
+        deleteConfirmation={deleteConfirmation}
         onConfirm={handleConfirmDelete}
-        title="Hapus Kategori"
-        description="Apakah Anda yakin ingin menghapus kategori ini? Tindakan ini tidak dapat dibatalkan."
-        confirmText="Ya, Hapus"
-        cancelText="Batal"
-        variant="destructive"
       />
 
       {isAdding ? (

@@ -417,8 +417,8 @@ const MoneySummaryCard = ({
       <div className="p-6 space-y-6">
         {/* Total Amount Section */}
         {userSettings?.base_currency_code && currencies.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-1.5">
+          <div className="space-y-3 pb-6 border-b">
+            <div className="flex items-center gap-2">
               <Calculator className="w-3.5 h-3.5 text-muted-foreground" />
               <h4 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Total Keseluruhan</h4>
             </div>
@@ -496,17 +496,19 @@ const MoneySummaryCard = ({
 
         {/* Zakat Information */}
         {userSettings?.base_currency_code && currencies.length > 0 && (
-          <ZakatInfo
-            totalWealth={totalAmountCalculation.totalAmount}
-            baseCurrency={userSettings.base_currency_code}
-            baseCurrencySymbol={userSettings.currencies?.symbol}
-            canCalculateWealth={totalAmountCalculation.canCalculate}
-          />
+          <div className="pb-6 border-b">
+            <ZakatInfo
+              totalWealth={totalAmountCalculation.totalAmount}
+              baseCurrency={userSettings.base_currency_code}
+              baseCurrencySymbol={userSettings.currencies?.symbol}
+              canCalculateWealth={totalAmountCalculation.canCalculate}
+            />
+          </div>
         )}
 
         {/* Grand Totals - Only Original Currency with Base Currency conversion */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-1.5">
+        <div className="space-y-3 pb-6 border-b">
+          <div className="flex items-center gap-2">
             <Coins className="w-3.5 h-3.5 text-muted-foreground" />
             <h4 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Total per Mata Uang</h4>
           </div>
@@ -519,7 +521,7 @@ const MoneySummaryCard = ({
                 const hasNullRate = currencyData?.latest_rate === null && currencyData?.base_currency_code;
 
                 return (
-                  <div key={currency} className="p-4 bg-muted/40 rounded-xl border-0">
+                  <div key={currency} className="p-4 bg-muted/40 rounded-xl border-0 hover:shadow-sm transition-shadow">
                     <FourColumnLayout
                       infoData={{
                         name: currency,
@@ -556,7 +558,7 @@ const MoneySummaryCard = ({
         {/* Wallet Summaries with Search and Pagination */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <Wallet className="w-3.5 h-3.5 text-muted-foreground" />
               <h4 className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Ringkasan per Dompet</h4>
             </div>
@@ -689,7 +691,7 @@ const MoneySummaryCard = ({
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between pt-1">
+                <div className="flex items-center justify-between pt-3 pb-1 px-1 mt-1 border-t">
                   <p className="text-xs text-muted-foreground">
                     {startIndex + 1}–{Math.min(startIndex + itemsPerPage, filteredWallets.length)} dari {filteredWallets.length} dompet
                   </p>

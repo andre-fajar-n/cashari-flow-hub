@@ -539,26 +539,27 @@ const TransactionHistory = () => {
       <Layout>
         <div className="space-y-4">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-primary/10 shrink-0">
-                <Receipt className="w-6 h-6 text-primary" />
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/10 px-6 py-5">
+            <div className="relative flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 border border-primary/20 shadow-sm shrink-0">
+                  <Receipt className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tight">Riwayat Transaksi</h1>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Semua riwayat transaksi, transfer, dan pergerakan dana dalam satu tempat
+                  </p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Riwayat Transaksi</h1>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  Semua riwayat transaksi, transfer, dan pergerakan dana dalam satu tempat
-                </p>
-              </div>
-            </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="w-full sm:w-auto">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Tambah Baru
-                  <ChevronDown className="w-4 h-4 ml-2" />
-                </Button>
-              </DropdownMenuTrigger>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="shrink-0">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Tambah Baru
+                    <ChevronDown className="w-4 h-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
                 <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">Pilih jenis entri</DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -584,6 +585,7 @@ const TransactionHistory = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </div>
           </div>
 
           {/* Transaction History Table */}

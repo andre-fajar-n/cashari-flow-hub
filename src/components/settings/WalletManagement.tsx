@@ -14,6 +14,7 @@ import { defaultWalletFormValues, WalletFormData } from "@/form-dto/wallets";
 import { WalletModel } from "@/models/wallets";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { CurrencyModel } from "@/models/currencies";
+import { DeleteConfirmationModal, useDeleteConfirmation } from "@/components/DeleteConfirmationModal";
 
 const WalletManagement = () => {
   const [isAdding, setIsAdding] = useState(false);
@@ -27,6 +28,15 @@ const WalletManagement = () => {
   const form = useForm<WalletFormData>({
     defaultValues: defaultWalletFormValues,
   });
+
+  const deleteConfirmation = useDeleteConfirmation<WalletModel>({
+    title: "Hapus Dompet",
+    description: "Apakah Anda yakin ingin menghapus dompet ini? Tindakan ini tidak dapat dibatalkan.",
+  });
+
+  const handleConfirmDelete = (wallet: WalletModel) => {
+    deleteMutation.mutate(wallet.id);
+  };
 
   const currencyMap = currencies?.reduce((acc, currency) => {
     acc[currency.code] = currency;
@@ -145,7 +155,7 @@ const WalletManagement = () => {
           <Button
             variant="destructive"
             size="sm"
-            onClick={() => deleteMutation.mutate(wallet.id)}
+            onClick={() => deleteConfirmation.openModal(wallet)}
             disabled={deleteMutation.isPending}
             className="h-8 w-8 p-0"
           >
@@ -158,6 +168,10 @@ const WalletManagement = () => {
 
   return (
     <div className="space-y-6">
+      <DeleteConfirmationModal
+        deleteConfirmation={deleteConfirmation}
+        onConfirm={handleConfirmDelete}
+      />
       {isAdding || editingWallet ? (
         <Card className="overflow-hidden">
           <div className="h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
