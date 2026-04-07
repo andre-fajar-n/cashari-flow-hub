@@ -67,11 +67,11 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
       case 'Exact':
         return <Badge variant="outline" className="text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 dark:border-emerald-800 dark:text-emerald-400 text-[10px] px-1.5 py-0.5 h-auto leading-tight whitespace-nowrap">Lengkap</Badge>;
       case 'Old Price & FX':
-        return <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-400 text-[10px] px-1.5 py-0.5 h-auto leading-tight whitespace-nowrap">Harga &<br />Kurs<br />Lama</Badge>;
+        return <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-400 text-[10px] px-1.5 py-0.5 h-auto">Harga & Kurs Lama</Badge>;
       case 'Old Price':
-        return <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-400 text-[10px] px-1.5 py-0.5 h-auto leading-tight whitespace-nowrap">Harga<br />Lama</Badge>;
+        return <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-400 text-[10px] px-1.5 py-0.5 h-auto">Harga Lama</Badge>;
       case 'Old FX':
-        return <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-400 text-[10px] px-1.5 py-0.5 h-auto leading-tight whitespace-nowrap">Kurs<br />Lama</Badge>;
+        return <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-400 text-[10px] px-1.5 py-0.5 h-auto">Kurs Lama</Badge>;
       case 'Missing':
         return <Badge variant="destructive" className="text-[10px] px-1.5 py-0.5 h-auto leading-tight whitespace-nowrap">Tidak Lengkap</Badge>;
     }
@@ -88,15 +88,15 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-0 gap-0">
         {/* Header */}
-        <DialogHeader className="px-6 py-4 border-b shrink-0 bg-muted/30">
+        <DialogHeader className="px-6 py-4 border-b shrink-0 bg-gradient-to-r from-slate-50 to-white dark:from-slate-900/50 dark:to-background">
           <div className="flex items-center gap-3">
             <div className={cn(
               "flex h-9 w-9 items-center justify-center rounded-lg shrink-0",
               isGoldMode ? "bg-amber-100 dark:bg-amber-900/50" : "bg-primary/10"
             )}>
               {isGoldMode
-                ? <Coins className="h-4.5 w-4.5 text-amber-600 dark:text-amber-400" />
-                : <BarChart2 className="h-4.5 w-4.5 text-primary" />
+                ? <Coins className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                : <BarChart2 className="h-5 w-5 text-primary" />
               }
             </div>
             <div className="flex-1 min-w-0">
@@ -203,13 +203,13 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
               <TableHeader className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 border-b">
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Aset</TableHead>
-                  <TableHead className="text-right py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Unit</TableHead>
-                  <TableHead className="text-right py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Harga</TableHead>
-                  <TableHead className="py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tgl Harga</TableHead>
-                  <TableHead className="py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Mata Uang</TableHead>
-                  <TableHead className="text-right py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Kurs</TableHead>
-                  <TableHead className="py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tgl Kurs</TableHead>
-                  <TableHead className="py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</TableHead>
+                  <TableHead className="px-3 text-right py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Unit</TableHead>
+                  <TableHead className="px-3 text-right py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Harga</TableHead>
+                  <TableHead className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tgl Harga</TableHead>
+                  <TableHead className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Mata Uang</TableHead>
+                  <TableHead className="px-3 text-right py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Kurs</TableHead>
+                  <TableHead className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tgl Kurs</TableHead>
+                  <TableHead className="px-3 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</TableHead>
                   <TableHead className="pr-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
@@ -238,10 +238,10 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
                         <span className="text-[11px] text-muted-foreground">{detail.instrument_name}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right py-3 tabular-nums text-sm">
+                    <TableCell className="px-3 text-right py-3 tabular-nums text-sm">
                       {detail.units.toLocaleString()}
                     </TableCell>
-                    <TableCell className="text-right py-3">
+                    <TableCell className="px-3 text-right py-3">
                       {editingPrice?.asset_id === detail.asset_id ? (
                         <div className="flex items-center gap-1 justify-end">
                           <Input
@@ -262,21 +262,21 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
                         </span>
                       )}
                     </TableCell>
-                    <TableCell className="whitespace-nowrap py-3 text-sm text-muted-foreground">
+                    <TableCell className="px-3 whitespace-nowrap py-3 text-sm text-muted-foreground">
                       {detail.price_date ? format(parseISO(detail.price_date), "dd MMM yyyy", { locale: id }) : "—"}
                     </TableCell>
-                    <TableCell className="text-center py-3">
+                    <TableCell className="px-3 text-center py-3">
                       <Badge variant="outline" className="font-mono text-[10px] px-1.5 h-5 bg-background">
                         {detail.original_currency_code}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right py-3 tabular-nums text-sm text-muted-foreground">
+                    <TableCell className="px-3 text-right py-3 tabular-nums text-sm text-muted-foreground">
                       {detail.fx_rate ? detail.fx_rate.toLocaleString() : "—"}
                     </TableCell>
-                    <TableCell className="whitespace-nowrap py-3 text-sm text-muted-foreground">
+                    <TableCell className="px-3 whitespace-nowrap py-3 text-sm text-muted-foreground">
                       {detail.fx_date ? format(parseISO(detail.fx_date), "dd MMM yyyy", { locale: id }) : "—"}
                     </TableCell>
-                    <TableCell className="py-3">
+                    <TableCell className="px-3 py-3">
                       <div className="flex items-center gap-1.5">
                         {getStatusIcon(detail.status)}
                         {getStatusBadge(detail.status)}
@@ -340,6 +340,16 @@ const ValuationDetailModal = ({ isOpen, onClose, date, isGoldMode = false }: Val
                     </TableCell>
                   </TableRow>
                 ))}
+                {!isLoading && (!details || details.length === 0) && (
+                  <TableRow>
+                    <TableCell colSpan={9} className="py-12 text-center">
+                      <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                        <BarChart2 className="h-8 w-8 opacity-30" />
+                        <span className="text-sm">Tidak ada data aset untuk tanggal ini</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </table>
           </div>

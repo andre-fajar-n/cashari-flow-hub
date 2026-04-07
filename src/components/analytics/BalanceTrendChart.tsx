@@ -14,6 +14,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Coins, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils/cn";
 
 interface BalanceTrendChartProps {
   data: BalanceTrendItem[];
@@ -140,24 +142,27 @@ const BalanceTrendChart = ({ data, goldTrendData, granularity, isLoadingGoldPric
   }, [data, goldTrendData, showGoldLine]);
 
   return (
-    <div className="space-y-0">
-      {/* Chart header row */}
-      <div className="flex items-center justify-between mb-2 px-1">
+    <Card className="border bg-card shadow-none">
+      <CardContent className="p-4">
+        <div className="space-y-0">
+          {/* Chart header row */}
+          <div className="flex items-center justify-between mb-3 pb-3 border-b">
         <div className="flex items-center gap-2">
-          <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          <TrendingUp className="h-4 w-4 text-primary/70 shrink-0" />
           <span className="text-sm font-semibold text-muted-foreground">Grafik Pertumbuhan Saldo</span>
         </div>
 
         {/* Gold toggle */}
-        <div className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full border transition-all ${
+        <div className={cn(
+          "flex items-center gap-2.5 px-3 py-1.5 rounded-full border transition-all",
           showGoldLine
             ? "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-800"
             : "bg-muted/40 border-border"
-        }`}>
-          <Coins className={`h-3.5 w-3.5 transition-colors ${showGoldLine ? "text-amber-500" : "text-muted-foreground"}`} />
+        )}>
+          <Coins className={cn("h-3.5 w-3.5 transition-colors", showGoldLine ? "text-amber-500" : "text-muted-foreground")} />
           <Label
             htmlFor="show-gold-line"
-            className={`text-xs font-medium cursor-pointer transition-colors ${showGoldLine ? "text-amber-700 dark:text-amber-400" : "text-muted-foreground"}`}
+            className={cn("text-xs font-medium cursor-pointer transition-colors", showGoldLine ? "text-amber-700 dark:text-amber-400" : "text-muted-foreground")}
           >
             Nisab Zakat
           </Label>
@@ -202,6 +207,8 @@ const BalanceTrendChart = ({ data, goldTrendData, granularity, isLoadingGoldPric
         isGoldMode={isGoldMode}
       />
     </div>
+      </CardContent>
+    </Card>
   );
 };
 

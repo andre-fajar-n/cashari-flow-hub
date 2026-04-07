@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingUp, TrendingDown, Minus, Wallet, ArrowUpRight, ArrowDownRight, Percent } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Wallet, ArrowUpRight, ArrowDownRight, Percent, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatAmountCurrency } from "@/lib/currency";
 import { formatPercentage } from "@/lib/number";
 import { BalanceTrendItem } from "@/hooks/queries/use-balance-trend";
@@ -47,6 +48,7 @@ const TrendSummaryCards = ({ data, isLoading }: TrendSummaryCardsProps) => {
   const cards = [
     {
       label: "Saldo Awal",
+      tooltip: "Total saldo portofolio pada awal periode yang dipilih.",
       value: formatValue(startBalance),
       icon: Wallet,
       iconBg: "bg-blue-100 dark:bg-blue-900/50",
@@ -57,6 +59,7 @@ const TrendSummaryCards = ({ data, isLoading }: TrendSummaryCardsProps) => {
     },
     {
       label: "Saldo Akhir",
+      tooltip: "Total saldo portofolio pada akhir periode yang dipilih.",
       value: formatValue(endBalance),
       icon: Wallet,
       iconBg: "bg-violet-100 dark:bg-violet-900/50",
@@ -67,6 +70,7 @@ const TrendSummaryCards = ({ data, isLoading }: TrendSummaryCardsProps) => {
     },
     {
       label: "Pertumbuhan Absolut",
+      tooltip: "Selisih antara saldo akhir dan saldo awal dalam nilai nominal.",
       value: formatValue(absoluteGrowth),
       icon: isPositive ? ArrowUpRight : isNegative ? ArrowDownRight : Minus,
       iconBg: growthIconBg,
@@ -77,6 +81,7 @@ const TrendSummaryCards = ({ data, isLoading }: TrendSummaryCardsProps) => {
     },
     {
       label: "Pertumbuhan (%)",
+      tooltip: "Persentase pertumbuhan saldo dibandingkan saldo awal.",
       value: `${absoluteGrowth >= 0 ? "+" : ""}${formatPercentage(growthPercentage)}%`,
       icon: Percent,
       iconBg: growthIconBg,
@@ -97,11 +102,21 @@ const TrendSummaryCards = ({ data, isLoading }: TrendSummaryCardsProps) => {
             <CardContent className="pt-4 pb-4 px-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide truncate">
-                    {card.label}
-                  </p>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide truncate flex items-center gap-1 cursor-help">
+                          {card.label}
+                          <HelpCircle className="w-2.5 h-2.5 shrink-0" />
+                        </p>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-[200px]">
+                        <p className="text-xs">{card.tooltip}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <div className="flex items-center gap-1.5 mt-2">
-                    <p className={cn("text-base font-bold leading-tight truncate", card.valueColor)}>
+                    <p className={cn("text-base font-bold leading-tight truncate tabular-nums", card.valueColor)}>
                       {card.value}
                     </p>
                     {card.suffix}

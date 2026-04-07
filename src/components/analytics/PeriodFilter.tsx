@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { format, startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns";
+import { startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Card, CardContent } from "@/components/ui/card";
-import { CalendarDays, BarChart2 } from "lucide-react";
+import { CalendarDays, BarChart2, CalendarRange } from "lucide-react";
 
 export type PeriodType = "daily" | "monthly" | "yearly";
 
@@ -47,16 +47,16 @@ const PeriodFilter = ({
       <CardContent className="py-4 px-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           {/* Label */}
-          <div className="flex items-center gap-2 text-muted-foreground shrink-0">
-            <BarChart2 className="h-4 w-4" />
-            <span className="text-xs font-semibold uppercase tracking-wide">Filter Periode</span>
+          <div className="flex items-center gap-2 shrink-0 px-3 py-1.5 rounded-lg bg-muted/50 border border-border/50">
+            <BarChart2 className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Filter Periode</span>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 flex-1">
             {/* Period type selector */}
             <div className="flex flex-col gap-1.5">
               <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-                <BarChart2 className="h-3 w-3" />
+                <CalendarRange className="h-3 w-3" />
                 Granularitas
               </label>
               <Select value={type} onValueChange={(v) => setType(v as PeriodType)}>
