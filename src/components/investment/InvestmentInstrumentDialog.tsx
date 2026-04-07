@@ -30,13 +30,13 @@ const InvestmentInstrumentDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[440px]">
-        <DialogHeader>
+        <DialogHeader className="space-y-1">
           <div className="flex items-center gap-3 mb-1">
-            <div className="p-2 rounded-lg bg-primary/10">
+            <div className="p-2 rounded-xl bg-primary/10">
               <TrendingUp className="w-5 h-5 text-primary" />
             </div>
             <DialogTitle className="text-lg">
-              {isEditing ? "Edit Instrumen Investasi" : "Tambah Instrumen Baru"}
+              {isEditing ? "Ubah Instrumen Investasi" : "Tambah Instrumen Baru"}
             </DialogTitle>
           </div>
           <DialogDescription>
@@ -88,7 +88,7 @@ const InvestmentInstrumentDialog = ({
               control={form.control}
               name="is_trackable"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start gap-3 rounded-lg border p-4 bg-muted/30">
+                <FormItem className="flex flex-row items-start gap-3 rounded-xl border p-4 bg-muted/20 hover:bg-muted/40 transition-colors cursor-pointer">
                   <FormControl>
                     <Checkbox
                       checked={field.value}

@@ -133,76 +133,81 @@ const InvestmentInstrument = () => {
 
         <div className="space-y-6">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-primary/10 shrink-0">
-                <TrendingUp className="w-6 h-6 text-primary" />
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/10 px-6 py-5">
+            <div className="relative flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 border border-primary/20 shadow-sm shrink-0">
+                  <TrendingUp className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tight">Instrumen Investasi</h1>
+                  <p className="text-sm text-muted-foreground mt-0.5">Kelola dan pantau performa instrumen investasi Anda</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Instrumen Investasi</h1>
-                <p className="text-muted-foreground text-sm">Kelola dan pantau performa instrumen investasi Anda</p>
-              </div>
+              <Button onClick={dialog.openAdd} className="shrink-0">
+                <Plus className="w-4 h-4 mr-2" />
+                Tambah Instrumen
+              </Button>
             </div>
-            <Button onClick={dialog.openAdd} className="shrink-0">
-              <Plus className="w-4 h-4 mr-2" />
-              Tambah Instrumen
-            </Button>
           </div>
 
           {/* Summary Stats */}
           {aggregateSummary && !isLoading && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <Card className="border-0 bg-muted/40">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-blue-500/10 shrink-0">
-                    <Layers className="w-4 h-4 text-blue-500" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">Instrumen</p>
-                    <p className="text-lg font-bold truncate">{summaryData?.length || 0}</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-0 bg-muted/40">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-orange-500/10 shrink-0">
-                    <PiggyBank className="w-4 h-4 text-orange-500" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">Modal Aktif</p>
-                    <p className="text-sm font-bold truncate">
-                      {formatAmountCurrency(aggregateSummary.totalActiveCapital, aggregateSummary.baseCurrency, aggregateSummary.baseCurrency)}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-0 bg-muted/40">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10 shrink-0">
-                    <BarChart3 className="w-4 h-4 text-primary" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">Nilai Saat Ini</p>
-                    <p className="text-sm font-bold truncate">
-                      {formatAmountCurrency(aggregateSummary.totalCurrentValue, aggregateSummary.baseCurrency, aggregateSummary.baseCurrency)}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="border-0 bg-muted/40">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className={`p-2 rounded-lg shrink-0 ${aggregateSummary.totalProfit >= 0 ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
-                    <TrendingUp className={`w-4 h-4 ${aggregateSummary.totalProfit >= 0 ? 'text-green-500' : 'text-red-500'}`} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs text-muted-foreground">Total Profit</p>
-                    <AmountText amount={aggregateSummary.totalProfit} showSign className="text-sm font-bold truncate block">
-                      {formatAmountCurrency(Math.abs(aggregateSummary.totalProfit), aggregateSummary.baseCurrency, aggregateSummary.baseCurrency)}
-                    </AmountText>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-3">Ringkasan Portofolio</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <Card className="border-blue-100 bg-blue-50/50">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-blue-500/10 shrink-0">
+                      <Layers className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Instrumen</p>
+                      <p className="text-lg font-bold truncate tabular-nums">{summaryData?.length || 0}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-orange-100 bg-orange-50/50">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-orange-500/10 shrink-0">
+                      <PiggyBank className="w-4 h-4 text-orange-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Modal Aktif</p>
+                      <p className="text-sm font-bold truncate tabular-nums">
+                        {formatAmountCurrency(aggregateSummary.totalActiveCapital, aggregateSummary.baseCurrency, aggregateSummary.baseCurrency)}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className="h-8 w-8 flex items-center justify-center rounded-lg bg-primary/10 shrink-0">
+                      <BarChart3 className="w-4 h-4 text-primary" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Nilai Saat Ini</p>
+                      <p className="text-sm font-bold truncate tabular-nums">
+                        {formatAmountCurrency(aggregateSummary.totalCurrentValue, aggregateSummary.baseCurrency, aggregateSummary.baseCurrency)}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className={aggregateSummary.totalProfit >= 0 ? 'border-emerald-100 bg-emerald-50/50' : 'border-rose-100 bg-rose-50/50'}>
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <div className={`h-8 w-8 flex items-center justify-center rounded-lg shrink-0 ${aggregateSummary.totalProfit >= 0 ? 'bg-emerald-500/10' : 'bg-rose-500/10'}`}>
+                      <TrendingUp className={`w-4 h-4 ${aggregateSummary.totalProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`} />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Total Profit</p>
+                      <AmountText amount={aggregateSummary.totalProfit} showSign className="text-sm font-bold truncate block tabular-nums">
+                        {formatAmountCurrency(Math.abs(aggregateSummary.totalProfit), aggregateSummary.baseCurrency, aggregateSummary.baseCurrency)}
+                      </AmountText>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </>
           )}
 
           {/* Table with financial metrics */}

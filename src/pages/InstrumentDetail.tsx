@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Edit, Trash2, TrendingUp, BarChart2, History } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, BarChart2, History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
@@ -155,80 +155,60 @@ const InstrumentDetail = () => {
         />
 
         <div className="space-y-5">
-          {/* Back nav */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/investment-instrument")}
-            className="gap-2 text-muted-foreground hover:text-foreground -ml-1"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Instrumen Investasi
-          </Button>
-
-          {/* Hero Header */}
-          <div className="rounded-xl border bg-card overflow-hidden">
-            <div className="h-1.5 bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
-            <div className="p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-primary/10 shrink-0">
-                  <TrendingUp className="w-7 h-7 text-primary" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h1 className="text-2xl font-bold text-foreground">{instrument.name}</h1>
-                    {instrument.is_trackable ? (
-                      <Badge variant="secondary" className="text-xs">Trackable</Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-xs">Non-trackable</Badge>
-                    )}
-                  </div>
-                  {instrument.unit_label ? (
-                    <p className="text-sm text-muted-foreground mt-0.5">
-                      Satuan unit: <span className="font-medium text-foreground">{instrument.unit_label}</span>
-                    </p>
+          {/* Page Header */}
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              <Button variant="outline" onClick={() => navigate("/investment-instrument")}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Kembali
+              </Button>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-3xl font-bold">{instrument.name}</h1>
+                  {instrument.is_trackable ? (
+                    <Badge variant="secondary" className="text-xs">Dapat Dilacak</Badge>
                   ) : (
-                    <p className="text-sm text-muted-foreground mt-0.5">Instrumen Investasi</p>
+                    <Badge variant="outline" className="text-xs">Tidak Dapat Dilacak</Badge>
                   )}
                 </div>
+                <p className="text-muted-foreground text-sm mt-0.5">
+                  {instrument.unit_label ? `Satuan unit: ${instrument.unit_label}` : "Instrumen Investasi"}
+                </p>
               </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-2 shrink-0">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => instrumentDialog.openEdit(instrument)}
-                        className="gap-2"
-                      >
-                        <Edit className="w-4 h-4" />
-                        <span className="hidden sm:inline">Edit</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Edit Instrumen</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsDeleteModalOpen(true)}
-                        className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        <span className="hidden sm:inline">Hapus</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Hapus Instrumen</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => instrumentDialog.openEdit(instrument)}
+                      className="gap-2"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Ubah
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Ubah Instrumen</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsDeleteModalOpen(true)}
+                      className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Hapus
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Hapus Instrumen</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
 

@@ -20,8 +20,7 @@ const InstrumentSummaryHeader = ({
   const displayCurrentValue = showBaseOnly ? summary.currentValueBaseCurrency : summary.currentValue;
 
   return (
-    <Card className="overflow-hidden">
-      <div className="h-1 bg-gradient-to-r from-primary/60 via-primary to-primary/60" />
+    <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle className="flex items-center gap-2 text-base">
@@ -62,7 +61,7 @@ const InstrumentSummaryHeader = ({
             </div>
           </div>
           <div className="text-right">
-            <p className="text-2xl font-bold text-primary">
+            <p className="text-2xl font-bold text-primary tabular-nums">
               {formatAmountCurrency(displayCurrentValue, displayCurrency, displayCurrency)}
             </p>
             {!showBaseOnly && (
@@ -75,7 +74,7 @@ const InstrumentSummaryHeader = ({
 
         {/* Row 1: Modal Diinvestasikan, Total Profit, ROI */}
         <div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-2 px-0.5">Performa Total</p>
+          <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold mb-2 px-0.5">Performa Total</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <MetricCard
               icon={PiggyBank}
@@ -108,7 +107,7 @@ const InstrumentSummaryHeader = ({
 
         {/* Row 2: Modal Aktif, Keuntungan Belum Terealisasi, Estimasi % */}
         <div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-2 px-0.5">Posisi Aktif</p>
+          <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold mb-2 px-0.5">Posisi Aktif</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <MetricCard
               icon={PiggyBank}

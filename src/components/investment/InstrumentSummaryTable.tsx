@@ -2,10 +2,11 @@ import { ColumnDef } from "@tanstack/react-table";
 import { AdvancedDataTable, EmptyStateConfig } from "@/components/ui/advanced-data-table/advanced-data-table";
 import { AdvancedDataTableToolbar, SelectFilterConfig } from "@/components/ui/advanced-data-table/advanced-data-table-toolbar";
 import { DataTableColumnHeader } from "@/components/ui/advanced-data-table/data-table-column-header";
-import { TrendingUp, Edit, Trash2, Eye, HelpCircle } from "lucide-react";
+import { TrendingUp, Edit, Trash2, Eye, HelpCircle, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { InstrumentSummary, CurrencyBreakdown } from "@/hooks/queries/use-instrument-summary";
 import { formatAmountCurrency } from "@/lib/currency";
 import { AmountText } from "@/components/ui/amount-text";
@@ -139,7 +140,7 @@ export function InstrumentSummaryTable({
         const summary = mapSummary[instrument.id];
         return (
           <div className="flex items-center gap-3">
-            <div className="p-1.5 bg-primary/10 rounded-full">
+            <div className="p-1.5 bg-primary/10 rounded-lg">
               <TrendingUp className="w-4 h-4 text-primary" />
             </div>
             <div className="space-y-1">
@@ -259,46 +260,34 @@ export function InstrumentSummaryTable({
       cell: ({ row }) => {
         const instrument = row.original;
         return (
-          <div className="flex items-center justify-end gap-1">
-            {onView && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onView(instrument)}
-                  >
-                    <Eye className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Lihat Detail</TooltipContent>
-              </Tooltip>
-            )}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onEdit(instrument)}
-                >
-                  <Edit className="w-4 h-4" />
+          <div className="flex items-center justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <MoreHorizontal className="h-4 w-4" />
                 </Button>
-              </TooltipTrigger>
-              <TooltipContent>Edit</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-destructive hover:text-destructive"
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {onView && (
+                  <DropdownMenuItem onClick={() => onView(instrument)}>
+                    <Eye className="w-4 h-4 mr-2" />
+                    Lihat Detail
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={() => onEdit(instrument)}>
+                  <Edit className="w-4 h-4 mr-2" />
+                  Ubah
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
                   onClick={() => onDelete(instrument.id)}
                 >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Hapus</TooltipContent>
-            </Tooltip>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Hapus
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         );
       },
@@ -336,31 +325,29 @@ export function InstrumentSummaryTable({
   const hasActiveFilters = !!searchTerm || Object.keys(filters).length > 0;
 
   return (
-    <TooltipProvider>
-      <AdvancedDataTable
-        columns={columns}
-        data={data}
-        page={page}
-        pageSize={pageSize}
-        totalCount={totalCount}
-        onPageChange={setPage}
-        onPageSizeChange={setPageSize}
-        isLoading={isLoading}
-        emptyState={emptyState}
-        noResultsState={noResultsState}
-        hasActiveFilters={hasActiveFilters}
-        toolbar={(table) => (
-          <AdvancedDataTableToolbar
-            searchTerm={searchTerm}
-            onSearchChange={onSearchChange}
-            searchPlaceholder="Cari nama instrumen..."
-            filters={filters}
-            onFiltersChange={onFiltersChange}
-            selectFilters={selectFilters}
-            table={table}
-          />
-        )}
-      />
-    </TooltipProvider>
+    <AdvancedDataTable
+      columns={columns}
+      data={data}
+      page={page}
+      pageSize={pageSize}
+      totalCount={totalCount}
+      onPageChange={setPage}
+      onPageSizeChange={setPageSize}
+      isLoading={isLoading}
+      emptyState={emptyState}
+      noResultsState={noResultsState}
+      hasActiveFilters={hasActiveFilters}
+      toolbar={(table) => (
+        <AdvancedDataTableToolbar
+          searchTerm={searchTerm}
+          onSearchChange={onSearchChange}
+          searchPlaceholder="Cari nama instrumen..."
+          filters={filters}
+          onFiltersChange={onFiltersChange}
+          selectFilters={selectFilters}
+          table={table}
+        />
+      )}
+    />
   );
 }
