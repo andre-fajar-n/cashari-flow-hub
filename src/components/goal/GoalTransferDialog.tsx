@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Target } from "lucide-react";
+import { ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -93,7 +93,7 @@ const GoalTransferDialog = ({
   // Whether to show tabs (only in create mode without a pre-selected config)
   const showTabs = !transfer && !transferConfig;
 
-  const formContent = (
+  const formFields = (
     <>
       <GoalTransferFormFields
         control={form.control}
@@ -111,26 +111,17 @@ const GoalTransferDialog = ({
         setValue={form.setValue}
         wallets={wallets}
       />
-
-      <div className="flex justify-end gap-2 pt-4 border-t mt-2">
-        <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-          Batal
-        </Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Menyimpan..." : transfer ? "Perbarui" : "Simpan"}
-        </Button>
-      </div>
     </>
   );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto p-0">
-        <div className="border-b">
-          <div className="h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
-          <div className="px-6 pt-4 pb-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Target className="w-5 h-5 text-primary" />
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col p-0 gap-0">
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 border-b bg-gradient-to-r from-primary/5 to-background shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 border border-primary/15 shrink-0">
+              <ArrowRightLeft className="h-4.5 w-4.5 text-primary" />
             </div>
             <div>
               <DialogTitle className="text-base font-semibold">{dialogTitle}</DialogTitle>
@@ -140,9 +131,11 @@ const GoalTransferDialog = ({
             </div>
           </div>
         </div>
+
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="px-6 py-4 space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col min-h-0 flex-1">
+            {/* Scrollable content */}
+            <div className="overflow-y-auto flex-1 px-6 py-5">
               {showTabs ? (
                 <Tabs
                   value={activeTab}
@@ -157,13 +150,25 @@ const GoalTransferDialog = ({
                   </TabsList>
                   {(Object.keys(TAB_LABELS) as TabMode[]).map((tab) => (
                     <TabsContent key={tab} value={tab} className="space-y-4 mt-4">
-                      {formContent}
+                      {formFields}
                     </TabsContent>
                   ))}
                 </Tabs>
               ) : (
-                formContent
+                <div className="space-y-4">
+                  {formFields}
+                </div>
               )}
+            </div>
+
+            {/* Sticky footer */}
+            <div className="flex justify-end gap-2 px-6 py-4 border-t bg-muted/20 shrink-0">
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+                Batal
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Menyimpan..." : transfer ? "Perbarui" : "Simpan"}
+              </Button>
             </div>
           </form>
         </Form>

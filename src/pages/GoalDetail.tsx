@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArrowLeft, Edit, Trash2, Plus, Minus, ArrowRightLeft, BarChart3, Power, PowerOff } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Plus, Minus, ArrowRightLeft, BarChart3, Power, PowerOff, MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
@@ -28,7 +28,6 @@ import { useInvestmentAssets } from "@/hooks/queries/use-investment-assets";
 import { useInvestmentInstruments } from "@/hooks/queries/use-investment-instruments";
 import { useCurrencies, useCurrencyDetail } from "@/hooks/queries/use-currencies";
 import { useInvestmentCategories } from "@/hooks/queries/use-categories";
-import { MOVEMENT_TYPES } from "@/constants/enums";
 import { GoalFormData, defaultGoalFormValues, mapGoalToFormData } from "@/form-dto/goals";
 import { GoalTransferFormData, defaultGoalTransferFormData, mapGoalTransferToFormData } from "@/form-dto/goal-transfers";
 import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData, mapGoalInvestmentRecordToFormData } from "@/form-dto/goal-investment-records";
@@ -228,22 +227,8 @@ const GoalDetail = () => {
     );
   }
 
-  // Calculate totals from movements for overview
-  let totalAmountRecord = 0;
-  let totalAmountTransfer = 0;
-
-  for (const movement of history.movements || []) {
-    if (movement.resource_type === MOVEMENT_TYPES.INVESTMENT_GROWTH) {
-      totalAmountRecord += movement.amount;
-    } else if (movement.resource_type === MOVEMENT_TYPES.GOAL_TRANSFER) {
-      totalAmountTransfer += movement.amount;
-    }
-  }
-
   const handleEdit = () => {
-    if (goal) {
-      goalDialog.openEdit(goal);
-    }
+    goalDialog.openEdit(goal);
   };
 
   const handleDeleteClick = () => {
@@ -331,31 +316,30 @@ const GoalDetail = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="shrink-0">
-                    <Edit className="w-4 h-4 mr-1.5" />
-                    Aksi
+                    <MoreHorizontal className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-52">
                   <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
                     <Edit className="w-4 h-4 mr-2" />
-                    Edit Goal
+                    Ubah Target
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleToggleActiveClick} className="cursor-pointer">
                     {goal.is_active ? (
                       <>
                         <PowerOff className="w-4 h-4 mr-2" />
-                        Nonaktifkan Goal
+                        Nonaktifkan Target
                       </>
                     ) : (
                       <>
                         <Power className="w-4 h-4 mr-2" />
-                        Aktifkan Goal
+                        Aktifkan Target
                       </>
                     )}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleDeleteClick} className="cursor-pointer text-destructive focus:text-destructive">
                     <Trash2 className="w-4 h-4 mr-2" />
-                    Hapus Goal
+                    Hapus Target
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -364,27 +348,30 @@ const GoalDetail = () => {
 
           {/* Action Buttons */}
           {goal.is_active && (
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={handleAddToGoal} size="sm" className="shrink-0 shadow-sm">
-                <Plus className="w-4 h-4 mr-1.5" />
-                Tambah Dana
-              </Button>
-              <Button onClick={handleTakeFromGoal} variant="outline" size="sm" className="shrink-0">
-                <Minus className="w-4 h-4 mr-1.5" />
-                Ambil Dana
-              </Button>
-              <Button onClick={handleTransferBetweenGoals} variant="outline" size="sm" className="shrink-0">
-                <ArrowRightLeft className="w-4 h-4 mr-1.5" />
-                Transfer ke Goal Lain
-              </Button>
-              <Button onClick={handleTransferBetweenInstrumentsOrAssets} variant="outline" size="sm" className="shrink-0">
-                <ArrowRightLeft className="w-4 h-4 mr-1.5" />
-                Transfer ke Instrumen/Aset Lain
-              </Button>
-              <Button onClick={handleAddRecord} variant="outline" size="sm" className="shrink-0">
-                <BarChart3 className="w-4 h-4 mr-1.5" />
-                Update Progress
-              </Button>
+            <div className="rounded-xl border border-border bg-muted/20 px-4 py-3">
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-2.5">Tindakan</p>
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={handleAddToGoal} size="sm" className="shrink-0">
+                  <Plus className="w-4 h-4 mr-1.5" />
+                  Tambah Dana
+                </Button>
+                <Button onClick={handleTakeFromGoal} variant="outline" size="sm" className="shrink-0">
+                  <Minus className="w-4 h-4 mr-1.5" />
+                  Ambil Dana
+                </Button>
+                <Button onClick={handleTransferBetweenGoals} variant="outline" size="sm" className="shrink-0">
+                  <ArrowRightLeft className="w-4 h-4 mr-1.5" />
+                  Transfer ke Goal Lain
+                </Button>
+                <Button onClick={handleTransferBetweenInstrumentsOrAssets} variant="outline" size="sm" className="shrink-0">
+                  <ArrowRightLeft className="w-4 h-4 mr-1.5" />
+                  Transfer Instrumen/Aset
+                </Button>
+                <Button onClick={handleAddRecord} variant="outline" size="sm" className="shrink-0">
+                  <BarChart3 className="w-4 h-4 mr-1.5" />
+                  Update Progress
+                </Button>
+              </div>
             </div>
           )}
 

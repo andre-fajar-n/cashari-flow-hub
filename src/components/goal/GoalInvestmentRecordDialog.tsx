@@ -49,20 +49,28 @@ const GoalInvestmentRecordDialog = ({
   categories
 }: GoalInvestmentRecordDialogProps) => {
   const selectedInstrument = form.watch("instrument_id");
+  const amountUnit = form.watch("amount_unit");
   const filteredAssets = assets?.filter(asset => asset.instrument_id === selectedInstrument) || [];
+
+  const unitStateLabel =
+    amountUnit === null
+      ? "Tanpa satuan"
+      : amountUnit === 0
+      ? "Nol satuan"
+      : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto p-0">
-        <div className="border-b">
-          <div className="h-1 bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
-          <div className="px-6 pt-4 pb-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <TrendingUp className="w-5 h-5 text-primary" />
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col p-0 gap-0">
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 border-b bg-gradient-to-r from-primary/5 to-background shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 border border-primary/15 shrink-0">
+              <TrendingUp className="h-4.5 w-4.5 text-primary" />
             </div>
             <div>
               <DialogTitle className="text-base font-semibold">
-                {record ? "Ubah Investment Record" : "Update Progress Investasi"}
+                {record ? "Ubah Catatan Investasi" : "Update Progress Investasi"}
               </DialogTitle>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {record ? "Perbarui data catatan investasi" : "Catat perkembangan investasi terbaru"}
@@ -70,150 +78,121 @@ const GoalInvestmentRecordDialog = ({
             </div>
           </div>
         </div>
+
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="px-6 py-4 space-y-4">
-            {!goalId && (
-              <GoalDropdown
-                control={form.control}
-                name="goal_id"
-                goals={goals}
-                showCurrency={false}
-                rules={{ required: "Target harus dipilih" }}
-                onValueChange={(value) => form.setValue("goal_id", value ? parseInt(value) : null)}
-              />
-            )}
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col min-h-0 flex-1">
+            <div className="overflow-y-auto flex-1 px-6 py-5 space-y-4">
+              {!goalId && (
+                <GoalDropdown
+                  control={form.control}
+                  name="goal_id"
+                  goals={goals}
+                  showCurrency={false}
+                  rules={{ required: "Target harus dipilih" }}
+                  onValueChange={(value) => form.setValue("goal_id", value ? parseInt(value) : null)}
+                />
+              )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <WalletDropdown
-                control={form.control}
-                name="wallet_id"
-                wallets={wallets}
-                label="Dompet"
-                placeholder="Pilih Dompet"
-                onValueChange={(value) => form.setValue("wallet_id", value ? parseInt(value) : null)}
-              />
-
-              <CategoryDropdown
-                control={form.control}
-                name="category_id"
-                categories={categories}
-                label="Kategori"
-                placeholder="Pilih Kategori"
-                onValueChange={(value) => form.setValue("category_id", value ? parseInt(value) : null)}
-              />
-            </div>
-
-            {!instrumentId && !assetId ? (
               <div className="grid grid-cols-2 gap-4">
-                {!instrumentId && (
-                  <InstrumentDropdown
-                    control={form.control}
-                    name="instrument_id"
-                    instruments={instruments}
-                    label="Instrumen Investasi"
-                    placeholder="Pilih Instrumen"
-                    onValueChange={(value) => {
-                      form.setValue("instrument_id", value ? parseInt(value) : null);
-                      form.setValue("asset_id", null);
-                    }}
-                  />
-                )}
+                <WalletDropdown
+                  control={form.control}
+                  name="wallet_id"
+                  wallets={wallets}
+                  label="Dompet"
+                  placeholder="Pilih Dompet"
+                  onValueChange={(value) => form.setValue("wallet_id", value ? parseInt(value) : null)}
+                />
 
-                {!assetId && (
-                  <AssetDropdown
-                    control={form.control}
-                    name="asset_id"
-                    assets={filteredAssets}
-                    label="Aset Investasi"
-                    placeholder="Pilih Aset"
-                    disabled={!selectedInstrument || filteredAssets.length === 0}
-                    onValueChange={(value) => form.setValue("asset_id", value ? parseInt(value) : null)}
-                  />
-                )}
+                <CategoryDropdown
+                  control={form.control}
+                  name="category_id"
+                  categories={categories}
+                  label="Kategori"
+                  placeholder="Pilih Kategori"
+                  onValueChange={(value) => form.setValue("category_id", value ? parseInt(value) : null)}
+                />
               </div>
-            ) : null}
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="amount"
-                rules={{
-                  required: "Jumlah amount harus diisi",
-                  min: { value: 0, message: "Jumlah harus >= 0" }
-                }}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Amount</FormLabel>
-                    <FormControl>
-                      <InputNumber
-                        {...field}
-                        onChange={(value) => field.onChange(value || 0)}
-                        value={field.value}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {!instrumentId && !assetId ? (
+                <div className="grid grid-cols-2 gap-4">
+                  {!instrumentId && (
+                    <InstrumentDropdown
+                      control={form.control}
+                      name="instrument_id"
+                      instruments={instruments}
+                      label="Instrumen Investasi"
+                      placeholder="Pilih Instrumen"
+                      onValueChange={(value) => {
+                        form.setValue("instrument_id", value ? parseInt(value) : null);
+                        form.setValue("asset_id", null);
+                      }}
+                    />
+                  )}
 
-              <FormField
-                control={form.control}
-                name="amount_unit"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Unit</FormLabel>
-                    <FormControl>
-                      <div className="relative">
+                  {!assetId && (
+                    <AssetDropdown
+                      control={form.control}
+                      name="asset_id"
+                      assets={filteredAssets}
+                      label="Aset Investasi"
+                      placeholder="Pilih Aset"
+                      disabled={!selectedInstrument || filteredAssets.length === 0}
+                      onValueChange={(value) => form.setValue("asset_id", value ? parseInt(value) : null)}
+                    />
+                  )}
+                </div>
+              ) : null}
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="amount"
+                  rules={{
+                    required: "Jumlah harus diisi",
+                    min: { value: 0, message: "Jumlah harus >= 0" }
+                  }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Jumlah</FormLabel>
+                      <FormControl>
+                        <InputNumber
+                          {...field}
+                          onChange={(value) => field.onChange(value || 0)}
+                          value={field.value}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="amount_unit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Satuan</FormLabel>
+                      <FormControl>
                         <InputNumber
                           {...field}
                           onChange={(value) => field.onChange(value)}
                           value={field.value}
                           allowNull={true}
-                          placeholder="Kosong untuk null"
-                          className={`${field.value === null
-                            ? "bg-blue-50 border-blue-200 text-blue-700"
-                            : field.value === 0
-                              ? "bg-orange-50 border-orange-200 text-orange-700"
-                              : ""
-                            }`}
+                          placeholder="Kosongkan jika tidak ada"
                         />
-                        {field.value === null && (
-                          <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                            <span className="text-xs bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded">
-                              NULL
-                            </span>
-                          </div>
-                        )}
-                        {field.value === 0 && (
-                          <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                            <span className="text-xs bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded">
-                              ZERO
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </FormControl>
-                    <div className="text-xs space-y-1">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-blue-100 border border-blue-200 rounded"></div>
-                        <span className="text-blue-600">Kosong (null) = Tidak ada unit</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-orange-100 border border-orange-200 rounded"></div>
-                        <span className="text-orange-600">0 (zero) = Nol unit</span>
-                      </div>
-                      <p className="text-muted-foreground">
-                        Contoh: Saham (unit), Emas (gram), Crypto (koin)
+                      </FormControl>
+                      {unitStateLabel && (
+                        <p className="text-xs text-muted-foreground">{unitStateLabel}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        Contoh: lot saham, gram emas, koin kripto. Kosongkan jika tidak relevan.
                       </p>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            <div className="grid grid-cols-1 gap-4">
               <FormField
                 control={form.control}
                 name="date"
@@ -228,38 +207,33 @@ const GoalInvestmentRecordDialog = ({
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Deskripsi</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Masukkan deskripsi (opsional)"
+                        {...field}
+                        rows={3}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Deskripsi</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Masukkan deskripsi (opsional)"
-                      {...field}
-                      rows={3}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="flex justify-end gap-2 pt-4 border-t mt-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => onOpenChange(false)}
-              >
+            <div className="flex justify-end gap-2 px-6 py-4 border-t bg-muted/20 shrink-0">
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
                 Batal
               </Button>
               <Button type="submit" disabled={isLoading}>
                 {isLoading ? "Menyimpan..." : record ? "Perbarui" : "Simpan"}
               </Button>
-            </div>
             </div>
           </form>
         </Form>

@@ -69,12 +69,12 @@ const MetricCard = ({
           <AmountText
             amount={value}
             showSign={true}
-            className="text-lg font-bold leading-tight"
+            className="text-lg font-bold leading-tight tabular-nums"
           >
             {formatAmountCurrency(Math.abs(value), currencyCode, currencySymbol)}
           </AmountText>
         ) : (
-          <p className="text-lg font-bold leading-tight">
+          <p className="text-lg font-bold leading-tight tabular-nums">
             {formatAmountCurrency(value, currencyCode, currencySymbol)}
           </p>
         )}
@@ -121,7 +121,7 @@ const RoiCard = ({
         <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">{title}</p>
         <div className="flex items-center gap-1.5">
           <Icon className={cn("w-4 h-4", roiIconColor)} />
-          <span className={cn("text-lg font-bold leading-tight", roiColor)}>
+          <span className={cn("text-lg font-bold leading-tight tabular-nums", roiColor)}>
             {value !== null ? `${value >= 0 ? '+' : ''}${formatPercentage(value)}%` : 'N/A'}
           </span>
         </div>
@@ -191,8 +191,8 @@ const ProgressSection = ({
 
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{formatAmountCurrency(currentValue, currencyCode, currencySymbol)}</span>
-          <span>dari {formatAmountCurrency(targetAmount, currencyCode, currencySymbol)}</span>
+          <span className="tabular-nums">{formatAmountCurrency(currentValue, currencyCode, currencySymbol)}</span>
+          <span className="tabular-nums">dari {formatAmountCurrency(targetAmount, currencyCode, currencySymbol)}</span>
         </div>
         <Progress
           value={progressPercentage}

@@ -119,14 +119,14 @@ export const GoalTable = ({
         return (
           <div className="flex flex-col gap-2 min-w-[200px]">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">
+              <span className="text-xs font-semibold text-foreground tabular-nums">
                 {formatPercentage(percentage)}%
               </span>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground tabular-nums">
                 {collectedAmount} / {targetAmount}
               </span>
             </div>
-            <Progress value={percentage} className="h-2" />
+            <Progress value={percentage} className="h-2.5" />
           </div>
         );
       },
@@ -157,23 +157,23 @@ export const GoalTable = ({
           <div className="flex flex-col gap-1 min-w-[180px]">
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">Modal:</span>
-              <span className="font-medium">
+              <span className="font-medium tabular-nums">
                 {formatAmountCurrency(invested_capital_base_currency, currency.code, currency.symbol)}
               </span>
             </div>
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">Profit:</span>
-              <AmountText amount={total_profit_base_currency} showSign={true} className="font-medium">
+              <AmountText amount={total_profit_base_currency} showSign={true} className="font-medium tabular-nums">
                 {formatAmountCurrency(Math.abs(total_profit_base_currency), currency.code, currency.symbol)}
               </AmountText>
             </div>
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">ROI:</span>
-              <div className={`flex items-center gap-1 font-semibold ${isPositive ? 'text-green-600' : isNegative ? 'text-red-600' : 'text-muted-foreground'}`}>
+              <div className={`flex items-center gap-1 font-semibold ${isPositive ? 'text-emerald-600' : isNegative ? 'text-rose-600' : 'text-muted-foreground'}`}>
                 {isPositive && <TrendingUp className="w-3 h-3" />}
                 {isNegative && <TrendingDown className="w-3 h-3" />}
                 {!isPositive && !isNegative && <Minus className="w-3 h-3" />}
-                <span>{roi !== null ? `${formatPercentage(roi)}%` : '-'}</span>
+                <span className="tabular-nums">{roi !== null ? `${formatPercentage(roi)}%` : '-'}</span>
               </div>
             </div>
           </div>
