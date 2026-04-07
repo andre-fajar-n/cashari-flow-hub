@@ -15,7 +15,7 @@ import { GoalTransferModel } from "@/models/goal-transfers";
 import { GoalInvestmentRecordModel } from "@/models/goal-investment-records";
 import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
-import ConfirmationModal from "@/components/ConfirmationModal";
+import { DeleteConfirmationModal, useDeleteConfirmation } from "@/components/DeleteConfirmationModal";
 import { GoalTransferFormData, defaultGoalTransferFormData } from "@/form-dto/goal-transfers";
 import { GoalInvestmentRecordFormData, defaultGoalInvestmentRecordFormData } from "@/form-dto/goal-investment-records";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
@@ -41,10 +41,10 @@ const AssetMovementList = ({ assetId }: AssetMovementListProps) => {
     record?: GoalInvestmentRecordModel;
   }>({ open: false });
 
-  const [deleteModal, setDeleteModal] = useState<{
-    open: boolean;
-    item?: MoneyMovementModel;
-  }>({ open: false });
+  const deleteConfirmation = useDeleteConfirmation<MoneyMovementModel>({
+    title: "Hapus Item",
+    description: "Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.",
+  });
 
   // Form loading states
   const [isTransferFormLoading, setIsTransferFormLoading] = useState(false);
@@ -233,13 +233,10 @@ const AssetMovementList = ({ assetId }: AssetMovementListProps) => {
   };
 
   const handleDelete = (movement: MoneyMovementModel) => {
-    setDeleteModal({ open: true, item: movement });
+    deleteConfirmation.openModal(movement);
   };
 
-  const handleConfirmDelete = async () => {
-    if (!deleteModal.item) return;
-
-    const item = deleteModal.item;
+  const handleConfirmDelete = async (item: MoneyMovementModel) => {
     const itemId = item.resource_id;
 
     try {
@@ -252,8 +249,6 @@ const AssetMovementList = ({ assetId }: AssetMovementListProps) => {
           break;
       }
 
-      // Refresh data
-      setDeleteModal({ open: false });
       queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
     } catch (error) {
       console.error("Failed to delete item:", error);
@@ -358,15 +353,9 @@ const AssetMovementList = ({ assetId }: AssetMovementListProps) => {
         categories={investmentCategories}
       />
 
-      <ConfirmationModal
-        open={deleteModal.open}
-        onOpenChange={(open) => setDeleteModal({ open })}
+      <DeleteConfirmationModal
+        deleteConfirmation={deleteConfirmation}
         onConfirm={handleConfirmDelete}
-        title="Hapus Item"
-        description={`Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.`}
-        confirmText="Ya, Hapus"
-        cancelText="Batal"
-        variant="destructive"
       />
     </>
   );

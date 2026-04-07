@@ -51,12 +51,12 @@ export const getInvestmentAssetColumns = ({
 
         return (
           <div className={`flex items-center gap-2 ${zeroPosition ? "opacity-50" : ""}`}>
-            <div className={`p-1.5 ${zeroPosition ? "bg-gray-100" : "bg-green-100"} rounded-lg`}>
-              <Coins className={`w-4 h-4 ${zeroPosition ? "text-gray-400" : "text-green-600"}`} />
+            <div className={`p-1.5 ${zeroPosition ? "bg-muted/40" : "bg-green-100"} rounded-lg`}>
+              <Coins className={`w-4 h-4 ${zeroPosition ? "text-muted-foreground" : "text-green-600"}`} />
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-gray-900">{asset.name}</span>
+                <span className="font-semibold text-foreground">{asset.name}</span>
               </div>
               {asset.symbol && (
                 <Badge variant="outline" className="w-fit text-xs mt-1">
@@ -107,7 +107,7 @@ export const getInvestmentAssetColumns = ({
         const assetSummary = assetSummaryGrouped[asset.id];
 
         if (!assetSummary) {
-          return <span className="text-gray-400 text-sm">-</span>;
+          return <span className="text-muted-foreground text-sm">-</span>;
         }
 
         const zeroPosition = isZeroPosition(assetSummary);
@@ -115,7 +115,7 @@ export const getInvestmentAssetColumns = ({
 
         return (
           <div className={`flex flex-col ${zeroPosition ? "opacity-50" : ""}`}>
-            <span className="font-medium text-gray-900">
+            <span className="font-medium text-foreground">
               {formatAmountCurrency(assetSummary.totalAmount, assetSummary.currencyCode, assetSummary.currencySymbol)}
             </span>
             {showBaseValue && (
@@ -123,7 +123,7 @@ export const getInvestmentAssetColumns = ({
                 ≈ {formatAmountCurrency(assetSummary.activeCapitalBaseCurrency, assetSummary.baseCurrencyCode!, assetSummary.baseCurrencySymbol!)}
               </span>
             )}
-            <span className="text-[10px] text-gray-500 mt-0.5">
+            <span className="text-[10px] text-muted-foreground mt-0.5">
               {formatNumber(assetSummary.totalAmountUnit, 4)} unit
             </span>
           </div>
@@ -139,17 +139,17 @@ export const getInvestmentAssetColumns = ({
         const assetSummary = assetSummaryGrouped[asset.id];
 
         if (!assetSummary || assetSummary.totalAmountUnit === 0) {
-          return <span className="text-gray-400 text-sm">-</span>;
+          return <span className="text-muted-foreground text-sm">-</span>;
         }
 
         const averagePrice = assetSummary.totalAmount / assetSummary.totalAmountUnit;
 
         return (
           <div className="flex flex-col">
-            <span className="font-medium text-gray-900 text-sm">
+            <span className="font-medium text-foreground text-sm">
               {formatAmountCurrency(averagePrice, assetSummary.currencyCode, assetSummary.currencySymbol, 4)}
             </span>
-            <span className="text-[10px] text-gray-500">per unit</span>
+            <span className="text-[10px] text-muted-foreground">per unit</span>
           </div>
         );
       },
@@ -206,7 +206,7 @@ export const getInvestmentAssetColumns = ({
 
         return (
           <div className={`flex flex-col ${zeroPosition ? "opacity-50" : ""}`}>
-            <span className="font-bold text-gray-900">
+            <span className="font-bold text-foreground">
               {formatAmountCurrency(assetSummary?.currentValue, assetSummary?.currencyCode, assetSummary?.currencySymbol)}
             </span>
             {showBaseValue && (

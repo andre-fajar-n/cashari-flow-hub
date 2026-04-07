@@ -25,9 +25,9 @@ const AssetSummaryHeader = ({
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="outline">{summary.originalCurrencyCode}</Badge>
             {summary.isTrackable ? (
-              <Badge variant="secondary">Trackable</Badge>
+              <Badge variant="secondary">Dapat Dilacak</Badge>
             ) : (
-              <Badge variant="outline">Non-trackable</Badge>
+              <Badge variant="outline">Tidak Dilacak</Badge>
             )}
           </div>
         </div>

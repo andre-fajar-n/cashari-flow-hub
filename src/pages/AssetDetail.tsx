@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Edit, Trash2, Plus, BarChart3 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
-import ConfirmationModal from "@/components/ConfirmationModal";
+import { DeleteConfirmationModal, useDeleteConfirmation } from "@/components/DeleteConfirmationModal";
 import AssetValueDialog from "@/components/investment/AssetValueDialog";
 import AssetValueChart from "@/components/investment/AssetValueChart";
 import { useInvestmentAssets, useDeleteInvestmentAsset, useUpdateInvestmentAsset } from "@/hooks/queries/use-investment-assets";
@@ -41,10 +41,15 @@ const AssetDetail = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<GoalInvestmentRecordModel | null>(null);
 
   const { mutate: deleteAsset } = useDeleteInvestmentAsset();
+
+  // Delete confirmation hook
+  const deleteConfirmation = useDeleteConfirmation<number>({
+    title: "Hapus Aset",
+    description: "Apakah Anda yakin ingin menghapus aset ini? Tindakan ini tidak dapat dibatalkan.",
+  });
   const updateAsset = useUpdateInvestmentAsset();
   const createAssetValue = useCreateInvestmentAssetValue();
   const createRecord = useCreateGoalInvestmentRecord();
@@ -163,11 +168,11 @@ const AssetDetail = () => {
   };
 
   const handleDeleteClick = () => {
-    setIsDeleteModalOpen(true);
+    deleteConfirmation.openModal(asset.id);
   };
 
-  const handleConfirmDelete = () => {
-    deleteAsset(asset.id, {
+  const handleConfirmDelete = (id: number) => {
+    deleteAsset(id, {
       onSuccess: () => {
         navigate('/investment-asset');
       }
@@ -356,15 +361,9 @@ const AssetDetail = () => {
           </Tabs>
 
           {/* Modals */}
-          <ConfirmationModal
-            open={isDeleteModalOpen}
-            onOpenChange={setIsDeleteModalOpen}
+          <DeleteConfirmationModal
+            deleteConfirmation={deleteConfirmation}
             onConfirm={handleConfirmDelete}
-            title="Hapus Aset"
-            description="Apakah Anda yakin ingin menghapus aset ini? Tindakan ini tidak dapat dibatalkan."
-            confirmText="Ya, Hapus"
-            cancelText="Batal"
-            variant="destructive"
           />
 
           <InvestmentAssetDialog

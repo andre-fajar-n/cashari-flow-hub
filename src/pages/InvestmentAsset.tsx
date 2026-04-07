@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Coins } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import InvestmentAssetDialog from "@/components/investment/InvestmentAssetDialog";
@@ -121,17 +121,24 @@ const InvestmentAsset = () => {
 
         <div className="space-y-4">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Aset Investasi</h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Kelola aset investasi dalam instrumen Anda
-              </p>
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/10 px-6 py-5">
+            <div className="relative flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 border border-primary/20 shadow-sm shrink-0">
+                  <Coins className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tight">Aset Investasi</h1>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Kelola aset investasi dalam instrumen Anda
+                  </p>
+                </div>
+              </div>
+              <Button onClick={dialog.openAdd} className="shrink-0">
+                <Plus className="w-4 h-4 mr-2" />
+                Tambah Aset
+              </Button>
             </div>
-            <Button onClick={dialog.openAdd} className="w-full sm:w-auto">
-              <Plus className="w-4 h-4 mr-2" />
-              Tambah Aset
-            </Button>
           </div>
 
           {/* Investment Asset Table */}
