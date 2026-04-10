@@ -95,6 +95,18 @@ Read this file before touching any UI component to understand:
 - Badge, status, empty state, and loading patterns
 - Anti-patterns to avoid
 
+### 3. `SPEC.md` — Feature Specifications
+Read this file when implementing any of the planned features. It contains:
+- Dashboard redesign (hero net worth card + supporting cards)
+- Analytics page (5 tabs: Ikhtisar, Arus Kas, Portofolio, Tujuan, Tren Saldo)
+- Budget improvements (monthly/yearly recurring, rollover config, overlap warning, alerts)
+- In-app toast notifications (budget threshold, debt due date, goal milestone, unusual spending)
+- Net worth tracking (auto-calculated, shown on dashboard + balance trend)
+- Debt management improvements (summary section: total, monthly obligations, DTI, payoff estimate)
+- Investment analytics improvements (distribution charts, performance timeline, dividend UI, asset tx history)
+- Implementation priority order (Sprint 1–4)
+- Edge cases and constraints table
+
 ### Quick Reference Rules (always apply)
 - Never hardcode HSL values — use Tailwind tokens from `src/index.css`
 - All monetary values must use `tabular-nums`
