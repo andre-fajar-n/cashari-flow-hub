@@ -12,10 +12,9 @@
 2. [Analytics Page (New — replaces Balance Trend in nav)](#2-analytics-page)
 3. [Budget Improvements](#3-budget-improvements)
 4. [In-App Notifications (Toasts)](#4-in-app-notifications)
-5. [Net Worth Tracking](#5-net-worth-tracking)
-6. [Debt Management Improvements](#6-debt-management-improvements)
-7. [Investment Analytics Improvements](#7-investment-analytics-improvements)
-8. [Implementation Priority](#8-implementation-priority)
+5. [Debt Management Improvements](#5-debt-management-improvements)
+6. [Investment Analytics Improvements](#6-investment-analytics-improvements)
+7. [Implementation Priority](#7-implementation-priority)
 
 ---
 
@@ -23,20 +22,10 @@
 
 ### Layout
 
-**Hero + supporting cards pattern.**
+**Supporting cards pattern.**
 
-- **Hero card (full width):** Net Worth — single large number showing total financial position.
-- **Supporting cards row (below hero):** Cash Flow this month, Budget health, Total wallet balance.
+- **Supporting cards row:** Cash Flow this month, Budget health, Total wallet balance.
 - Existing dashboard content (quick actions, recent transactions, etc.) remains below.
-
-### Hero Card — Net Worth
-
-**Formula:** `Net Worth = Σ wallet balances (in base currency) + Σ investment current values (in base currency) − Σ outstanding debt (in base currency)`
-
-- All foreign-currency components are auto-converted to the user's base currency using the latest available FX rate.
-- If any FX rate used is older than **7 days**, show an amber warning badge: _"Kurs belum diperbarui"_ with the stalest date.
-- Net worth delta (vs. prior month) shown below the main number using `AmountText` with `showSign`.
-- Tooltip must explain the formula components (wallet + investasi − hutang).
 
 ### Supporting Cards
 
@@ -64,7 +53,7 @@ Analitik
 ├── Arus Kas       (Cash Flow)
 ├── Portofolio     (Portfolio / Investment)
 ├── Tujuan         (Goals)
-└── Tren Saldo     (Balance Trend — existing, with net worth line added)
+└── Tren Saldo     (Balance Trend — existing)
 ```
 
 ### Global Time Range Selector
@@ -160,10 +149,6 @@ Each goal gets its own chart card. If there are many goals, use an accordion or 
 ### 2e. Tab: Tren Saldo (Balance Trend)
 
 - **Existing functionality preserved** (daily/monthly toggle, FX/price data transparency, manual correction UX)
-- **Addition:** Net Worth as a **second line** on the same chart
-  - Net worth line = wallet balances + investment values − debt balances at each date point
-  - Debt balance is forward-filled from the last payment transaction date (same forward-fill logic as existing data)
-  - FX stale warning applies (amber indicator) if any component has stale FX > 7 days
 
 ---
 
@@ -261,33 +246,7 @@ Accessible from user settings. Controls:
 
 ---
 
-## 5. Net Worth Tracking
-
-### Definition
-
-`Net Worth = Σ wallet balances + Σ investment current values − Σ outstanding debt balances`
-
-All values are expressed in the user's base currency. Foreign-currency components are converted using the latest available FX rate.
-
-### FX Staleness Rule
-
-- If any FX rate used in the net worth calculation is older than **7 days**, show amber warning badge wherever net worth is displayed.
-- Badge text: _"Kurs {currency} belum diperbarui ({N} hari lalu)"_
-
-### Debt Balance Treatment
-
-- Debt balance changes only when a payment transaction is logged (no daily interest accrual).
-- This means the net worth line on the Balance Trend chart will step down discretely on payment dates, not smoothly over time.
-- This is acceptable and should be documented in any tooltip/info icon on the net worth line.
-
-### Where It Appears
-
-1. **Dashboard hero card** (see §1)
-2. **Analytics → Tren Saldo tab** as a second line on the existing chart (see §2e)
-
----
-
-## 6. Debt Management Improvements
+## 5. Debt Management Improvements
 
 ### Debt Summary / Overview Section
 
@@ -314,7 +273,7 @@ Add a summary section at the top of the Debt Management page (above the debt lis
 
 ---
 
-## 7. Investment Analytics Improvements
+## 6. Investment Analytics Improvements
 
 All improvements described in §2c (Analytics → Portofolio tab). Summary:
 
@@ -325,31 +284,30 @@ All improvements described in §2c (Analytics → Portofolio tab). Summary:
 
 ---
 
-## 8. Implementation Priority
+## 7. Implementation Priority
 
 ### Sprint 1 (Highest Priority)
 
-1. **Dashboard Redesign** — Hero net worth card + supporting cards layout
+1. **Dashboard Redesign** — Supporting cards layout (Cash Flow, Budget health, Total wallet balance)
 2. **Analytics Page shell** — Tab structure, global time range, migrate Balance Trend into it
-3. **Net Worth line on Balance Trend** — Computed from existing data, amber FX warning
 
 ### Sprint 2
 
-4. **Cash Flow tab** — Income vs expense trend chart + category spending breakdown with modal drill-down
-5. **Portofolio tab** — Investment distribution (both views) + performance timeline chart
+3. **Cash Flow tab** — Income vs expense trend chart + category spending breakdown with modal drill-down
+4. **Portofolio tab** — Investment distribution (both views) + performance timeline chart
 
 ### Sprint 3
 
-6. **Budget recurring types** — Monthly/yearly, category + envelope, rollover config, overlap warning
-7. **Budget alerts** — Toast on threshold crossing (client-side)
-8. **Debt summary section** — Total, monthly obligations, DTI, estimated payoff per debt
+5. **Budget recurring types** — Monthly/yearly, category + envelope, rollover config, overlap warning
+6. **Budget alerts** — Toast on threshold crossing (client-side)
+7. **Debt summary section** — Total, monthly obligations, DTI, estimated payoff per debt
 
 ### Sprint 4
 
-9. **Goals tab** — Goal progress chart with projection toggle
-10. **Notification settings screen** — All triggers + unusual spending config
-11. **Auto-detect unusual spending** — Statistical baseline with 30-day cold start gate
-12. **Asset transaction history** — Summary in detail + full history page + dividend UI
+8. **Goals tab** — Goal progress chart with projection toggle
+9. **Notification settings screen** — All triggers + unusual spending config
+10. **Auto-detect unusual spending** — Statistical baseline with 30-day cold start gate
+11. **Asset transaction history** — Summary in detail + full history page + dividend UI
 
 ---
 
@@ -357,13 +315,11 @@ All improvements described in §2c (Analytics → Portofolio tab). Summary:
 
 | Scenario | Resolution |
 |----------|-----------|
-| Foreign-currency debt in net worth | Auto-convert, amber warning if FX > 7 days old |
 | Budget with category overlap | Warn with amber badge, allow independently |
 | Goal with no target amount | Hide projection line, show progress bar only |
 | Goal with no target date | Projection shown but "target date" marker omitted |
 | < 30 days transaction history | Auto-detect unusual spending disabled; show countdown in settings |
 | Performance timeline for new asset | Chart starts from first buy transaction date |
-| Net worth with no investment data | Formula = wallets − debts only; no warning needed |
 | DTI with no income in last 30 days | Show "—" with tooltip; do not show 0% (misleading) |
 | Estimated payoff with < 3 payments | Show "—" |
 | Monthly budget created mid-month | First period is partial (from creation date to end of month) |

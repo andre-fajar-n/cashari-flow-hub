@@ -97,11 +97,10 @@ Read this file before touching any UI component to understand:
 
 ### 3. `SPEC.md` — Feature Specifications
 Read this file when implementing any of the planned features. It contains:
-- Dashboard redesign (hero net worth card + supporting cards)
+- Dashboard redesign (supporting cards: Cash Flow, Budget health, Total wallet balance)
 - Analytics page (5 tabs: Ikhtisar, Arus Kas, Portofolio, Tujuan, Tren Saldo)
 - Budget improvements (monthly/yearly recurring, rollover config, overlap warning, alerts)
 - In-app toast notifications (budget threshold, debt due date, goal milestone, unusual spending)
-- Net worth tracking (auto-calculated, shown on dashboard + balance trend)
 - Debt management improvements (summary section: total, monthly obligations, DTI, payoff estimate)
 - Investment analytics improvements (distribution charts, performance timeline, dividend UI, asset tx history)
 - Implementation priority order (Sprint 1–4)

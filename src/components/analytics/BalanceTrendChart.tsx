@@ -178,7 +178,7 @@ const BalanceTrendChart = ({ data, goldTrendData, granularity, isLoadingGoldPric
             disabled={isLoadingGoldPrice}
           />
         </div>
-      </div>
+          </div>{/* end chart header row */}
 
       <ReusableLineChart
         data={chartData}

@@ -4,6 +4,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import { useMoneySummary } from "@/hooks/queries/use-money-summary";
 import MoneySummaryCard from "@/components/dashboard/MoneySummaryCard";
+import DashboardSupportingCards from "@/components/dashboard/DashboardSupportingCards";
 import { Button } from "@/components/ui/button";
 import { Receipt, TrendingUp, Target, ArrowLeftRight } from "lucide-react";
 
@@ -43,6 +44,9 @@ const Dashboard = () => {
             </div>
           </div>
 
+          {/* Supporting Cards */}
+          <DashboardSupportingCards />
+
           {/* Quick Actions */}
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-3">Aksi Cepat</p>
@@ -60,12 +64,12 @@ const Dashboard = () => {
               <Button
                 variant="outline"
                 className="h-auto flex-col gap-2 py-4 hover:bg-primary/5 hover:border-primary/30 transition-colors"
-                onClick={() => navigate("/analytics/balance-trend")}
+                onClick={() => navigate("/analytics")}
               >
                 <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/30">
                   <TrendingUp className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                 </div>
-                <span className="text-xs font-medium">Tren Saldo</span>
+                <span className="text-xs font-medium">Analitik</span>
               </Button>
               <Button
                 variant="outline"

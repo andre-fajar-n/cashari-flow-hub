@@ -53,7 +53,7 @@ const AppSidebar = () => {
   ];
 
   const reportMenuItems = [
-    { path: "/analytics/balance-trend", label: "Tren Saldo", icon: TrendingUp },
+    { path: "/analytics", label: "Analitik", icon: TrendingUp },
   ];
 
   return (
@@ -147,7 +147,7 @@ const AppSidebar = () => {
             <SidebarMenu>
               {reportMenuItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = location.pathname === item.path;
+                const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + "/");
                 return (
                   <SidebarMenuItem key={item.path}>
                     <SidebarMenuButton
