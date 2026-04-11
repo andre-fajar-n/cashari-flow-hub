@@ -1,15 +1,34 @@
-import { TrendingUp } from "lucide-react";
+import { useUserSettings } from "@/hooks/queries/use-user-settings";
+import { usePortfolioDistribution } from "@/hooks/queries/use-portfolio-distribution";
+import { formatAmountCurrency } from "@/lib/currency";
+import PortfolioDistributionChart from "@/components/analytics/PortfolioDistributionChart";
+import PortfolioPerformanceChart from "@/components/analytics/PortfolioPerformanceChart";
 
 const PortofolioTab = () => {
+  const { data: userSettings } = useUserSettings();
+  const baseCurrency = userSettings?.base_currency_code;
+  const baseCurrencySymbol = userSettings?.currencies?.symbol;
+
+  const formatCurrency = (val: number) =>
+    formatAmountCurrency(val, baseCurrency, baseCurrencySymbol);
+
+  const { data: distribution, isLoading: isLoadingDist } =
+    usePortfolioDistribution();
+
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-muted/50 border mb-4">
-        <TrendingUp className="h-7 w-7 text-muted-foreground" />
-      </div>
-      <p className="text-base font-semibold text-foreground">Portofolio</p>
-      <p className="text-sm text-muted-foreground mt-1 max-w-xs">
-        Distribusi investasi, timeline performa, dan dividen. Tersedia di Sprint 2.
-      </p>
+    <div className="space-y-6">
+      <PortfolioDistributionChart
+        goalAllocation={distribution?.goalAllocation ?? []}
+        instrumentDistribution={distribution?.instrumentDistribution ?? []}
+        assetDistribution={distribution?.assetDistribution ?? []}
+        isLoading={isLoadingDist}
+        formatCurrency={formatCurrency}
+      />
+
+      <PortfolioPerformanceChart
+        formatCurrency={formatCurrency}
+        baseCurrency={baseCurrency}
+      />
     </div>
   );
 };

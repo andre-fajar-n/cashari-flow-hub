@@ -112,17 +112,13 @@ Toggle between views with two tabs/buttons above the chart.
 #### Performance Timeline
 
 - **Chart type:** Line chart (`ReusableLineChart`)
-- **Y-axis:** Toggle between **Nilai (Rp)** and **ROI (%)** — toggle button above chart
-- **Granularity selector:** Asset / Instrumen / Tujuan / Total Portofolio — changes which lines are drawn
-- When "Asset" is selected, allow multi-select of up to 5 assets to compare
-- Data source: use existing materialized view (`portfolio_valuation_mv`) — do NOT trigger raw computation from UI
-
-#### Dividend Income Tracking
-
-- Separate section: "Pendapatan Dividen"
-- Table or card list showing dividend transactions (already tagged in DB) for the selected period
-- Columns: Tanggal, Aset, Jumlah (base currency), Jenis (Dividen / Bunga / dll.)
-- Summary row: total dividend income in period
+- **Total mode:** Dual series — "Nilai Saat Ini" (current value) and "Modal Aktif" (invested capital), both in base currency
+- **Per Aset mode:** Multi-select up to 5 assets; one series per asset showing current value
+- **Date range:** Preset buttons (1 Bln, 3 Bln, 6 Bln, 1 Thn) + custom date range picker
+- **Granularity:** ≤ 45 days → daily; > 45 days → monthly (auto-derived from range)
+- **Monthly forward-fill:** If no new movements in a month, carry forward last known value to ensure continuous monthly chart
+- **Zero-value filter:** Data points with current value = 0 are excluded from the chart
+- Data source: `daily_cumulative` view (backed by `portfolio_valuation_mv` materialized view)
 
 #### Transaction History per Asset
 
@@ -277,10 +273,9 @@ Add a summary section at the top of the Debt Management page (above the debt lis
 
 All improvements described in §2c (Analytics → Portofolio tab). Summary:
 
-1. **Distribution charts:** Goal allocation + asset class distribution (two views, tab toggle)
-2. **Performance timeline:** Line chart, per asset/instrument/goal/total, toggle Rp vs ROI %
-3. **Dividend tracking UI:** Dedicated table/section surfacing already-tagged dividend transactions
-4. **Transaction history per asset:** Summary (last 5) in asset detail + "Lihat semua" → full history page
+1. **Distribution charts:** Goal allocation + instrument + asset distribution (three views, tab toggle)
+2. **Performance timeline:** Dual series (Nilai Saat Ini + Modal Aktif) for total mode; per-asset mode with up to 5 assets; custom date range; monthly forward-fill
+3. **Transaction history per asset:** Summary (last 5) in asset detail + "Lihat semua" → full history page
 
 ---
 
@@ -307,7 +302,7 @@ All improvements described in §2c (Analytics → Portofolio tab). Summary:
 8. **Goals tab** — Goal progress chart with projection toggle
 9. **Notification settings screen** — All triggers + unusual spending config
 10. **Auto-detect unusual spending** — Statistical baseline with 30-day cold start gate
-11. **Asset transaction history** — Summary in detail + full history page + dividend UI
+11. **Asset transaction history** — Summary in detail + full history page
 
 ---
 
