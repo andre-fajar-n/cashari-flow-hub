@@ -2,22 +2,27 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { DebtFormData } from "@/form-dto/debts";
+import { DebtFormData, DebtFilter } from "@/form-dto/debts";
 import { Database } from "@/integrations/supabase/types";
 import { DebtModel } from "@/models/debts";
 
-export const useDebts = () => {
+export const useDebts = (filter?: DebtFilter) => {
   const { user } = useAuth();
 
   return useQuery<DebtModel[]>({
-    queryKey: ["debts", user?.id],
+    queryKey: ["debts", user?.id, filter?.status],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("debts")
         .select("*")
         .eq("user_id", user?.id)
         .order("name");
-      
+
+      if (filter?.status) {
+        query = query.eq("status", filter.status);
+      }
+
+      const { data, error } = await query;
       if (error) {
         console.error("Failed to fetch debts", error);
         throw error;
@@ -144,7 +149,7 @@ export const useDebtDetail = (id: number) => {
         .eq("user_id", user?.id)
         .eq("id", id)
         .single();
-      
+
       if (error) throw error;
       return data;
     },

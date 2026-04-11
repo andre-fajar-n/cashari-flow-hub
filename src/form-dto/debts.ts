@@ -11,3 +11,7 @@ export const defaultDebtFormValues: DebtFormData = {
   type: "loan",
   due_date: "",
 };
+
+export interface DebtFilter {
+  status?: Database["public"]["Enums"]["debt_statuses"];
+}

@@ -427,7 +427,7 @@ const TransactionHistory = () => {
   const { data: goals } = useGoals();
   const { data: instruments } = useInvestmentInstruments();
   const { data: assets } = useInvestmentAssets();
-  const { data: debts } = useDebts();
+  const { data: debts } = useDebts({ status: "active" });
   const { data: businessProjects } = useBusinessProjects();
   const { data: budgets } = useBudgets();
 
@@ -560,31 +560,31 @@ const TransactionHistory = () => {
                     <ChevronDown className="w-4 h-4 ml-2" />
                   </Button>
                 </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">Pilih jenis entri</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.TRANSACTION)}>
-                  <Receipt className="w-4 h-4 mr-2 text-blue-600" />
-                  Transaksi
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.TRANSFER)}>
-                  <ArrowLeftRight className="w-4 h-4 mr-2 text-purple-600" />
-                  Transfer
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.GOAL_TRANSFER)}>
-                  <Target className="w-4 h-4 mr-2 text-emerald-600" />
-                  Transfer Target
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.INVESTMENT_GROWTH)}>
-                  <TrendingUp className="w-4 h-4 mr-2 text-orange-600" />
-                  Progres Investasi
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.DEBT_HISTORY)}>
-                  <CreditCard className="w-4 h-4 mr-2 text-rose-600" />
-                  Hutang/Piutang
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                <DropdownMenuContent align="end" className="w-52">
+                  <DropdownMenuLabel className="text-xs text-muted-foreground font-normal">Pilih jenis entri</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.TRANSACTION)}>
+                    <Receipt className="w-4 h-4 mr-2 text-blue-600" />
+                    Transaksi
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.TRANSFER)}>
+                    <ArrowLeftRight className="w-4 h-4 mr-2 text-purple-600" />
+                    Transfer
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.GOAL_TRANSFER)}>
+                    <Target className="w-4 h-4 mr-2 text-emerald-600" />
+                    Transfer Target
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.INVESTMENT_GROWTH)}>
+                    <TrendingUp className="w-4 h-4 mr-2 text-orange-600" />
+                    Progres Investasi
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleAddNew(MOVEMENT_TYPES.DEBT_HISTORY)}>
+                    <CreditCard className="w-4 h-4 mr-2 text-rose-600" />
+                    Hutang/Piutang
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 

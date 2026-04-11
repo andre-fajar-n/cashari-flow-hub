@@ -59,85 +59,85 @@ const DebtHistoryDialog = ({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="px-6 py-4 space-y-4">
-            {showDebtSelection && (
-              <DebtDropdown
+              {showDebtSelection && (
+                <DebtDropdown
+                  control={form.control}
+                  name="debt_id"
+                  debts={debts}
+                  rules={{ required: "Hutang/Piutang harus dipilih" }}
+                />
+              )}
+
+              <WalletDropdown
                 control={form.control}
-                name="debt_id"
-                debts={debts}
-                rules={{ required: "Hutang/Piutang harus dipilih" }}
+                name="wallet_id"
+                wallets={wallets}
+                rules={{ required: "Dompet harus dipilih" }}
               />
-            )}
 
-            <FormField
-              control={form.control}
-              name="amount"
-              rules={{ required: "Jumlah harus diisi", min: { value: 0, message: "Jumlah harus lebih dari 0" } }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Jumlah</FormLabel>
-                  <FormControl>
-                    <InputNumber
-                      {...field}
-                      onChange={(value) => field.onChange(value || 0)}
-                      value={field.value}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <CategoryDropdown
+                control={form.control}
+                name="category_id"
+                categories={categories}
+                rules={{ required: "Kategori harus dipilih" }}
+              />
 
-            <WalletDropdown
-              control={form.control}
-              name="wallet_id"
-              wallets={wallets}
-              rules={{ required: "Dompet harus dipilih" }}
-            />
+              <FormField
+                control={form.control}
+                name="amount"
+                rules={{ required: "Jumlah harus diisi", min: { value: 0, message: "Jumlah harus lebih dari 0" } }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Jumlah</FormLabel>
+                    <FormControl>
+                      <InputNumber
+                        {...field}
+                        onChange={(value) => field.onChange(value || 0)}
+                        value={field.value}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <CategoryDropdown
-              control={form.control}
-              name="category_id"
-              categories={categories}
-              rules={{ required: "Kategori harus dipilih" }}
-            />
+              <FormField
+                control={form.control}
+                name="date"
+                rules={{ required: "Tanggal harus diisi" }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tanggal</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="date"
-              rules={{ required: "Tanggal harus diisi" }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tanggal</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Deskripsi (Opsional)</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Masukkan deskripsi" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Deskripsi (Opsional)</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Masukkan deskripsi" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="flex justify-end gap-2 pt-4 border-t mt-2">
-              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-                Batal
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Menyimpan..." : "Simpan"}
-              </Button>
-            </div>
+              <div className="flex justify-end gap-2 pt-4 border-t mt-2">
+                <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+                  Batal
+                </Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? "Menyimpan..." : "Simpan"}
+                </Button>
+              </div>
             </div>
           </form>
         </Form>
