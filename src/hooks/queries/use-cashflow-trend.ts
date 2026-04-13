@@ -1,8 +1,9 @@
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, addMonths, startOfMonth, endOfMonth } from "date-fns";
 import { id } from "date-fns/locale";
+import { Database } from "@/integrations/supabase/types";
 
 export interface CashFlowMonthItem {
   month: string;      // "Jan 2025" format using date-fns id locale
@@ -14,11 +15,44 @@ export interface CashFlowMonthItem {
 
 interface TransactionWithCategory {
   date: string;
-  amount: number;
+  amount: number | null;
   categories: {
-    is_income: boolean;
-    application: string | null;
+    is_income: boolean | null;
+    application: Database["public"]["Enums"]["category_application"] | null;
   } | null;
+}
+
+const BATCH_SIZE = 1000;
+
+async function fetchAllTransactions(
+  userId: string,
+  startDate: string,
+  endDate: string
+): Promise<TransactionWithCategory[]> {
+  const allData: TransactionWithCategory[] = [];
+  let from = 0;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from("transactions")
+      .select("date, amount, categories(is_income, application)")
+      .eq("user_id", userId)
+      .gte("date", startDate)
+      .lte("date", endDate)
+      .range(from, from + BATCH_SIZE - 1);
+
+    if (error) throw error;
+
+    const batch = (data as unknown as TransactionWithCategory[]) ?? [];
+    allData.push(...batch);
+
+    // If fewer rows returned than batch size, we've fetched everything
+    if (batch.length < BATCH_SIZE) break;
+
+    from += BATCH_SIZE;
+  }
+
+  return allData;
 }
 
 export const useCashFlowTrend = (
@@ -32,18 +66,11 @@ export const useCashFlowTrend = (
     queryFn: async (): Promise<CashFlowMonthItem[]> => {
       if (!user?.id) return [];
 
-      const { data, error } = await supabase
-        .from("transactions")
-        .select("date, amount, categories(is_income, application)")
-        .eq("user_id", user.id)
-        .gte("date", startDate)
-        .lte("date", endDate);
-
-      if (error) throw error;
+      const transactions = await fetchAllTransactions(user.id, startDate, endDate);
 
       const monthMap = new Map<string, { income: number; expense: number }>();
 
-      for (const tx of (data as TransactionWithCategory[]) || []) {
+      for (const tx of transactions) {
         const cat = tx.categories;
         // Exclude transactions without a category — we can't classify them
         if (!cat) continue;
@@ -53,24 +80,34 @@ export const useCashFlowTrend = (
         const yearMonth = tx.date.slice(0, 7); // "2025-01"
         const existing = monthMap.get(yearMonth) ?? { income: 0, expense: 0 };
 
-        if (cat?.is_income) {
+        if (cat.is_income === true) {
           existing.income += tx.amount ?? 0;
-        } else {
+        } else if (cat.is_income === false) {
           existing.expense += tx.amount ?? 0;
         }
 
         monthMap.set(yearMonth, existing);
       }
 
-      return Array.from(monthMap.entries())
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([yearMonth, { income, expense }]) => ({
+      // Generate all months in the selected range, filling zeros for months with no data
+      const allMonths: CashFlowMonthItem[] = [];
+      let current = startOfMonth(parseISO(startDate));
+      const rangeEnd = endOfMonth(parseISO(endDate));
+
+      while (current.getTime() <= rangeEnd.getTime()) {
+        const yearMonth = format(current, "yyyy-MM");
+        const { income, expense } = monthMap.get(yearMonth) ?? { income: 0, expense: 0 };
+        allMonths.push({
           yearMonth,
-          month: format(parseISO(`${yearMonth}-01`), "MMM yyyy", { locale: id }),
+          month: format(current, "MMM yyyy", { locale: id }),
           income,
           expense,
           net: income - expense,
-        }));
+        });
+        current = addMonths(current, 1);
+      }
+
+      return allMonths;
     },
     enabled: !!user && !!startDate && !!endDate,
   });

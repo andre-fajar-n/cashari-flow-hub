@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns";
+import { startOfMonth, endOfMonth, startOfYear, endOfYear, addMonths, addDays, differenceInDays } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Card, CardContent } from "@/components/ui/card";
-import { CalendarDays, BarChart2, CalendarRange } from "lucide-react";
+import { CalendarDays, BarChart2, CalendarRange, Info } from "lucide-react";
 
 export type PeriodType = "daily" | "monthly" | "yearly";
 
@@ -26,6 +26,27 @@ const periodLabels: Record<PeriodType, string> = {
   yearly: "Tahunan",
 };
 
+const MAX_MONTHS = 12;
+const MAX_DAYS = 90;
+
+function clampRange(type: PeriodType, from: Date, to: Date): { from: Date; to: Date } {
+  if (type === "monthly") {
+    // Use calendar-month counting to avoid date-fns differenceInMonths partial-month edge cases
+    // e.g. Jan 15 → Jan 14 next year = differenceInMonths of 11 but spans 13 calendar months
+    const calendarMonthDiff =
+      (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
+    if (calendarMonthDiff >= MAX_MONTHS) {
+      return { from, to: endOfMonth(addMonths(from, MAX_MONTHS - 1)) };
+    }
+  } else if (type === "daily") {
+    const dayDiff = differenceInDays(to, from);
+    if (dayDiff >= MAX_DAYS) {
+      return { from, to: addDays(from, MAX_DAYS - 1) };
+    }
+  }
+  return { from, to };
+}
+
 const PeriodFilter = ({
   onPeriodChange,
   initialType = "monthly",
@@ -33,14 +54,42 @@ const PeriodFilter = ({
   initialEnd = endOfMonth(new Date())
 }: PeriodFilterProps) => {
   const [type, setType] = useState<PeriodType>(initialType);
-  const [range, setRange] = useState<{ from: Date; to: Date }>({
-    from: initialStart,
-    to: initialEnd,
+  const [range, setRange] = useState<{ from: Date; to: Date }>(() =>
+    clampRange(initialType, initialStart, initialEnd)
+  );
+  const [isClamped, setIsClamped] = useState<boolean>(() => {
+    const clamped = clampRange(initialType, initialStart, initialEnd);
+    return clamped.to.getTime() !== initialEnd.getTime();
   });
 
   useEffect(() => {
     onPeriodChange(type, range.from, range.to);
   }, [type, range, onPeriodChange]);
+
+  const handleTypeChange = (v: string) => {
+    const newType = v as PeriodType;
+    setType(newType);
+    const clamped = clampRange(newType, range.from, range.to);
+    const wasClamped = clamped.to.getTime() !== range.to.getTime();
+    setIsClamped(wasClamped);
+    setRange(clamped);
+  };
+
+  const handleRangeChange = (newRange: { from: Date; to: Date } | undefined) => {
+    if (newRange?.from && newRange?.to) {
+      const clamped = clampRange(type, newRange.from, newRange.to);
+      const wasClamped = clamped.to.getTime() !== newRange.to.getTime();
+      setIsClamped(wasClamped);
+      setRange(clamped);
+    }
+  };
+
+  const limitLabel =
+    type === "monthly"
+      ? `Maksimal ${MAX_MONTHS} bulan`
+      : type === "daily"
+      ? `Maksimal ${MAX_DAYS} hari`
+      : null;
 
   return (
     <Card className="border bg-card shadow-none">
@@ -59,7 +108,7 @@ const PeriodFilter = ({
                 <CalendarRange className="h-3 w-3" />
                 Granularitas
               </label>
-              <Select value={type} onValueChange={(v) => setType(v as PeriodType)}>
+              <Select value={type} onValueChange={handleTypeChange}>
                 <SelectTrigger className="h-9 w-full sm:w-[160px] text-sm">
                   <SelectValue placeholder="Pilih Periode" />
                 </SelectTrigger>
@@ -76,16 +125,23 @@ const PeriodFilter = ({
               <label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
                 <CalendarDays className="h-3 w-3" />
                 Rentang Tanggal
+                {limitLabel && (
+                  <span className="ml-1 text-[10px] font-normal text-muted-foreground/70 normal-case tracking-normal">
+                    ({limitLabel})
+                  </span>
+                )}
               </label>
               <DateRangePicker
                 value={range}
-                onChange={(newRange) => {
-                  if (newRange?.from && newRange?.to) {
-                    setRange({ from: newRange.from, to: newRange.to });
-                  }
-                }}
+                onChange={handleRangeChange}
                 mode={type}
               />
+              {isClamped && (
+                <div className="flex items-center gap-1.5 text-[11px] text-amber-600 dark:text-amber-400">
+                  <Info className="h-3 w-3 shrink-0" />
+                  <span>Rentang dipotong otomatis — {limitLabel?.toLowerCase()} per tampilan grafik.</span>
+                </div>
+              )}
             </div>
           </div>
         </div>

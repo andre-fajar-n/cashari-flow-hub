@@ -7,7 +7,9 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  type TooltipProps,
 } from "recharts";
+import { type ValueType, type NameType } from "recharts/types/component/DefaultTooltipContent";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeftRight } from "lucide-react";
@@ -19,43 +21,43 @@ interface CashFlowBarChartProps {
   formatCurrency: (val: number) => string;
 }
 
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: Array<{ name: string; value: number; color: string }>;
-  label?: string;
-}
+type CustomTooltipProps = TooltipProps<ValueType, NameType> & {
+  formatCurrency: (val: number) => string;
+};
 
-const CustomTooltip = ({ active, payload, label, formatCurrency }: CustomTooltipProps & { formatCurrency: (val: number) => string }) => {
+const CustomTooltip = ({ active, payload, label, formatCurrency }: CustomTooltipProps) => {
   if (!active || !payload || payload.length === 0) return null;
 
-  const income = payload.find((p) => p.name === "Pemasukan");
-  const expense = payload.find((p) => p.name === "Pengeluaran");
-  const net = (income?.value ?? 0) - (expense?.value ?? 0);
+  const incomeEntry = payload.find((p) => p.name === "Pemasukan");
+  const expenseEntry = payload.find((p) => p.name === "Pengeluaran");
+  const incomeVal = typeof incomeEntry?.value === "number" ? incomeEntry.value : 0;
+  const expenseVal = typeof expenseEntry?.value === "number" ? expenseEntry.value : 0;
+  const net = incomeVal - expenseVal;
   const isPositiveNet = net >= 0;
 
   return (
     <div className="rounded-xl border bg-background/95 backdrop-blur-sm p-3.5 shadow-xl min-w-[200px]">
       <p className="font-semibold mb-2.5 text-sm border-b pb-2">{label}</p>
       <div className="space-y-1.5">
-        {income && (
+        {incomeEntry && (
           <div className="flex items-center justify-between gap-6">
             <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-sm bg-emerald-500 shrink-0" />
               <span className="text-xs text-muted-foreground">Pemasukan</span>
             </div>
             <span className="text-sm font-bold tabular-nums text-emerald-600">
-              {formatCurrency(income.value)}
+              {formatCurrency(incomeVal)}
             </span>
           </div>
         )}
-        {expense && (
+        {expenseEntry && (
           <div className="flex items-center justify-between gap-6">
             <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-sm bg-rose-500 shrink-0" />
               <span className="text-xs text-muted-foreground">Pengeluaran</span>
             </div>
             <span className="text-sm font-bold tabular-nums text-rose-600">
-              {formatCurrency(expense.value)}
+              {formatCurrency(expenseVal)}
             </span>
           </div>
         )}
