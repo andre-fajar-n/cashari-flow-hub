@@ -12,6 +12,7 @@ import { useDebtsPaginated } from "@/hooks/queries/paginated/use-debts-paginated
 import { useDebtSummary } from "@/hooks/queries/use-debt-summary";
 import { DebtModel } from "@/models/debts";
 import { DebtTable } from "@/components/debt/DebtTable";
+import { DebtOverviewSection } from "@/components/debt/DebtOverviewSection";
 import { useTableState } from "@/hooks/use-table-state";
 import { SelectFilterConfig } from "@/components/ui/advanced-data-table/advanced-data-table-toolbar";
 import { useUserSettings } from "@/hooks/queries/use-user-settings";
@@ -140,6 +141,15 @@ const Debt = () => {
               </Button>
             </div>
           </div>
+
+          {/* Overview Summary */}
+          {!isLoading && (
+            <DebtOverviewSection
+              debts={debts}
+              debtSummary={debtSummary || []}
+              userSettings={userSettings}
+            />
+          )}
 
           {/* Debt Table */}
           <DebtTable

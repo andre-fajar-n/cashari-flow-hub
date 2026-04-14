@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +10,8 @@ import TujuanTab from "@/components/analytics/tabs/TujuanTab";
 import TrenSaldoTab from "@/components/analytics/tabs/TrenSaldoTab";
 
 const Analytics = () => {
+  const [activeTab, setActiveTab] = useState("ikhtisar");
+
   return (
     <ProtectedRoute>
       <Layout>
@@ -30,7 +33,7 @@ const Analytics = () => {
           </div>
 
           {/* Tabs */}
-          <Tabs defaultValue="tren-saldo">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="w-full justify-start overflow-x-auto h-auto flex-wrap gap-1 bg-muted/50 p-1 rounded-xl">
               <TabsTrigger value="ikhtisar" className="flex items-center gap-1.5 text-xs sm:text-sm">
                 <BarChart3 className="h-3.5 w-3.5 shrink-0" />
@@ -55,7 +58,7 @@ const Analytics = () => {
             </TabsList>
 
             <TabsContent value="ikhtisar" className="mt-4">
-              <IkhtisarTab />
+              <IkhtisarTab onNavigate={setActiveTab} />
             </TabsContent>
 
             <TabsContent value="arus-kas" className="mt-4">

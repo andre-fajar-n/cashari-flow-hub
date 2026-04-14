@@ -2,7 +2,7 @@ import { AdvancedDataTable, DataTableColumnHeader } from "@/components/ui/advanc
 import { AdvancedDataTableToolbar, SelectFilterConfig } from "@/components/ui/advanced-data-table/advanced-data-table-toolbar";
 import { ColumnDef } from "@tanstack/react-table";
 import { BudgetModel, BudgetSummary } from "@/models/budgets";
-import { Edit, Trash2, Eye, Calendar } from "lucide-react";
+import { Edit, Trash2, Eye, Calendar, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/date";
 import { formatAmountCurrency } from "@/lib/currency";
@@ -11,6 +11,12 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { UserSettingsModel } from "@/models/user-settings";
 import { formatPercentage } from "@/lib/number";
+
+const BUDGET_TYPE_BADGE: Record<string, { label: string; className: string }> = {
+  kustom: { label: "Kustom", className: "border-blue-200 bg-blue-50 text-blue-700" },
+  bulanan: { label: "Bulanan", className: "border-violet-200 bg-violet-50 text-violet-700" },
+  tahunan: { label: "Tahunan", className: "border-indigo-200 bg-indigo-50 text-indigo-700" },
+};
 
 export interface BudgetTableProps {
   budgets: BudgetModel[];
@@ -77,9 +83,23 @@ export const BudgetTable = ({
         return (
           <div className="space-y-1">
             <div className="font-semibold text-gray-900">{budget.name}</div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {(() => {
+                const typeBadge = BUDGET_TYPE_BADGE[budget.budget_type] || BUDGET_TYPE_BADGE.kustom;
+                return (
+                  <Badge variant="outline" className={`text-xs ${typeBadge.className}`}>
+                    {budget.budget_type !== "kustom" && <RefreshCw className="w-2.5 h-2.5 mr-1" />}
+                    {typeBadge.label}
+                  </Badge>
+                );
+              })()}
+            </div>
             <div className="flex items-center gap-1 text-xs text-blue-700">
               <Calendar className="w-3 h-3" />
-              <span>{formatDate(budget.start_date)} - {formatDate(budget.end_date)}</span>
+              <span>
+                {formatDate(budget.start_date)}
+                {budget.end_date ? ` — ${formatDate(budget.end_date)}` : " (berulang)"}
+              </span>
             </div>
           </div>
         );

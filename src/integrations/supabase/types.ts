@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "13.0.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       api_call_metrics: {
@@ -37,6 +62,45 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      budget_categories: {
+        Row: {
+          budget_id: number
+          category_id: number
+          created_at: string | null
+          id: number
+          user_id: string
+        }
+        Insert: {
+          budget_id: number
+          category_id: number
+          created_at?: string | null
+          id?: number
+          user_id: string
+        }
+        Update: {
+          budget_id?: number
+          category_id?: number
+          created_at?: string | null
+          id?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_categories_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       budget_items: {
         Row: {
@@ -84,35 +148,52 @@ export type Database = {
       budgets: {
         Row: {
           amount: number
+          budget_type: Database["public"]["Enums"]["budget_type"]
           created_at: string | null
-          end_date: string
+          currency_code: string
+          end_date: string | null
           id: number
           name: string
+          rollover_type: Database["public"]["Enums"]["rollover_type"]
           start_date: string
           updated_at: string | null
           user_id: string
         }
         Insert: {
           amount: number
+          budget_type?: Database["public"]["Enums"]["budget_type"]
           created_at?: string | null
-          end_date: string
+          currency_code: string
+          end_date?: string | null
           id?: number
           name: string
+          rollover_type?: Database["public"]["Enums"]["rollover_type"]
           start_date: string
           updated_at?: string | null
           user_id: string
         }
         Update: {
           amount?: number
+          budget_type?: Database["public"]["Enums"]["budget_type"]
           created_at?: string | null
-          end_date?: string
+          currency_code?: string
+          end_date?: string | null
           id?: number
           name?: string
+          rollover_type?: Database["public"]["Enums"]["rollover_type"]
           start_date?: string
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "budgets_currency_code_fkey"
+            columns: ["currency_code"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+        ]
       }
       business_project_transactions: {
         Row: {
@@ -253,7 +334,7 @@ export type Database = {
           created_at: string | null
           name: string
           symbol: string
-          type: string | null
+          type: Database["public"]["Enums"]["currency_type"] | null
           unit: string | null
           updated_at: string | null
         }
@@ -262,7 +343,7 @@ export type Database = {
           created_at?: string | null
           name: string
           symbol: string
-          type?: string | null
+          type?: Database["public"]["Enums"]["currency_type"] | null
           unit?: string | null
           updated_at?: string | null
         }
@@ -271,7 +352,7 @@ export type Database = {
           created_at?: string | null
           name?: string
           symbol?: string
-          type?: string | null
+          type?: Database["public"]["Enums"]["currency_type"] | null
           unit?: string | null
           updated_at?: string | null
         }
@@ -383,9 +464,11 @@ export type Database = {
           created_at: string
           currency_pairs: string[]
           date: string
+          end_date: string | null
           error_message: string | null
           id: string
           max_retries: number
+          missing_dates: string[] | null
           processed_at: string | null
           retry_count: number
           status: string
@@ -395,9 +478,11 @@ export type Database = {
           created_at?: string
           currency_pairs: string[]
           date: string
+          end_date?: string | null
           error_message?: string | null
           id?: string
           max_retries?: number
+          missing_dates?: string[] | null
           processed_at?: string | null
           retry_count?: number
           status?: string
@@ -407,9 +492,11 @@ export type Database = {
           created_at?: string
           currency_pairs?: string[]
           date?: string
+          end_date?: string | null
           error_message?: string | null
           id?: string
           max_retries?: number
+          missing_dates?: string[] | null
           processed_at?: string | null
           retry_count?: number
           status?: string
@@ -423,6 +510,7 @@ export type Database = {
           date: string
           from_currency: string
           id: number
+          origin_date: string | null
           rate: number
           to_currency: string
           updated_at: string | null
@@ -432,6 +520,7 @@ export type Database = {
           date: string
           from_currency: string
           id?: number
+          origin_date?: string | null
           rate: number
           to_currency: string
           updated_at?: string | null
@@ -441,6 +530,7 @@ export type Database = {
           date?: string
           from_currency?: string
           id?: number
+          origin_date?: string | null
           rate?: number
           to_currency?: string
           updated_at?: string | null
@@ -1011,31 +1101,6 @@ export type Database = {
       }
     }
     Views: {
-      daily_cumulative: {
-        Row: {
-          user_id: string | null
-          wallet_id: number | null
-          wallet_name: string | null
-          goal_id: number | null
-          goal_name: string | null
-          instrument_id: number | null
-          instrument_name: string | null
-          asset_id: number | null
-          asset_name: string | null
-          movement_date: string | null
-          cumulative_amount: number | null
-          cumulative_unit: number | null
-          historical_asset_price: number | null
-          asset_price_date_used: string | null
-          historical_fx_rate: number | null
-          fx_rate_date_used: string | null
-          original_currency_code: string | null
-          base_currency_code: string | null
-          is_trackable: boolean | null
-          historical_current_value: number | null
-          historical_current_value_base_currency: number | null
-        }
-      }
       all_currency_movement: {
         Row: {
           base_currency_code: string | null
@@ -1077,7 +1142,7 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "budgets_currency_code_fkey"
+            foreignKeyName: "user_settings_base_currency_code_fkey"
             columns: ["base_currency_code"]
             isOneToOne: false
             referencedRelation: "currencies"
@@ -1153,6 +1218,32 @@ export type Database = {
         Row: {
           base_currency_code: string | null
           currency_code: string | null
+        }
+        Relationships: []
+      }
+      daily_cumulative: {
+        Row: {
+          asset_id: number | null
+          asset_name: string | null
+          asset_price_date_used: string | null
+          base_currency_code: string | null
+          cumulative_amount: number | null
+          cumulative_unit: number | null
+          fx_rate_date_used: string | null
+          goal_id: number | null
+          goal_name: string | null
+          historical_asset_price: number | null
+          historical_current_value: number | null
+          historical_current_value_base_currency: number | null
+          historical_fx_rate: number | null
+          instrument_id: number | null
+          instrument_name: string | null
+          is_trackable: boolean | null
+          movement_date: string | null
+          original_currency_code: string | null
+          user_id: string | null
+          wallet_id: number | null
+          wallet_name: string | null
         }
         Relationships: []
       }
@@ -1346,43 +1437,43 @@ export type Database = {
       }
       money_summary: {
         Row: {
-          user_id: string | null
-          wallet_id: number | null
-          wallet_name: string | null
+          active_capital: number | null
+          active_capital_base_currency: number | null
+          amount_unit: number | null
+          asset_id: number | null
+          asset_name: string | null
+          asset_symbol: string | null
+          avg_exchange_rate: number | null
+          avg_unit_price: number | null
+          base_currency_code: string | null
+          base_currency_symbol: string | null
+          current_value: number | null
+          current_value_base_currency: number | null
           goal_id: number | null
           goal_name: string | null
           instrument_id: number | null
           instrument_name: string | null
-          is_trackable: boolean | null
-          asset_id: number | null
-          asset_name: string | null
-          asset_symbol: string | null
-          unit_label: string | null
-          original_currency_code: string | null
-          original_currency_symbol: string | null
-          base_currency_code: string | null
-          base_currency_symbol: string | null
-          total_amount: number | null
-          latest_rate: number | null
-          latest_rate_date: string | null
-          latest_asset_value: number | null
-          latest_asset_value_date: string | null
           invested_capital: number | null
           invested_capital_base_currency: number | null
-          avg_exchange_rate: number | null
-          active_capital: number | null
-          active_capital_base_currency: number | null
-          current_value: number | null
-          current_value_base_currency: number | null
-          amount_unit: number | null
-          avg_unit_price: number | null
+          is_trackable: boolean | null
+          latest_asset_value: number | null
+          latest_asset_value_date: string | null
+          latest_rate: number | null
+          latest_rate_date: string | null
+          original_currency_code: string | null
+          original_currency_symbol: string | null
           realized_profit: number | null
           realized_profit_base_currency: number | null
-          unrealized_profit: number | null
-          unrealized_asset_profit_base_currency: number | null
-          unrealized_currency_profit: number | null
+          total_amount: number | null
           total_profit: number | null
           total_profit_base_currency: number | null
+          unit_label: string | null
+          unrealized_asset_profit_base_currency: number | null
+          unrealized_currency_profit: number | null
+          unrealized_profit: number | null
+          user_id: string | null
+          wallet_id: number | null
+          wallet_name: string | null
         }
         Relationships: []
       }
@@ -1417,6 +1508,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      refresh_portfolio_valuation_mv: { Args: never; Returns: boolean }
       update_transaction_with_relations: {
         Args: {
           _amount: number
@@ -1433,9 +1525,12 @@ export type Database = {
       }
     }
     Enums: {
+      budget_type: "kustom" | "bulanan" | "tahunan"
       category_application: "transaction" | "investment" | "debt"
+      currency_type: "currency" | "cryptocurrency" | "commodity"
       debt_statuses: "active" | "paid_off"
       debt_type: "loan" | "borrowed"
+      rollover_type: "none" | "add_remaining" | "full"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1561,11 +1656,17 @@ export type CompositeTypes<
   : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
+      budget_type: ["kustom", "bulanan", "tahunan"],
       category_application: ["transaction", "investment", "debt"],
+      currency_type: ["currency", "cryptocurrency", "commodity"],
       debt_statuses: ["active", "paid_off"],
       debt_type: ["loan", "borrowed"],
+      rollover_type: ["none", "add_remaining", "full"],
     },
   },
 } as const

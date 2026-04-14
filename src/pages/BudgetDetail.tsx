@@ -18,6 +18,7 @@ import { useBudgetSummary } from "@/hooks/queries/use-budget-summary";
 import { calculateTotalSpentInBaseCurrency } from "@/lib/budget-summary";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BudgetFormData, defaultBudgetFormValues, mapBudgetToFormData } from "@/form-dto/budget";
+import { useBudgetThresholdAlerts } from "@/hooks/use-budget-threshold-alerts";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useTransactions } from "@/hooks/queries/use-transactions";
 import { useBudgetTransactionsByBudgetId, useCreateBudgetItem } from "@/hooks/queries/use-budget-transactions";
@@ -158,6 +159,9 @@ const BudgetDetail = () => {
   const totalSpent = totalCalculation.total_spent || 0;
   const remainingBudget = (budget?.amount || 0) + totalSpent;
   const spentPercentage = budget?.amount ? (Math.abs(totalSpent) / budget.amount) * 100 : 0;
+
+  // Fire threshold alerts when budget crosses 80% or 100%
+  useBudgetThresholdAlerts(budget, spentPercentage);
 
   const handleDelete = () => {
     if (!budget) return;

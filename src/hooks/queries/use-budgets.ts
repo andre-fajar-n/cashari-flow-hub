@@ -5,6 +5,15 @@ import { useToast } from "@/hooks/use-toast";
 import { BudgetFormData } from "@/form-dto/budget";
 import { BudgetModel } from "@/models/budgets";
 
+const syncCategories = async (budgetId: number, categoryIds: number[], userId: string) => {
+  await supabase.from("budget_categories").delete().eq("budget_id", budgetId).eq("user_id", userId);
+  if (categoryIds.length > 0) {
+    await supabase.from("budget_categories").insert(
+      categoryIds.map((catId) => ({ budget_id: budgetId, category_id: catId, user_id: userId }))
+    );
+  }
+};
+
 export const useBudgets = () => {
   const { user } = useAuth();
 
@@ -84,25 +93,33 @@ export const useCreateBudget = () => {
 
   return useMutation({
     mutationFn: async (newBudget: BudgetFormData) => {
-      const { error } = await supabase
+      const { category_ids, ...budgetData } = newBudget;
+
+      const { data, error } = await supabase
         .from("budgets")
         .insert({
-          ...newBudget,
+          ...budgetData,
           user_id: user.id,
           updated_at: null,
-        });
+        })
+        .select("id")
+        .single();
 
       if (error) throw error;
+      if (data && category_ids?.length > 0) {
+        await syncCategories(data.id, category_ids, user.id);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
       queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("budgets_paginated") });
+      queryClient.invalidateQueries({ queryKey: ["budget-categories"] });
       toast({
         title: "Berhasil",
         description: "Budget berhasil ditambahkan",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
         description: `Gagal menambahkan budget: ${error.message}`,
@@ -119,27 +136,32 @@ export const useUpdateBudget = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...budget }: BudgetFormData & { id: number }) => {
+      const { category_ids, ...budgetData } = budget;
+
       const { error } = await supabase
         .from("budgets")
         .update({
-          ...budget,
+          ...budgetData,
           updated_at: new Date().toISOString(),
         })
         .eq("user_id", user?.id)
         .eq("id", id);
 
       if (error) throw error;
+      await syncCategories(id, category_ids || [], user.id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["budgets"] });
       queryClient.invalidateQueries({ queryKey: ["budget-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["budget-categories"] });
       queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
+      queryClient.invalidateQueries({ predicate: (q) => String(q.queryKey?.[0] ?? "").includes("budgets_paginated") });
       toast({
         title: "Berhasil",
         description: "Budget berhasil diperbarui",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
         description: `Gagal memperbarui budget: ${error.message}`,

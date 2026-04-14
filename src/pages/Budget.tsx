@@ -13,7 +13,7 @@ import { DeleteConfirmationModal, useDeleteConfirmation } from "@/components/Del
 import { BudgetModel, BudgetSummary } from "@/models/budgets";
 import { BudgetTable } from "@/components/budget/BudgetTable";
 import { useTableState } from "@/hooks/use-table-state";
-import { BudgetFormData, defaultBudgetFormValues } from "@/form-dto/budget";
+import { BudgetFormData, defaultBudgetFormValues, mapBudgetToFormData } from "@/form-dto/budget";
 import { useMutationCallbacks, QUERY_KEY_SETS } from "@/lib/hooks/mutation-handlers";
 import { useDialogState } from "@/hooks/use-dialog-state";
 import { useUserSettings } from "@/hooks/queries/use-user-settings";
@@ -34,12 +34,7 @@ const Budget = () => {
   const dialog = useDialogState<BudgetModel, BudgetFormData>({
     form,
     defaultValues: defaultBudgetFormValues,
-    mapDataToForm: (budget) => ({
-      name: budget.name || "",
-      amount: budget.amount || 0,
-      start_date: budget.start_date || "",
-      end_date: budget.end_date || "",
-    }),
+    mapDataToForm: mapBudgetToFormData,
   });
 
   // Table state management using generic hook
