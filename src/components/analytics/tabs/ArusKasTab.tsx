@@ -38,7 +38,8 @@ const ArusKasTab = () => {
 
   const { data: cashflowTrend, isLoading: isLoadingTrend } = useCashFlowTrend(
     startStr,
-    endStr
+    endStr,
+    periodType
   );
   const { data: categorySpending, isLoading: isLoadingCategory } =
     useCategorySpending(startStr, endStr);

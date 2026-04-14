@@ -6,6 +6,8 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  type TooltipProps,
+  type LegendProps,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,7 +44,7 @@ const CHART_COLORS = [
   "#6b7280", // gray
 ];
 
-const TOP_N = 8;
+const TOP_N = 10;
 
 interface ChartDatum {
   name: string;
@@ -50,15 +52,13 @@ interface ChartDatum {
   originalNames: string[];
 }
 
-interface CustomTooltipProps {
-  active?: boolean;
-  payload?: Array<{ name: string; value: number; payload: ChartDatum }>;
+type CustomTooltipProps = TooltipProps<number, string> & {
   formatCurrency: (val: number) => string;
-}
+};
 
 const CustomTooltip = ({ active, payload, formatCurrency }: CustomTooltipProps) => {
   if (!active || !payload || payload.length === 0) return null;
-  const item = payload[0].payload;
+  const item = payload[0].payload as ChartDatum;
 
   return (
     <div className="rounded-xl border bg-background/95 backdrop-blur-sm p-3 shadow-xl">
@@ -129,6 +129,54 @@ const CategorySpendingChart = ({
     });
   }
 
+  const total = chartData.reduce((sum, d) => sum + d.value, 0);
+
+  const RADIAN = Math.PI / 180;
+  const renderCustomLabel = ({
+    cx, cy, midAngle, innerRadius, outerRadius, percent,
+  }: {
+    cx: number; cy: number; midAngle: number;
+    innerRadius: number; outerRadius: number; percent: number;
+  }) => {
+    if (percent < 0.05) return null;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    return (
+      <text
+        x={x}
+        y={y}
+        fill="white"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize={11}
+        fontWeight={600}
+      >
+        {`${(percent * 100).toFixed(1)}%`}
+      </text>
+    );
+  };
+
+  const renderLegend = (props: LegendProps) => {
+    type LegendEntry = { value: string; color: string; payload: ChartDatum };
+    const entries = (props.payload ?? []) as unknown as LegendEntry[];
+    return (
+      <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 pt-2">
+        {entries.map((entry, index) => {
+          const pct = total > 0 ? ((entry.payload.value / total) * 100).toFixed(1) : "0.0";
+          return (
+            <div key={index} className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: entry.color }} />
+              <span className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
+                {entry.value} ({pct}%)
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const selectedTransactions = selectedCategory
     ? transactionsByCategory[selectedCategory] ?? []
     : [];
@@ -191,6 +239,8 @@ const CategorySpendingChart = ({
                 outerRadius={110}
                 paddingAngle={2}
                 dataKey="value"
+                label={renderCustomLabel}
+                labelLine={false}
                 onClick={(entry: ChartDatum) => handleSliceClick(entry)}
                 style={{ cursor: "pointer" }}
               >
@@ -204,17 +254,17 @@ const CategorySpendingChart = ({
                 ))}
               </Pie>
               <Tooltip
-                content={(props) => (
-                  <CustomTooltip {...props} formatCurrency={formatCurrency} />
+                content={({ active, payload }) => (
+                  <CustomTooltip
+                    active={active}
+                    payload={payload as CustomTooltipProps["payload"]}
+                    formatCurrency={formatCurrency}
+                  />
                 )}
               />
               <Legend
                 wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
-                formatter={(value) => (
-                  <span style={{ color: "hsl(var(--muted-foreground))" }}>
-                    {value}
-                  </span>
-                )}
+                content={renderLegend}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -253,7 +303,7 @@ const CategorySpendingChart = ({
                         })}
                       </p>
                       <p className="text-sm text-foreground truncate mt-0.5">
-                        {tx.description ?? "—"}
+                        ({tx.categoryName}){tx.description === "" ? "" : ` - ${tx.description}`}
                       </p>
                     </div>
                     <p

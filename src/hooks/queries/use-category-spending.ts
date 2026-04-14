@@ -12,6 +12,7 @@ export interface CategoryTransaction {
   id: number;
   date: string;
   description: string | null;
+  categoryName: string;
   amount: number;
 }
 
@@ -61,7 +62,7 @@ export const useCategorySpending = (
       >();
       const transactionsByCategory: Record<string, CategoryTransaction[]> = {};
 
-      for (const tx of (data as TransactionRow[]) || []) {
+      for (const tx of (data as unknown as TransactionRow[]) || []) {
         const cat = tx.categories;
 
         // Exclude transactions without a category — classification unknown
@@ -84,6 +85,7 @@ export const useCategorySpending = (
           id: tx.id,
           date: tx.date,
           description: tx.description,
+          categoryName: catName,
           amount: tx.amount,
         });
       }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { startOfMonth, endOfMonth, startOfYear, endOfYear, addMonths, addDays, differenceInDays } from "date-fns";
+import { startOfMonth, endOfMonth, startOfYear, endOfYear, addMonths, addDays, addYears, subMonths, differenceInDays } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -26,13 +26,12 @@ const periodLabels: Record<PeriodType, string> = {
   yearly: "Tahunan",
 };
 
-const MAX_MONTHS = 12;
-const MAX_DAYS = 90;
+const MAX_MONTHS = 24;
+const MAX_DAYS = 31;
+const MAX_YEARS = 10;
 
 function clampRange(type: PeriodType, from: Date, to: Date): { from: Date; to: Date } {
   if (type === "monthly") {
-    // Use calendar-month counting to avoid date-fns differenceInMonths partial-month edge cases
-    // e.g. Jan 15 → Jan 14 next year = differenceInMonths of 11 but spans 13 calendar months
     const calendarMonthDiff =
       (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
     if (calendarMonthDiff >= MAX_MONTHS) {
@@ -43,8 +42,23 @@ function clampRange(type: PeriodType, from: Date, to: Date): { from: Date; to: D
     if (dayDiff >= MAX_DAYS) {
       return { from, to: addDays(from, MAX_DAYS - 1) };
     }
+  } else if (type === "yearly") {
+    const yearDiff = to.getFullYear() - from.getFullYear();
+    if (yearDiff >= MAX_YEARS) {
+      return { from, to: endOfYear(addYears(from, MAX_YEARS - 1)) };
+    }
   }
   return { from, to };
+}
+
+function getDefaultRange(type: PeriodType): { from: Date; to: Date } {
+  const now = new Date();
+  if (type === "daily") {
+    return { from: addDays(now, -29), to: now };
+  } else if (type === "yearly") {
+    return { from: startOfYear(addYears(now, -2)), to: endOfYear(now) };
+  }
+  return { from: startOfMonth(subMonths(now, 5)), to: endOfMonth(now) };
 }
 
 const PeriodFilter = ({
@@ -69,10 +83,9 @@ const PeriodFilter = ({
   const handleTypeChange = (v: string) => {
     const newType = v as PeriodType;
     setType(newType);
-    const clamped = clampRange(newType, range.from, range.to);
-    const wasClamped = clamped.to.getTime() !== range.to.getTime();
-    setIsClamped(wasClamped);
-    setRange(clamped);
+    const defaultRange = getDefaultRange(newType);
+    setIsClamped(false);
+    setRange(defaultRange);
   };
 
   const handleRangeChange = (newRange: { from: Date; to: Date } | undefined) => {
@@ -88,8 +101,8 @@ const PeriodFilter = ({
     type === "monthly"
       ? `Maksimal ${MAX_MONTHS} bulan`
       : type === "daily"
-      ? `Maksimal ${MAX_DAYS} hari`
-      : null;
+        ? `Maksimal ${MAX_DAYS} hari`
+        : `Maksimal ${MAX_YEARS} tahun`;
 
   return (
     <Card className="border bg-card shadow-none">
