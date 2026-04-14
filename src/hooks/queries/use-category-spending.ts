@@ -34,6 +34,38 @@ interface TransactionRow {
   } | null;
 }
 
+const BATCH_SIZE = 1000;
+
+async function fetchAllTransactions(
+  userId: string,
+  startDate: string,
+  endDate: string
+): Promise<TransactionRow[]> {
+  const allData: TransactionRow[] = [];
+  let from = 0;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from("transactions")
+      .select("id, date, description, amount, categories(id, name, is_income, application)")
+      .eq("user_id", userId)
+      .gte("date", startDate)
+      .lte("date", endDate)
+      .range(from, from + BATCH_SIZE - 1);
+
+    if (error) throw error;
+
+    const batch = (data as unknown as TransactionRow[]) ?? [];
+    allData.push(...batch);
+
+    if (batch.length < BATCH_SIZE) break;
+
+    from += BATCH_SIZE;
+  }
+
+  return allData;
+}
+
 export const useCategorySpending = (
   startDate: string,
   endDate: string
@@ -47,14 +79,7 @@ export const useCategorySpending = (
         return { categories: [], transactionsByCategory: {} };
       }
 
-      const { data, error } = await supabase
-        .from("transactions")
-        .select("id, date, description, amount, categories(id, name, is_income, application)")
-        .eq("user_id", user.id)
-        .gte("date", startDate)
-        .lte("date", endDate);
-
-      if (error) throw error;
+      const data = await fetchAllTransactions(user.id, startDate, endDate);
 
       const categoryTotals = new Map<
         string,
@@ -62,7 +87,7 @@ export const useCategorySpending = (
       >();
       const transactionsByCategory: Record<string, CategoryTransaction[]> = {};
 
-      for (const tx of (data as unknown as TransactionRow[]) || []) {
+      for (const tx of data) {
         const cat = tx.categories;
 
         // Exclude transactions without a category — classification unknown

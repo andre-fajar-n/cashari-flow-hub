@@ -5,9 +5,7 @@ import {
   Cell,
   Tooltip,
   ResponsiveContainer,
-  Legend,
   type TooltipProps,
-  type LegendProps,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -44,12 +42,9 @@ const CHART_COLORS = [
   "#6b7280", // gray
 ];
 
-const TOP_N = 10;
-
 interface ChartDatum {
   name: string;
   value: number;
-  originalNames: string[];
 }
 
 type CustomTooltipProps = TooltipProps<number, string> & {
@@ -111,23 +106,10 @@ const CategorySpendingChart = ({
     );
   }
 
-  // Build chart data: top N categories + "Lainnya"
-  const topCategories = data.slice(0, TOP_N);
-  const remainder = data.slice(TOP_N);
-
-  const chartData: ChartDatum[] = topCategories.map((cat) => ({
+  const chartData: ChartDatum[] = data.map((cat) => ({
     name: cat.categoryName,
     value: cat.total,
-    originalNames: [cat.categoryName],
   }));
-
-  if (remainder.length > 0) {
-    chartData.push({
-      name: "Lainnya",
-      value: remainder.reduce((sum, c) => sum + c.total, 0),
-      originalNames: remainder.map((c) => c.categoryName),
-    });
-  }
 
   const total = chartData.reduce((sum, d) => sum + d.value, 0);
 
@@ -157,56 +139,11 @@ const CategorySpendingChart = ({
     );
   };
 
-  const renderLegend = (props: LegendProps) => {
-    type LegendEntry = { value: string; color: string; payload: ChartDatum };
-    const entries = (props.payload ?? []) as unknown as LegendEntry[];
-    return (
-      <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 pt-2">
-        {entries.map((entry, index) => {
-          const pct = total > 0 ? ((entry.payload.value / total) * 100).toFixed(1) : "0.0";
-          return (
-            <div key={index} className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: entry.color }} />
-              <span className="text-xs" style={{ color: "hsl(var(--muted-foreground))" }}>
-                {entry.value} ({pct}%)
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
-  const selectedTransactions = selectedCategory
-    ? transactionsByCategory[selectedCategory] ?? []
-    : [];
-
-  const selectedTotal = selectedTransactions.reduce(
-    (sum, tx) => sum + tx.amount,
-    0
-  );
-
   const handleSliceClick = (entry: ChartDatum) => {
-    // For "Lainnya" group, open with first sub-category or skip modal
-    if (entry.originalNames.length === 1) {
-      setSelectedCategory(entry.originalNames[0]);
-    } else {
-      // For grouped "Lainnya", we show all combined transactions
-      setSelectedCategory("Lainnya");
-    }
-  };
-
-  // Combine transactions for "Lainnya" group
-  const getLainyaTransactions = (): CategoryTransaction[] => {
-    const lainyaEntry = chartData.find((d) => d.name === "Lainnya");
-    if (!lainyaEntry) return [];
-    return lainyaEntry.originalNames
-      .flatMap((name) => transactionsByCategory[name] ?? [])
-      .sort((a, b) => b.date.localeCompare(a.date));
+    setSelectedCategory(entry.name);
   };
 
   const getModalTransactions = (): CategoryTransaction[] => {
-    if (selectedCategory === "Lainnya") return getLainyaTransactions();
     return transactionsByCategory[selectedCategory ?? ""] ?? [];
   };
 
@@ -229,45 +166,68 @@ const CategorySpendingChart = ({
           <p className="text-xs text-muted-foreground mb-3">
             Klik segmen untuk melihat detail transaksi
           </p>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={chartData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={110}
-                paddingAngle={2}
-                dataKey="value"
-                label={renderCustomLabel}
-                labelLine={false}
-                onClick={(entry: ChartDatum) => handleSliceClick(entry)}
-                style={{ cursor: "pointer" }}
-              >
-                {chartData.map((_, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={CHART_COLORS[index % CHART_COLORS.length]}
-                    stroke="hsl(var(--background))"
-                    strokeWidth={2}
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Pie chart */}
+            <div className="shrink-0 w-full md:w-[260px]">
+              <ResponsiveContainer width="100%" height={260}>
+                <PieChart>
+                  <Pie
+                    data={chartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={100}
+                    paddingAngle={2}
+                    dataKey="value"
+                    label={renderCustomLabel}
+                    labelLine={false}
+                    onClick={(entry: ChartDatum) => handleSliceClick(entry)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    {chartData.map((_, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={CHART_COLORS[index % CHART_COLORS.length]}
+                        stroke="hsl(var(--background))"
+                        strokeWidth={2}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    content={({ active, payload }) => (
+                      <CustomTooltip
+                        active={active}
+                        payload={payload as CustomTooltipProps["payload"]}
+                        formatCurrency={formatCurrency}
+                      />
+                    )}
                   />
-                ))}
-              </Pie>
-              <Tooltip
-                content={({ active, payload }) => (
-                  <CustomTooltip
-                    active={active}
-                    payload={payload as CustomTooltipProps["payload"]}
-                    formatCurrency={formatCurrency}
-                  />
-                )}
-              />
-              <Legend
-                wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
-                content={renderLegend}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Legend list */}
+            <div className="flex-1 overflow-y-auto max-h-[260px] space-y-1 pr-1">
+              {chartData.map((entry, index) => {
+                const pct = total > 0 ? ((entry.value / total) * 100).toFixed(1) : "0.0";
+                const color = CHART_COLORS[index % CHART_COLORS.length];
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleSliceClick(entry)}
+                    className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-muted/50 transition-colors text-left"
+                  >
+                    <div className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: color }} />
+                    <span className="text-xs text-foreground flex-1 truncate">{entry.name}</span>
+                    <span className="text-xs text-muted-foreground tabular-nums shrink-0">{pct}%</span>
+                    <span className="text-xs font-medium tabular-nums text-rose-600 shrink-0">
+                      {formatCurrency(entry.value)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -303,7 +263,7 @@ const CategorySpendingChart = ({
                         })}
                       </p>
                       <p className="text-sm text-foreground truncate mt-0.5">
-                        ({tx.categoryName}){tx.description === "" ? "" : ` - ${tx.description}`}
+                        ({tx.categoryName}){tx.description === "" || tx.description === null ? "" : ` - ${tx.description}`}
                       </p>
                     </div>
                     <p
