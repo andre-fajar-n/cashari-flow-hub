@@ -18,6 +18,7 @@ import { useCashFlowTrend } from "@/hooks/queries/use-cashflow-trend";
 import { usePortfolioDistribution } from "@/hooks/queries/use-portfolio-distribution";
 import { useBudgets } from "@/hooks/queries/use-budgets";
 import { useBudgetSummary } from "@/hooks/queries/use-budget-summary";
+import { useGoals } from "@/hooks/queries/use-goals";
 import { calculateTotalSpentInBaseCurrency } from "@/lib/budget-summary";
 import { formatAmountCurrency } from "@/lib/currency";
 import { formatPercentage } from "@/lib/number";
@@ -49,6 +50,11 @@ const IkhtisarTab = ({ onNavigate }: IkhtisarTabProps) => {
   const totalExpense = cashflowTrend?.reduce((s, m) => s + m.expense, 0) ?? 0;
   const netCashFlow = totalIncome - totalExpense;
   const isPositiveNet = netCashFlow >= 0;
+
+  // Goals
+  const { data: goals } = useGoals();
+  const activeGoals = useMemo(() => (goals ?? []).filter((g) => g.is_active), [goals]);
+  const achievedGoals = useMemo(() => (goals ?? []).filter((g) => g.is_achieved), [goals]);
 
   // Portfolio
   const { data: distribution, isLoading: isLoadingPortfolio } = usePortfolioDistribution();
@@ -256,10 +262,15 @@ const IkhtisarTab = ({ onNavigate }: IkhtisarTabProps) => {
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </div>
-              <p className="text-sm text-muted-foreground">
-                Grafik progres per tujuan tersedia di tab Tujuan.
-              </p>
-              <div className="text-xs text-primary font-medium">Lihat tab Tujuan →</div>
+              <div className="text-2xl font-bold tabular-nums text-amber-700">
+                {activeGoals.length}
+                <span className="text-sm font-normal text-muted-foreground ml-1">aktif</span>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {achievedGoals.length > 0
+                  ? `${achievedGoals.length} tujuan telah tercapai`
+                  : "Lihat progres di tab Tujuan →"}
+              </div>
             </CardContent>
           </Card>
         </button>

@@ -1,12 +1,15 @@
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import AppSidebar from "@/components/AppSidebar";
 import FetchExchangeRatesButton from "@/components/header/FetchExchangeRatesButton";
+import { useStartupNotifications } from "@/hooks/use-startup-notifications";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout = ({ children }: LayoutProps) => {
+  useStartupNotifications();
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gray-50 sm:bg-background">

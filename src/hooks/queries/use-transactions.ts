@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { TransactionFormData, TransactionFilter } from "@/form-dto/transactions";
 import { TransactionModel } from "@/models/transactions";
+import { checkUnusualSpending } from "@/hooks/use-auto-detect-unusual-spending";
 
 export const useTransactions = (filter?: TransactionFilter) => {
   const { user } = useAuth();
@@ -73,7 +74,7 @@ export const useCreateTransaction = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["transactions", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
       queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
@@ -84,6 +85,14 @@ export const useCreateTransaction = () => {
         title: "Berhasil",
         description: "Transaksi berhasil ditambahkan",
       });
+      // Auto-detect unusual spending for expense transactions
+      if (user?.id && variables.category_id && variables.amount < 0) {
+        checkUnusualSpending({
+          userId: user.id,
+          categoryId: parseInt(variables.category_id),
+          amount: Math.abs(variables.amount),
+        });
+      }
     },
     onError: (error) => {
       toast({

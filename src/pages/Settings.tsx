@@ -1,10 +1,11 @@
-import { Settings2, Wallet, Tag } from "lucide-react";
+import { Settings2, Wallet, Tag, Bell } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Layout from "@/components/Layout";
 import WalletManagement from "@/components/settings/WalletManagement";
 import CategoryManagement from "@/components/settings/CategoryManagement";
 import UserSettingsManagement from "@/components/settings/UserSettingsManagement";
+import NotificationSettingsManagement from "@/components/settings/NotificationSettingsManagement";
 
 const Settings = () => {
   return (
@@ -26,7 +27,7 @@ const Settings = () => {
         </div>
 
         <Tabs defaultValue="general" className="w-full mt-6">
-          <TabsList className="grid w-full grid-cols-3 mb-4 h-11">
+          <TabsList className="grid w-full grid-cols-4 mb-4 h-11">
             <TabsTrigger value="general" className="text-xs sm:text-sm flex items-center gap-1.5">
               <Settings2 className="w-4 h-4" />
               <span>Umum</span>
@@ -38,6 +39,10 @@ const Settings = () => {
             <TabsTrigger value="categories" className="text-xs sm:text-sm flex items-center gap-1.5">
               <Tag className="w-4 h-4" />
               <span>Kategori</span>
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="text-xs sm:text-sm flex items-center gap-1.5">
+              <Bell className="w-4 h-4" />
+              <span>Notifikasi</span>
             </TabsTrigger>
           </TabsList>
 
@@ -51,6 +56,10 @@ const Settings = () => {
 
           <TabsContent value="categories">
             <CategoryManagement />
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <NotificationSettingsManagement />
           </TabsContent>
         </Tabs>
       </Layout>
