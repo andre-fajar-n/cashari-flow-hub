@@ -1,6 +1,7 @@
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { MOVEMENT_TYPES } from "@/constants/enums";
 
 export interface CategorySpendingItem {
   categoryId: number | null;
@@ -14,6 +15,9 @@ export interface CategoryTransaction {
   description: string | null;
   categoryName: string;
   amount: number;
+  originalAmount: number;
+  currencyCode: string | null;
+  currencySymbol: string | null;
 }
 
 export interface CategorySpendingResult {
@@ -21,41 +25,44 @@ export interface CategorySpendingResult {
   transactionsByCategory: Record<string, CategoryTransaction[]>;
 }
 
-interface TransactionRow {
-  id: number;
-  date: string;
+interface MovementRow {
+  id: number | null;
+  date: string | null;
   description: string | null;
-  amount: number;
-  categories: {
-    id: number;
-    name: string;
-    is_income: boolean;
-    application: string | null;
-  } | null;
+  amount: number | null;
+  exchange_rate: number | null;
+  category_id: number | null;
+  category_name: string | null;
+  currency_code: string | null;
+  currency_symbol: string | null;
 }
 
 const BATCH_SIZE = 1000;
 
-async function fetchAllTransactions(
+async function fetchAllMovements(
   userId: string,
   startDate: string,
   endDate: string
-): Promise<TransactionRow[]> {
-  const allData: TransactionRow[] = [];
+): Promise<MovementRow[]> {
+  const allData: MovementRow[] = [];
   let from = 0;
 
   while (true) {
     const { data, error } = await supabase
-      .from("transactions")
-      .select("id, date, description, amount, categories(id, name, is_income, application)")
+      .from("money_movements")
+      .select("id, date, description, amount, exchange_rate, category_id, category_name, currency_code, currency_symbol")
       .eq("user_id", userId)
+      .eq("resource_type", MOVEMENT_TYPES.TRANSACTION)
+      .lt("amount", 0)
+      .not("id", "is", null)
+      .not("category_id", "is", null)
       .gte("date", startDate)
       .lte("date", endDate)
       .range(from, from + BATCH_SIZE - 1);
 
     if (error) throw error;
 
-    const batch = (data as unknown as TransactionRow[]) ?? [];
+    const batch = (data as unknown as MovementRow[]) ?? [];
     allData.push(...batch);
 
     if (batch.length < BATCH_SIZE) break;
@@ -79,7 +86,7 @@ export const useCategorySpending = (
         return { categories: [], transactionsByCategory: {} };
       }
 
-      const data = await fetchAllTransactions(user.id, startDate, endDate);
+      const data = await fetchAllMovements(user.id, startDate, endDate);
 
       const categoryTotals = new Map<
         string,
@@ -87,35 +94,30 @@ export const useCategorySpending = (
       >();
       const transactionsByCategory: Record<string, CategoryTransaction[]> = {};
 
-      for (const tx of data) {
-        const cat = tx.categories;
-
-        // Exclude transactions without a category — classification unknown
-        if (!cat) continue;
-        // Exclude investment/debt categories; only count regular expense transactions
-        if (cat.application && cat.application !== "transaction") continue;
-        if (cat.is_income) continue;
-
-        const catName = cat?.name ?? "Tanpa Kategori";
-        const catId = cat?.id ?? null;
+      for (const mv of data) {
+        const catName = mv.category_name ?? "Tanpa Kategori";
+        const catId = mv.category_id ?? null;
+        const baseAmount = Math.abs((mv.amount ?? 0) * (mv.exchange_rate ?? 0));
 
         const existing = categoryTotals.get(catName) ?? { id: catId, total: 0 };
-        existing.total += tx.amount ?? 0;
+        existing.total += baseAmount;
         categoryTotals.set(catName, existing);
 
         if (!transactionsByCategory[catName]) {
           transactionsByCategory[catName] = [];
         }
         transactionsByCategory[catName].push({
-          id: tx.id,
-          date: tx.date,
-          description: tx.description,
+          id: mv.id ?? 0,
+          date: mv.date ?? "",
+          description: mv.description,
           categoryName: catName,
-          amount: tx.amount,
+          amount: baseAmount,
+          originalAmount: Math.abs(mv.amount ?? 0),
+          currencyCode: mv.currency_code,
+          currencySymbol: mv.currency_symbol,
         });
       }
 
-      // Sort each category's transactions by date descending
       for (const catName of Object.keys(transactionsByCategory)) {
         transactionsByCategory[catName].sort((a, b) =>
           b.date.localeCompare(a.date)

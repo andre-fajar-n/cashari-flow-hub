@@ -29,6 +29,7 @@ interface CategorySpendingChartProps {
   transactionsByCategory: Record<string, CategoryTransaction[]>;
   isLoading?: boolean;
   formatCurrency: (val: number) => string;
+  baseCurrencyCode?: string;
 }
 
 const CHART_COLORS = [
@@ -70,6 +71,7 @@ const CategorySpendingChart = ({
   transactionsByCategory,
   isLoading,
   formatCurrency,
+  baseCurrencyCode,
 }: CategorySpendingChartProps) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
@@ -251,31 +253,41 @@ const CategorySpendingChart = ({
               </p>
             ) : (
               <div className="space-y-0">
-                {modalTransactions.map((tx) => (
-                  <div
-                    key={tx.id}
-                    className="flex items-center justify-between py-2.5 border-b last:border-b-0 gap-4"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs text-muted-foreground tabular-nums">
-                        {format(parseISO(tx.date), "dd MMM yyyy", {
-                          locale: id,
-                        })}
-                      </p>
-                      <p className="text-sm text-foreground truncate mt-0.5">
-                        ({tx.categoryName}){tx.description === "" || tx.description === null ? "" : ` - ${tx.description}`}
-                      </p>
-                    </div>
-                    <p
-                      className={cn(
-                        "text-sm font-semibold tabular-nums shrink-0",
-                        "text-rose-600"
-                      )}
+                {modalTransactions.map((tx) => {
+                  const hasOriginal =
+                    tx.currencyCode !== null &&
+                    (baseCurrencyCode
+                      ? tx.currencyCode !== baseCurrencyCode
+                      : Math.abs(tx.originalAmount - tx.amount) > 0.001);
+                  return (
+                    <div
+                      key={tx.id}
+                      className="flex items-start justify-between py-2.5 border-b last:border-b-0 gap-4"
                     >
-                      {formatCurrency(tx.amount)}
-                    </p>
-                  </div>
-                ))}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs text-muted-foreground tabular-nums">
+                          {format(parseISO(tx.date), "dd MMM yyyy", {
+                            locale: id,
+                          })}
+                        </p>
+                        <p className="text-sm text-foreground truncate mt-0.5">
+                          ({tx.categoryName}){tx.description === "" || tx.description === null ? "" : ` - ${tx.description}`}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end shrink-0">
+                        <p className="text-sm font-semibold tabular-nums text-rose-600">
+                          {formatCurrency(tx.amount)}
+                        </p>
+                        {hasOriginal && (
+                          <p className="text-xs tabular-nums text-muted-foreground mt-0.5">
+                            {tx.currencySymbol ?? tx.currencyCode}{" "}
+                            {formatCurrency(tx.originalAmount)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
 
                 {/* Total row */}
                 <div className="flex items-center justify-between pt-3 mt-1 border-t">

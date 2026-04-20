@@ -209,6 +209,7 @@ const ArusKasTab = () => {
         }
         isLoading={isLoadingCategory}
         formatCurrency={formatCurrency}
+        baseCurrencyCode={baseCurrency}
       />
     </div>
   );
