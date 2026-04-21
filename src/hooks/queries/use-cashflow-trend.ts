@@ -24,7 +24,8 @@ const BATCH_SIZE = 1000;
 async function fetchAllMovements(
   userId: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  resourceType: string
 ): Promise<MovementRow[]> {
   const allData: MovementRow[] = [];
   let from = 0;
@@ -34,7 +35,7 @@ async function fetchAllMovements(
       .from("money_movements")
       .select("date, amount, exchange_rate")
       .eq("user_id", userId)
-      .eq("resource_type", MOVEMENT_TYPES.TRANSACTION)
+      .eq("resource_type", resourceType)
       .gte("date", startDate)
       .lte("date", endDate)
       .range(from, from + BATCH_SIZE - 1);
@@ -55,16 +56,17 @@ async function fetchAllMovements(
 export const useCashFlowTrend = (
   startDate: string,
   endDate: string,
-  granularity: "daily" | "monthly" | "yearly" = "monthly"
+  granularity: "daily" | "monthly" | "yearly" = "monthly",
+  resourceType: string = MOVEMENT_TYPES.TRANSACTION
 ): UseQueryResult<CashFlowMonthItem[]> => {
   const { user } = useAuth();
 
   return useQuery<CashFlowMonthItem[]>({
-    queryKey: ["cashflow_trend", user?.id, startDate, endDate, granularity],
+    queryKey: ["cashflow_trend", user?.id, startDate, endDate, granularity, resourceType],
     queryFn: async (): Promise<CashFlowMonthItem[]> => {
       if (!user?.id) return [];
 
-      const movements = await fetchAllMovements(user.id, startDate, endDate)
+      const movements = await fetchAllMovements(user.id, startDate, endDate, resourceType)
 
       const periodMap = new Map<string, { income: number; expense: number }>();
 

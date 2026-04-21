@@ -30,6 +30,7 @@ interface CategorySpendingChartProps {
   isLoading?: boolean;
   formatCurrency: (val: number) => string;
   baseCurrencyCode?: string;
+  variant?: "expense" | "income";
 }
 
 const CHART_COLORS = [
@@ -59,7 +60,7 @@ const CustomTooltip = ({ active, payload, formatCurrency }: CustomTooltipProps) 
   return (
     <div className="rounded-xl border bg-background/95 backdrop-blur-sm p-3 shadow-xl">
       <p className="font-semibold text-sm mb-1">{item.name}</p>
-      <p className="text-sm font-bold tabular-nums text-rose-600">
+      <p className="text-sm font-bold tabular-nums">
         {formatCurrency(item.value)}
       </p>
     </div>
@@ -72,7 +73,12 @@ const CategorySpendingChart = ({
   isLoading,
   formatCurrency,
   baseCurrencyCode,
+  variant = "expense",
 }: CategorySpendingChartProps) => {
+  const isIncome = variant === "income";
+  const title = isIncome ? "Pemasukan per Kategori" : "Pengeluaran per Kategori";
+  const emptyText = isIncome ? "Tidak ada pemasukan untuk periode ini" : "Tidak ada pengeluaran untuk periode ini";
+  const amountColor = isIncome ? "text-emerald-600" : "text-rose-600";
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   if (isLoading) {
@@ -94,14 +100,12 @@ const CategorySpendingChart = ({
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
             <PieChartIcon className="h-4 w-4 text-primary/70 shrink-0" />
-            Pengeluaran per Kategori
+            {title}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex h-[300px] items-center justify-center">
-            <p className="text-sm text-muted-foreground">
-              Tidak ada pengeluaran untuk periode ini
-            </p>
+            <p className="text-sm text-muted-foreground">{emptyText}</p>
           </div>
         </CardContent>
       </Card>
@@ -161,7 +165,7 @@ const CategorySpendingChart = ({
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
             <PieChartIcon className="h-4 w-4 text-primary/70 shrink-0" />
-            Pengeluaran per Kategori
+            {title}
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
@@ -222,7 +226,7 @@ const CategorySpendingChart = ({
                     <div className="w-2.5 h-2.5 rounded-sm shrink-0" style={{ backgroundColor: color }} />
                     <span className="text-xs text-foreground flex-1 truncate">{entry.name}</span>
                     <span className="text-xs text-muted-foreground tabular-nums shrink-0">{pct}%</span>
-                    <span className="text-xs font-medium tabular-nums text-rose-600 shrink-0">
+                    <span className={cn("text-xs font-medium tabular-nums shrink-0", amountColor)}>
                       {formatCurrency(entry.value)}
                     </span>
                   </button>
@@ -242,7 +246,7 @@ const CategorySpendingChart = ({
         <DialogContent className="max-w-md max-h-[80vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>
-              Pengeluaran: {selectedCategory}
+              {isIncome ? "Pemasukan" : "Pengeluaran"}: {selectedCategory}
             </DialogTitle>
           </DialogHeader>
 
@@ -275,7 +279,7 @@ const CategorySpendingChart = ({
                         </p>
                       </div>
                       <div className="flex flex-col items-end shrink-0">
-                        <p className="text-sm font-semibold tabular-nums text-rose-600">
+                        <p className={cn("text-sm font-semibold tabular-nums", amountColor)}>
                           {formatCurrency(tx.amount)}
                         </p>
                         {hasOriginal && (
@@ -294,7 +298,7 @@ const CategorySpendingChart = ({
                   <p className="text-sm font-semibold text-foreground">
                     Total
                   </p>
-                  <p className="text-sm font-bold tabular-nums text-rose-600">
+                  <p className={cn("text-sm font-bold tabular-nums", amountColor)}>
                     {formatCurrency(modalTotal)}
                   </p>
                 </div>

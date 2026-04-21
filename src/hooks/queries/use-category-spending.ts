@@ -21,8 +21,10 @@ export interface CategoryTransaction {
 }
 
 export interface CategorySpendingResult {
-  categories: CategorySpendingItem[];
-  transactionsByCategory: Record<string, CategoryTransaction[]>;
+  expenseCategories: CategorySpendingItem[];
+  transactionsByExpenseCategory: Record<string, CategoryTransaction[]>;
+  incomeCategories: CategorySpendingItem[];
+  transactionsByIncomeCategory: Record<string, CategoryTransaction[]>;
 }
 
 interface MovementRow {
@@ -42,23 +44,28 @@ const BATCH_SIZE = 1000;
 async function fetchAllMovements(
   userId: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  resourceType: string
 ): Promise<MovementRow[]> {
   const allData: MovementRow[] = [];
   let from = 0;
 
   while (true) {
-    const { data, error } = await supabase
+    let query = supabase
       .from("money_movements")
       .select("id, date, description, amount, exchange_rate, category_id, category_name, currency_code, currency_symbol")
       .eq("user_id", userId)
-      .eq("resource_type", MOVEMENT_TYPES.TRANSACTION)
-      .lt("amount", 0)
+      .eq("resource_type", resourceType)
       .not("id", "is", null)
-      .not("category_id", "is", null)
       .gte("date", startDate)
       .lte("date", endDate)
       .range(from, from + BATCH_SIZE - 1);
+
+    if (resourceType === MOVEMENT_TYPES.TRANSACTION) {
+      query = query.not("category_id", "is", null);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
@@ -75,66 +82,79 @@ async function fetchAllMovements(
 
 export const useCategorySpending = (
   startDate: string,
-  endDate: string
+  endDate: string,
+  resourceType: string = MOVEMENT_TYPES.TRANSACTION
 ): UseQueryResult<CategorySpendingResult> => {
   const { user } = useAuth();
 
   return useQuery<CategorySpendingResult>({
-    queryKey: ["category_spending", user?.id, startDate, endDate],
+    queryKey: ["category_spending", user?.id, startDate, endDate, resourceType],
     queryFn: async (): Promise<CategorySpendingResult> => {
       if (!user?.id) {
-        return { categories: [], transactionsByCategory: {} };
+        return {
+          expenseCategories: [],
+          transactionsByExpenseCategory: {},
+          incomeCategories: [],
+          transactionsByIncomeCategory: {},
+        };
       }
 
-      const data = await fetchAllMovements(user.id, startDate, endDate);
+      const data = await fetchAllMovements(user.id, startDate, endDate, resourceType);
 
-      const categoryTotals = new Map<
-        string,
-        { id: number | null; total: number }
-      >();
-      const transactionsByCategory: Record<string, CategoryTransaction[]> = {};
+      const expenseTotals = new Map<string, { id: number | null; total: number }>();
+      const incomeTotals = new Map<string, { id: number | null; total: number }>();
+      const transactionsByExpenseCategory: Record<string, CategoryTransaction[]> = {};
+      const transactionsByIncomeCategory: Record<string, CategoryTransaction[]> = {};
 
       for (const mv of data) {
         const catName = mv.category_name ?? "Tanpa Kategori";
         const catId = mv.category_id ?? null;
-        const baseAmount = Math.abs((mv.amount ?? 0) * (mv.exchange_rate ?? 0));
-
-        const existing = categoryTotals.get(catName) ?? { id: catId, total: 0 };
-        existing.total += baseAmount;
-        categoryTotals.set(catName, existing);
-
-        if (!transactionsByCategory[catName]) {
-          transactionsByCategory[catName] = [];
-        }
-        transactionsByCategory[catName].push({
+        const rawAmount = mv.amount ?? 0;
+        const baseAmount = Math.abs(rawAmount * (mv.exchange_rate ?? 0));
+        const tx: CategoryTransaction = {
           id: mv.id ?? 0,
           date: mv.date ?? "",
           description: mv.description,
           categoryName: catName,
           amount: baseAmount,
-          originalAmount: Math.abs(mv.amount ?? 0),
+          originalAmount: Math.abs(rawAmount),
           currencyCode: mv.currency_code,
           currencySymbol: mv.currency_symbol,
-        });
+        };
+
+        if (rawAmount < 0) {
+          const existing = expenseTotals.get(catName) ?? { id: catId, total: 0 };
+          existing.total += baseAmount;
+          expenseTotals.set(catName, existing);
+          if (!transactionsByExpenseCategory[catName]) transactionsByExpenseCategory[catName] = [];
+          transactionsByExpenseCategory[catName].push(tx);
+        } else if (rawAmount > 0) {
+          const existing = incomeTotals.get(catName) ?? { id: catId, total: 0 };
+          existing.total += baseAmount;
+          incomeTotals.set(catName, existing);
+          if (!transactionsByIncomeCategory[catName]) transactionsByIncomeCategory[catName] = [];
+          transactionsByIncomeCategory[catName].push(tx);
+        }
       }
 
-      for (const catName of Object.keys(transactionsByCategory)) {
-        transactionsByCategory[catName].sort((a, b) =>
-          b.date.localeCompare(a.date)
-        );
+      for (const catName of Object.keys(transactionsByExpenseCategory)) {
+        transactionsByExpenseCategory[catName].sort((a, b) => b.date.localeCompare(a.date));
+      }
+      for (const catName of Object.keys(transactionsByIncomeCategory)) {
+        transactionsByIncomeCategory[catName].sort((a, b) => b.date.localeCompare(a.date));
       }
 
-      const categories: CategorySpendingItem[] = Array.from(
-        categoryTotals.entries()
-      )
-        .map(([categoryName, { id, total }]) => ({
-          categoryId: id,
-          categoryName,
-          total,
-        }))
-        .sort((a, b) => b.total - a.total);
+      const toSortedItems = (map: Map<string, { id: number | null; total: number }>): CategorySpendingItem[] =>
+        Array.from(map.entries())
+          .map(([categoryName, { id, total }]) => ({ categoryId: id, categoryName, total }))
+          .sort((a, b) => b.total - a.total);
 
-      return { categories, transactionsByCategory };
+      return {
+        expenseCategories: toSortedItems(expenseTotals),
+        transactionsByExpenseCategory,
+        incomeCategories: toSortedItems(incomeTotals),
+        transactionsByIncomeCategory,
+      };
     },
     enabled: !!user && !!startDate && !!endDate,
   });
