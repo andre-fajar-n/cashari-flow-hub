@@ -23,10 +23,18 @@ export interface AssetDistributionItem {
   percentage: number;
 }
 
+export interface WalletDistributionItem {
+  walletId: number | null;
+  walletName: string;
+  currentValue: number;
+  percentage: number;
+}
+
 export interface PortfolioDistributionResult {
   goalAllocation: GoalAllocationItem[];
   instrumentDistribution: InstrumentDistributionItem[];
   assetDistribution: AssetDistributionItem[];
+  walletDistribution: WalletDistributionItem[];
   totalCurrentValue: number;
 }
 
@@ -37,6 +45,8 @@ interface InvestmentSummaryRow {
   instrument_name: string | null;
   asset_id: number | null;
   asset_name: string | null;
+  wallet_id: number | null;
+  wallet_name: string | null;
   current_value_base_currency: number | null;
 }
 
@@ -48,7 +58,7 @@ export const usePortfolioDistribution = (): UseQueryResult<PortfolioDistribution
     queryFn: async () => {
       const { data, error } = await supabase
         .from("investment_summary")
-        .select("goal_id, goal_name, instrument_id, instrument_name, asset_id, asset_name, current_value_base_currency");
+        .select("goal_id, goal_name, instrument_id, instrument_name, asset_id, asset_name, wallet_id, wallet_name, current_value_base_currency");
 
       if (error) {
         console.error("Failed to fetch investment summary for portfolio distribution", error);
@@ -120,6 +130,27 @@ export const usePortfolioDistribution = (): UseQueryResult<PortfolioDistribution
         }
       }
 
+      // Group by wallet_id
+      const walletMap = new Map<string, WalletDistributionItem>();
+      for (const row of rows) {
+        const key = row.wallet_id != null ? String(row.wallet_id) : "null";
+        const existing = walletMap.get(key);
+        const currentVal = row.current_value_base_currency ?? 0;
+
+        if (currentVal === 0) continue;
+
+        if (existing) {
+          existing.currentValue += currentVal;
+        } else {
+          walletMap.set(key, {
+            walletId: row.wallet_id,
+            walletName: row.wallet_name ?? "Tanpa Dompet",
+            currentValue: currentVal,
+            percentage: 0,
+          });
+        }
+      }
+
       const goalAllocationRaw = Array.from(goalMap.values()).sort(
         (a, b) => b.currentValue - a.currentValue
       );
@@ -127,6 +158,10 @@ export const usePortfolioDistribution = (): UseQueryResult<PortfolioDistribution
         (a, b) => b.currentValue - a.currentValue
       );
       const assetDistributionRaw = Array.from(assetMap.values()).sort(
+        (a, b) => b.currentValue - a.currentValue
+      );
+
+      const walletDistributionRaw = Array.from(walletMap.values()).sort(
         (a, b) => b.currentValue - a.currentValue
       );
 
@@ -150,10 +185,16 @@ export const usePortfolioDistribution = (): UseQueryResult<PortfolioDistribution
         percentage: totalCurrentValue > 0 ? (a.currentValue / totalCurrentValue) * 100 : 0,
       }));
 
+      const walletDistribution = walletDistributionRaw.map((w) => ({
+        ...w,
+        percentage: totalCurrentValue > 0 ? (w.currentValue / totalCurrentValue) * 100 : 0,
+      }));
+
       return {
         goalAllocation,
         instrumentDistribution,
         assetDistribution,
+        walletDistribution,
         totalCurrentValue,
       };
     },

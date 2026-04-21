@@ -8,12 +8,14 @@ import {
   GoalAllocationItem,
   InstrumentDistributionItem,
   AssetDistributionItem,
+  WalletDistributionItem,
 } from "@/hooks/queries/use-portfolio-distribution";
 
 interface PortfolioDistributionChartProps {
   goalAllocation: GoalAllocationItem[];
   instrumentDistribution: InstrumentDistributionItem[];
   assetDistribution: AssetDistributionItem[];
+  walletDistribution: WalletDistributionItem[];
   isLoading?: boolean;
   formatCurrency: (val: number) => string;
 }
@@ -75,17 +77,17 @@ const DonutChartView = ({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex gap-4 items-start">
       {/* Donut chart with center label */}
-      <div className="relative">
-        <ResponsiveContainer width="100%" height={260}>
+      <div className="relative shrink-0 w-[200px]">
+        <ResponsiveContainer width="100%" height={200}>
           <PieChart>
             <Pie
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={70}
-              outerRadius={120}
+              innerRadius={55}
+              outerRadius={90}
               paddingAngle={2}
               dataKey="value"
             >
@@ -115,39 +117,41 @@ const DonutChartView = ({
           <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
             Total
           </p>
-          <p className="text-sm font-bold tabular-nums text-foreground leading-tight mt-0.5">
+          <p className="text-xs font-bold tabular-nums text-foreground leading-tight mt-0.5 px-2 text-center">
             {formatCurrency(totalValue)}
           </p>
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="space-y-1.5 px-1">
-        {data.map((item, index) => (
-          <div
-            key={item.name}
-            className="flex items-center justify-between gap-3 py-0.5"
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              <div
-                className="h-2.5 w-2.5 shrink-0 rounded-full"
-                style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
-              />
-              <span className="text-xs text-foreground truncate">{item.name}</span>
+      {/* Legend — scrollable, right of chart */}
+      <div className="flex-1 min-w-0 flex flex-col">
+        <div className="overflow-y-auto max-h-[185px] space-y-1 pr-1">
+          {data.map((item, index) => (
+            <div
+              key={item.name}
+              className="flex items-center justify-between gap-2 py-0.5"
+            >
+              <div className="flex items-center gap-1.5 min-w-0">
+                <div
+                  className="h-2.5 w-2.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
+                />
+                <span className="text-xs text-foreground truncate">{item.name}</span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap">
+                  {item.percentage.toFixed(1)}%
+                </span>
+                <span className="text-xs font-semibold tabular-nums text-foreground whitespace-nowrap text-right">
+                  {formatCurrency(item.value)}
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-3 shrink-0">
-              <span className="text-xs text-muted-foreground tabular-nums">
-                {item.percentage.toFixed(1)}%
-              </span>
-              <span className="text-xs font-semibold tabular-nums text-foreground w-28 text-right">
-                {formatCurrency(item.value)}
-              </span>
-            </div>
-          </div>
-        ))}
-        <div className="flex items-center justify-between gap-3 pt-2 border-t mt-1">
-          <span className="text-xs font-semibold text-foreground">{legendValueLabel}</span>
-          <span className="text-xs font-bold tabular-nums text-foreground">
+          ))}
+        </div>
+        <div className="flex items-center justify-between gap-2 pt-2 border-t mt-1 shrink-0">
+          <span className="text-xs font-semibold text-foreground truncate">{legendValueLabel}</span>
+          <span className="text-xs font-bold tabular-nums text-foreground whitespace-nowrap">
             {formatCurrency(totalValue)}
           </span>
         </div>
@@ -160,10 +164,11 @@ const PortfolioDistributionChart = ({
   goalAllocation,
   instrumentDistribution,
   assetDistribution,
+  walletDistribution,
   isLoading,
   formatCurrency,
 }: PortfolioDistributionChartProps) => {
-  const [activeTab, setActiveTab] = useState("goal");
+  const [activeTab, setActiveTab] = useState("wallet");
 
   if (isLoading) {
     return (
@@ -196,6 +201,12 @@ const PortfolioDistributionChart = ({
     percentage: a.percentage,
   }));
 
+  const walletData = walletDistribution.map((w) => ({
+    name: w.walletName,
+    value: w.currentValue,
+    percentage: w.percentage,
+  }));
+
   const totalGoalValue = goalAllocation.reduce(
     (sum, g) => sum + g.currentValue,
     0
@@ -209,10 +220,16 @@ const PortfolioDistributionChart = ({
     0
   );
 
+  const totalWalletValue = walletDistribution.reduce(
+    (sum, w) => sum + w.currentValue,
+    0
+  );
+
   const isEmpty =
     goalAllocation.length === 0 &&
     instrumentDistribution.length === 0 &&
-    assetDistribution.length === 0;
+    assetDistribution.length === 0 &&
+    walletDistribution.length === 0;
 
   return (
     <Card className="border bg-card shadow-none">
@@ -230,6 +247,9 @@ const PortfolioDistributionChart = ({
         ) : (
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="mb-4 h-8">
+              <TabsTrigger value="wallet" className="text-xs h-7 px-3">
+                Dompet
+              </TabsTrigger>
               <TabsTrigger value="goal" className="text-xs h-7 px-3">
                 Tujuan
               </TabsTrigger>
@@ -267,6 +287,16 @@ const PortfolioDistributionChart = ({
                 totalValue={totalAssetValue}
                 formatCurrency={formatCurrency}
                 emptyLabel="Belum ada data distribusi aset"
+                legendValueLabel="Total Nilai Saat Ini"
+              />
+            </TabsContent>
+
+            <TabsContent value="wallet">
+              <DonutChartView
+                data={walletData}
+                totalValue={totalWalletValue}
+                formatCurrency={formatCurrency}
+                emptyLabel="Belum ada data distribusi dompet"
                 legendValueLabel="Total Nilai Saat Ini"
               />
             </TabsContent>

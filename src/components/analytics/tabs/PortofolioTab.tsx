@@ -21,6 +21,7 @@ const PortofolioTab = () => {
         goalAllocation={distribution?.goalAllocation ?? []}
         instrumentDistribution={distribution?.instrumentDistribution ?? []}
         assetDistribution={distribution?.assetDistribution ?? []}
+        walletDistribution={distribution?.walletDistribution ?? []}
         isLoading={isLoadingDist}
         formatCurrency={formatCurrency}
       />
