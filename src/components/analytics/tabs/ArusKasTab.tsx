@@ -14,10 +14,8 @@ import CashFlowBarChart from "@/components/analytics/CashFlowBarChart";
 import CategorySpendingChart from "@/components/analytics/CategorySpendingChart";
 
 const ArusKasTab = () => {
-  const [periodType, setPeriodType] = useState<PeriodType>("monthly");
-  const [startDate, setStartDate] = useState<Date>(
-    startOfMonth(subMonths(new Date(), 5))
-  );
+  const [periodType, setPeriodType] = useState<PeriodType>("daily");
+  const [startDate, setStartDate] = useState<Date>(startOfMonth(new Date()));
   const [endDate, setEndDate] = useState<Date>(endOfMonth(new Date()));
 
   const handlePeriodChange = (type: PeriodType, start: Date, end: Date) => {
