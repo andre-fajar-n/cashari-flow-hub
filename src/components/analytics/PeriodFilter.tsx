@@ -1,5 +1,14 @@
 import { useState, useEffect } from "react";
-import { startOfMonth, endOfMonth, startOfYear, endOfYear, addMonths, addDays, addYears, subMonths, differenceInDays } from "date-fns";
+import {
+  startOfMonth,
+  endOfMonth,
+  startOfYear,
+  endOfYear,
+  addMonths,
+  addDays,
+  addYears,
+  differenceInDays
+} from "date-fns";
 import {
   Select,
   SelectContent,
@@ -54,11 +63,11 @@ function clampRange(type: PeriodType, from: Date, to: Date): { from: Date; to: D
 function getDefaultRange(type: PeriodType): { from: Date; to: Date } {
   const now = new Date();
   if (type === "daily") {
-    return { from: addDays(now, -29), to: now };
+    return { from: startOfMonth(now), to: now };
   } else if (type === "yearly") {
     return { from: startOfYear(addYears(now, -2)), to: endOfYear(now) };
   }
-  return { from: startOfMonth(subMonths(now, 5)), to: endOfMonth(now) };
+  return { from: startOfYear(now), to: endOfMonth(now) };
 }
 
 const PeriodFilter = ({
