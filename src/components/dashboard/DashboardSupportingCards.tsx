@@ -1,9 +1,8 @@
-import { ArrowDownRight, ArrowUpRight, HelpCircle, ShieldCheck, Wallet } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, HelpCircle, TrendingUp, Wallet } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCashFlowMonth } from "@/hooks/queries/use-cashflow-month";
-import { useBudgetSummary } from "@/hooks/queries/use-budget-summary";
 import { useMoneySummary } from "@/hooks/queries/use-money-summary";
 import { useUserSettings } from "@/hooks/queries/use-user-settings";
 import { formatAmountCurrency } from "@/lib/currency";
@@ -15,7 +14,6 @@ import { MoneySummaryModel } from "@/models/money-summary";
 
 const DashboardSupportingCards = () => {
   const { data: cashFlow, isLoading: isCashFlowLoading } = useCashFlowMonth();
-  const { data: budgetSummaries, isLoading: isBudgetLoading } = useBudgetSummary();
   const { data: moneySummaries, isLoading: isMoneyLoading } = useMoneySummary();
   const { data: userSettings } = useUserSettings();
 
@@ -25,26 +23,6 @@ const DashboardSupportingCards = () => {
   const formatAmount = (val: number) =>
     formatAmountCurrency(val, baseCurrency, baseCurrencySymbol);
 
-  // Budget health: % of active budgets consumed this month
-  const budgetHealth = useMemo(() => {
-    if (!budgetSummaries) return null;
-    const today = new Date();
-    const active = budgetSummaries.filter((b) => {
-      if (!b.start_date || !b.end_date) return false;
-      return b.start_date <= format(today, "yyyy-MM-dd") && b.end_date >= format(today, "yyyy-MM-dd");
-    });
-    if (active.length === 0) return null;
-
-    let totalSpent = 0;
-    let totalLimit = 0;
-    for (const b of active) {
-      totalSpent += b.amount || 0;
-      totalLimit += b.budget_amount || 0;
-    }
-    if (totalLimit === 0) return null;
-    return (totalSpent / totalLimit) * 100;
-  }, [budgetSummaries]);
-
   // Total wallet balance (no investment — goal_id is null)
   const totalWalletBalance = useMemo(() => {
     if (!moneySummaries) return 0;
@@ -53,25 +31,15 @@ const DashboardSupportingCards = () => {
       .reduce((sum: number, m: MoneySummaryModel) => sum + (m.current_value_base_currency || 0), 0);
   }, [moneySummaries]);
 
+  // Total investment balance (goal_id is not null)
+  const totalInvestmentBalance = useMemo(() => {
+    if (!moneySummaries) return 0;
+    return moneySummaries
+      .filter((m: MoneySummaryModel) => !!m.goal_id)
+      .reduce((sum: number, m: MoneySummaryModel) => sum + (m.current_value_base_currency || 0), 0);
+  }, [moneySummaries]);
+
   const cashFlowIsPositive = (cashFlow?.netCashFlow ?? 0) >= 0;
-
-  const budgetColor =
-    budgetHealth === null
-      ? "text-muted-foreground"
-      : budgetHealth >= 100
-        ? "text-rose-600"
-        : budgetHealth >= 80
-          ? "text-amber-600"
-          : "text-emerald-600";
-
-  const budgetBg =
-    budgetHealth === null
-      ? ""
-      : budgetHealth >= 100
-        ? "border-rose-100 bg-rose-50/50"
-        : budgetHealth >= 80
-          ? "border-amber-100 bg-amber-50/50"
-          : "border-emerald-100 bg-emerald-50/50";
 
   const today = new Date();
   const monthLabel = format(today, "MMMM yyyy", { locale: id });
@@ -95,39 +63,6 @@ const DashboardSupportingCards = () => {
         : "border-rose-100 bg-rose-50/30",
     },
     {
-      key: "budget",
-      label: "Kesehatan Anggaran",
-      tooltip: "Persentase total limit anggaran aktif yang sudah terpakai bulan ini.",
-      isLoading: isBudgetLoading,
-      value: budgetHealth !== null ? `${budgetHealth.toFixed(0)}%` : "Tidak ada anggaran",
-      sub: budgetHealth !== null
-        ? budgetHealth >= 100
-          ? "Anggaran habis"
-          : budgetHealth >= 80
-            ? "Mendekati batas"
-            : "Masih aman"
-        : null,
-      icon: ShieldCheck,
-      iconBg:
-        budgetHealth === null
-          ? "bg-muted"
-          : budgetHealth >= 100
-            ? "bg-rose-100"
-            : budgetHealth >= 80
-              ? "bg-amber-100"
-              : "bg-emerald-100",
-      iconColor:
-        budgetHealth === null
-          ? "text-muted-foreground"
-          : budgetHealth >= 100
-            ? "text-rose-600"
-            : budgetHealth >= 80
-              ? "text-amber-600"
-              : "text-emerald-600",
-      valueColor: budgetColor,
-      cardClass: budgetBg,
-    },
-    {
       key: "wallet",
       label: "Total Saldo Dompet",
       tooltip: "Jumlah total saldo semua dompet dalam mata uang dasar. Tidak termasuk investasi.",
@@ -139,6 +74,19 @@ const DashboardSupportingCards = () => {
       iconColor: "text-blue-600",
       valueColor: "text-foreground",
       cardClass: "border-blue-100 bg-blue-50/30",
+    },
+    {
+      key: "investment",
+      label: "Total Saldo Investasi",
+      tooltip: "Jumlah total nilai investasi dalam mata uang dasar berdasarkan tujuan keuangan aktif.",
+      isLoading: isMoneyLoading,
+      value: formatAmount(totalInvestmentBalance),
+      sub: null,
+      icon: TrendingUp,
+      iconBg: "bg-violet-100",
+      iconColor: "text-violet-600",
+      valueColor: "text-foreground",
+      cardClass: "border-violet-100 bg-violet-50/30",
     },
   ];
 
