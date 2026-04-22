@@ -82,10 +82,10 @@ const GoalProgressChart = ({
     const targetAmount = goal.target_amount;
     const today = new Date();
 
-    // Build actual data points
+    // Build actual data points (monthly granularity)
     const actualPoints: ChartPoint[] = history.map((pt) => ({
       date: pt.date,
-      label: format(parseISO(pt.date), "d MMM yy", { locale: idLocale }),
+      label: format(parseISO(pt.date), "MMM yyyy", { locale: idLocale }),
       actual: pt.balance,
       target: targetAmount,
     }));
@@ -125,7 +125,7 @@ const GoalProgressChart = ({
           );
           projPoints.push({
             date: format(projDate, "yyyy-MM-dd"),
-            label: format(projDate, "d MMM yy", { locale: idLocale }),
+            label: format(projDate, "MMM yyyy", { locale: idLocale }),
             projection: projBalance,
             target: targetAmount,
           });
@@ -274,7 +274,7 @@ const GoalProgressChart = ({
               />
               {goal.target_date && (
                 <ReferenceLine
-                  x={format(parseISO(goal.target_date), "d MMM yy", { locale: idLocale })}
+                  x={format(parseISO(goal.target_date), "MMM yyyy", { locale: idLocale })}
                   stroke="#6366f1"
                   strokeDasharray="4 2"
                   strokeWidth={1.5}

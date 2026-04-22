@@ -1,7 +1,25 @@
 import { useMemo, useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import { CheckIcon, PlusCircledIcon } from "@radix-ui/react-icons";
 import { Target, CheckCircle2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils/cn";
 import { useGoals } from "@/hooks/queries/use-goals";
 import { useGoalProgressHistoryAll } from "@/hooks/queries/use-goal-progress-history";
 import { useUserSettings } from "@/hooks/queries/use-user-settings";
@@ -12,7 +30,7 @@ const TujuanTab = () => {
   const { data: userSettings } = useUserSettings();
   const currencySymbol = userSettings?.currencies?.symbol ?? "";
 
-  const [selectedGoalId, setSelectedGoalId] = useState<number | null>(null);
+  const [selectedGoalIds, setSelectedGoalIds] = useState<Set<number>>(new Set());
 
   const activeGoals = useMemo(
     () => (goals ?? []).filter((g) => g.is_active),
@@ -24,11 +42,21 @@ const TujuanTab = () => {
     useGoalProgressHistoryAll(allGoalIds);
 
   const goalsToShow = useMemo(() => {
-    if (selectedGoalId) {
-      return activeGoals.filter((g) => g.id === selectedGoalId);
-    }
-    return activeGoals.slice(0, 4);
-  }, [activeGoals, selectedGoalId]);
+    if (selectedGoalIds.size === 0) return activeGoals;
+    return activeGoals.filter((g) => selectedGoalIds.has(g.id));
+  }, [activeGoals, selectedGoalIds]);
+
+  const toggleGoal = (id: number) => {
+    setSelectedGoalIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   if (isLoadingGoals) {
     return (
@@ -60,28 +88,88 @@ const TujuanTab = () => {
         <div>
           <p className="text-sm font-semibold text-foreground">Progres Tujuan</p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Riwayat tabungan aktual vs target untuk setiap tujuan keuangan.
+            Riwayat nilai aktual vs target untuk setiap tujuan keuangan.
           </p>
         </div>
+
         {activeGoals.length > 1 && (
-          <Select
-            value={selectedGoalId ? String(selectedGoalId) : "all"}
-            onValueChange={(v) =>
-              setSelectedGoalId(v === "all" ? null : parseInt(v))
-            }
-          >
-            <SelectTrigger className="w-48 h-8 text-xs">
-              <SelectValue placeholder="Pilih tujuan" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Semua tujuan (maks 4)</SelectItem>
-              {activeGoals.map((g) => (
-                <SelectItem key={g.id} value={String(g.id)}>
-                  {g.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8 border-dashed text-xs">
+                <PlusCircledIcon className="mr-2 h-3.5 w-3.5" />
+                Tujuan
+                {selectedGoalIds.size > 0 && (
+                  <>
+                    <Separator orientation="vertical" className="mx-2 h-4" />
+                    {selectedGoalIds.size > 2 ? (
+                      <Badge variant="secondary" className="rounded-sm px-1 font-normal">
+                        {selectedGoalIds.size} dipilih
+                      </Badge>
+                    ) : (
+                      <div className="flex gap-1">
+                        {activeGoals
+                          .filter((g) => selectedGoalIds.has(g.id))
+                          .map((g) => (
+                            <Badge
+                              key={g.id}
+                              variant="secondary"
+                              className="rounded-sm px-1 font-normal"
+                            >
+                              {g.name}
+                            </Badge>
+                          ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[220px] p-0" align="end">
+              <Command>
+                <CommandInput placeholder="Cari tujuan..." className="text-xs" />
+                <CommandList>
+                  <CommandEmpty>Tidak ada tujuan.</CommandEmpty>
+                  <CommandGroup>
+                    {activeGoals.map((g) => {
+                      const isSelected = selectedGoalIds.has(g.id);
+                      return (
+                        <CommandItem
+                          key={g.id}
+                          onSelect={() => toggleGoal(g.id)}
+                          className="text-xs"
+                        >
+                          <div
+                            className={cn(
+                              "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary shrink-0",
+                              isSelected
+                                ? "bg-primary text-primary-foreground"
+                                : "opacity-50 [&_svg]:invisible"
+                            )}
+                          >
+                            <CheckIcon className="h-4 w-4" />
+                          </div>
+                          <span className="truncate">{g.name}</span>
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                  {selectedGoalIds.size > 0 && (
+                    <>
+                      <CommandSeparator />
+                      <CommandGroup>
+                        <CommandItem
+                          onSelect={() => setSelectedGoalIds(new Set())}
+                          className="justify-center text-center text-xs"
+                        >
+                          Hapus filter
+                        </CommandItem>
+                      </CommandGroup>
+                    </>
+                  )}
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         )}
       </div>
 
