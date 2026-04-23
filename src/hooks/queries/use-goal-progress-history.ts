@@ -80,16 +80,6 @@ async function fetchGoalHistory(
     .map(([date, balance]) => ({ date, balance }));
 }
 
-export const useGoalProgressHistory = (goalId: number) => {
-  const { user } = useAuth();
-
-  return useQuery<GoalProgressDataPoint[]>({
-    queryKey: ["goal_progress_history", goalId, user?.id],
-    queryFn: () => fetchGoalHistory(user!.id, goalId),
-    enabled: !!user && !!goalId,
-  });
-};
-
 export const useGoalProgressHistoryAll = (goalIds: number[]) => {
   const { user } = useAuth();
 
