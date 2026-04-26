@@ -21,16 +21,13 @@ EXCEPTION WHEN OTHERS THEN
   RETURN NEW;
 END;
 $$;
-
 -- 2. Fix exchange_rates table - restrict to authenticated users only
 DROP POLICY IF EXISTS "Enable read access for all users" ON public.exchange_rates;
-
 CREATE POLICY "Authenticated users can read exchange rates"
 ON public.exchange_rates
 FOR SELECT
 TO authenticated
 USING (true);
-
 -- 3. Drop dependent views first (in correct order), then recreate with security_invoker
 DROP VIEW IF EXISTS public.missing_exchange_rate CASCADE;
 DROP VIEW IF EXISTS public.budget_summary CASCADE;
@@ -41,7 +38,6 @@ DROP VIEW IF EXISTS public.business_project_summary CASCADE;
 DROP VIEW IF EXISTS public.debt_summary CASCADE;
 DROP VIEW IF EXISTS public.transaction_associations CASCADE;
 DROP VIEW IF EXISTS public.currency_pairs CASCADE;
-
 -- Recreate money_movements view with security_invoker
 CREATE OR REPLACE VIEW public.money_movements
 WITH (security_invoker = on)
@@ -261,7 +257,6 @@ GROUP BY
   recap.opposite_wallet_id, ow.name, recap.opposite_goal_id, og.name,
   recap.opposite_instrument_id, oi.name, recap.opposite_asset_id, oa.name, oa.symbol,
   recap.debt_id, d.name, def_cur.code, def_cur.symbol, er.rate;
-
 -- Recreate budget_item_with_transactions view with security_invoker
 CREATE OR REPLACE VIEW public.budget_item_with_transactions
 WITH (security_invoker = on)
@@ -296,7 +291,6 @@ LEFT JOIN public.currencies c ON c.code = b.currency_code AND c.user_id = mm.use
 LEFT JOIN public.exchange_rates er ON er.from_currency = mm.currency_code 
   AND er.to_currency = b.currency_code 
   AND er.date = mm.date;
-
 -- Recreate budget_summary view with security_invoker
 CREATE OR REPLACE VIEW public.budget_summary
 WITH (security_invoker = on)
@@ -332,7 +326,6 @@ SELECT
   COALESCE(s.amount_in_base_currency, 0) AS amount_in_base_currency
 FROM public.budgets b
 LEFT JOIN summary s ON s.budget_id = b.id;
-
 -- Recreate money_summary view with security_invoker
 CREATE OR REPLACE VIEW public.money_summary
 WITH (security_invoker = on)
@@ -398,7 +391,6 @@ LEFT JOIN LATERAL (
   ORDER BY date DESC 
   LIMIT 1
 ) iav ON mv.asset_id IS NOT NULL;
-
 -- Recreate business_project_summary view with security_invoker
 CREATE OR REPLACE VIEW public.business_project_summary
 WITH (security_invoker = on)
@@ -428,7 +420,6 @@ LEFT JOIN public.exchange_rates er ON er.from_currency = w.currency_code
   AND er.to_currency = def_cur.code
   AND er.date = t.date
 GROUP BY bp.id, bp.user_id, def_cur.code, def_cur.symbol;
-
 -- Recreate debt_summary view with security_invoker
 CREATE OR REPLACE VIEW public.debt_summary
 WITH (security_invoker = on)
@@ -454,7 +445,6 @@ LEFT JOIN public.exchange_rates er ON er.from_currency = w.currency_code
   AND er.to_currency = def_cur.code
   AND er.date = dh.date
 GROUP BY d.id, d.user_id, d.name, def_cur.code, def_cur.symbol;
-
 -- Recreate transaction_associations view with security_invoker
 CREATE OR REPLACE VIEW public.transaction_associations
 WITH (security_invoker = on)
@@ -475,7 +465,6 @@ SELECT
     WHERE bpt.transaction_id = t.id
   ) AS business_projects
 FROM public.transactions t;
-
 -- Recreate currency_pairs view with security_invoker
 CREATE OR REPLACE VIEW public.currency_pairs
 WITH (security_invoker = on)
@@ -486,7 +475,6 @@ SELECT DISTINCT
 FROM public.currencies c
 JOIN public.currencies def_c ON def_c.user_id = c.user_id AND def_c.is_default = true
 WHERE c.code != def_c.code;
-
 -- Recreate missing_exchange_rate view with security_invoker
 CREATE OR REPLACE VIEW public.missing_exchange_rate
 WITH (security_invoker = on)

@@ -18,7 +18,6 @@ select cron.schedule(
     ) as request_id;
   $$
 );
-
 -- Job 2: Worker - Process pending exchange rate jobs
 -- Runs every 5 minutes to process pending jobs
 select cron.schedule(
@@ -36,7 +35,6 @@ select cron.schedule(
     ) as request_id;
   $$
 );
-
 -- Optional: Unschedule old cron job if you want to replace it
 -- Uncomment the line below if you want to remove the old job
--- select cron.unschedule('fetch-missing-exchange-rates-daily');
+-- select cron.unschedule('fetch-missing-exchange-rates-daily');;
