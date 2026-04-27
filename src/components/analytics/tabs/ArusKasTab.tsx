@@ -9,6 +9,7 @@ import { formatAmountCurrency } from "@/lib/currency";
 import { useUserSettings } from "@/hooks/queries/use-user-settings";
 import { useCashFlowTrend } from "@/hooks/queries/use-cashflow-trend";
 import { useCategorySpending } from "@/hooks/queries/use-category-spending";
+import { useCashFlowTransactionsByPeriod } from "@/hooks/queries/use-cashflow-transactions-by-period";
 import { MOVEMENT_TYPES } from "@/constants/enums";
 import PeriodFilter, { PeriodType } from "@/components/analytics/PeriodFilter";
 import CashFlowBarChart from "@/components/analytics/CashFlowBarChart";
@@ -56,6 +57,20 @@ const ArusKasTab = () => {
     useCategorySpending(startStr, endStr, MOVEMENT_TYPES.TRANSACTION);
   const { data: investmentCategorySpending, isLoading: isLoadingInvestmentCategory } =
     useCategorySpending(startStr, endStr, MOVEMENT_TYPES.INVESTMENT_GROWTH);
+
+  const { data: transactionPeriodData } = useCashFlowTransactionsByPeriod(
+    startStr,
+    endStr,
+    periodType,
+    MOVEMENT_TYPES.TRANSACTION
+  );
+  const { data: investmentPeriodData } = useCashFlowTransactionsByPeriod(
+    startStr,
+    endStr,
+    periodType,
+    MOVEMENT_TYPES.INVESTMENT_GROWTH
+  );
+  const cashflowTransactionsByPeriod = isInvestment ? investmentPeriodData : transactionPeriodData;
 
   const categorySpending = isInvestment ? investmentCategorySpending : transactionCategorySpending;
   const isLoadingCategory = isInvestment ? isLoadingInvestmentCategory : isLoadingTransactionCategory;
@@ -255,6 +270,8 @@ const ArusKasTab = () => {
         data={cashflowTrend ?? []}
         isLoading={isLoadingTrend}
         formatCurrency={formatCurrency}
+        transactionsByPeriod={cashflowTransactionsByPeriod}
+        baseCurrencyCode={baseCurrency}
       />
 
       {/* Category charts — side by side */}
