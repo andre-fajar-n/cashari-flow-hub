@@ -174,7 +174,7 @@ export const getInvestmentAssetColumns = ({
         }
 
         if (!assetSummary?.latestAssetValue) {
-          return <span className="text-muted-foreground text-xs">Belum ada data</span>;
+          return <span className="text-muted-foreground text-xs">-</span>;
         }
 
         const zeroPosition = isZeroPosition(assetSummary);
@@ -200,6 +200,10 @@ export const getInvestmentAssetColumns = ({
       cell: ({ row }) => {
         const asset = row.original;
         const assetSummary = assetSummaryGrouped[asset.id];
+
+        if (!assetSummary) {
+          return <span className="text-foreground">-</span>;
+        }
 
         const zeroPosition = isZeroPosition(assetSummary)
         const showBaseValue = assetSummary?.baseCurrencyCode && assetSummary?.currencyCode !== assetSummary?.baseCurrencyCode;
