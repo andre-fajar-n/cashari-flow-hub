@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { format, parseISO, addMonths, addDays, addYears, startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns";
 import { id } from "date-fns/locale";
 import { MOVEMENT_TYPES } from "@/constants/enums";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export interface CashFlowMonthItem {
   month: string;      // "Jan 2025" format using date-fns id locale
@@ -19,38 +20,22 @@ interface MovementRow {
   exchange_rate: number | null;
 }
 
-const BATCH_SIZE = 1000;
-
 async function fetchAllMovements(
   userId: string,
   startDate: string,
   endDate: string,
   resourceType: string
 ): Promise<MovementRow[]> {
-  const allData: MovementRow[] = [];
-  let from = 0;
-
-  while (true) {
-    const { data, error } = await supabase
-      .from("money_movements")
-      .select("date, amount, exchange_rate")
-      .eq("user_id", userId)
-      .eq("resource_type", resourceType)
-      .gte("date", startDate)
-      .lte("date", endDate)
-      .range(from, from + BATCH_SIZE - 1);
-
-    if (error) throw error;
-
-    const batch = (data as MovementRow[]) ?? [];
-    allData.push(...batch);
-
-    if (batch.length < BATCH_SIZE) break;
-
-    from += BATCH_SIZE;
-  }
-
-  return allData;
+  const query = supabase
+    .from("money_movements")
+    .select("date, amount, exchange_rate")
+    .eq("user_id", userId)
+    .eq("resource_type", resourceType)
+    .gte("date", startDate)
+    .lte("date", endDate)
+    .order("date", { ascending: true })
+    .order("id", { ascending: true });
+  return fetchAllRows<MovementRow>(query);
 }
 
 export const useCashFlowTrend = (

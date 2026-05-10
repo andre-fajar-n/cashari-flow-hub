@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { DailyCumulative } from "@/models/daily-cumulative";
 import { getStatus, ValuationStatus } from "@/lib/balance-trend";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export type Granularity = 'day' | 'month' | 'year';
 
@@ -10,42 +11,6 @@ export interface BalanceTrendItem {
   period_date: string;
   total_balance: number;
   status: 'Exact' | 'Warning' | 'Missing';
-}
-
-/**
- * Utility to fetch all rows from a Supabase RPC or Query by handling the 1000-row limit.
- */
-async function fetchAllRows<T = any>(
-  query: any,
-  pageSize: number = 1000
-): Promise<T[]> {
-  let allData: T[] = [];
-  let from = 0;
-  let to = pageSize - 1;
-  let finished = false;
-
-  while (!finished) {
-    const { data, error } = await query.range(from, to);
-
-    if (error) {
-      console.error("Error in fetchAllRows:", error);
-      throw error;
-    }
-
-    if (data && data.length > 0) {
-      allData = [...allData, ...data];
-      if (data.length < pageSize) {
-        finished = true;
-      } else {
-        from += pageSize;
-        to += pageSize;
-      }
-    } else {
-      finished = true;
-    }
-  }
-
-  return allData;
 }
 
 export const useBalanceTrend = (

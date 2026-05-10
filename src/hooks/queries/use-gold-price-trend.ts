@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Granularity } from "./use-balance-trend";
 import { ZAKAT_CONSTANTS } from "@/lib/zakat";
 import { format, addDays, startOfMonth, startOfYear, endOfMonth, endOfYear, isToday, subDays } from "date-fns";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export type GoldPriceStatus = 'Exact' | 'Old' | 'Missing';
 
@@ -28,19 +29,15 @@ export const useGoldPriceTrend = (
       const extendedStartTime = subDays(new Date(startDate), 7);
       const startStr = format(extendedStartTime, "yyyy-MM-dd");
 
-      const { data: rangeData, error: rangeError } = await supabase
-        .from("exchange_rates")
-        .select("date, rate")
-        .eq("from_currency", "XAU")
-        .eq("to_currency", baseCurrency)
-        .gte("date", startStr)
-        .lte("date", endDate)
-        .order("date", { ascending: true });
-
-      if (rangeError) {
-        console.error("Error fetching gold price trend range:", rangeError);
-        throw rangeError;
-      }
+      const rangeData = await fetchAllRows<{ date: string; rate: number }>(
+        supabase.from("exchange_rates")
+          .select("date, rate")
+          .eq("from_currency", "XAU")
+          .eq("to_currency", baseCurrency)
+          .gte("date", startStr)
+          .lte("date", endDate)
+          .order("date", { ascending: true }) as any
+      );
 
       // Secondary query for the latest rate BEFORE the extended range
       // (This handles cases where the user picks a range with no recent data)
@@ -57,7 +54,7 @@ export const useGoldPriceTrend = (
         console.error("Error fetching gold price before range:", beforeError);
       }
 
-      const goldRates = [...(beforeData || []), ...(rangeData || [])].sort((a, b) => a.date.localeCompare(b.date));
+      const goldRates = [...(beforeData || []), ...rangeData].sort((a, b) => a.date.localeCompare(b.date));
 
       // Helper function to get rate for a specific date (or latest before it)
       const getRateForDate = (targetDate: string) => {

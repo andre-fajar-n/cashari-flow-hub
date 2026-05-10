@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { DebtHistoryFilter, DebtHistorySubmitData } from "@/form-dto/debt-histories";
 import { DebtHistoryModel } from "@/models/debt-histories";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useDebtHistories = (params: DebtHistoryFilter = {}) => {
   const { user } = useAuth();
@@ -21,7 +22,8 @@ export const useDebtHistories = (params: DebtHistoryFilter = {}) => {
           debts (id, name, type, due_date)
         `)
         .eq("user_id", user?.id)
-        .order("date", { ascending: false });
+        .order("date", { ascending: false })
+        .order("id", { ascending: true });
 
       if (debtId) {
         query = query.eq("debt_id", debtId);
@@ -31,12 +33,7 @@ export const useDebtHistories = (params: DebtHistoryFilter = {}) => {
         query = query.in("id", ids);
       }
 
-      const { data, error } = await query;
-      if (error) {
-        console.error("Error fetching debt histories:", error);
-        throw error;
-      }
-      return (data || []) as DebtHistoryModel[];
+      return fetchAllRows<DebtHistoryModel>(query as any);
     },
     enabled: !!user && (!debtId || !!debtId) && (!ids || !!ids),
   });

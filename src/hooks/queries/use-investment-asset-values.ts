@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { AssetValueFormData } from "@/form-dto/investment-asset-values";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useInvestmentAssetValues = (assetId?: number) => {
   const { user } = useAuth();
@@ -25,13 +26,9 @@ export const useInvestmentAssetValues = (assetId?: number) => {
         query = query.eq("asset_id", assetId);
       }
 
-      const { data, error } = await query.order("date", { ascending: false });
-
-      if (error) {
-        console.error("Failed to fetch investment asset values", error);
-        throw error
-      };
-      return data as any[];
+      return fetchAllRows<any>(
+        query.order("date", { ascending: false }).order("id", { ascending: true }) as any
+      );
     },
     enabled: !!user,
   });

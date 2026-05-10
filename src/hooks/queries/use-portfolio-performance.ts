@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { format, parseISO } from "date-fns";
 import { id } from "date-fns/locale";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export type PerformanceGranularity = "month";
 
@@ -26,29 +27,6 @@ interface DailyCumulativeRow {
   historical_fx_rate: number | null;
   original_currency_code: string | null;
   base_currency_code: string | null;
-}
-
-/**
- * Fetch all rows from a Supabase query by paginating through the 1000-row limit.
- */
-async function fetchAllRows<T = DailyCumulativeRow>(query: any, pageSize = 1000): Promise<T[]> {
-  let allData: T[] = [];
-  let from = 0;
-  let finished = false;
-
-  while (!finished) {
-    const { data, error } = await query.range(from, from + pageSize - 1);
-    if (error) throw error;
-    if (data && data.length > 0) {
-      allData = [...allData, ...data];
-      finished = data.length < pageSize;
-      from += pageSize;
-    } else {
-      finished = true;
-    }
-  }
-
-  return allData;
 }
 
 /**

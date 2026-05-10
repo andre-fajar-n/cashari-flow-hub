@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { DetailSummary } from "@/models/investment";
 import { InvestmentSummaryModel } from "@/models/investment-summary";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useAssetDetailSummary = (assetId: number) => {
   const { user } = useAuth();
@@ -10,17 +11,9 @@ export const useAssetDetailSummary = (assetId: number) => {
   return useQuery<DetailSummary>({
     queryKey: ["asset_detail_summary", assetId, user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("money_summary")
-        .select("*")
-        .eq("asset_id", assetId);
-
-      if (error) {
-        console.error("Failed to fetch asset detail summary", error);
-        throw error;
-      }
-
-      const items = (data || []) as unknown as InvestmentSummaryModel[];
+      const items = await fetchAllRows<InvestmentSummaryModel>(
+        supabase.from("money_summary").select("*").eq("asset_id", assetId) as any
+      );
 
       // Aggregate values
       let investedCapital = 0;

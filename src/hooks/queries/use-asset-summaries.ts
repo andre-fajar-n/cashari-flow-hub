@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { AssetSummaryData } from "@/models/money-summary";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useAssetSummaries = () => {
   const { user } = useAuth();
@@ -10,16 +11,11 @@ export const useAssetSummaries = () => {
     queryKey: ["asset_summaries", user?.id],
     queryFn: async () => {
       // Get money summary data for assets only (where asset_id is not null)
-      const { data: moneySummaries, error } = await supabase
-        .from("money_summary")
-        .select('*')
-        .eq("user_id", user?.id)
-        .not("asset_id", "is", null);
-
-      if (error) {
-        console.error("Failed to fetch asset summaries", error);
-        throw error;
-      }
+      const moneySummaries = await fetchAllRows(
+        supabase.from("money_summary").select('*')
+          .eq("user_id", user?.id)
+          .not("asset_id", "is", null)
+      );
 
       // Group by asset_id and aggregate the data
       const assetMap = new Map<number, AssetSummaryData>();

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { BudgetItemWithTransactions } from "@/models/budget-transactions";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useBudgetTransactionsByBudgetId = (budgetId: number) => {
   const { user } = useAuth();
@@ -10,19 +11,14 @@ export const useBudgetTransactionsByBudgetId = (budgetId: number) => {
   return useQuery<BudgetItemWithTransactions[]>({
     queryKey: ["budget-transactions-by-budget-id", budgetId],
     queryFn: async (): Promise<BudgetItemWithTransactions[]> => {
-      let queryBuilder = supabase
+      const queryBuilder = supabase
         .from("budget_item_with_transactions")
         .select("*")
         .eq("budget_id", budgetId)
         .order("date", { ascending: false })
         .order("id", { ascending: false });
 
-      const { data, error } = await queryBuilder;
-      if (error) {
-        console.error("Failed to fetch budget transactions", error);
-        throw error;
-      }
-      return (data || []) as BudgetItemWithTransactions[];
+      return fetchAllRows<BudgetItemWithTransactions>(queryBuilder as any);
     },
     enabled: !!user,
   });

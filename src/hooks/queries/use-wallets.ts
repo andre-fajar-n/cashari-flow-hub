@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { WalletFormData } from "@/form-dto/wallets";
 import { WalletModel } from "@/models/wallets";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useWallets = () => {
   const { user } = useAuth();
@@ -11,14 +12,12 @@ export const useWallets = () => {
   return useQuery<WalletModel[]>({
     queryKey: ["wallets", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("wallets")
-        .select("*, currency:currencies(*)")
-        .eq("user_id", user?.id)
-        .order("name");
-      
-      if (error) throw error;
-      return data as WalletModel[];
+      return fetchAllRows<WalletModel>(
+        supabase.from("wallets").select("*, currency:currencies(*)")
+          .eq("user_id", user?.id)
+          .order("name")
+          .order("id", { ascending: true }) as any
+      );
     },
     enabled: !!user,
   });

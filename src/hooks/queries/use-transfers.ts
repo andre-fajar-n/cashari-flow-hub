@@ -5,6 +5,7 @@ import { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useToast } from "@/hooks/use-toast";
 import { TransferFilter } from "@/form-dto/transfer";
 import { TransferModel } from "@/models/transfer";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useTransfers = (params?: TransferFilter) => {
   const { user } = useAuth();
@@ -27,12 +28,9 @@ export const useTransfers = (params?: TransferFilter) => {
         query = query.in("id", params.ids);
       }
 
-      const { data, error } = await query;
-      if (error) {
-        console.error("Failed to fetch transfers", error);
-        throw error;
-      }
-      return (data || []) as unknown as TransferModel[];
+      return fetchAllRows<TransferModel>(
+        query.order("id", { ascending: true }) as any
+      );
     },
     enabled: !!user && (!params?.ids || !!params?.ids),
   });

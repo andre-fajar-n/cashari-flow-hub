@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { GoalFormData } from "@/form-dto/goals";
 import { GoalModel } from "@/models/goals";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useGoals = () => {
   const { user } = useAuth();
@@ -11,14 +12,12 @@ export const useGoals = () => {
   return useQuery<GoalModel[]>({
     queryKey: ["goals", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("goals")
-        .select("*")
-        .eq("user_id", user?.id)
-        .order("name");
-      
-      if (error) throw error;
-      return data;
+      return fetchAllRows<GoalModel>(
+        supabase.from("goals").select("*")
+          .eq("user_id", user?.id)
+          .order("name")
+          .order("id", { ascending: true }) as any
+      );
     },
     enabled: !!user,
   });

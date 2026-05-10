@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { BudgetSummary } from "@/models/budgets";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useBudgetSummary = (budgetId?: number) => {
   const { user } = useAuth();
@@ -12,19 +13,14 @@ export const useBudgetSummary = (budgetId?: number) => {
       let query = supabase
         .from("budget_summary")
         .select(`*`)
-        .eq("user_id", user?.id);
+        .eq("user_id", user?.id)
+        .order("budget_id", { ascending: true });
 
       if (budgetId) {
         query = query.eq("budget_id", budgetId);
       }
 
-      const { data, error } = await query;
-
-      if (error) {
-        console.error("Failed to fetch budget summary", error);
-        throw error;
-      }
-      return data;
+      return fetchAllRows<BudgetSummary>(query as any);
     },
     enabled: !!user,
   });

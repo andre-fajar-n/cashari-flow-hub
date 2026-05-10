@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { MoneySummaryFilter } from "@/form-dto/money-summary";
 import { MoneySummaryModel } from "@/models/money-summary";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useMoneySummary = (filter?: MoneySummaryFilter) => {
   const { user } = useAuth();
@@ -36,13 +37,7 @@ export const useMoneySummary = (filter?: MoneySummaryFilter) => {
         query = query.not("goal_id", "is", null);
       }
 
-      const { data: fundSummary, error: error } = await query;
-      if (error) {
-        console.error("Failed to fetch money summary", error);
-        throw error;
-      }
-
-      return fundSummary;
+      return fetchAllRows<MoneySummaryModel>(query as any);
     },
     enabled: !!user,
   });

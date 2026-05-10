@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { InstrumentFormData } from "@/form-dto/investment-instruments";
 import { InvestmentInstrumentModel } from "@/models/investment-instruments";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useInvestmentInstruments = () => {
   const { user } = useAuth();
@@ -11,17 +12,12 @@ export const useInvestmentInstruments = () => {
   return useQuery<InvestmentInstrumentModel[]>({
     queryKey: ["investment_instruments", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("investment_instruments")
-        .select("*")
-        .eq("user_id", user?.id)
-        .order("name");
-
-      if (error) {
-        console.error("Error fetching investment instruments:", error);
-        throw error;
-      }
-      return data;
+      return fetchAllRows<InvestmentInstrumentModel>(
+        supabase.from("investment_instruments").select("*")
+          .eq("user_id", user?.id)
+          .order("name")
+          .order("id", { ascending: true }) as any
+      );
     },
     enabled: !!user,
   });

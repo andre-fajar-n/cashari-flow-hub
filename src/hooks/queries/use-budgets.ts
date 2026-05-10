@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { BudgetFormData } from "@/form-dto/budget";
 import { BudgetModel } from "@/models/budgets";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 const syncCategories = async (budgetId: number, categoryIds: number[], userId: string) => {
   await supabase.from("budget_categories").delete().eq("budget_id", budgetId).eq("user_id", userId);
@@ -20,14 +21,12 @@ export const useBudgets = () => {
   return useQuery<BudgetModel[]>({
     queryKey: ["budgets", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("budgets")
-        .select("*")
-        .eq("user_id", user?.id)
-        .order("name");
-
-      if (error) throw error;
-      return data;
+      return fetchAllRows<BudgetModel>(
+        supabase.from("budgets").select("*")
+          .eq("user_id", user?.id)
+          .order("name")
+          .order("id", { ascending: true }) as any
+      );
     },
     enabled: !!user,
   });

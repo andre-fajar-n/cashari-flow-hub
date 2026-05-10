@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useBudgetCategories = (budgetId?: number) => {
   const { user } = useAuth();
@@ -8,14 +9,14 @@ export const useBudgetCategories = (budgetId?: number) => {
   return useQuery<number[]>({
     queryKey: ["budget-categories", user?.id, budgetId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("budget_categories")
-        .select("category_id")
-        .eq("user_id", user?.id)
-        .eq("budget_id", budgetId!);
-
-      if (error) throw error;
-      return (data || []).map((row) => row.category_id);
+      const rows = await fetchAllRows<{ category_id: number }>(
+        supabase.from("budget_categories")
+          .select("category_id")
+          .eq("user_id", user?.id)
+          .eq("budget_id", budgetId!)
+          .order("category_id", { ascending: true }) as any
+      );
+      return rows.map((row) => row.category_id);
     },
     enabled: !!user && !!budgetId,
   });

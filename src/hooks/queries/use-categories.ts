@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CategoryFormData } from "@/form-dto/categories";
 import { CategoryApplication } from "@/constants/enums";
 import { CategoryModel } from "@/models/categories";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useCategories = (
   isIncome?: boolean,
@@ -19,8 +20,7 @@ export const useCategories = (
       let query = supabase
         .from("categories")
         .select("*")
-        .eq("user_id", user?.id)
-        .order("name");
+        .eq("user_id", user?.id);
 
       if (isIncome !== undefined) {
         query = query.eq("is_income", isIncome);
@@ -34,12 +34,9 @@ export const useCategories = (
         query = query.or(filters);
       }
 
-      const { data, error } = await query.order("name");
-      if (error) {
-        console.error("Failed to fetch categories", error);
-        throw error;
-      };
-      return data;
+      return fetchAllRows<CategoryModel>(
+        query.order("name").order("id", { ascending: true }) as any
+      );
     },
     enabled: !!user,
   });

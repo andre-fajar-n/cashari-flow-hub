@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { MoneyMovementModel } from "@/models/money-movements";
 import { useQuery } from "@tanstack/react-query";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useMoneyMovements = (filter?: MoneyMovementFilter) => {
   const { user } = useAuth();
@@ -49,12 +50,11 @@ export const useMoneyMovements = (filter?: MoneyMovementFilter) => {
         query = query.in("resource_id", filter.resourceIds);
       }
 
-      const { data, error } = await query.order("date", { ascending: false }).order("created_at", { ascending: false });
-      if (error) {
-        console.error("Failed to fetch money movements", error);
-        throw error;
-      }
-      return (data || []) as MoneyMovementModel[];
+      return fetchAllRows<MoneyMovementModel>(
+        query.order("date", { ascending: false })
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: true }) as any
+      );
     },
     enabled: !!user,
   });

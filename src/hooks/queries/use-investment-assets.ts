@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { AssetFormData } from "@/form-dto/investment-assets";
 import { InvestmentAssetModel } from "@/models/investment-assets";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useInvestmentAssets = (instrumentId?: number) => {
   const { user } = useAuth();
@@ -20,10 +21,9 @@ export const useInvestmentAssets = (instrumentId?: number) => {
         query = query.eq("instrument_id", instrumentId);
       }
 
-      const { data, error } = await query.order("name");
-
-      if (error) throw error;
-      return (data || []) as InvestmentAssetModel[];
+      return fetchAllRows<InvestmentAssetModel>(
+        query.order("name").order("id", { ascending: true }) as any
+      );
     },
     enabled: !!user,
   });

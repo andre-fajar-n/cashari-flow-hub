@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { DebtFormData, DebtFilter } from "@/form-dto/debts";
 import { Database } from "@/integrations/supabase/types";
 import { DebtModel } from "@/models/debts";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useDebts = (filter?: DebtFilter) => {
   const { user } = useAuth();
@@ -16,18 +17,14 @@ export const useDebts = (filter?: DebtFilter) => {
         .from("debts")
         .select("*")
         .eq("user_id", user?.id)
-        .order("name");
+        .order("name")
+        .order("id", { ascending: true });
 
       if (filter?.status) {
         query = query.eq("status", filter.status);
       }
 
-      const { data, error } = await query;
-      if (error) {
-        console.error("Failed to fetch debts", error);
-        throw error;
-      };
-      return data;
+      return fetchAllRows<DebtModel>(query as any);
     },
     enabled: !!user,
   });

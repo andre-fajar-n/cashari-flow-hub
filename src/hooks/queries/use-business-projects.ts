@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { BusinessProjectFormData } from "@/form-dto/business-projects";
 import { BusinessProjectModel } from "@/models/business-projects";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useBusinessProjects = () => {
   const { user } = useAuth();
@@ -11,17 +12,12 @@ export const useBusinessProjects = () => {
   return useQuery<BusinessProjectModel[]>({
     queryKey: ["business_projects", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("business_projects")
-        .select("*")
-        .eq("user_id", user?.id)
-        .order("name");
-      
-      if (error) {
-        console.error("Failed to fetch business projects", error);
-        throw error;
-      };
-      return data;
+      return fetchAllRows<BusinessProjectModel>(
+        supabase.from("business_projects").select("*")
+          .eq("user_id", user?.id)
+          .order("name")
+          .order("id", { ascending: true }) as any
+      );
     },
     enabled: !!user,
   });

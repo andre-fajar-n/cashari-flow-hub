@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { TablesInsert } from "@/integrations/supabase/types";
 import { GoalTransferFilter, GoalTransferFormData } from "@/form-dto/goal-transfers";
 import { GoalTransferWithRelations } from "@/models/goal-transfers";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useGoalTransfers = (params?: GoalTransferFilter) => {
   const { user } = useAuth();
@@ -32,12 +33,9 @@ export const useGoalTransfers = (params?: GoalTransferFilter) => {
         query = query.in("id", params.ids);
       }
 
-      const { data, error } = await query;
-      if (error) {
-        console.error("Failed to fetch goal transfers", error);
-        throw error;
-      }
-      return (data || []) as unknown as GoalTransferWithRelations[];
+      return fetchAllRows<GoalTransferWithRelations>(
+        query.order("id", { ascending: true }) as any
+      );
     },
     enabled: !!user,
   });

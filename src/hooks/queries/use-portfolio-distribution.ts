@@ -1,6 +1,7 @@
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export interface GoalAllocationItem {
   goalId: number | null;
@@ -56,16 +57,10 @@ export const usePortfolioDistribution = (): UseQueryResult<PortfolioDistribution
   return useQuery<PortfolioDistributionResult>({
     queryKey: ["portfolio_distribution", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("investment_summary")
-        .select("goal_id, goal_name, instrument_id, instrument_name, asset_id, asset_name, wallet_id, wallet_name, current_value_base_currency");
-
-      if (error) {
-        console.error("Failed to fetch investment summary for portfolio distribution", error);
-        throw error;
-      }
-
-      const rows = (data || []) as InvestmentSummaryRow[];
+      const rows = await fetchAllRows<InvestmentSummaryRow>(
+        supabase.from("investment_summary")
+          .select("goal_id, goal_name, instrument_id, instrument_name, asset_id, asset_name, wallet_id, wallet_name, current_value_base_currency") as any
+      );
 
       // Group by goal_id
       const goalMap = new Map<string, GoalAllocationItem>();

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CurrencyModel } from "@/models/currencies";
 import { CurrencyFilter } from "@/form-dto/currencies";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useCurrencies = (filter?: CurrencyFilter) => {
   return useQuery<CurrencyModel[]>({
@@ -16,13 +17,7 @@ export const useCurrencies = (filter?: CurrencyFilter) => {
         query = query.in("code", filter.codes);
       }
 
-      const { data, error } = await query;
-      if (error) {
-        console.error("Failed to fetch currencies", error);
-        throw error;
-      };
-
-      return data;
+      return fetchAllRows<CurrencyModel>(query as any);
     },
   });
 };

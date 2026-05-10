@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { InvestmentSummaryModel, GoalInvestmentSummary } from "@/models/investment-summary";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useInvestmentSummary = () => {
   const { user } = useAuth();
@@ -9,16 +10,9 @@ export const useInvestmentSummary = () => {
   return useQuery<InvestmentSummaryModel[]>({
     queryKey: ["investment_summary", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("money_summary")
-        .select("*");
-
-      if (error) {
-        console.error("Failed to fetch investment summary", error);
-        throw error;
-      }
-
-      return data || [];
+      return fetchAllRows(
+        supabase.from("money_summary").select("*")
+      );
     },
     enabled: !!user,
   });
@@ -30,20 +24,14 @@ export const useGoalInvestmentSummary = () => {
   return useQuery<Record<number, GoalInvestmentSummary>>({
     queryKey: ["goal_investment_summary", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("investment_summary")
-        .select("*")
-        .not("goal_id", "is", null);
-
-      if (error) {
-        console.error("Failed to fetch goal investment summary", error);
-        throw error;
-      }
+      const data = await fetchAllRows(
+        supabase.from("investment_summary").select("*").not("goal_id", "is", null)
+      );
 
       // Group by goal_id and aggregate
       const goalMap = new Map<number, GoalInvestmentSummary>();
 
-      for (const item of data || []) {
+      for (const item of data) {
         if (!item.goal_id) continue;
 
         const existing = goalMap.get(item.goal_id);

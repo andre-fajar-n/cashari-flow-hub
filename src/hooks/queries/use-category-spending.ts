@@ -2,6 +2,7 @@ import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { MOVEMENT_TYPES } from "@/constants/enums";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export interface CategorySpendingItem {
   categoryId: number | null;
@@ -39,45 +40,27 @@ interface MovementRow {
   currency_symbol: string | null;
 }
 
-const BATCH_SIZE = 1000;
-
 async function fetchAllMovements(
   userId: string,
   startDate: string,
   endDate: string,
   resourceType: string
 ): Promise<MovementRow[]> {
-  const allData: MovementRow[] = [];
-  let from = 0;
+  let query = supabase
+    .from("money_movements")
+    .select("id, date, description, amount, exchange_rate, category_id, category_name, currency_code, currency_symbol")
+    .eq("user_id", userId)
+    .eq("resource_type", resourceType)
+    .not("id", "is", null)
+    .gte("date", startDate)
+    .lte("date", endDate)
+    .order("id", { ascending: true });
 
-  while (true) {
-    let query = supabase
-      .from("money_movements")
-      .select("id, date, description, amount, exchange_rate, category_id, category_name, currency_code, currency_symbol")
-      .eq("user_id", userId)
-      .eq("resource_type", resourceType)
-      .not("id", "is", null)
-      .gte("date", startDate)
-      .lte("date", endDate)
-      .range(from, from + BATCH_SIZE - 1);
-
-    if (resourceType === MOVEMENT_TYPES.TRANSACTION) {
-      query = query.not("category_id", "is", null);
-    }
-
-    const { data, error } = await query;
-
-    if (error) throw error;
-
-    const batch = (data as unknown as MovementRow[]) ?? [];
-    allData.push(...batch);
-
-    if (batch.length < BATCH_SIZE) break;
-
-    from += BATCH_SIZE;
+  if (resourceType === MOVEMENT_TYPES.TRANSACTION) {
+    query = query.not("category_id", "is", null);
   }
 
-  return allData;
+  return fetchAllRows<MovementRow>(query);
 }
 
 export const useCategorySpending = (

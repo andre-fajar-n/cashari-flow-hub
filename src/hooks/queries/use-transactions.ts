@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { TransactionFormData, TransactionFilter } from "@/form-dto/transactions";
 import { TransactionModel } from "@/models/transactions";
 import { checkUnusualSpending } from "@/hooks/use-auto-detect-unusual-spending";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useTransactions = (filter?: TransactionFilter) => {
   const { user } = useAuth();
@@ -43,12 +44,9 @@ export const useTransactions = (filter?: TransactionFilter) => {
         query = query.in("id", filter.ids);
       }
 
-      const { data, error } = await query;
-      if (error) {
-        console.error("Failed to fetch transactions", error);
-        throw error;
-      }
-      return (data || []) as unknown as TransactionModel[];
+      return fetchAllRows<TransactionModel>(
+        query.order("id", { ascending: true }) as any
+      );
     },
     enabled: !!user,
   });

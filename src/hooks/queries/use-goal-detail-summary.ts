@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { GoalDetailSummary } from "@/models/investment";
 import { InvestmentSummaryModel } from "@/models/investment-summary";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export interface WalletBreakdown {
   walletId: number;
@@ -66,18 +67,10 @@ export const useGoalDetailSummary = (goalId: number) => {
   return useQuery<GoalDetailSummary>({
     queryKey: ["goal_detail_summary", goalId, user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("investment_summary")
-        .select("*")
-        .eq("goal_id", goalId);
-
-      if (error) {
-        console.error("Failed to fetch goal detail summary", error);
-        throw error;
-      }
-
-      // Cast to extended type since the view has more fields than the auto-generated types
-      const items = (data || []) as unknown as InvestmentSummaryModel[];
+      // Advisory view — row count bounded by user's instruments/assets, no tiebreaker needed
+      const items = await fetchAllRows<InvestmentSummaryModel>(
+        supabase.from("investment_summary").select("*").eq("goal_id", goalId) as any
+      );
 
       // Aggregate values
       let totalInvestedCapital = 0;

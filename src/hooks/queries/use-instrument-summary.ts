@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 // Currency breakdown item
 export interface CurrencyBreakdown {
@@ -51,26 +52,18 @@ export const useInstrumentSummary = () => {
   return useQuery<InstrumentSummary[]>({
     queryKey: ["instrument_summary", user?.id],
     queryFn: async () => {
-      // Fetch investment summary data from money_summary view
-      const { data: summaryData, error: summaryError } = await supabase
-        .from("money_summary")
-        .select("*");
-
-      if (summaryError) {
-        console.error("Failed to fetch money summary", summaryError);
-        throw summaryError;
-      }
+      // Fetch investment summary data from money_summary view (advisory — row count bounded by user's assets)
+      const summaryData = await fetchAllRows(
+        supabase.from("money_summary").select("*")
+      );
 
       // Fetch instrument metadata for unit_label
-      const { data: instrumentData, error: instrumentError } = await supabase
-        .from("investment_instruments")
-        .select("id, name, unit_label, is_trackable")
-        .eq("user_id", user?.id);
-
-      if (instrumentError) {
-        console.error("Failed to fetch instruments", instrumentError);
-        throw instrumentError;
-      }
+      const instrumentData = await fetchAllRows<{ id: number; name: string; unit_label: string | null; is_trackable: boolean }>(
+        supabase.from("investment_instruments")
+          .select("id, name, unit_label, is_trackable")
+          .eq("user_id", user?.id)
+          .order("id", { ascending: true }) as any
+      );
 
       // Fetch user settings for base currency
       const { data: userSettings, error: settingsError } = await supabase
@@ -84,8 +77,8 @@ export const useInstrumentSummary = () => {
       }
 
       const userBaseCurrency = userSettings?.base_currency_code || "IDR";
-      const items = (summaryData || []) as unknown as InvestmentSummaryRow[];
-      const instrumentMap = new Map(instrumentData?.map(i => [i.id, i]) || []);
+      const items = summaryData as unknown as InvestmentSummaryRow[];
+      const instrumentMap = new Map(instrumentData.map(i => [i.id, i]));
 
       // Group by instrument_id and aggregate
       const summaryMap = new Map<number, {

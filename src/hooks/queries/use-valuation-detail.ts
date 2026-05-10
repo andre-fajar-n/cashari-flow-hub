@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DailyCumulative } from "@/models/daily-cumulative";
 import { getStatus, ValuationStatus } from "@/lib/balance-trend";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export interface ValuationDetail {
   asset_id: string;
@@ -26,20 +27,16 @@ export const useValuationDetail = (date: string | null) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      const { data, error } = await supabase
-        .from("daily_cumulative")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("movement_date", date);
-
-      if (error) {
-        console.error("Error fetching valuation details:", error);
-        throw error;
-      }
+      const data = await fetchAllRows<DailyCumulative>(
+        supabase.from("daily_cumulative").select("*")
+          .eq("user_id", user.id)
+          .eq("movement_date", date)
+          .order("id", { ascending: true }) as any
+      );
 
       // Step 1: Basic filtering and aggregation
       // Group by asset_id and original_currency_code to sum units
-      const aggregated = (data || []).reduce((acc: Record<string, DailyCumulative>, item: DailyCumulative) => {
+      const aggregated = data.reduce((acc: Record<string, DailyCumulative>, item: DailyCumulative) => {
         const key = `${item.asset_id || 'null'}-${item.original_currency_code}`;
         if (!acc[key]) {
           acc[key] = { ...item, cumulative_unit: 0 };

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useBusinessProjectTransactions = (projectId?: number) => {
   const { user } = useAuth();
@@ -13,23 +14,19 @@ export const useBusinessProjectTransactions = (projectId?: number) => {
     queryFn: async () => {
       if (!projectId) return [];
 
-      const { data, error } = await supabase
-        .from("business_project_transactions")
-        .select(`
-          *,
-          transactions!inner(
+      return fetchAllRows(
+        supabase.from("business_project_transactions")
+          .select(`
             *,
-            categories(name, is_income),
-            wallets(name, currency_code)
-          )
-        `)
-        .eq("project_id", projectId);
-
-      if (error) {
-        console.error("Failed to fetch business project transactions", error);
-        throw error;
-      }
-      return data;
+            transactions!inner(
+              *,
+              categories(name, is_income),
+              wallets(name, currency_code)
+            )
+          `)
+          .eq("project_id", projectId)
+          .order("transaction_id", { ascending: true })
+      );
     },
     enabled: !!user && !!projectId,
   });

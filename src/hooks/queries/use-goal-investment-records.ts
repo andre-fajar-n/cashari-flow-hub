@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { GoalInvestmentRecordFilter } from "@/form-dto/goal-investment-records";
 import { GoalInvestmentRecordWithRelations } from "@/models/goal-investment-records";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export const useGoalInvestmentRecords = (params?: GoalInvestmentRecordFilter) => {
   const { user } = useAuth();
@@ -36,12 +37,9 @@ export const useGoalInvestmentRecords = (params?: GoalInvestmentRecordFilter) =>
         query = query.in("id", params.ids);
       }
 
-      const { data, error } = await query.order("date", { ascending: false });
-      if (error) {
-        console.error("Failed to fetch goal investment records", error);
-        throw error;
-      }
-      return (data || []) as GoalInvestmentRecordWithRelations[];
+      return fetchAllRows<GoalInvestmentRecordWithRelations>(
+        query.order("date", { ascending: false }).order("id", { ascending: true }) as any
+      );
     },
     enabled: !!user,
   });

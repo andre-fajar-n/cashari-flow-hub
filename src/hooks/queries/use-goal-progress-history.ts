@@ -2,13 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { format, endOfMonth, eachMonthOfInterval, parseISO } from "date-fns";
+import { fetchAllRows } from "@/integrations/supabase/batch-fetch";
 
 export interface GoalProgressDataPoint {
   date: string;
   balance: number;
 }
-
-const PAGE_SIZE = 1000;
 
 function computeMonthEndDates(firstDate: string): string[] {
   return eachMonthOfInterval({
@@ -39,28 +38,18 @@ async function fetchGoalHistory(
 
   const endDates = computeMonthEndDates(minRow.movement_date);
 
-  // Paginated fetch of end-of-month rows
-  const allRows: {
+  const query = supabase
+    .from("daily_cumulative")
+    .select("movement_date, historical_current_value_base_currency")
+    .eq("user_id", userId)
+    .eq("goal_id", goalId)
+    .in("movement_date", endDates)
+    .order("movement_date", { ascending: true });
+
+  const allRows = await fetchAllRows<{
     movement_date: string | null;
     historical_current_value_base_currency: number | null;
-  }[] = [];
-  let from = 0;
-  while (true) {
-    const { data, error } = await supabase
-      .from("daily_cumulative")
-      .select("movement_date, historical_current_value_base_currency")
-      .eq("user_id", userId)
-      .eq("goal_id", goalId)
-      .in("movement_date", endDates)
-      .order("movement_date", { ascending: true })
-      .range(from, from + PAGE_SIZE - 1);
-
-    if (error) throw error;
-    if (!data || data.length === 0) break;
-    allRows.push(...data);
-    if (data.length < PAGE_SIZE) break;
-    from += PAGE_SIZE;
-  }
+  }>(query);
 
   if (allRows.length === 0) return [];
 
