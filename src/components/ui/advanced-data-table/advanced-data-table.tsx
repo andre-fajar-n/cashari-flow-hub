@@ -1,6 +1,9 @@
 import React from "react";
 import {
   ColumnDef,
+  OnChangeFn,
+  Row,
+  RowSelectionState,
   VisibilityState,
   flexRender,
   getCoreRowModel,
@@ -51,6 +54,11 @@ export interface AdvancedDataTableProps<TData, TValue> {
 
   // Additional filters for empty state detection
   hasActiveFilters?: boolean;
+
+  // Row selection (optional)
+  rowSelection?: RowSelectionState;
+  onRowSelectionChange?: OnChangeFn<RowSelectionState>;
+  getRowCanSelect?: (row: Row<TData>) => boolean;
 }
 
 export function AdvancedDataTable<TData, TValue>({
@@ -68,6 +76,9 @@ export function AdvancedDataTable<TData, TValue>({
   noResultsState,
   toolbar,
   hasActiveFilters = false,
+  rowSelection,
+  onRowSelectionChange,
+  getRowCanSelect,
 }: AdvancedDataTableProps<TData, TValue>) {
   // Internal column visibility state (if not controlled)
   const [internalColumnVisibility, setInternalColumnVisibility] = React.useState<VisibilityState>({});
@@ -81,8 +92,12 @@ export function AdvancedDataTable<TData, TValue>({
     columns,
     state: {
       columnVisibility,
+      ...(rowSelection !== undefined ? { rowSelection } : {}),
     },
+    enableRowSelection: !!onRowSelectionChange,
+    getRowCanSelect,
     onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange,
     getCoreRowModel: getCoreRowModel(),
   });
 

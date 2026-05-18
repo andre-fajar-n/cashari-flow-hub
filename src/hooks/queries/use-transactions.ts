@@ -181,3 +181,86 @@ export const useDeleteTransaction = () => {
     },
   });
 };
+
+export interface BulkTransactionUpdateData {
+  category_id?: string | null;
+  wallet_id?: string | null;
+  date?: string | null;
+  description?: string | null;
+}
+
+export const useBulkUpdateTransactions = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async ({ ids, data }: { ids: number[]; data: BulkTransactionUpdateData }) => {
+      const payload: Record<string, any> = { updated_at: new Date().toISOString() };
+      if (data.category_id) payload.category_id = parseInt(data.category_id);
+      if (data.wallet_id) payload.wallet_id = parseInt(data.wallet_id);
+      if (data.date) payload.date = data.date;
+      if (data.description) payload.description = data.description;
+
+      const { error } = await supabase
+        .from("transactions")
+        .update(payload)
+        .in("id", ids)
+        .eq("user_id", user?.id);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, { ids }) => {
+      queryClient.invalidateQueries({ queryKey: ["transactions", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions_paginated", user?.id] });
+      toast({
+        title: "Berhasil",
+        description: `${ids.length} transaksi berhasil diperbarui`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Gagal memperbarui transaksi",
+        description: "Terjadi kesalahan: " + error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useBulkDeleteTransactions = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (ids: number[]) => {
+      const { error } = await supabase
+        .from("transactions")
+        .delete()
+        .in("id", ids)
+        .eq("user_id", user?.id);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, ids) => {
+      queryClient.invalidateQueries({ queryKey: ["transactions", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      queryClient.invalidateQueries({ queryKey: ["money_movements_paginated"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions_paginated", user?.id] });
+      toast({
+        title: "Berhasil",
+        description: `${ids.length} transaksi berhasil dihapus`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Gagal menghapus transaksi",
+        description: "Terjadi kesalahan: " + error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};

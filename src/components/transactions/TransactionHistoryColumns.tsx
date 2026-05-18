@@ -2,6 +2,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { MoneyMovementModel } from "@/models/money-movements";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DataTableColumnHeader } from "@/components/ui/advanced-data-table";
 import {
   ArrowUpCircle,
@@ -24,6 +25,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 export interface TransactionHistoryColumnsProps {
   hideResourceType?: boolean;
   hideAdditionalInfo?: boolean;
+  enableRowSelection?: boolean;
   onEdit: (movement: MoneyMovementModel) => void;
   onDelete: (movement: MoneyMovementModel) => void;
   onRemoveFromBudget?: (transactionId: number) => void; // Optional: for budget detail page
@@ -36,12 +38,40 @@ export interface TransactionHistoryColumnsProps {
 export const getTransactionHistoryColumns = ({
   hideResourceType,
   hideAdditionalInfo,
+  enableRowSelection,
   onEdit,
   onDelete,
   onRemoveFromBudget,
   onRemoveFromProject,
 }: TransactionHistoryColumnsProps): ColumnDef<MoneyMovementModel>[] => {
   const columns = []
+
+  const selectColumn: ColumnDef<MoneyMovementModel> = {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Pilih semua"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        disabled={!row.getCanSelect()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Pilih baris"
+      />
+    ),
+    enableSorting: false,
+  };
+
+  if (enableRowSelection) {
+    columns.push(selectColumn);
+  }
 
   const resourceTypeColumn = {
     accessorKey: "resource_type",

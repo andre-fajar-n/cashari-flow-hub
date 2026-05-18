@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { RowSelectionState } from "@tanstack/react-table";
 import { useForm } from "react-hook-form";
 import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -13,12 +15,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import TransactionDialog from "@/components/transactions/TransactionDialog";
+import BulkTransactionEditDialog from "@/components/transactions/BulkTransactionEditDialog";
 import TransferDialog from "@/components/transfers/TransferDialog";
 import GoalTransferDialog from "@/components/goal/GoalTransferDialog";
 import GoalInvestmentRecordDialog from "@/components/goal/GoalInvestmentRecordDialog";
 import DebtHistoryDialog from "@/components/debt/DebtHistoryDialog";
 import { DeleteConfirmationModal, useDeleteConfirmation } from "@/components/DeleteConfirmationModal";
-import { useDeleteTransaction, useTransactions } from "@/hooks/queries/use-transactions";
+import { useDeleteTransaction, useTransactions, useBulkUpdateTransactions, useBulkDeleteTransactions, BulkTransactionUpdateData } from "@/hooks/queries/use-transactions";
 import { useDeleteTransfer, useTransfers, useCreateTransfer, useUpdateTransfer } from "@/hooks/queries/use-transfers";
 import { useCreateGoalTransfer, useDeleteGoalTransfer, useGoalTransfers, useUpdateGoalTransfer } from "@/hooks/queries/use-goal-transfers";
 import { useCreateGoalInvestmentRecord, useDeleteGoalInvestmentRecord, useGoalInvestmentRecords, useUpdateGoalInvestmentRecord } from "@/hooks/queries/use-goal-investment-records";
@@ -119,6 +122,11 @@ const TransactionHistory = () => {
     title: "Hapus Item",
     description: "Apakah Anda yakin ingin menghapus item ini? Tindakan ini tidak dapat dibatalkan.",
   });
+
+  // Bulk selection state
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
+  const bulkDeleteConfirmation = useDeleteConfirmation<number[]>();
 
   const { data: paged, isLoading: isMovementsLoading } = useMoneyMovementsPaginated({
     page: tableState.page,
@@ -359,6 +367,44 @@ const TransactionHistory = () => {
     }
   };
 
+  // Bulk mutations
+  const bulkUpdateTransactions = useBulkUpdateTransactions();
+  const bulkDeleteTransactions = useBulkDeleteTransactions();
+
+  // Compute selected transaction IDs from rowSelection indices
+  const selectedTransactionIds = Object.keys(rowSelection)
+    .filter((key) => rowSelection[key])
+    .map((key) => movements[parseInt(key)])
+    .filter((m) => m?.resource_type === MOVEMENT_TYPES.TRANSACTION)
+    .map((m) => m.resource_id);
+
+  const handleBulkEdit = () => setBulkEditOpen(true);
+
+  const handleBulkEditSubmit = (data: BulkTransactionUpdateData) => {
+    bulkUpdateTransactions.mutate(
+      { ids: selectedTransactionIds, data },
+      {
+        onSuccess: () => {
+          setBulkEditOpen(false);
+          setRowSelection({});
+        },
+      }
+    );
+  };
+
+  const handleBulkDelete = () => {
+    bulkDeleteConfirmation.openModal(selectedTransactionIds, {
+      title: `Hapus ${selectedTransactionIds.length} Transaksi`,
+      description: `Semua ${selectedTransactionIds.length} transaksi yang dipilih akan dihapus. Tindakan ini tidak dapat dibatalkan.`,
+    });
+  };
+
+  const handleConfirmBulkDelete = (ids: number[]) => {
+    bulkDeleteTransactions.mutate(ids, {
+      onSuccess: () => setRowSelection({}),
+    });
+  };
+
   // Delete mutations
   const { mutateAsync: deleteTransaction } = useDeleteTransaction();
   const { mutateAsync: deleteTransfer } = useDeleteTransfer();
@@ -433,6 +479,7 @@ const TransactionHistory = () => {
 
   // Generate columns using separated column definitions
   const columns = getTransactionHistoryColumns({
+    enableRowSelection: true,
     onEdit: handleEdit,
     onDelete: handleDelete,
   });
@@ -604,6 +651,10 @@ const TransactionHistory = () => {
             pageSize={tableState.pageSize}
             setPage={tableActions.handlePageChange}
             setPageSize={tableActions.handlePageSizeChange}
+            rowSelection={rowSelection}
+            onRowSelectionChange={setRowSelection}
+            onBulkEdit={handleBulkEdit}
+            onBulkDelete={handleBulkDelete}
           />
 
           {/* Dialogs */}
@@ -669,6 +720,19 @@ const TransactionHistory = () => {
           <DeleteConfirmationModal
             deleteConfirmation={deleteConfirmation}
             onConfirm={handleConfirmDelete}
+          />
+
+          <BulkTransactionEditDialog
+            open={bulkEditOpen}
+            onOpenChange={setBulkEditOpen}
+            onSubmit={handleBulkEditSubmit}
+            isLoading={bulkUpdateTransactions.isPending}
+            selectedCount={selectedTransactionIds.length}
+          />
+
+          <DeleteConfirmationModal
+            deleteConfirmation={bulkDeleteConfirmation}
+            onConfirm={handleConfirmBulkDelete}
           />
         </div>
       </Layout>
